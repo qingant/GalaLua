@@ -139,6 +139,7 @@ namespace GLR
             //NODE_CONN,
             NODE_REG,
             NODE_SEND,
+            NODE_CHECK_REG,
         };
     public:
         BusController(); 
@@ -146,6 +147,7 @@ namespace GLR
         virtual void Request(lua_State *);
     private:
         void DoNodeReg(lua_State*);
+        void DoIsReg(lua_State*);
         void DoNodeSend(lua_State*);
     private:
         MLinkMap _LinkMap;

@@ -8,7 +8,22 @@ __doc__ = {
 }
 
 -- class AC_GalaTest --
-AC_GalaTest = {}
+AC_GalaTest = {
+-- implement --
+   __doc__ =  {
+      ["小分类"]="GalaTest",
+      ["内部"]=false,
+      ["过时"]=false,
+   }
+   __doc__.AC_pipe = {
+      
+   }
+   function AC_pipe(self, arg1, arg2)
+      
+      return {1, nil, nil, {arg1}}
+   end
+   
+}
 -- class docstring --
 AC_GalaTest.__doc__ = {
    ["小分类"]="GalaTest",
