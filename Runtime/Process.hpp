@@ -1,0 +1,68 @@
+/* -*- C++ -*- */
+
+/* Time-stamp: <2012-04-17 09:59:14 星期二 by OCaml> */
+
+/**
+ * @file Process.hpp
+ * @author qingant
+ */
+
+#ifndef CPROCESS_H
+#define CPROCESS_H
+#pragma once
+#include <cstub.h>
+#include <map>
+#include <string>
+#include <vector>
+#include "Object.hpp"
+#include "Exception.hpp"
+#include "Options.hpp"
+
+namespace Galaxy
+{
+   namespace GalaxyRT
+   {
+
+      class CProcess:public CNonCopyAble
+      {
+      public:
+         typedef VOID (*sig_t) (int);
+         typedef std::map<std::string, std::string> OPTMAP;
+         typedef std::pair<size_t, PSTR> ARGPAIR;
+         typedef std::vector<ARGPAIR> ARGPAIRS;
+      public:
+         CProcess(INT argc, CHAR **argv, CHAR **envp, const std::string &optfmt);
+         CProcess();
+         virtual ~CProcess();
+
+         // INT SignSignals(const std::vector<INT> &ign_signals);
+         bool  ExistOption(const std::string&);
+         const std::string& GetOption(const std::string&);
+         bool SetArgument(INT, const std::string&);
+         bool SetArgument(INT, const CHAR*);
+         virtual INT Run();
+         INT GetPID();
+         INT GetPPID();
+         bool SendSignalToSelf(INT sig_t);
+         void SetUmask(mode_t mask = 0);
+         bool SetRLimit(INT res, const struct rlimit *rlimit);
+         struct rlimit GetRLimit(INT res);
+      protected:
+         void Initialize(INT argc, CHAR **argv, CHAR **envp, const std::string &optfmt);
+
+      private:
+         bool ParseOpt(const std::string&);
+      private:
+         INT Argc;
+         CHAR **Argv;
+         CHAR **Envp;
+         ARGPAIRS ArgPairs;
+         OPTMAP Options;
+         std::vector<std::string> MainArg;
+         // std::auto_ptr<COptions> _COpts;
+      };
+
+   } /// namespace GalaxyRT
+} /// namespace Galaxy
+	
+#endif /* CPROCESS_H */
