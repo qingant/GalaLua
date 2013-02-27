@@ -57,8 +57,13 @@ public:
 
         try
         {
+            if (access(path, F_OK) != 0)
+            {
+                printf("Created\n");
+                Galaxy::AMQ::CGalaxyMQCreator _(std::string(path), std::string("who"), 1024*10, 8192, 32, 0, 0, 2500, 0, 0);
+            }
             *mq=new Galaxy::AMQ::CGalaxyMQ(path);
-        printf("%s\n",path);
+            printf("%s\n",path);
         }
         catch(std::exception &e)
         {
