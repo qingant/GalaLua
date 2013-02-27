@@ -134,7 +134,8 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
         pMsg->Type = REGISTER_OK;
         _Sock->SegmentSend(-1, msg.c_str(), msg.size());
         _Router.insert(std::make_pair(std::string(id), _Sock->GetFD()));
-        Runtime::GetInstance().GetBus().Send(_Gpid, msg);
+        GALA_DEBUG("%s registered", id);
+        //Runtime::GetInstance().GetBus().Send(_Gpid, msg);
     }
     else if (pMsg->Type == APPLICATION)
     {
@@ -222,8 +223,8 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port)
     _Id = id;
     GLR_MSG msg;
     msg.Type = REGISTER;
-    memcpy(msg.Source.Host, host.c_str(), host.size());
-    msg.Source.Port = port;
+    memcpy(msg.Source.Host, Runtime::GetInstance().Host().c_str(), Runtime::GetInstance().Host().size());
+    msg.Source.Port = Runtime::GetInstance().NodeId();
     uint32_t len = htonl(sizeof(GLR_MSG));
     _Sock->SegmentSend(-1, (const char*)&len, sizeof(len));
     _Sock->SegmentSend(-1, (const char*)&msg, sizeof(msg));

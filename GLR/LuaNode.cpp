@@ -34,8 +34,9 @@ void Process::SendMsg( const LN_MSG_TYPE &msg )
 
     if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
     {
+        lua_pushboolean(_Stack, 1);
         lua_pushlstring(_Stack, msg.c_str(), msg.size());
-        _Status._NArg = 1;
+        _Status._NArg = 2;
         _Status._State = Process::ProcessStatus::RECV_RETURN;
         StackDump();
         Runtime::GetInstance().GetSchedule().PutTask(*this);
@@ -103,8 +104,9 @@ int Process::Spawn( lua_State *l )
     node.Start(Schedule::GetInstance());
 
     // Return Value to Calling Lua Node
+    lua_pushboolean(l, 1);
     lua_pushinteger(l, node_id);
-    return 1;
+    return 2;
 
     // Op on Self State
     //lua_getglobal(this->_Stack, buf);

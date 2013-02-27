@@ -1,4 +1,4 @@
-all:lib luaTest
+all:lib glr
 lib:libGLR.so
 include ../mk.rules
 ROOT_DIR = ../..
@@ -13,8 +13,8 @@ libGLR.so:LuaNode.o Schedule.o GLR.o Bus.o Controllers.o SocketController.o BusC
 
 ttt:ttt.o
 	$(G++) $?  $(SYTMLIB) $(STUBLIB)  -lluajit -o $@
-luaTest:LuaTest.o
+glr:LuaTest.o
 	@echo $(PLATFORM)
 	rm -f $@
 	$(G++) $?  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -o $@
-#	mv $@ $(HOME)/bin/
+	mv $@ $(HOME)/bin/
