@@ -5,6 +5,7 @@
 #include <exception>
 #include <tr1/unordered_map>
 #include "Runtime/Queue.hpp"
+#include "Runtime/Utils.hpp"
 #include "GLR.hpp"
 #pragma once
 
@@ -15,6 +16,25 @@ namespace GLR
     typedef int32_t     LN_ID_TYPE;
     typedef Galaxy::GalaxyRT::_TypeDef_FIFO<std::string>::CFIFOQueue LN_CHL_TYPE;
     class Schedule;
+    class Globals
+    {
+
+    public:
+        struct UserData
+        {
+            void *Content;
+            std::string Name;
+            UserData():Content(NULL), Name(32,0){}
+        };
+        typedef Galaxy::GalaxyRT::ConcurrentMap<std::string, UserData> VARMAP;
+    public:
+        Globals();
+        ~Globals();
+        void Put(const std::string &, void**, const std::string &);
+        const UserData &Get(const std::string &);
+    private:
+        VARMAP _VarMap;
+    };
     class Process 
     {
     public:
@@ -58,9 +78,11 @@ namespace GLR
         static void Status();
     private:
         static std::tr1::unordered_map<int,Process*> NodeMap;
-        
+
         static Galaxy::GalaxyRT::CRWLock  Lock;
         static int32_t NodeId;
+    public:
+        static Globals GlobalVars;
     public:
         // Built In Ops
         static int Spawn(lua_State *l); 
@@ -71,6 +93,8 @@ namespace GLR
         static int Interrupt(lua_State *l);
         static int Status(lua_State *l);
         static int AllProcesses(lua_State *l);
+        static int RegisterGlobal(lua_State *l);
+        static int GetGlobal(lua_State *l);
     public:
         static LN_ID_TYPE CreateNode();
         static Process &GetNodeById(LN_ID_TYPE);

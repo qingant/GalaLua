@@ -139,6 +139,8 @@ void Process::InitNode( void )
         {"int", Interrupt},
         {"all", AllProcesses},
         {"status", Status},
+        {"global", RegisterGlobal},
+        {"get_global", GetGlobal},
         {NULL, NULL},
     };
     luaL_register(_Stack, "glr", glr_reg);
@@ -442,4 +444,50 @@ int Process::AllProcesses( lua_State *l )
         lua_rawseti(l, -2, i);
     }
     return 2;
+}
+
+GLR::Globals::Globals()
+{
+
+}
+
+GLR::Globals::~Globals()
+{
+
+}
+
+void GLR::Globals::Put( const std::string &id, void **data, const std::string &type)
+{
+    UserData ud;
+    ud.Content = *data;
+    ud.Name = type;
+    _VarMap.insert(std::make_pair(id, ud));
+}
+
+const GLR::Globals::UserData & GLR::Globals::Get( const std::string &id )
+{
+    return _VarMap[id];
+}
+
+GLR::Globals GLR::Process::GlobalVars;
+
+int GLR::Process::RegisterGlobal( lua_State *l )
+{
+    void *ud = lua_touserdata(l, 2);
+    const char *id = luaL_checkstring(l, 1);
+    const char *type = luaL_checkstring(l, 3);
+    GlobalVars.Put(id, (void**)ud, type);
+    lua_pushboolean(l, 1);
+    return 1;
+}
+
+int GLR::Process::GetGlobal( lua_State *l )
+{
+    const char *id = luaL_checkstring(l, 1);
+    const Globals::UserData &ud = GlobalVars.Get(id);
+    void *p = lua_newuserdata(l, sizeof(ud.Content));
+    memcpy(p, &ud.Content, sizeof(ud.Content));
+    luaL_getmetatable(l,ud.Name.c_str());
+    lua_setmetatable(l, -2);
+    return 1;
 }
