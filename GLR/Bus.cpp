@@ -73,7 +73,7 @@ void GLR::Bus::Return( int pid, int narg, ...)
 
 void GLR::Bus::Send( int pid, const std::string &msg )
 {
-    Runtime::GetInstance().GetProcess(pid).SendMsg(msg);
+   Process::SendMsgToNode(pid, msg);
 }
 
 void Bus::Response( int pid, int narg, ...)
@@ -137,7 +137,18 @@ void Bus::RegisterDevice( IController *con )
 void Bus::Interrupt( int device, lua_State *l )
 {
     printf("Interrupt No (%d)\n", device);
-    _Devices[device]->Request(l);
+    try
+    {
+        _Devices[device]->Request(l);
+    }
+    catch (Galaxy::GalaxyRT::CException &e)
+    {
+        GALA_DEBUG("Bus Error (%s)", e.what());
+        lua_getglobal(l,"__id__");
+        int pid = luaL_checkinteger(l,-1);
+        const char *err = e.what();
+        Return(pid, 2, LUA_TNIL, LUA_TSTRING, err, strlen(err));
+    }
     //return lua_yield(l);
 }
 

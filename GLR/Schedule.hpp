@@ -54,7 +54,7 @@ namespace GLR
     public:
         friend class Processor;
         static Schedule &GetInstance(int threads = 4);
-        void CoreThread();
+        //void CoreThread();
         void PutTask(Process &node);
     public:
         ~Schedule(void);

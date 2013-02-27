@@ -15,6 +15,9 @@ AC_GalaTest = {
       ["内部"]=false,
       ["过时"]=false,
    }
+
+
+
    __doc__.AC_pipe = {
       
    }
@@ -38,7 +41,6 @@ function AC_GalaTest:new(o)
    self.__index = self
    return o
 end
-
 
 
 -- component --

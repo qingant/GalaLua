@@ -1,4 +1,3 @@
---
 --[[
    Author: Julio Manuel Fernandez-Diaz
    Date:   January 12, 2007

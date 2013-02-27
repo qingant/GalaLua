@@ -149,6 +149,7 @@ namespace GLR
         void DoNodeReg(lua_State*);
         void DoIsReg(lua_State*);
         void DoNodeSend(lua_State*);
+        void DoCheckReg(lua_State*);
     private:
         MLinkMap _LinkMap;
         Galaxy::GalaxyRT::CPthreadMutex _Mutex;

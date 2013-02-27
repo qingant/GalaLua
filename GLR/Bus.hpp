@@ -50,9 +50,11 @@ namespace GLR
         //void Response(int pid, int narg){Response(pid,narg,NULL);}
         void Return(int pid, int narg,...);
         void Send(int pid, const std::string&);
+        Galaxy::GalaxyRT::CPthreadMutex &Lock(){return _Lock;}
         ~Bus(void);
     private:
         DEVICE_ARRAY _Devices;
+        Galaxy::GalaxyRT::CPthreadMutex _Lock;
         //DEVICE_MAP   _DevMap;
     };
 };

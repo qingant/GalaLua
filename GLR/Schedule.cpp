@@ -35,33 +35,39 @@ Schedule::Schedule( int threads )
         //_Cores.push_back(t);
     }
 }
-
-void Schedule::CoreThread()
-{
-    while (true)
-    {
-        
-        Process *node = NULL;
-        
-        try
-        {
-	        node = _ScheQueue.Get();
-        }   
-        catch (const std::exception &e)
-        {
-            //printf("%s\n", e.what());
-            return;
-        }
-        
-        node->Resume();
-        if (node->State() == Process::ProcessStatus::YIELD)
-        {
-            _ScheQueue.Put(node);
-
-        }
-    }
-
-}
+//
+//void Schedule::CoreThread()
+//{
+//    while (true)
+//    {
+//
+//        Process *node = NULL;
+//
+//        try
+//        {
+//            node = _ScheQueue.Get();
+//        }   
+//        catch (const std::exception &e)
+//        {
+//            //printf("%s\n", e.what());
+//            return;
+//        }
+//        try
+//        {
+//            node->Resume();
+//            if (node->State() == Process::ProcessStatus::YIELD)
+//            {
+//                _ScheQueue.Put(node);
+//            }
+//        }
+//        catch (Galaxy::GalaxyRT::CException& e)
+//        {
+//            GALA_DEBUG(e.what());
+//            Process::Destory(node->Id());
+//        }
+//    }
+//
+//}
 
 void Schedule::PutTask( Process &node )
 {
@@ -84,14 +90,14 @@ void* Processor::Run( const Galaxy::GalaxyRT::CThread &thread)
 
     while (true)
     {
-        
+
         Process *node = NULL;
-        
+
         try
         {
             _Status._State = ProcessorStatus::WAITING;
             time(&_Status._LastOp);
-	        node = _Sche._ScheQueue.Get();
+            node = _Sche._ScheQueue.Get();
 
             // Set Status
             _Status._State = ProcessorStatus::RUNNING;
@@ -105,12 +111,18 @@ void* Processor::Run( const Galaxy::GalaxyRT::CThread &thread)
             printf("%s\n", e.what());
             return NULL;
         }
-        
-        node->Resume();
-        if (node->State() == Process::ProcessStatus::YIELD)
+        try
         {
-            _Sche._ScheQueue.Put(node);
-
+            node->Resume();
+            if (node->State() == Process::ProcessStatus::YIELD)
+            {
+                _Sche._ScheQueue.Put(node);
+            }
+        }
+        catch (Galaxy::GalaxyRT::CException& e)
+        {
+            GALA_DEBUG(e.what());
+            Process::Destory(node->Id());
         }
     }
     return NULL;

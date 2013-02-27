@@ -30,6 +30,7 @@ namespace GLR
                 YIELD,        // Not Running, Waiting for Scheduled
                 SUSPEND,      //
                 RECV_WAIT,    // On glr.recv call while no msg available
+                RECV_RETURN,
                 INT_WAIT,     // On Interrupt, wait for wake up
                 INT_RESP,     
                 GLR_CALL,     // trap in glr system call
@@ -55,8 +56,10 @@ namespace GLR
         void InitNode(void);
     public:
         static void Status();
-    public:
+    private:
         static std::tr1::unordered_map<int,Process*> NodeMap;
+        
+        static Galaxy::GalaxyRT::CRWLock  Lock;
         static int32_t NodeId;
     public:
         // Built In Ops
@@ -66,10 +69,14 @@ namespace GLR
         static int Debug(lua_State *l);
         static void Preempt(lua_State *l, lua_Debug *ar);
         static int Interrupt(lua_State *l);
+        static int Status(lua_State *l);
+        static int AllProcesses(lua_State *l);
     public:
         static LN_ID_TYPE CreateNode();
         static Process &GetNodeById(LN_ID_TYPE);
-        
+        static void Destory(LN_ID_TYPE);
+        static void SendMsgToNode(LN_ID_TYPE, const std::string &);
+
     public:
         void DoString(const std::string&);
         void LoadFile(const std::string &path);
@@ -78,7 +85,6 @@ namespace GLR
         LN_MSG_TYPE RecvMsg();
         void Resume();
         void Interrupt(int);
-
         void Start(Schedule&);
         int Yield();
         ProcessStatus::STATE State() const;
@@ -92,7 +98,7 @@ namespace GLR
         lua_State * Stack() const { return _Stack; }
     private:
         lua_State *_Stack;
-        
+
         LN_CHL_TYPE _Channel;
         Galaxy::GalaxyRT::CPthreadMutex              _Lock;
         Galaxy::GalaxyRT::CPthreadMutex              _IntLock;   //Interrupt Lock

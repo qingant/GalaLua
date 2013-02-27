@@ -33,7 +33,6 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
         {
             Galaxy::GalaxyRT::CSelector::EV_PAIR &ev = evs[i];
             MessageStack *ms = _LinkMap[ev.first];
-            GALA_ERROR("Fd(%d) EVent(%d)", ev.first, ev.second);
             try
             {
                 if (ev.second&Galaxy::GalaxyRT::EV_ERR || 
@@ -43,6 +42,7 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
                     )
                 {
                     ms->OnErr(ev, _Poller);
+                    THROW_EXCEPTION_EX("");
 
                 } 
                 else if (ev.second&Galaxy::GalaxyRT::EV_IN)
@@ -139,7 +139,7 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
     else if (pMsg->Type == APPLICATION)
     {
         GALA_DEBUG("App Msg (%d)", _Gpid);
-        Runtime::GetInstance().GetBus().Send(ntohl(pMsg->Desination.GPid), msg);
+        Runtime::GetInstance().GetBus().Send(ntohl(pMsg->Desination.GPid), pMsg->Content);
     }
 }
 
@@ -195,7 +195,6 @@ void GLR::MessageLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, PO
     Task &t = _SendTaskQ.Head();
     size_t len = _Sock->Send(&t.Buffer[t.Current], t.Buffer.size() - t.Current);
     t.Current += len;
-    GALA_ERROR("Current(%d) (%d)", t.Current, t.Buffer.size());
     if (t.Current == t.Buffer.size())
     {
         _SendTaskQ.Get();
@@ -274,6 +273,8 @@ void GLR::BusController::Request( lua_State *l )
     case NODE_SEND:
         DoNodeSend(l);
         break;
+    case NODE_CHECK_REG:
+        DoCheckReg(l);
     default:
         break;
     }
@@ -308,12 +309,12 @@ void GLR::BusController::DoNodeReg( lua_State *l )
             Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
             return;
         }
-     //   ms->_Gpid = des_pid;
+        //   ms->_Gpid = des_pid;
         _LinkMap[c->GetFD()] = ms;
         _Router.insert(std::make_pair(std::string(id), c->GetFD()));
         _Poller.Register(c->GetFD(), Galaxy::GalaxyRT::EV_IN);
         GALA_ERROR("Return %d", pid);
-        Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TNUMBER, c->GetFD());
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 1, LUA_TNUMBER, c->GetFD());
     }
 }
 
@@ -345,5 +346,28 @@ void GLR::BusController::DoNodeSend( lua_State *l )
     msg = luaL_checklstring(l, 5, &len);
     ms->PutSendTask(std::string(msg, len), des_pid);
     _Poller.Register(fd, Galaxy::GalaxyRT::EV_OUT);
+    Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
+}
+
+void GLR::BusController::DoCheckReg( lua_State *l)
+{
+    lua_getglobal(l,"__id__");
+    int pid = luaL_checkinteger(l,-1);
+    const char* host = luaL_checkstring(l, 3);
+    int port = luaL_checkinteger(l, 4);
+    char id[64] = {0};
+    snprintf(id, sizeof(id), "%s::%d", host, port);
+    if (!_Router.has_key(id))
+    {
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 0);
+        return;
+    }
+    int fd = _Router.find_ex(id);
+    MessageLinkStack *ms = (MessageLinkStack*)(_LinkMap[fd]);
+    if (ms == NULL)
+    {
+        Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 0);
+        return;
+    }
     Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
 }

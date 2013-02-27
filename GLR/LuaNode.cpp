@@ -4,6 +4,7 @@
 //defines of static data member
 using namespace GLR;
 std::tr1::unordered_map<int,Process*> Process::NodeMap;
+Galaxy::GalaxyRT::CRWLock Process::Lock;
 int32_t Process::NodeId;
 
 
@@ -15,6 +16,7 @@ Process::Process(void)
     {
         THROW_EXCEPTION_EX("Create Lua Stack Failure");
     }
+    time(&_Status._Start);
     InitNode();
 }
 
@@ -26,13 +28,16 @@ Process::~Process(void)
 
 void Process::SendMsg( const LN_MSG_TYPE &msg )
 {
+    Galaxy::GalaxyRT::CLockGuard _gl(&_Lock);
     bool isEmpty = _Channel.Empty();
 
-    Galaxy::GalaxyRT::CLockGuard _gl(&_Lock);
+
     if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
     {
         lua_pushlstring(_Stack, msg.c_str(), msg.size());
         _Status._NArg = 1;
+        _Status._State = Process::ProcessStatus::RECV_RETURN;
+        StackDump();
         Runtime::GetInstance().GetSchedule().PutTask(*this);
 
     }
@@ -55,10 +60,12 @@ LN_MSG_TYPE Process::RecvMsg()
 
 LN_ID_TYPE Process::CreateNode()
 {
-    Process *node = new Process();
-    printf("Node(%p:%d) Created!\n", node, node->_Id);
-    NodeMap.insert(std::make_pair(node->_Id, node));
-    return node->_Id;
+    std::auto_ptr<Process> node(new Process());
+    printf("Node(%p:%d) Created!\n", node.get(), node->_Id);
+    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+    NodeMap.insert(std::make_pair(node->_Id, node.get()));
+    return node.release()->_Id;
 }
 int Process::Spawn( lua_State *l )
 {
@@ -106,7 +113,14 @@ int Process::Spawn( lua_State *l )
 
 Process & Process::GetNodeById( LN_ID_TYPE id)
 {
-    return (*NodeMap[id]);
+
+    Process *p = NodeMap[id];
+    if (p == NULL)
+    {
+        THROW_EXCEPTION_EX("Process Not Exist");
+    }
+    return *p;
+
 
 }
 
@@ -121,6 +135,8 @@ void Process::InitNode( void )
         {"send", SendMsgToNode},
         {"recv", Recieve},
         {"int", Interrupt},
+        {"all", AllProcesses},
+        {"status", Status},
         {NULL, NULL},
     };
     luaL_register(_Stack, "glr", glr_reg);
@@ -171,7 +187,8 @@ int Process::SendMsgToNode( lua_State *l )
     size_t len = 0;
     const char *msg = luaL_checklstring(l, 2, &len);
     GetNodeById(id).SendMsg(LN_MSG_TYPE(msg, len));
-    return 0;
+    lua_pushboolean(l, 1);
+    return 1;
 }
 
 void Process::Preempt( lua_State *l, lua_Debug *ar )
@@ -246,8 +263,9 @@ int Process::Recieve( lua_State *l )
         }
     }
     LN_MSG_TYPE msg = self.RecvMsg();
+    lua_pushboolean(l, 1);
     lua_pushlstring(self._Stack, msg.c_str(), msg.size());
-    return 1;
+    return 2;
 }
 
 void Process::DoString( const std::string &code )
@@ -344,7 +362,7 @@ void Process::Interrupt( int device)
 
 }
 
-int GLR::Process::Interrupt( lua_State *l )
+int Process::Interrupt( lua_State *l )
 {
 
     lua_getglobal(l, "__id__");
@@ -360,4 +378,66 @@ int GLR::Process::Interrupt( lua_State *l )
     }
     printf("Yield\n");
     return n.Yield();
+}
+
+void Process::Destory( LN_ID_TYPE pid)
+{
+    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+    Process *p = NodeMap[pid];
+    if (p == NULL)
+    {
+        return;
+    }
+    NodeMap[pid] = NULL;
+    delete p;
+}
+
+void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg)
+{
+    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+    GetNodeById(pid).SendMsg(msg);
+}
+
+int Process::Status( lua_State *l )
+{
+
+    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+
+    int pid = luaL_checkinteger(l, 1);
+    Process &nd = GetNodeById(pid);
+    lua_pushboolean(l, 1);
+    lua_newtable(l);
+    lua_pushinteger(l, nd._Status._State);
+    lua_setfield(l, -2, "state");
+
+    lua_pushinteger(l, nd._Status._Start);
+    lua_setfield(l, -2, "start_stamp");
+
+    lua_pushinteger(l, nd._Status._LastOp);
+    lua_setfield(l, -2, "last_op_stamp");
+
+    lua_pushinteger(l, nd._Status._Tick);
+    lua_setfield(l, -2, "sche_tick");
+
+    lua_pushinteger(l, nd._Channel.Size());
+    lua_setfield(l, -2, "msg_num");
+    return 2;
+}
+
+int Process::AllProcesses( lua_State *l )
+{
+    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+    lua_pushboolean(l, 1);
+    lua_newtable(l);
+    int i = 0;
+    for (std::tr1::unordered_map<int, Process*>::iterator it = NodeMap.begin(); it != NodeMap.end(); ++it, ++i)
+    {
+        lua_pushinteger(l, it->first);
+        lua_rawseti(l, -2, i);
+    }
+    return 2;
 }
