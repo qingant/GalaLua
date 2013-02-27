@@ -33,4 +33,4 @@ endif
 	$(G++) $(CMPFLAG_) -o$@ $<
 .PHONY: clean
 clean:
-	rm *.o
+	rm -f *.o *.so
