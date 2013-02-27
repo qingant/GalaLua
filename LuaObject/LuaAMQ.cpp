@@ -52,12 +52,13 @@ public:
     static int init(lua_State *L)
     {
         const char *path=luaL_checkstring(L,1);
-
+        printf("%s\n",path);
         const Galaxy::AMQ::CGalaxyMQ **mq=(const Galaxy::AMQ::CGalaxyMQ **)lua_newuserdata(L,sizeof(Galaxy::AMQ::CGalaxyMQ *));
 
         try
         {
             *mq=new Galaxy::AMQ::CGalaxyMQ(path);
+        printf("%s\n",path);
         }
         catch(std::exception &e)
         {
@@ -539,6 +540,10 @@ public:
         luaL_newmetatable(L,"IMQueue");
         luaL_register(L,NULL,m);
 
+        setfield_int(L,IMQueue::MQC_RTL,"MQC_RTL");
+        setfield_int(L,IMQueue::MQC_QRY,"MQC_QRY");
+        setfield_int(L,IMQueue::MQC_BAT,"MQC_BAT");
+
         lua_pushvalue(L,-1);
         lua_setfield(L,-2,"__index");
     }
@@ -623,20 +628,6 @@ public:
         luaL_newmetatable(L,"IMQView");
         luaL_register(L,NULL,m);
 
-         /*typedef enum
-         {
-            // real time ,highest prior
-            MQC_RTL=0,
-            // query
-            MQC_QRY=1,
-            // bat
-            MQC_BAT=2
-         }EMQCHL;
-        */
-        setfield_int(L,IMQueue::MQC_RTL,"MQC_RTL");
-        setfield_int(L,IMQueue::MQC_QRY,"MQC_QRY");
-        setfield_int(L,IMQueue::MQC_BAT,"MQC_BAT");
-        
         lua_pushvalue(L,-1);
         lua_setfield(L,-2,"__index");
     }
