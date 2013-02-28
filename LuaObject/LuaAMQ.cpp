@@ -1,4 +1,3 @@
-
 #include "AMQ/MQDQ.hpp"
 #include "AMQ/MQNQ.hpp"
 #include "AMQ/MQBlock.hpp"
@@ -35,15 +34,6 @@ public:
 private:
     char buf[8196];
     int size;
-};
-
-class IMQ
-{
-public:
-//virtual void BKD(UINT _BKDCode,...) const = 0;
-//virtual const IMQueueArray &NQArray() const = 0;
-//virtual const IMQueueArray &DQArray() const = 0;
-//virtual const IPoolerView &PoolerView() const = 0;
 };
 
 class CGalaxyMQ4Lua
@@ -87,18 +77,6 @@ public:
         *mq=NULL;
         return 0;
     }
-    static int PoolerView(lua_State *L)
-    {
-        CGalaxyMQ *p=lua_checkCGalaxyMQ(L,1);
-        const Galaxy::AMQ::IPoolerView **ppoolview=(const Galaxy::AMQ::IPoolerView **)lua_newuserdata(L,sizeof(Galaxy::AMQ::IPoolerView *));
-         
-        CALL_CPP_FUNCTION(L,*ppoolview=&(p->PoolerView()));
-        
-        luaL_getmetatable(L,"PoolerView");
-        lua_setmetatable(L,-2);
-
-        return 1;
-    }
     static int NQArray(lua_State *L)
     {
         CGalaxyMQ *p=lua_checkCGalaxyMQ(L,1);
@@ -111,48 +89,6 @@ public:
 
         return 1;
     }
-    static int DQArray(lua_State *L)
-    {
-        CGalaxyMQ *p=lua_checkCGalaxyMQ(L,1);
-        const Galaxy::AMQ::IMQueueArray **pp=(const Galaxy::AMQ::IMQueueArray **)lua_newuserdata(L,sizeof(Galaxy::AMQ::IMQueueArray*));
-         
-        CALL_CPP_FUNCTION(L,*pp=&(p->DQArray()));
-        
-        luaL_getmetatable(L,"IMQueueArray");
-        lua_setmetatable(L,-2);
-
-        return 1;
-    }
-    static int Get(lua_State *L)
-    {
-        CGalaxyMQ *p=lua_checkCGalaxyMQ(L,1);
-        const Galaxy::AMQ::IMQueue **pp=(const Galaxy::AMQ::IMQueue**)lua_newuserdata(L,sizeof(Galaxy::AMQ::IMQueue*));
-
-        int index =luaL_checkint(L,2);
-        if (!isValidChannel(index))
-        {
-            return luaL_error(L,"%d is not a valid channel %s  %d",index,__func__,__LINE__);
-        }
-
-        CALL_CPP_FUNCTION(L,*pp=&((*p)[index]));
-        
-        luaL_getmetatable(L,"IMQueue");
-        lua_setmetatable(L,-2);
-
-        return 1;
-    }
-    static int InstanceOfSuite(lua_State *L)
-    {
-        CGalaxyMQ *p=lua_checkCGalaxyMQ(L,1);
-        const Galaxy::AMQ::IMQ **pp=(const Galaxy::AMQ::IMQ**)lua_newuserdata(L,sizeof(Galaxy::AMQ::IMQ *));
-         
-        CALL_CPP_FUNCTION(L,*pp=&(p->InstanceOfSuite()));
-        
-        luaL_getmetatable(L,"IMQ");
-        lua_setmetatable(L,-2);
-
-        return 1;
-    }
 
 private:
     static CGalaxyMQ *lua_checkCGalaxyMQ(lua_State *L,int n)
@@ -160,118 +96,7 @@ private:
         return *(CGalaxyMQ **)luaL_checkudata(L,n,"CGalaxyMQ");
     }
 public:
-    static void register_CGalaxyMQ(lua_State *L)
-    {
-        struct luaL_Reg f[]={
-            {"new",init},
-            {NULL,NULL}
-        };
 
-        struct luaL_Reg m[]={
-            {"__gc",finalizer},
-            {"finalizer",finalizer},
-            {"pooler_view",PoolerView}, 
-            {"DQArray",DQArray}, 
-            {"NQArray",NQArray}, 
-            {"get",Get}, 
-            {"instance_of_suite",InstanceOfSuite}, 
-            {NULL,NULL}
-        };
-
-        luaL_newmetatable(L,"CGalaxyMQ");
-        luaL_register(L,NULL,m);
-
-        lua_pushvalue(L,-1);
-        lua_setfield(L,-2,"__index");
-
-        luaL_register(L,"AMQ",f);
-
-    }
-
-};
-
-class IPoolerView4Lua
-{
-public:
-    static int Pages(lua_State *L)
-    {
-        IPoolerView *poolview=lua_checkPoolerView(L,1);
-        int pages=poolview->Pages();
-
-        lua_pushnumber(L,pages);
-
-        return 1;
-    }
-    static int PageSize(lua_State *L)
-    {
-        IPoolerView *poolview=lua_checkPoolerView(L,1);
-        int size=poolview->PageSize();
-
-        lua_pushnumber(L,size);
-
-        return 1;
-    }
-    static int Total(lua_State *L)
-    {
-        IPoolerView *poolview=lua_checkPoolerView(L,1);
-        int size=poolview->PageSize();
-
-        lua_pushnumber(L,size);
-
-        return 1;
-    }
-    static int Head(lua_State *L)
-    {
-        IPoolerView *poolview=lua_checkPoolerView(L,1);
-        int head=poolview->Head();
-
-        lua_pushnumber(L,head);
-
-        return 1;
-    }
-    static int Tail(lua_State *L)
-    {
-        IPoolerView *poolview=lua_checkPoolerView(L,1);
-        int tail=poolview->Tail();
-
-        lua_pushnumber(L,tail);
-
-        return 1;
-    }
-    static int Lurkers(lua_State *L)
-    {
-        IPoolerView *poolview=lua_checkPoolerView(L,1);
-        int lurker=poolview->Lurkers();
-
-        lua_pushnumber(L,lurker);
-
-        return 1;
-    }
-private:
-    static IPoolerView* lua_checkPoolerView(lua_State *L,int n)
-    {
-        return *(IPoolerView **)luaL_checkudata(L,n,"IPoolerView");
-    }
-public:
-    static void register_IPoolerView(lua_State *L)
-    {
-
-        struct luaL_Reg m[]={
-            {"pages",Pages},
-            {"page_size",PageSize},
-            {"head",Head},
-            {"total",Total},
-            {"tail",Tail},
-            {"lurkers",Lurkers},
-            {NULL,NULL}
-        };
-
-        luaL_newmetatable(L,"IPoolerView");
-        luaL_register(L,NULL,m);
-
-        lua_pushvalue(L,-1);
-        lua_setfield(L,-2,"__index");
-    }
 };
 
 class IMQueueArray4Lua
@@ -341,108 +166,99 @@ public:
     static int Get(lua_State *L)
     {
         IMQueue *pMQ=lua_checkMQ(L,1);
-        int i =luaL_checkint(L,2);
-        if (!isValidChannel(i))
-        {
-            return luaL_error(L,"%d is not a valid channel %s  %d",i,__func__,__LINE__);
-        }
 
         BlockBuffer block;
         UINT len;
         UINT id;
 
-        id=pMQ->Get((IMQueue::EMQCHL )i,block,len);
+        CALL_CPP_FUNCTION(L,id=pMQ->Get(IMQueue::MQC_BAT,block,len));
         
-        //return 3 members , maybe should return table  instead?
-        lua_pushnumber(L,id);
         lua_pushlstring(L,(const char *)block.RAWEntry(),len);    //it's not the zero-terminated string
-        lua_pushnumber(L,len);
-        
-        return 3;
+        return 1;
     }
 
     static int TimedGet(lua_State *L)
     {
         IMQueue *pMQ=lua_checkMQ(L,1);
-        int i =luaL_checkint(L,2);
-        short timeout =luaL_checkint(L,3);
-
-        if (!isValidChannel(i))
-        {
-            return luaL_error(L,"%d is not a valid channel %s  %d",i,__func__,__LINE__);
-        }
+        short timeout =luaL_checkint(L,2);
 
         BlockBuffer block;
         UINT len;
         UINT id;
 
-        id=pMQ->TimedGet((IMQueue::EMQCHL)i,block,len,timeout);
+        CALL_CPP_FUNCTION(L,id=pMQ->TimedGet(IMQueue::MQC_BAT,block,len,timeout));
         
-        //return 3 members , maybe should return table  instead?
-        lua_pushnumber(L,id);
         lua_pushlstring(L,(const char *)block.RAWEntry(),len);    //it's not the zero-terminated string
-        lua_pushnumber(L,len);
         
-        return 3;
+        return 1;
     }
 
     static int PutEx(lua_State *L)
     {
         IMQueue *pMQ=lua_checkMQ(L,1);
-        int i =luaL_checkint(L,2);
-        if (!isValidChannel(i))
-        {
-            return luaL_error(L,"%d is not a valid channel %s  %d",i,__func__,__LINE__);
-        }
-        const char *buf=luaL_checkstring(L,3);
         
-        if (lua_type(L,4)!=LUA_TBOOLEAN)
+        const char *buf=luaL_checkstring(L,2);
+        
+        if (lua_type(L,3)!=LUA_TBOOLEAN)
         {
             return luaL_error(L,"not a boolean %s   %d",__func__,__LINE__);
         }
-        bool _ExPosHead=lua_toboolean(L,4);
+        bool _ExPosHead=lua_toboolean(L,3);
 
         BlockBuffer block(buf,strlen(buf)+1);
         UINT len;
         UINT id;
 
-        id=pMQ->PutEx((IMQueue::EMQCHL)i,block,len,_ExPosHead);
+        id=pMQ->PutEx(IMQueue::MQC_RTL,block,len,_ExPosHead);
 
-        lua_pushnumber(L,id); 
-        return 1;
+        return 0;
     }
     static int Put(lua_State *L)
     {
         IMQueue *pMQ=lua_checkMQ(L,1);
-        int i =luaL_checkint(L,2);
-        if (!isValidChannel(i))
-        {
-            return luaL_error(L,"%d is not a valid channel %s  %d",i,__func__,__LINE__);
-        }
-        const char *buf=luaL_checkstring(L,3);
+        
+        const char *buf=luaL_checkstring(L,2);
 
         BlockBuffer block(buf,strlen(buf)+1);
         UINT len;
         UINT id;
 
-        id=pMQ->Put((IMQueue::EMQCHL)i,block,len);    //why should we pass  argument len, it just size of block
+        CALL_CPP_FUNCTION(L,id=pMQ->Put(IMQueue::MQC_RTL,block,len)); 
 
-        lua_pushnumber(L,id); 
-//        lua_pushnumber(L,len);    //len=block.RawSize()
-        return 1;
+        return 0;
     }
 
     static int TimedPut(lua_State *L)
     {
         IMQueue *pMQ=lua_checkMQ(L,1);
 
-        int i =luaL_checkint(L,2);
-        if (!isValidChannel(i))
-        {
-            return luaL_error(L,"%d is not a valid channel %s  %d",i,__func__,__LINE__);
-        }
-        const char *buf=luaL_checkstring(L,3);
+        const char *buf=luaL_checkstring(L,2);
         
+        int timeout=luaL_checkint(L,3);
+        if (timeout>SHRT_MAX)
+        {
+            luaL_error(L,"number %d is not short  %s   %d",timeout,__func__,__LINE__);
+        }
+
+        BlockBuffer block(buf,strlen(buf)+1);
+        UINT len;
+        UINT id;
+
+        CALL_CPP_FUNCTION(L,id=pMQ->TimedPut(IMQueue::MQC_RTL,block,len,timeout));
+
+        return 0;
+    }
+    static int TimedPutEx(lua_State *L)
+    {
+        IMQueue *pMQ=lua_checkMQ(L,1);
+
+        const char *buf=luaL_checkstring(L,2);
+        
+        if (lua_type(L,3)!=LUA_TBOOLEAN)
+        {
+            return luaL_error(L,"not a boolean %s   %d",__func__,__LINE__);
+        }
+        bool _ExPosHead=lua_toboolean(L,3);
         int timeout=luaL_checkint(L,4);
         if (timeout>SHRT_MAX)
         {
@@ -453,41 +269,9 @@ public:
         UINT len;
         UINT id;
 
-        id=pMQ->TimedPut((IMQueue::EMQCHL)i,block,len,timeout);
+        CALL_CPP_FUNCTION(L,id=pMQ->TimedPutEx(IMQueue::MQC_RTL,block,len,_ExPosHead,timeout));
 
-        lua_pushnumber(L,id); 
-        return 1;
-    }
-    static int TimedPutEx(lua_State *L)
-    {
-        IMQueue *pMQ=lua_checkMQ(L,1);
-
-        int i =luaL_checkint(L,2);
-        if (!isValidChannel(i))
-        {
-            return luaL_error(L,"%d is not a valid channel %s  %d",i,__func__,__LINE__);
-        }
-        const char *buf=luaL_checkstring(L,3);
-        
-        if (lua_type(L,4)!=LUA_TBOOLEAN)
-        {
-            return luaL_error(L,"not a boolean %s   %d",__func__,__LINE__);
-        }
-        bool _ExPosHead=lua_toboolean(L,4);
-        int timeout=luaL_checkint(L,5);
-        if (timeout>SHRT_MAX)
-        {
-            luaL_error(L,"number %d is not short  %s   %d",timeout,__func__,__LINE__);
-        }
-
-        BlockBuffer block(buf,strlen(buf)+1);
-        UINT len;
-        UINT id;
-
-        id=pMQ->TimedPutEx((IMQueue::EMQCHL)i,block,len,_ExPosHead,timeout);
-
-        lua_pushnumber(L,id); 
-        return 1;
+        return 0;
     }
 
     static int GetMaxDepth(lua_State *L)
@@ -544,10 +328,6 @@ public:
 
         luaL_newmetatable(L,"IMQueue");
         luaL_register(L,NULL,m);
-
-        setfield_int(L,IMQueue::MQC_RTL,"MQC_RTL");
-        setfield_int(L,IMQueue::MQC_QRY,"MQC_QRY");
-        setfield_int(L,IMQueue::MQC_BAT,"MQC_BAT");
 
         lua_pushvalue(L,-1);
         lua_setfield(L,-2,"__index");
@@ -640,11 +420,29 @@ public:
 
 extern "C" int luaopen_amq(lua_State *L)
 {
-    IPoolerView4Lua::register_IPoolerView(L);    
     IMQueueArray4Lua::register_IMQueueArray(L);
     IMQueue4Lua::register_IMQueue(L);
     IMQView4Lua::register_IMQView(L);
-    CGalaxyMQ4Lua::register_CGalaxyMQ(L);
+
+    struct luaL_Reg f[]={
+        {"new",CGalaxyMQ4Lua::init},
+        {NULL,NULL}
+    };
+
+    struct luaL_Reg m[]={
+        {"__gc",CGalaxyMQ4Lua::finalizer},
+        {"finalizer",CGalaxyMQ4Lua::finalizer},
+        {"NQArray",CGalaxyMQ4Lua::NQArray}, 
+        {NULL,NULL}
+    };
+
+    luaL_newmetatable(L,"CGalaxyMQ");
+    luaL_register(L,NULL,m);
+
+    lua_pushvalue(L,-1);
+    lua_setfield(L,-2,"__index");
+
+    luaL_register(L,"AMQ",f);
 
     return 1;
 }
