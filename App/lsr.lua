@@ -14,13 +14,11 @@ local router = require "router"
 local RID = "@router"
 local MQID = "@mq"
 function main()
-
    -- init
-   local r=router.new("router")
-   glr.global(RID, r, "Router4Lua")
-   
-   local m = amq.new(os.getenv("HOME") .. "/channels/testAMQ.chl")
-   glr.global(MQID, m, "CGalaxyMQ");
+   local _router=router.new("router")
+   glr.global(RID, _routerr, "Router4Lua")
+   local _amq=amq.new(configure.amq.path)
+   glr.global(MQID, _amq, "CGalaxyMQ");
    -- glr.spawn("lsr.lua","worker")
    -- local err, all = glr.all()
    -- print(pprint.pprint(all))
@@ -36,7 +34,6 @@ function main()
         local id
         local status, msg = glr.recv()
         local services={status=status_server}
-        print("MSG")
         print(msg)
         --msg={"host":"192.168.56.101","port":1010,"gpid",122,"type":"agent"}
         assert(status,"glr.recv error")
@@ -56,15 +53,15 @@ end
 --print(cjson.encode(a))
 
 function agent_worker()
-   local r = glr.get_global(RID)
-   local mq = glr.get_global(MQID)
+   local _router = glr.get_global(RID)
+   local _amq = glr.get_global(MQID)
    local err,msg=glr.recv()
    local msg_table=cjson.decode(msg)
     
    function register()
       if msg_table["command"]=="register" then
          local host,port=glr.node_addr()
-         r:register(msg_table["name"],msg_table["field"],host,port,__id__)
+         _router:register(msg_table["name"],msg_table["field"],host,port,__id__,type?)
       else
          error("register message expected!")
       end
@@ -78,9 +75,8 @@ function agent_worker()
    msg_table["command"]=nil
    msg_table["registered"]=true
 
-   local m = glr.get_global(MQID)
-   local q = m:NQArray():get(0)
-   q:put(q.MQC_BAT,cjson.encode(msg_table))
+   local nq = _amq:NQArray():get(0)
+   nq:put(cjson.encode(msg_table))
 
     while true do
         err,msg=glr.recv()
@@ -88,7 +84,7 @@ function agent_worker()
         print("----------agent worker------")
         print(pprint.pprint(t))
         if t["header"]["from"]=="agent" then 
-            q:put(q.MQC_BAT,msg)
+            nq:put(msg)
         elseif  t["header"]["from"]=="svc" then
             node.send(msg_table["host"],msg_table["port"],msg_table["gpid"],msg)
         end
