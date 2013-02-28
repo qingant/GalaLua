@@ -30,7 +30,7 @@ public:
         return 0;
     }
 
-//    void Register(const std::string &name,const std::string &field,const std::string &host,int port,int gpid);
+//    void Register(const std::string &name,const std::string &field,const std::string &host,int port,int gpid,dev_type,app_type);
     static int Register(lua_State *L)
     {
         Router *p=CheckRouter(L,1);
@@ -38,14 +38,16 @@ public:
         const char *name=luaL_checkstring(L,2);
         const char *field=luaL_checkstring(L,3);
         const char *host=luaL_checkstring(L,4);
-        if (name==NULL || field==NULL ||host==NULL)
+        const char *dev_type=luaL_checkstring(L,7);
+        const char *app_type=luaL_checkstring(L,8);
+        if (name==NULL || field==NULL ||host==NULL|dev_type==NULL|app_type==NULL)
         {
             return luaL_error(L,"string expected!  %s  %d ",__func__,__LINE__);
         }
         int port=luaL_checkint(L,5);
         int gpid=luaL_checkint(L,6);
 
-        CALL_CPP_FUNCTION(L,p->Register(std::string(name),std::string(field),std::string(host),port,gpid));
+        CALL_CPP_FUNCTION(L,p->Register(std::string(name),std::string(field),std::string(host),port,gpid,std::string(dev_type),std::string(app_type)));
         
         return 0;
     }

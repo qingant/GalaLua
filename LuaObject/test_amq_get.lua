@@ -14,4 +14,4 @@ local nq=nqa:get(0)
 for i,v in pairs(getmetatable(nq)) do print(i,v) end
 
 print("*****************")
-print(nq:get(nq.MQC_BAT))
+print(nq:get())

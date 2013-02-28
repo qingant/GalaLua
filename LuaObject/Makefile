@@ -1,6 +1,6 @@
-all:router.so amq.so  logger.so
+all:router.so amq.so  logger.so 
 include ../mk.rules
-
+amq:amq.so
 router.so:LuaRouter.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lxml2 -o $@

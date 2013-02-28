@@ -14,4 +14,4 @@ local nq=nqa:get(0)
 for i,v in pairs(getmetatable(nq)) do print(i,v) end
 
 print("*****************")
-nq:put(nq.MQC_RTL,"Just For Test")
+nq:put("Just For Test")
