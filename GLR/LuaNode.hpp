@@ -95,6 +95,7 @@ namespace GLR
         static int AllProcesses(lua_State *l);
         static int RegisterGlobal(lua_State *l);
         static int GetGlobal(lua_State *l);
+        static int GetNodeAddr(lua_State *l);
     public:
         static LN_ID_TYPE CreateNode();
         static Process &GetNodeById(LN_ID_TYPE);

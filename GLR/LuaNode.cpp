@@ -141,6 +141,7 @@ void Process::InitNode( void )
         {"status", Status},
         {"global", RegisterGlobal},
         {"get_global", GetGlobal},
+        {"node_addr", GetNodeAddr},
         {NULL, NULL},
     };
     luaL_register(_Stack, "glr", glr_reg);
@@ -477,7 +478,10 @@ int GLR::Process::RegisterGlobal( lua_State *l )
     const char *id = luaL_checkstring(l, 1);
     const char *type = luaL_checkstring(l, 3);
     GlobalVars.Put(id, (void**)ud, type);
-    lua_pushboolean(l, 1);
+    lua_pushvalue(l, -1);
+    //std::string dummy_id = "@" + std::string(id);  
+    //lua_setglobal(l, dummy_id.c_str());
+    //lua_pushboolean(l, 1);
     return 1;
 }
 
@@ -489,5 +493,16 @@ int GLR::Process::GetGlobal( lua_State *l )
     memcpy(p, &ud.Content, sizeof(ud.Content));
     luaL_getmetatable(l,ud.Name.c_str());
     lua_setmetatable(l, -2);
+    //lua_pushvalue(l, -1);
+    //std::string dummy_id = "@" + std::string(id);  
+    //lua_setglobal(l, dummy_id.c_str());
+    
     return 1;
+}
+
+int GLR::Process::GetNodeAddr( lua_State *l )
+{
+    lua_pushstring(l, Runtime::GetInstance().Host().c_str());
+    lua_pushinteger(l, Runtime::GetInstance().NodeId());
+    return 2;
 }
