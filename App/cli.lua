@@ -28,6 +28,7 @@ function main()
    assert(err,msg)
    local response = cjson.decode(msg)
    local bind_gpid = response["bind_gpid"]
+   print(host,port,bind_gpid) 
    print(pprint.pprint(response))
    node.send(host, port, bind_gpid, cjson.encode({
                                                     ["host"] = host,
@@ -45,10 +46,10 @@ function main()
    end
    print("Register Succ")
    while true do
-      
       err, msg = glr.recv()
       local response = cjson.decode(msg)
       print(pprint.pprint(response))
+      node.send(host, port, bind_gpid, cjson.encode({header={from="agent"},content={aaa="Hello world"}}))
    end
 
 end

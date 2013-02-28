@@ -29,7 +29,9 @@ function main()
    -- local err, sta = glr.status(all[1])
    -- print(pprint.pprint(sta))
     local err,status_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/status.lua", "main")
-    print("Status " .. status_server)
+    print("------Status :::::" .. status_server)
+    local err,svc=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","fake_svc")
+    print("------svc ::::::" .. svc)
     while true do
         local id
         local status, msg = glr.recv()
@@ -61,7 +63,8 @@ function agent_worker()
     
    function register()
       if msg_table["command"]=="register" then
-         r:register(msg_table["name"],msg_table["field"],"0.0.0.0",1000,__id__)
+         local host,port=glr.node_addr()
+         r:register(msg_table["name"],msg_table["field"],host,port,__id__)
       else
          error("register message expected!")
       end
@@ -72,27 +75,45 @@ function agent_worker()
    local ret={status=true}
    node.send(msg_table["host"],msg_table["port"],msg_table["gpid"],cjson.encode(ret))
     
-    -- msg_table["command"]=nil
-    -- msg_table["registered"]=true
-    -- amq.put(cjson.encode(msg_table))
-    -- local id 
-    -- err,id=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","svc2agent")
-    -- msg_table["registered"]=nil
-    -- glr.send("127.0.0.1",1000,id,cjson.encode(msg_table))
-    
-    --agent send to svc
+   msg_table["command"]=nil
+   msg_table["registered"]=true
+
+   local m = glr.get_global(MQID)
+   local q = m:NQArray():get(0)
+   q:put(q.MQC_BAT,cjson.encode(msg_table))
+
     while true do
         err,msg=glr.recv()
-        -- amq.put(msg)
+        local t=cjson.decode(msg)
+        print("----------agent worker------")
+        print(pprint.pprint(t))
+        if t["header"]["from"]=="agent" then 
+            q:put(q.MQC_BAT,msg)
+        elseif  t["header"]["from"]=="svc" then
+            node.send(msg_table["host"],msg_table["port"],msg_table["gpid"],msg)
+        end
     end
 end
 
--- function svc2agent()
---     local err,msg
---     err,msg=glr.recv()
---     local msg_table=cjson.decode(msg)
---     local msg=amq.get()
---     glr.send(msg_table["host"],msg_table["port"],msg_table["gpid"],msg)
--- end
-
-
+function fake_svc()
+    local r = glr.get_global(RID)
+    local m = glr.get_global(MQID)
+    local q = m:NQArray():get(0)
+    local id,msg=q:get(q.MQC_BAT)
+    local t=cjson.decode(msg)
+    print("-------------svc--------------------")
+    print(pprint.pprint(t))
+    print("-------------svc--------------------")
+    local item=r:find_by_name(t["name"]) 
+    print("-------------router record-------------------")
+    print(pprint.pprint(item))
+    print("-------------router record-------------------")
+    local addr=item["addr"]
+    print(pprint.pprint(addr))
+    to_agent_worker={header={from="svc"},content={aaa="hello,this is svc"}}
+    while true do
+        glr.send(addr["gpid"],cjson.encode(to_agent_worker))
+        err,msg=q:get(q.MQC_BAT)
+        print("fake_svc::::::",msg)
+    end
+end
