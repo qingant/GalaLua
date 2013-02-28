@@ -116,7 +116,7 @@ private:
         setfield_string(L,item.Field,"field");
 
         lua_newtable(L);
-        setfield_string(L,item.Addr.Host,"Host");
+        setfield_string(L,item.Addr.Host,"host");
         setfield_int(L,item.Addr.Port,"port");
         setfield_int(L,item.Addr.Gpid,"gpid");
         lua_setfield(L,-2,"addr");
