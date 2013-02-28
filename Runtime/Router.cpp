@@ -92,7 +92,8 @@ Router::~Router()
 {
 
 }
-void Router::Register(const std::string &name,const std::string &field,const std::string &host,int port,int gpid)
+void Router::Register(const std::string &name,const std::string &field,const std::string &host,
+                    int port,int gpid,const std::string &devtype,const std::string &apptype)
 {
     //pHeader _pRouter =  (pHeader)_FileMapp->Get();   
     //CRawMutex _M(&_pRouter->Mutex);
@@ -123,10 +124,12 @@ void Router::Register(const std::string &name,const std::string &field,const std
     }
 
     std::cout <<pItem<<std::endl;
-
+    // FIXME:: ensure the terminal \0 ?
     strncpy(pItem->Name,name.c_str(),sizeof(pItem->Name));
     strncpy(pItem->Field,field.c_str(),sizeof(pItem->Field));
     strncpy(pItem->Addr.Host,host.c_str(),sizeof(pItem->Addr.Host));
+    strncpy(pItem->DeviceType,devtype.c_str(),sizeof(pItem->DeviceType));
+    strncpy(pItem->AppType,apptype.c_str(),sizeof(pItem->AppType));
     pItem->Addr.Port=port;
     pItem->Addr.Gpid=gpid;
 

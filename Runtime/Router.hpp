@@ -21,6 +21,8 @@
             int Port;
             int Gpid;
         }Addr;
+        char DeviceType[24];
+        char AppType[24];
     }Item;
 
     const int MAX_ITEMS=1000;
@@ -31,7 +33,7 @@
     public: 
         Router(const std::string &path);
         ~Router();
-        void Register(const std::string &name,const std::string &field,const std::string &host,int port,int gpid);
+        void Register(const std::string &name,const std::string &field,const std::string &host,int port,int gpid,const std::string &dev,const std::string &app);
         void Delete(const std::string &name);
         Item FindByName(const std::string &);
         std::vector<Item> FindByField(const std::string &);
