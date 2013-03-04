@@ -61,6 +61,8 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
             catch (Galaxy::GalaxyRT::CException& e)
             {
                 GALA_DEBUG("Close Connection:%s", e.what());
+                MessageLinkStack *mls = ((MessageLinkStack*)ms);
+                Runtime::GetInstance().GetBus().Send(mls->Gpid(), mls->_Id, MSG_HEAD::CLOSED);
                 _LinkMap[ev.first] = NULL;
                 _Poller.Remove(ev.first);
                 delete ms;
@@ -206,7 +208,7 @@ void GLR::MessageLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, PO
     {
         _SendTask = _SendTaskQ.Get();
     }
-    
+
     Task &t = _SendTask;
     size_t len = _Sock->Send(&t.Buffer[t.Current], t.Buffer.size() - t.Current);
     t.Current += len;
@@ -349,7 +351,7 @@ void GLR::BusController::DoNodeSend( lua_State *l )
         return;
     }
     int fd = _Router.find_ex(id);
-   
+
     MessageLinkStack *ms = (MessageLinkStack*)(_LinkMap[fd]);
     if (ms == NULL)
     {

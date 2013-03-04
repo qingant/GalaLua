@@ -11,6 +11,20 @@
 
 namespace GLR
 {
+#pragma pack(1)
+    struct MSG_HEAD
+    {
+        enum MSG_TYPE
+        {
+            APP,        //Normal Application Message
+            KILL,       //Message To Kill this GLR Process
+            CLOSED,     //Resource bind to this GLR Process closed
+        };
+        uint32_t Len;  //Message Length not including this head structure
+        char     Type; //Message Type
+        int32_t GPid; //GPid of process who send this message, nagetive if from controller
+    };
+#pragma pack()
     class IController
     {
     public:
@@ -49,7 +63,7 @@ namespace GLR
         void Response(int pid, int narg, ...);
         //void Response(int pid, int narg){Response(pid,narg,NULL);}
         void Return(int pid, int narg,...);
-        void Send(int pid, const std::string&);
+        void Send(int pid, const std::string&, MSG_HEAD::MSG_TYPE type = MSG_HEAD::APP);
         Galaxy::GalaxyRT::CPthreadMutex &Lock(){return _Lock;}
         ~Bus(void);
     private:

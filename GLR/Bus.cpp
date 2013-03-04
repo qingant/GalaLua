@@ -71,9 +71,9 @@ void GLR::Bus::Return( int pid, int narg, ...)
     nd._Status._State = Process::ProcessStatus::INT_RESP;
 }
 
-void GLR::Bus::Send( int pid, const std::string &msg )
+void GLR::Bus::Send( int pid, const std::string &msg, MSG_HEAD::MSG_TYPE type)
 {
-    Process::SendMsgToNode(pid, msg);
+    Process::SendMsgToNode(pid, msg, type);
 }
 
 void Bus::Response( int pid, int narg, ...)

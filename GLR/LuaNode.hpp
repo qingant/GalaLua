@@ -103,7 +103,9 @@ namespace GLR
         static LN_ID_TYPE CreateNode();
         static Process &GetNodeById(LN_ID_TYPE);
         static void Destory(LN_ID_TYPE);
-        static void SendMsgToNode(LN_ID_TYPE, const std::string &);
+        static void SendMsgToNode(LN_ID_TYPE,
+            const std::string &,
+            MSG_HEAD::MSG_TYPE type = MSG_HEAD::APP);
 
     public:
         void DoString(const std::string&);

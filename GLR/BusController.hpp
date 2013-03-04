@@ -96,6 +96,7 @@ namespace GLR
         void OnMessage(const std::string &);
     public:
         void RegisterTo(const std::string &, int);
+        int Gpid() const {return _Gpid;}
     public:
         int  _Gpid;
         Task _RecvTask, _SendTask;

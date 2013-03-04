@@ -39,10 +39,11 @@ void Process::SendMsg( const LN_MSG_TYPE &msg )
     {
         Galaxy::GalaxyRT::CLockGuard _Gl(&_IntLock);
         GALA_DEBUG("Push Direct!To %d %d", Id(), msg.size());
-      
-        lua_pushboolean(_Stack, 1);
-        lua_pushlstring(_Stack, msg.c_str(), msg.size());
-        _Status._NArg = 2;
+        MSG_HEAD *head = (MSG_HEAD*)&msg[0];
+        lua_pushinteger(_Stack, head->Type);
+        lua_pushinteger(_Stack, head->GPid);
+        lua_pushlstring(_Stack, &msg[sizeof(*head)], msg.size() - sizeof(*head));
+        _Status._NArg = 3;
         _Status._State = Process::ProcessStatus::RECV_RETURN;
         //StackDump();
         Runtime::GetInstance().GetSchedule().PutTask(*this);
@@ -176,18 +177,23 @@ void Process::InitNode( void )
     lua_settable(_Stack, -3);
 
     // Some useful const
-    lua_getglobal(_Stack, "glr");
+    // lua_getglobal(_Stack, "glr");
     lua_pushstring(_Stack,"AF_UNIX");
     lua_pushinteger(_Stack, AF_UNIX);
     lua_settable(_Stack, -3);   
 
-    lua_getglobal(_Stack, "glr");
+    // lua_getglobal(_Stack, "glr");
     lua_pushstring(_Stack,"AF_INET");
     lua_pushinteger(_Stack, AF_INET);
     lua_settable(_Stack, -3);   
 
+    lua_pushstring(_Stack, "KILL");
+    lua_pushinteger(_Stack, MSG_HEAD::KILL);
+    lua_settable(_Stack, -3);   
 
-
+    lua_pushstring(_Stack, "CLOSED");
+    lua_pushinteger(_Stack, MSG_HEAD::CLOSED);
+    lua_settable(_Stack, -3);   
 
     //StackDump();
     //lua_pop(_Stack,1);
@@ -214,7 +220,13 @@ int Process::SendMsgToNode( lua_State *l )
     LN_ID_TYPE id = luaL_checkinteger(l, 1);
     size_t len = 0;
     const char *msg = luaL_checklstring(l, 2, &len);
-    GetNodeById(id).SendMsg(LN_MSG_TYPE(msg, len));
+    LN_MSG_TYPE  pack_msg(len+sizeof(MSG_HEAD), 0);
+    MSG_HEAD *head = (MSG_HEAD*)&msg[0];
+    head->Type = MSG_HEAD::APP;
+    head->GPid = id;
+    head->Len = len;
+    memcpy((void*)&pack_msg[sizeof(*head)], msg, len);
+    GetNodeById(id).SendMsg(pack_msg);
     lua_pushboolean(l, 1);
     return 1;
 }
@@ -296,9 +308,10 @@ int Process::Recieve( lua_State *l )
     {
         LN_MSG_TYPE msg = self.RecvMsg();
         GALA_DEBUG("Get %d Size(%d)", self_id, msg.size());
-
-        lua_pushboolean(l, 1);
-        lua_pushlstring(self._Stack, msg.c_str(), msg.size());
+        MSG_HEAD *head = (MSG_HEAD*)&msg[0];
+        lua_pushinteger(self._Stack, head->Type);
+        lua_pushinteger(self._Stack, head->GPid);
+        lua_pushlstring(self._Stack, &msg[sizeof(*head)], msg.size() - sizeof(*head));
         return 2;
     }
     catch (Galaxy::GalaxyRT::CException& e)
@@ -347,7 +360,7 @@ void Process::LoadFile( const std::string &path )
     }
     else
     {
-        // _Path = path;
+        _Path = path;
         printf("Load File(%s) Succeed\n", path.c_str());
     }
 }
@@ -437,13 +450,19 @@ void Process::Destory( LN_ID_TYPE pid)
     delete p;
 }
 
-void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg)
+void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::MSG_TYPE type)
 {
     Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
     try
     {
-        GetNodeById(pid).SendMsg(msg);
+        std::string pack_msg(msg.size() + sizeof(MSG_HEAD),0);
+        MSG_HEAD *head = (MSG_HEAD*)&msg[0];
+        head->Type = type;
+        head->GPid = -1;
+        head->Len = msg.size();
+        memcpy((void*)&pack_msg[0], msg.c_str(), msg.size());
+        GetNodeById(pid).SendMsg(pack_msg);
     }
     catch (Galaxy::GalaxyRT::CException &e)
     {
