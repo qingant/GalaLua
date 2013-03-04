@@ -45,7 +45,7 @@ public:
             *pp= new ILogger(file,switcher,loglimit, buflen);
         );
 
-        luaL_getmetatable(L,MetatableName);
+        luaL_getmetatable(L,METATABLE);
         lua_setmetatable(L,-2);
 
         return 1;
@@ -53,7 +53,7 @@ public:
 
     static int finalizer(lua_State *L)
     {
-        ILogger **pp=(ILogger**)luaL_checkudata(L,1,MetatableName);
+        ILogger **pp=(ILogger**)luaL_checkudata(L,1,METATABLE);
 
         delete *pp;
         
@@ -111,17 +111,17 @@ public:
     //void LoggerResetSwitcherToPlatform(PSTR switcher);
     //void LoggerResetSwitcherToTrade(PSTR switcher);
 public:
-    static const char *MetatableName;
+    static const char *METATABLE;
 
 private:
     static ILogger *CheckILogger(lua_State *L,int n)
     {
-        ILogger **pp=(ILogger**)luaL_checkudata(L,n,MetatableName);
+        ILogger **pp=(ILogger**)luaL_checkudata(L,n,METATABLE);
 
         return *pp;
     }
 };
-const char *ILogger4Lua::MetatableName="ILogger";
+const char *ILogger4Lua::METATABLE="ILogger";
 
 extern "C" int luaopen_logger(lua_State *L)
 {
@@ -140,12 +140,14 @@ extern "C" int luaopen_logger(lua_State *L)
        { NULL,NULL}
     };
     
-    luaL_newmetatable(L,ILogger4Lua::MetatableName);
+    luaL_newmetatable(L,ILogger4Lua::METATABLE);
 
     luaL_register(L,NULL,m);
 
     lua_pushvalue(L,-1);
     lua_setfield(L,-2,"__index");
+
+    setfield_string(L,ILogger4Lua::METATABLE,"__my_name");
 
     luaL_register(L,"Logger",f);
     setfield_int(L,DEBUG,"DEBUG");

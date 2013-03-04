@@ -11,7 +11,7 @@ public:
 
         CALL_CPP_FUNCTION(L,*pp=new Router(std::string(path)));
 
-        luaL_getmetatable(L,NameOfMetatable);
+        luaL_getmetatable(L,METATABLE);
         lua_setmetatable(L,-2);
 
         return 1;
@@ -19,7 +19,7 @@ public:
 
     static int finalizer(lua_State *L)
     {
-        Router **pp=(Router **)luaL_checkudata(L,1,NameOfMetatable);
+        Router **pp=(Router **)luaL_checkudata(L,1,METATABLE);
 
         delete *pp;
 
@@ -30,7 +30,7 @@ public:
         return 0;
     }
 
-//    void Register(const std::string &name,const std::string &field,const std::string &host,int port,int gpid,dev_type,app_type);
+//    void Register(const std::string &name,const std::string &field,const std::string &host,int port,int gpid,dev_type,app_type,userdata);
     static int Register(lua_State *L)
     {
         Router *p=CheckRouter(L,1);
@@ -40,14 +40,15 @@ public:
         const char *host=luaL_checkstring(L,4);
         const char *dev_type=luaL_checkstring(L,7);
         const char *app_type=luaL_checkstring(L,8);
-        if (name==NULL || field==NULL ||host==NULL|dev_type==NULL|app_type==NULL)
+        const char *user_data=luaL_checkstring(L,9);
+        if (name==NULL || field==NULL ||host==NULL||dev_type==NULL||app_type==NULL||dev_type==NULL)
         {
             return luaL_error(L,"string expected!  %s  %d ",__func__,__LINE__);
         }
         int port=luaL_checkint(L,5);
         int gpid=luaL_checkint(L,6);
 
-        CALL_CPP_FUNCTION(L,p->Register(std::string(name),std::string(field),std::string(host),port,gpid,std::string(dev_type),std::string(app_type)));
+        CALL_CPP_FUNCTION(L,p->Register(std::string(name),std::string(field),std::string(host),port,gpid,std::string(dev_type),std::string(app_type),std::string(user_data)));
         
         return 0;
     }
@@ -104,10 +105,53 @@ public:
 
         return 1;
     }
+
+    static int FindByDevType(lua_State *L)
+    {
+        Router *p=CheckRouter(L,1);
+        const char *field=luaL_checkstring(L,2);
+        if (field==NULL )
+        {
+            return luaL_error(L,"string expected!  %s  %d ",__func__,__LINE__);
+        }
+        std::vector<Item> v;
+        CALL_CPP_FUNCTION(L,v=p->FindByDevType(std::string(field)));
+        
+        lua_newtable(L);
+        for (unsigned int i=0;i<v.size();++i)
+        {
+            PushItem2table(L,v[i]);
+            lua_rawseti(L,-2,i+1);
+        }
+
+        return 1;
+    }
+
+    static int FindByAppType(lua_State *L)
+    {
+        Router *p=CheckRouter(L,1);
+        const char *field=luaL_checkstring(L,2);
+        if (field==NULL )
+        {
+            return luaL_error(L,"string expected!  %s  %d ",__func__,__LINE__);
+        }
+        std::vector<Item> v;
+        CALL_CPP_FUNCTION(L,v=p->FindByAppType(std::string(field)));
+        
+        lua_newtable(L);
+        for (unsigned int i=0;i<v.size();++i)
+        {
+            PushItem2table(L,v[i]);
+            lua_rawseti(L,-2,i+1);
+        }
+
+        return 1;
+    }
+
 private:
     static Router *CheckRouter(lua_State *L,int n)
     {
-        return *(Router **)luaL_checkudata(L,n,NameOfMetatable);
+        return *(Router **)luaL_checkudata(L,n,METATABLE);
     }
 
     static void PushItem2table(lua_State *L,Item &item)
@@ -124,11 +168,14 @@ private:
         setfield_int(L,item.Addr.Port,"port");
         setfield_int(L,item.Addr.Gpid,"gpid");
         lua_setfield(L,-2,"addr");
+
+        //For user's custumization
+        setfield_string(L,item.UserData,"userdata");
     }
 public:
-    static const char *NameOfMetatable;
+    static const char *METATABLE;
 };
-const char *Router4Lua::NameOfMetatable="Router4Lua";
+const char *Router4Lua::METATABLE="Router4Lua";
 
 extern "C" int luaopen_router(lua_State *L)
 {
@@ -143,14 +190,18 @@ extern "C" int luaopen_router(lua_State *L)
         {"delete",Router4Lua::Delete},
         {"find_by_field",Router4Lua::FindByField},
         {"find_by_name",Router4Lua::FindByName},
+        {"find_by_dev_type",Router4Lua::FindByDevType},
+        {"find_by_app_type",Router4Lua::FindByAppType},
         {NULL,NULL}
     };
     
-    luaL_newmetatable(L,Router4Lua::NameOfMetatable);
+    luaL_newmetatable(L,Router4Lua::METATABLE);
     luaL_register(L,NULL,m);
 
     lua_pushvalue(L,-1);
     lua_setfield(L,-2,"__index");
+
+    setfield_string(L,Router4Lua::METATABLE,"__my_name");
 
     luaL_register(L,"Router",f);
 

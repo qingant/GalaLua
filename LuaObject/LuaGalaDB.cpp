@@ -218,6 +218,7 @@ extern "C" int luaopen_galadb(lua_State *L)
     
     lua_pushvalue(L,-1);
     lua_setfield(L,-2,"__index");
+    setfield_string(L,"GalaDB","__my_name");
 
     luaL_register(L,"Galadb",f); 
 

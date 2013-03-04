@@ -36,116 +36,95 @@ private:
     int size;
 };
 
-class CGalaxyMQ4Lua
+class IMQView4Lua
 {
 public:
-    static int init(lua_State *L)
+    static int Total(lua_State *L)
     {
-        const char *path=luaL_checkstring(L,1);
-        printf("%s\n",path);
-        const Galaxy::AMQ::CGalaxyMQ **mq=(const Galaxy::AMQ::CGalaxyMQ **)lua_newuserdata(L,sizeof(Galaxy::AMQ::CGalaxyMQ *));
-
-        try
-        {
-            if (access(path, F_OK) != 0)
-            {
-                printf("Created\n");
-                Galaxy::AMQ::CGalaxyMQCreator _(std::string(path), std::string("who"), 1024*10, 8192, 32, 0, 0, 2500, 0, 0);
-            }
-            *mq=new Galaxy::AMQ::CGalaxyMQ(path);
-            printf("%s\n",path);
-        }
-        catch(std::exception &e)
-        {
-            return luaL_error(L, e.what());     //luaL_error use long jump so it will never return , using return here just idiom
-        }
-        catch(...)
-        {
-            return luaL_error(L,"unknown Exception %s  %d",__func__,__LINE__);
-
-        }
-        luaL_getmetatable(L, "CGalaxyMQ");
-        lua_setmetatable(L,-2);
-
-        return 1;
-    }
- 
-    static int finalizer(lua_State *L)
-    {
-        CGalaxyMQ **mq=(CGalaxyMQ **)luaL_checkudata(L,-1,"CGalaxyMQ");
-        delete *mq;
-        *mq=NULL;
-        return 0;
-    }
-    static int NQArray(lua_State *L)
-    {
-        CGalaxyMQ *p=lua_checkCGalaxyMQ(L,1);
-        const Galaxy::AMQ::IMQueueArray **pp=(const Galaxy::AMQ::IMQueueArray **)lua_newuserdata(L,sizeof(Galaxy::AMQ::IMQueueArray*));
+        IMQView *view=lua_checkIMQView(L,1);
+        int chl=luaL_checkint(L,2);
          
-        CALL_CPP_FUNCTION(L,*pp=&(p->NQArray()));
+        int size=0;
         
-        luaL_getmetatable(L,"IMQueueArray");
-        lua_setmetatable(L,-2);
+        CALL_CPP_FUNCTION(L,view->Total((IMQueue::EMQCHL)chl));
 
+        lua_pushnumber(L,size);
         return 1;
     }
+    static int Head(lua_State *L)
+    {
+        IMQView *view=lua_checkIMQView(L,1);
+        int chl=luaL_checkint(L,2);
+         
+        int size=0;
+        
+        CALL_CPP_FUNCTION(L,view->Head((IMQueue::EMQCHL)chl));
 
+        lua_pushnumber(L,size);
+        return 1;
+    }
+    static int Tail(lua_State *L)
+    {
+        IMQView *view=lua_checkIMQView(L,1);
+        int chl=luaL_checkint(L,2);
+         
+        int size=0;
+        
+        CALL_CPP_FUNCTION(L,view->Tail((IMQueue::EMQCHL)chl));
+
+        lua_pushnumber(L,size);
+        return 1;
+    }
+    static int LurkersInGet(lua_State *L)
+    {
+        IMQView *view=lua_checkIMQView(L,1);
+        int chl=luaL_checkint(L,2);
+         
+        int size=0;
+        
+        CALL_CPP_FUNCTION(L,view->LurkersInGet((IMQueue::EMQCHL)chl));
+
+        lua_pushnumber(L,size);
+        return 1;
+    }    
+    static int LurkersInPut(lua_State *L)
+    {
+        IMQView *view=lua_checkIMQView(L,1);
+        int size=0;
+        CALL_CPP_FUNCTION(L,view->LurkersInPut());
+
+        lua_pushnumber(L,size);
+        return 1;
+    }
 private:
-    static CGalaxyMQ *lua_checkCGalaxyMQ(lua_State *L,int n)
+    static IMQView *lua_checkIMQView(lua_State *L,int n)
     {
-        return *(CGalaxyMQ **)luaL_checkudata(L,n,"CGalaxyMQ");
+        return *(IMQView **)luaL_checkudata(L,n,METATABLE);
     }
 public:
-
-};
-
-class IMQueueArray4Lua
-{
-public:
-    static int  Count(lua_State *L)
-    {
-        IMQueueArray *m=lua_checkMQA(L,1);
-
-        lua_pushnumber(L,m->Count());
-
-        return 1;
-    }
-    static int  Get(lua_State *L)
-    {
-        IMQueueArray *m=lua_checkMQA(L,1);
-        int index=luaL_checkint(L,2);
-
-        const Galaxy::AMQ::IMQueue **mq=(const Galaxy::AMQ::IMQueue **)lua_newuserdata(L,sizeof(Galaxy::AMQ::IMQueue *));
-        *mq=&(*m)[index];
-
-        luaL_getmetatable(L, "IMQueue");
-        lua_setmetatable(L,-2);
-
-        return 1;
-    }
-
-private:
-    static IMQueueArray * lua_checkMQA(lua_State *L,int n)
-    {
-        return *(IMQueueArray **)luaL_checkudata(L,n,"IMQueueArray");
-    }
-public:
-    static void register_IMQueueArray(lua_State *L)
+    static void register_IMQView(lua_State *L)
     {
         struct luaL_Reg m[]={
-            {"get",Get},
-            {"count",Count},
+            {"lurkers_in_put",LurkersInPut},
+            {"lurkers_in_get",LurkersInGet},
+            {"head",Head},
+            {"total",Total},
+            {"tail",Tail},
             {NULL,NULL}
         };
 
-        luaL_newmetatable(L,"IMQueueArray");
-
+        luaL_newmetatable(L,METATABLE);
         luaL_register(L,NULL,m);
 
         lua_pushvalue(L,-1);
         lua_setfield(L,-2,"__index");
     }
+public:
+    static const char *METATABLE;
 };
+
+const char *IMQView4Lua::METATABLE="IMQView";
+
 
 class IMQueue4Lua    
 {
@@ -157,7 +136,7 @@ public:
         const Galaxy::AMQ::IMQView **v=(const Galaxy::AMQ::IMQView **)lua_newuserdata(L,sizeof(Galaxy::AMQ::IMQView *));
         *v=&(m->View());
         
-        luaL_getmetatable(L, "IMQView");
+        luaL_getmetatable(L, IMQView4Lua::METATABLE);
         lua_setmetatable(L,-2);
 
         return 1;
@@ -306,7 +285,7 @@ public:
 private:
     static IMQueue *lua_checkMQ(lua_State *L,int n)
     {
-        return *(IMQueue **)luaL_checkudata(L,n,"IMQueue");
+        return *(IMQueue **)luaL_checkudata(L,n,METATABLE);
     }
 
 public:
@@ -326,97 +305,138 @@ public:
             {NULL,NULL}
         };
 
-        luaL_newmetatable(L,"IMQueue");
+        luaL_newmetatable(L,METATABLE);
         luaL_register(L,NULL,m);
 
         lua_pushvalue(L,-1);
         lua_setfield(L,-2,"__index");
     }
+public:
+    static const char *METATABLE;
 };
-class IMQView4Lua
+
+const char *IMQueue4Lua::METATABLE="IMQueue";
+
+
+class IMQueueArray4Lua
 {
 public:
-    static int Total(lua_State *L)
+    static int  Count(lua_State *L)
     {
-        IMQView *view=lua_checkIMQView(L,1);
-        int chl=luaL_checkint(L,2);
-         
-        int size=0;
-        
-        CALL_CPP_FUNCTION(L,view->Total((IMQueue::EMQCHL)chl));
+        IMQueueArray *m=lua_checkMQA(L,1);
 
-        lua_pushnumber(L,size);
+        lua_pushnumber(L,m->Count());
+
         return 1;
     }
-    static int Head(lua_State *L)
+    static int  Get(lua_State *L)
     {
-        IMQView *view=lua_checkIMQView(L,1);
-        int chl=luaL_checkint(L,2);
-         
-        int size=0;
-        
-        CALL_CPP_FUNCTION(L,view->Head((IMQueue::EMQCHL)chl));
+        IMQueueArray *m=lua_checkMQA(L,1);
+        int index=luaL_checkint(L,2);
 
-        lua_pushnumber(L,size);
+        const Galaxy::AMQ::IMQueue **mq=(const Galaxy::AMQ::IMQueue **)lua_newuserdata(L,sizeof(Galaxy::AMQ::IMQueue *));
+        *mq=&(*m)[index];
+
+        luaL_getmetatable(L, IMQueue4Lua::METATABLE);
+        lua_setmetatable(L,-2);
+
         return 1;
     }
-    static int Tail(lua_State *L)
-    {
-        IMQView *view=lua_checkIMQView(L,1);
-        int chl=luaL_checkint(L,2);
-         
-        int size=0;
-        
-        CALL_CPP_FUNCTION(L,view->Tail((IMQueue::EMQCHL)chl));
 
-        lua_pushnumber(L,size);
-        return 1;
-    }
-    static int LurkersInGet(lua_State *L)
-    {
-        IMQView *view=lua_checkIMQView(L,1);
-        int chl=luaL_checkint(L,2);
-         
-        int size=0;
-        
-        CALL_CPP_FUNCTION(L,view->LurkersInGet((IMQueue::EMQCHL)chl));
-
-        lua_pushnumber(L,size);
-        return 1;
-    }    
-    static int LurkersInPut(lua_State *L)
-    {
-        IMQView *view=lua_checkIMQView(L,1);
-        int size=0;
-        CALL_CPP_FUNCTION(L,view->LurkersInPut());
-
-        lua_pushnumber(L,size);
-        return 1;
-    }
 private:
-    static IMQView *lua_checkIMQView(lua_State *L,int n)
+    static IMQueueArray * lua_checkMQA(lua_State *L,int n)
     {
-        return *(IMQView **)luaL_checkudata(L,n,"IMQView");
+        return *(IMQueueArray **)luaL_checkudata(L,n,METATABLE);
     }
 public:
-    static void register_IMQView(lua_State *L)
+    static void register_IMQueueArray(lua_State *L)
     {
         struct luaL_Reg m[]={
-            {"lurkers_in_put",LurkersInPut},
-            {"lurkers_in_get",LurkersInGet},
-            {"head",Head},
-            {"total",Total},
-            {"tail",Tail},
+            {"get",Get},
+            {"count",Count},
             {NULL,NULL}
         };
 
-        luaL_newmetatable(L,"IMQView");
+        luaL_newmetatable(L,METATABLE);
+
         luaL_register(L,NULL,m);
 
         lua_pushvalue(L,-1);
         lua_setfield(L,-2,"__index");
     }
+public:
+    static const char *METATABLE;
+
 };
+const char *IMQueueArray4Lua::METATABLE="IMQueueArray";
+
+
+
+class CGalaxyMQ4Lua
+{
+public:
+    static int init(lua_State *L)
+    {
+        const char *path=luaL_checkstring(L,1);
+        printf("%s\n",path);
+        const Galaxy::AMQ::CGalaxyMQ **mq=(const Galaxy::AMQ::CGalaxyMQ **)lua_newuserdata(L,sizeof(Galaxy::AMQ::CGalaxyMQ *));
+
+        try
+        {
+            if (access(path, F_OK) != 0)
+            {
+                printf("Created\n");
+                Galaxy::AMQ::CGalaxyMQCreator _(std::string(path), std::string("who"), 1024*10, 8192, 32, 0, 0, 2500, 0, 0);
+            }
+            *mq=new Galaxy::AMQ::CGalaxyMQ(path);
+            printf("%s\n",path);
+        }
+        catch(std::exception &e)
+        {
+            return luaL_error(L, e.what());     //luaL_error use long jump so it will never return , using return here just idiom
+        }
+        catch(...)
+        {
+            return luaL_error(L,"unknown Exception %s  %d",__func__,__LINE__);
+
+        }
+        luaL_getmetatable(L, METATABLE);
+        lua_setmetatable(L,-2);
+
+        return 1;
+    }
+ 
+    static int finalizer(lua_State *L)
+    {
+        CGalaxyMQ **mq=(CGalaxyMQ **)luaL_checkudata(L,-1,METATABLE);
+        delete *mq;
+        *mq=NULL;
+        return 0;
+    }
+    static int NQArray(lua_State *L)
+    {
+        CGalaxyMQ *p=lua_checkCGalaxyMQ(L,1);
+        const Galaxy::AMQ::IMQueueArray **pp=(const Galaxy::AMQ::IMQueueArray **)lua_newuserdata(L,sizeof(Galaxy::AMQ::IMQueueArray*));
+         
+        CALL_CPP_FUNCTION(L,*pp=&(p->NQArray()));
+        
+        luaL_getmetatable(L,IMQueueArray4Lua::METATABLE);
+        lua_setmetatable(L,-2);
+
+        return 1;
+    }
+
+private:
+    static CGalaxyMQ *lua_checkCGalaxyMQ(lua_State *L,int n)
+    {
+        return *(CGalaxyMQ **)luaL_checkudata(L,n,METATABLE);
+    }
+public:
+    static const char *METATABLE;
+
+};
+const char *CGalaxyMQ4Lua::METATABLE="CGalaxyMQ";
+
 
 extern "C" int luaopen_amq(lua_State *L)
 {
@@ -436,11 +456,13 @@ extern "C" int luaopen_amq(lua_State *L)
         {NULL,NULL}
     };
 
-    luaL_newmetatable(L,"CGalaxyMQ");
+    luaL_newmetatable(L,CGalaxyMQ4Lua::METATABLE);
     luaL_register(L,NULL,m);
 
     lua_pushvalue(L,-1);
     lua_setfield(L,-2,"__index");
+
+    setfield_string(L,CGalaxyMQ4Lua::METATABLE,"__my_name");
 
     luaL_register(L,"AMQ",f);
 
