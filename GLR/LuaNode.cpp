@@ -96,6 +96,7 @@ int Process::Spawn( lua_State *l )
             THROW_EXCEPTION_EX("Extract Para Error");
         }
 
+
         const char *method = NULL;
         method = lua_tolstring(l, 2, &len);
         if (module == NULL)
@@ -112,7 +113,7 @@ int Process::Spawn( lua_State *l )
         //lua_getglobal(node._Stack, method);
         node.PushFun(method);
         node.StackDump();
-
+    GALA_DEBUG("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA3");
         // put to schedule queue
 
 
@@ -524,17 +525,25 @@ const GLR::Globals::UserData & GLR::Globals::Get( const std::string &id )
 
 GLR::Globals GLR::Process::GlobalVars;
 
+//All userdata pass into this function should have registered 
+//it's metatable name to it's metatable with key "__my_name"
 int GLR::Process::RegisterGlobal( lua_State *l )
 {
     void *ud = lua_touserdata(l, 2);
     const char *id = luaL_checkstring(l, 1);
-    const char *type = luaL_checkstring(l, 3);
+
+    //get the metatable name 
+    if(lua_getmetatable(l,2)==0)
+    {
+        return luaL_error(l,"userdata do not has metatable  %s %d",__func__,__LINE__);
+    }
+    lua_getfield(l,-1,"__my_name");
+
+    const char *type = luaL_checkstring(l, -1);
+
     GlobalVars.Put(id, (void**)ud, type);
     lua_pushvalue(l, -1);
-    //std::string dummy_id = "@" + std::string(id);  
-    //lua_setglobal(l, dummy_id.c_str());
-    //lua_pushboolean(l, 1);
-    return 1;
+    return 0;
 }
 
 int GLR::Process::GetGlobal( lua_State *l )
@@ -543,11 +552,16 @@ int GLR::Process::GetGlobal( lua_State *l )
     const Globals::UserData &ud = GlobalVars.Get(id);
     void *p = lua_newuserdata(l, sizeof(ud.Content));
     memcpy(p, &ud.Content, sizeof(ud.Content));
+    
     luaL_getmetatable(l,ud.Name.c_str());
-    lua_setmetatable(l, -2);
-    //lua_pushvalue(l, -1);
-    //std::string dummy_id = "@" + std::string(id);  
-    //lua_setglobal(l, dummy_id.c_str());
+    lua_pushvalue(l,-1);
+    
+    //clear __gc
+    lua_pushnil(l);
+    lua_setfield(l,-2,"__gc");
+
+    lua_setmetatable(l, -3);
+    lua_settop(l,-2);
 
     return 1;
 }
