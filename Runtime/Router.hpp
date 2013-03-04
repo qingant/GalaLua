@@ -23,6 +23,7 @@
         }Addr;
         char DeviceType[24];
         char AppType[24];
+        char UserData[64];
     }Item;
 
     const int MAX_ITEMS=1000;
@@ -33,10 +34,12 @@
     public: 
         Router(const std::string &path);
         ~Router();
-        void Register(const std::string &name,const std::string &field,const std::string &host,int port,int gpid,const std::string &dev,const std::string &app);
+        void Register(const std::string &name,const std::string &field,const std::string &host,int port,int gpid,const std::string &dev,const std::string &app,const std::string &userdata);
         void Delete(const std::string &name);
         Item FindByName(const std::string &);
         std::vector<Item> FindByField(const std::string &);
+        std::vector<Item> FindByDevType(const std::string &);
+        std::vector<Item> FindByAppType(const std::string &);
     private:
         bool Initialized(void);
         Item *_FindByName(const std::string &);

@@ -36,6 +36,7 @@ Router::Router(const std::string &path)
     }
     pHeader _pRouter =  (pHeader)_FileMapp->Get();   
     _pRawMutex.reset(new CRawMutex(&_pRouter->Mutex));
+    printf("%s   %d :router inited\n",__func__,__LINE__);
 }
 
 Item *Router::GetItem(int index=0)
@@ -93,11 +94,8 @@ Router::~Router()
 
 }
 void Router::Register(const std::string &name,const std::string &field,const std::string &host,
-                    int port,int gpid,const std::string &devtype,const std::string &apptype)
+                    int port,int gpid,const std::string &devtype,const std::string &apptype,const std::string &userdata)
 {
-    //pHeader _pRouter =  (pHeader)_FileMapp->Get();   
-    //CRawMutex _M(&_pRouter->Mutex);
-    //CLockGuard _Gl(&_M);
     CLockGuard _Gl(_pRawMutex.get());
 
     Item *pItem = _FindByName(name);
@@ -123,13 +121,26 @@ void Router::Register(const std::string &name,const std::string &field,const std
         THROW_EXCEPTION(1,"items is full");
     }
 
+//Ensure the terminating Zero
+#define safe_strncpy(dest,src,n)  \
+    do\
+    {\
+        strncpy(dest,src,n);\
+        dest[(n)-1]=0;\
+    }while(0);
+
     std::cout <<pItem<<std::endl;
-    // FIXME:: ensure the terminal \0 ?
-    strncpy(pItem->Name,name.c_str(),sizeof(pItem->Name));
-    strncpy(pItem->Field,field.c_str(),sizeof(pItem->Field));
-    strncpy(pItem->Addr.Host,host.c_str(),sizeof(pItem->Addr.Host));
-    strncpy(pItem->DeviceType,devtype.c_str(),sizeof(pItem->DeviceType));
-    strncpy(pItem->AppType,apptype.c_str(),sizeof(pItem->AppType));
+
+    // FIXME:: ensure the terminating \0 ?
+    safe_strncpy(pItem->Name,name.c_str(),sizeof(pItem->Name));
+
+    safe_strncpy(pItem->Field,field.c_str(),sizeof(pItem->Field));
+    safe_strncpy(pItem->Addr.Host,host.c_str(),sizeof(pItem->Addr.Host));
+    safe_strncpy(pItem->DeviceType,devtype.c_str(),sizeof(pItem->DeviceType));
+    safe_strncpy(pItem->AppType,apptype.c_str(),sizeof(pItem->AppType));
+
+    safe_strncpy(pItem->UserData,userdata.c_str(),sizeof(pItem->UserData));
+
     pItem->Addr.Port=port;
     pItem->Addr.Gpid=gpid;
 
@@ -178,7 +189,8 @@ Item *Router::_FindByName(const std::string &name)
                
         if (pItem->Usable)
         {
-            if (strncmp(pItem->Name,name.c_str(),sizeof(pItem->Name))==0)
+            //just compare "len=(sizeof(pItem->Name)-1)" chars,because the pItem->Name[len] is always '\0'
+            if (strncmp(pItem->Name,name.c_str(),sizeof(pItem->Name)-1)==0)
             {
                 break;
             }
@@ -225,6 +237,56 @@ std::vector<Item> Router::FindByField(const std::string &field)
         if (pItem->Usable)
         {
             if (strncmp(pItem->Field,field.c_str(),sizeof(pItem->Field))==0)
+            {
+                ret.push_back(*pItem);
+            }
+        }       
+    }
+    return ret;
+}
+
+std::vector<Item> Router::FindByDevType(const std::string &dev_type)
+{
+    CLockGuard _Gl(_pRawMutex.get());
+    std::vector<Item> ret;
+
+    Item *pItem=NULL;
+    for (int i=0;i<MAX_ITEMS;++i)
+    {
+        pItem=GetItem(i);
+        if(pItem==NULL)
+        {
+            THROW_EXCEPTION(1,"You should not be here");
+        }   
+               
+        if (pItem->Usable)
+        {
+            if (strncmp(pItem->DeviceType,dev_type.c_str(),sizeof(pItem->DeviceType))==0)
+            {
+                ret.push_back(*pItem);
+            }
+        }       
+    }
+    return ret;
+}
+
+std::vector<Item> Router::FindByAppType(const std::string &field)
+{
+    CLockGuard _Gl(_pRawMutex.get());
+    std::vector<Item> ret;
+
+    Item *pItem=NULL;
+    for (int i=0;i<MAX_ITEMS;++i)
+    {
+        pItem=GetItem(i);
+        if(pItem==NULL)
+        {
+            THROW_EXCEPTION(1,"You should not be here");
+        }   
+               
+        if (pItem->Usable)
+        {
+            if (strncmp(pItem->AppType,field.c_str(),sizeof(pItem->AppType))==0)
             {
                 ret.push_back(*pItem);
             }
