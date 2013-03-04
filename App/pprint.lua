@@ -31,7 +31,7 @@
 
 module("pprint",package.seeall)
 
-function pprint(t, name, indent)
+function format(t, name, indent)
    local cart     -- a container
    local autoref  -- for self references
 
@@ -106,4 +106,10 @@ function pprint(t, name, indent)
    cart, autoref = "", ""
    addtocart(t, name, indent)
    return cart .. autoref
+end
+
+function pprint(t, name, indent)
+   local rp = format(t, name, indent)
+   print(rp)
+   return rp
 end
