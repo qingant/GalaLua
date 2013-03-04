@@ -24,16 +24,16 @@ namespace GLR
     typedef Galaxy::GalaxyRT::CPollSelector POLLERTYPE;
     enum GLR_MSG_TYPE
     {
-        REGISTER,
-        REGISTER_OK,
-        REGISTER_FAIL,
-        APPLICATION,
+        REGISTER = 0,
+        REGISTER_OK = 1,
+        REGISTER_FAIL = 2,
+        APPLICATION = 3,
     };
 #pragma  pack(1)
     struct GLR_MSG
     {
         //uint32_t Len;
-        GLR_MSG_TYPE  Type;
+        unsigned char Type;
         struct 
         {
             char Host[20];
@@ -69,12 +69,15 @@ namespace GLR
         {
             size_t Current;
             uint32_t Len;
+            size_t HeadCurrent;
             std::string Buffer;
-            Task():Current(0), Len(0){}
+            Task():Current(0), Len(0), HeadCurrent(0){}
             Task(const std::string &buf):Current(0), Len(buf.size())
             {
-                Buffer.resize(sizeof(GLR_MSG)+buf.size()+3);
+                assert(buf.size()<1024*1024);
+                Buffer.resize(sizeof(GLR_MSG)+buf.size()+3, 0);
                 *((uint32_t*)&Buffer[0]) = htonl(buf.size()+sizeof(GLR_MSG) -1);
+                GALA_DEBUG("--------------- %d   %d", *((uint32_t*)&Buffer[0]), buf.size()+sizeof(GLR_MSG) -1);
                 memcpy(&Buffer[sizeof(GLR_MSG)+3], buf.c_str(), buf.size());
 
             }
@@ -95,7 +98,7 @@ namespace GLR
         void RegisterTo(const std::string &, int);
     public:
         int  _Gpid;
-        Task _RecvTask;
+        Task _RecvTask, _SendTask;
         TaskQueue _SendTaskQ;
         RouteMap  &_Router;
         std::string _Id;

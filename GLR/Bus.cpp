@@ -73,7 +73,7 @@ void GLR::Bus::Return( int pid, int narg, ...)
 
 void GLR::Bus::Send( int pid, const std::string &msg )
 {
-   Process::SendMsgToNode(pid, msg);
+    Process::SendMsgToNode(pid, msg);
 }
 
 void Bus::Response( int pid, int narg, ...)
@@ -101,7 +101,15 @@ void Bus::Response( int pid, int narg, ...)
         case LUA_TSTRING:
             str = va_arg(argp, const char*);
             number = va_arg(argp, int);
-            lua_pushlstring(nd._Stack, str, number);
+            if (number == 0)
+            {
+                lua_pushlstring(nd._Stack, str, strlen(str));
+            }
+            else
+            {
+                lua_pushlstring(nd._Stack, str, number);
+            }
+
             break;
         case LUA_TNUMBER:
             number = va_arg(argp, int);

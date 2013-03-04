@@ -15,6 +15,7 @@ namespace GLR
     typedef std::string LN_MSG_TYPE;
     typedef int32_t     LN_ID_TYPE;
     typedef Galaxy::GalaxyRT::_TypeDef_FIFO<std::string>::CFIFOQueue LN_CHL_TYPE;
+    
     class Schedule;
     class Globals
     {
@@ -62,6 +63,7 @@ namespace GLR
             time_t _LastOp;
             int    _Tick;
             int    _NArg;
+            ProcessStatus():_NArg(0){}
 
         };
 
@@ -77,7 +79,7 @@ namespace GLR
     public:
         static void Status();
     private:
-        static std::tr1::unordered_map<int,Process*> NodeMap;
+        static std::vector<Process*> NodeMap;
 
         static Galaxy::GalaxyRT::CRWLock  Lock;
         static int32_t NodeId;
@@ -96,6 +98,7 @@ namespace GLR
         static int RegisterGlobal(lua_State *l);
         static int GetGlobal(lua_State *l);
         static int GetNodeAddr(lua_State *l);
+        static int GetFilePath(lua_State *l);
     public:
         static LN_ID_TYPE CreateNode();
         static Process &GetNodeById(LN_ID_TYPE);
@@ -130,6 +133,7 @@ namespace GLR
         //std::condition_variable _Cond;
         int32_t                 _Id; 
         void Id(int32_t val) { _Id = val; }
+        std::string   _Path;
     public:
         ProcessStatus _Status;
     };
