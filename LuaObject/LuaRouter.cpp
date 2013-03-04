@@ -116,6 +116,8 @@ private:
         setfield_int(L,item.Usable,"usable");
         setfield_string(L,item.Name,"name");
         setfield_string(L,item.Field,"field");
+        setfield_string(L,item.AppType,"app_type");
+        setfield_string(L,item.DeviceType,"dev_type");
 
         lua_newtable(L);
         setfield_string(L,item.Addr.Host,"host");
