@@ -144,7 +144,7 @@ end
 
  -- High level DB connection function
  -- This should be used rather than DBD.{Driver}.New
-function Connect(driver, ...)
+function connect(driver, ...)
     local modulefile = name_to_module[driver]
 
     if not modulefile then
@@ -167,7 +167,11 @@ function Connect(driver, ...)
     -- Calls DBD.{Driver}.New(...)
     --return connection_class.New(...)    
     local con = Connection:new();
-    con._conn = connection_class.New(...)
+    m,err = connection_class.New(...)
+    if not m then
+        error(err)
+    end
+    con._conn =  m   
     return con
 end
 
