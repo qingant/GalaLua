@@ -221,7 +221,7 @@ int Process::SendMsgToNode( lua_State *l )
     size_t len = 0;
     const char *msg = luaL_checklstring(l, 2, &len);
     LN_MSG_TYPE  pack_msg(len+sizeof(MSG_HEAD), 0);
-    MSG_HEAD *head = (MSG_HEAD*)&msg[0];
+    MSG_HEAD *head = (MSG_HEAD*)&pack_msg[0];
     head->Type = MSG_HEAD::APP;
     head->GPid = id;
     head->Len = len;
@@ -458,11 +458,11 @@ void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::M
     try
     {
         std::string pack_msg(msg.size() + sizeof(MSG_HEAD),0);
-        MSG_HEAD *head = (MSG_HEAD*)&msg[0];
+        MSG_HEAD *head = (MSG_HEAD*)&pack_msg[0];
         head->Type = type;
         head->GPid = -1;
         head->Len = msg.size();
-        memcpy((void*)&pack_msg[0], msg.c_str(), msg.size());
+        memcpy((void*)&pack_msg[sizeof(*head)], msg.c_str(), msg.size());
         GetNodeById(pid).SendMsg(pack_msg);
     }
     catch (Galaxy::GalaxyRT::CException &e)

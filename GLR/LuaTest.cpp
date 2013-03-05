@@ -35,8 +35,12 @@ int main( int argc, char* argv[] )
     //}
     GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
     GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
-    printf("test\n");
-    scanf("%d",new int);
+    while (true)
+    {
+        usleep(1024*1024*1024);
+    }
+    //printf("test\n");
+    //scanf("%d",new int);
 	return 0;
 }
 
