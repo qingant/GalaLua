@@ -1,6 +1,6 @@
 #!/usr/bin/lua
 
-module('DBI', package.seeall)
+module(..., package.seeall)
 
 -- Driver to module mapping
 local name_to_module = {
@@ -49,8 +49,8 @@ function Cursor:new(stm)
 end
 
 function Cursor:close()
-    if slef._statement then
-       slef._statement:close() 
+    if self._statement then
+       self._statement:close() 
     end
 end
 
@@ -63,7 +63,7 @@ end
 
 function Cursor:fetchmany(size)
     if size == 1 then
-        return self:fetchone()
+        return {self:fetchone()}
     elseif size >1 then
         local rowcount = size
 	local rows = {}
