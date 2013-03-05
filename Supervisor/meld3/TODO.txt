@@ -1,0 +1,26 @@
+- Document fillmeldhtmlform method.
+
+- Preserve xmlns="http://www.w3.org/1999/xhtml" On tags when it's
+  provided in the parsed XML input during xhtml output (or figure out
+  why it makes the XML writer go berserk and output every tag with
+  that qualified namespace, or just output it by default in XHTML mode
+  only if that makes sense).
+
+- Revisit <![CDATA serialization.  Currently CDATA containers are
+  thrown away at parse time, and are thus not present in the output
+  stream.  Investigate how different browsers deal with this (esp. wrt
+  to escaped cdata in "script" and "style" elements when XHTML
+  serialization is used).
+
+- Document the proper usage of <meta content="text/html;
+  charset=ISO-8859-1" http-equiv="content-type">.  Maybe output an
+  http-equiv content type tag by default matching the serlialization
+  mode.
+
+- Investigate why using the "plope.com" namespace identifier is bad.
+
+- HTML serializer only calls _escape_cdata/_escape_attrib if necessary
+  instead of calling it without regard to its need.  This needs to be done
+  for the XML serializer too.
+
+
