@@ -30,6 +30,19 @@ rt = n.send({
 
 print rt
 
+#rt = n.send({
+#        "header":{
+#            "from":{
+#                "type":"display",
+#                "name":"ui@python_push@matao"
+#                },
+#            "to":{
+#                "action":"request"
+#                }
+#            },
+#        "content":{}
+#        })
+#print rt
 rt = n.send({
         "header":{
             "from":{
@@ -37,11 +50,14 @@ rt = n.send({
                 "name":"ui@python_push@matao"
                 },
             "to":{
-                "action":"request"
+                "action":"router",
+                "method":"find_by_name",
+                "args":"ui@python_push@matao",
                 }
             },
         "content":{}
         })
-print rt
+print "router-----------"
+import pprint
+pprint.pprint(rt)
 rt = n.recv()
-print rt

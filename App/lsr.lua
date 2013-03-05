@@ -15,17 +15,10 @@ local RID = "@router"
 local MQID = "@mq"
 function main()
    -- init
-   local _router=router.new("router")
-   glr.global(RID, _router, "Router4Lua")
-   local _amq=amq.new(configure.amq.path)
-   glr.global(MQID, _amq, "CGalaxyMQ");
-   -- glr.spawn("lsr.lua","worker")
-   -- local err, all = glr.all()
-   -- print(pprint.pprint(all))
-   -- local err, sta = glr.status(glr.id)
-   -- print(pprint.pprint(sta))
-   -- local err, sta = glr.status(all[1])
-   -- print(pprint.pprint(sta))
+    local _router=router.new("router")
+    glr.global(RID, _router)
+    local _amq=amq.new(configure.amq.path)
+    glr.global(MQID, _amq)
     local err,status_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/status.lua", "main")
     print("------Status :::::" .. status_server)
     -- local err,svc=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","fake_svc")
@@ -69,18 +62,19 @@ function display_worker()
       if msg_table["command"]=="register" then
          pprint.pprint("Rigester")
          local host,port=glr.node_addr()
-         _router:register(msg_table["name"],"display",host,port,__id__, "display", msg_table["app_type"])
+         _router:register(msg_table["name"],"display",host,port,__id__, "display", msg_table["app_type"],msg_table["host"].."This is userdata")
       else
          error("register message expected!")
       end
 
    end
    register()
-   pprint.pprint("Items")
-   pprint.pprint(_router:find_by_field("display"))
+   print(pprint.pprint(_router:find_by_field("display")))
    local ret={status=true}
    node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"],cjson.encode(ret))
+
    local nq = _amq:NQArray():get(0)
+--   nq:put()
 
    while true do
       local err,msg=glr.recv()
@@ -88,10 +82,15 @@ function display_worker()
       pprint.pprint("------Display Recved")
       pprint.pprint(t)
       if t.header.from.type == "svc" then
-         pprint.pprint(" ----  display worker ---- ")
          node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"], msg)
       elseif t.header.from.type == "display" then
-         nq:put(msg)
+         if t.header.to.action=="request" then
+             nq:put(msg)
+         elseif t.header.to.action=="router" then
+             print("::::router::",pprint.pprint(t)) 
+             t.content=_router[t.header.to.method](_router,t.header.to.args)
+             node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"], cjson.encode(t))
+         end
       end
    end
 end 
@@ -105,7 +104,7 @@ function agent_worker()
    function register()
       if msg_table["command"]=="register" then
          local host,port=glr.node_addr()
-         _router:register(msg_table["name"],"agent",host,port,__id__, "agent", msg_table["app_type"])
+         _router:register(msg_table["name"],"agent",host,port,__id__, "agent", msg_table["app_type"],msg_table["host"].."This is userdata")
       else
          error("register message expected!")
       end
@@ -133,7 +132,7 @@ function agent_worker()
                                 }
                              },
                              ["content"] = {
-                                ["code"] = source
+                                ["code"] = source,
                              }
                           }))
    -- msg_table["command"]=nil
