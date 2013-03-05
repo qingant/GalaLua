@@ -32,39 +32,39 @@
 #define LUA_PUSH_ATTRIB_INT(n, v) \
     lua_pushstring(L, n); \
     lua_pushinteger(L, v); \
-    lua_rawset(L, -3); 
+    lua_rawset(L, -3);
 
 #define LUA_PUSH_ATTRIB_FLOAT(n, v) \
     lua_pushstring(L, n); \
     lua_pushnumber(L, v); \
-    lua_rawset(L, -3); 
+    lua_rawset(L, -3);
 
 #define LUA_PUSH_ATTRIB_STRING(n, v) \
     lua_pushstring(L, n); \
     lua_pushstring(L, v); \
-    lua_rawset(L, -3); 
+    lua_rawset(L, -3);
 
 #define LUA_PUSH_ATTRIB_BOOL(n, v) \
     lua_pushstring(L, n); \
     lua_pushboolean(L, v); \
-    lua_rawset(L, -3); 
+    lua_rawset(L, -3);
 
 #define LUA_PUSH_ATTRIB_NIL(n) \
     lua_pushstring(L, n); \
     lua_pushnil(L); \
-    lua_rawset(L, -3); 
+    lua_rawset(L, -3);
 
 
 
 #define LUA_PUSH_ARRAY_INT(n, v) \
     lua_pushinteger(L, v); \
     lua_rawseti(L, -2, n); \
-    n++; 
+    n++;
 
 #define LUA_PUSH_ARRAY_FLOAT(n, v) \
     lua_pushnumber(L, v); \
     lua_rawseti(L, -2, n); \
-    n++; 
+    n++;
 
 #define LUA_PUSH_ARRAY_STRING(n, v) \
     lua_pushstring(L, v); \
@@ -101,7 +101,7 @@ typedef enum lua_push_type {
  * used for placeholder translations
  * from '?' to the .\d{4}
  */
-#define MAX_PLACEHOLDERS        9999 
+#define MAX_PLACEHOLDERS        9999
 #define MAX_PLACEHOLDER_SIZE    (1+4) /* .\d{4} */
 
 /*
@@ -111,6 +111,7 @@ typedef enum lua_push_type {
  *
  */
 
+#define DBI_ERR_NO_Multi_Thread_SAFE "Failed to set multi-threadsafe"
 #define	DBI_ERR_CONNECTION_FAILED   "Failed to connect to database: %s"
 #define DBI_ERR_DB_UNAVAILABLE	    "Database not available"
 #define DBI_ERR_EXECUTE_INVALID	    "Execute called on a closed or invalid statement"

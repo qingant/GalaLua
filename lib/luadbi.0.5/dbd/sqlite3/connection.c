@@ -23,7 +23,7 @@ static int rollback(connection_t *conn) {
 }
 
 
-/* 
+/*
  * connection,err = DBD.SQLite3.New(dbfile)
  */
 static int connection_new(lua_State *L) {
@@ -42,6 +42,13 @@ static int connection_new(lua_State *L) {
     }
 
     conn = (connection_t *)lua_newuserdata(L, sizeof(connection_t));
+
+    if(sqlite3_threadsafe() == 0)
+    {
+    lua_pushnil(L);
+	lua_pushstring(L,DBI_ERR_NO_Multi_Thread_SAFE);
+	return 2;
+    }
 
     if (sqlite3_open(db, &conn->sqlite) != SQLITE_OK) {
 	lua_pushnil(L);
@@ -63,7 +70,7 @@ static int connection_new(lua_State *L) {
  */
 static int connection_autocommit(lua_State *L) {
     connection_t *conn = (connection_t *)luaL_checkudata(L, 1, DBD_SQLITE_CONNECTION);
-    int on = lua_toboolean(L, 2); 
+    int on = lua_toboolean(L, 2);
     int err = 1;
 
     if (conn->sqlite) {
@@ -72,7 +79,7 @@ static int connection_autocommit(lua_State *L) {
 	else
 	    err = begin(conn);
 
-	conn->autocommit = on;	
+	conn->autocommit = on;
     }
 
     lua_pushboolean(L, !err);
@@ -85,7 +92,7 @@ static int connection_autocommit(lua_State *L) {
  */
 static int connection_close(lua_State *L) {
     connection_t *conn = (connection_t *)luaL_checkudata(L, 1, DBD_SQLITE_CONNECTION);
-    int disconnect = 0;   
+    int disconnect = 0;
 
     if (conn->sqlite) {
 	sqlite3_close(conn->sqlite);
@@ -122,7 +129,7 @@ static int connection_commit(lua_State *L) {
  */
 static int connection_ping(lua_State *L) {
     connection_t *conn = (connection_t *)luaL_checkudata(L, 1, DBD_SQLITE_CONNECTION);
-    int ok = 0;   
+    int ok = 0;
 
     if (conn->sqlite) {
 	ok = 1;
@@ -142,7 +149,7 @@ static int connection_prepare(lua_State *L) {
 	return dbd_sqlite3_statement_create(L, conn, luaL_checkstring(L, 2));
     }
 
-    lua_pushnil(L);    
+    lua_pushnil(L);
     lua_pushstring(L, DBI_ERR_DB_UNAVAILABLE);
     return 2;
 }
@@ -189,7 +196,7 @@ static int connection_rollback(lua_State *L) {
 }
 
 /*
- * __gc 
+ * __gc
  */
 static int connection_gc(lua_State *L) {
     /* always close the connection */
@@ -245,5 +252,5 @@ int dbd_sqlite3_connection(lua_State *L) {
 
     luaL_register(L, DBD_SQLITE_CONNECTION, connection_class_methods);
 
-    return 1;    
+    return 1;
 }
