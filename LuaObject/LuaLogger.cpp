@@ -75,6 +75,7 @@ public:
 
         return 0;
     }
+    
     static int Logger(lua_State *L)
     {
         ILogger *p=CheckILogger(L,1);
@@ -89,6 +90,49 @@ public:
 
         return 0;
     }
+    static int LoggerDebug(lua_State *L)
+    {
+        ILogger *p=CheckILogger(L,1);
+        //int level=luaL_checkint(L,2); 
+
+        const char *pstr=luaL_checkstring(L,2);
+        if (pstr==NULL)
+        {
+            return luaL_error(L,"string expected! %s  %d",__func__,__LINE__);
+        }
+        CALL_CPP_FUNCTION(L,p->logger->Logger((LOGLEVEL)DEBUG,pstr));    
+
+        return 0;
+    }
+    static int LoggerWarn(lua_State *L)
+    {
+        ILogger *p=CheckILogger(L,1);
+        //int level=luaL_checkint(L,2); 
+
+        const char *pstr=luaL_checkstring(L,2);
+        if (pstr==NULL)
+        {
+            return luaL_error(L,"string expected! %s  %d",__func__,__LINE__);
+        }
+        CALL_CPP_FUNCTION(L,p->logger->Logger((LOGLEVEL)WARN,pstr));    
+
+        return 0;
+    }
+    static int LoggerFatal(lua_State *L)
+    {
+        ILogger *p=CheckILogger(L,1);
+        //int level=luaL_checkint(L,2); 
+
+        const char *pstr=luaL_checkstring(L,2);
+        if (pstr==NULL)
+        {
+            return luaL_error(L,"string expected! %s  %d",__func__,__LINE__);
+        }
+        CALL_CPP_FUNCTION(L,p->logger->Logger((LOGLEVEL)FATAL,pstr));    
+
+        return 0;
+    }
+    
     static int Flush(lua_State *L)
     {
         ILogger *p=CheckILogger(L,1);
@@ -131,8 +175,12 @@ extern "C" int luaopen_logger(lua_State *L)
     }; struct luaL_Reg m[] ={
        {"finalizer",ILogger4Lua::finalizer},
        {"__gc",ILogger4Lua::finalizer},
-       { "loggerDump",ILogger4Lua::LoggerDump},
-       { "logger",ILogger4Lua::Logger},
+       { "logDump",ILogger4Lua::LoggerDump},
+       { "log",ILogger4Lua::Logger},
+       { "debug",ILogger4Lua::LoggerDebug},
+       { "warn",ILogger4Lua::LoggerWarn},
+       { "fatal",ILogger4Lua::LoggerFatal},
+
        { "flush",ILogger4Lua::Flush},
        { "logger_rename",ILogger4Lua::LoggerRename},
 //       { "LoggerResetSwitcherToPlatform",ILogger4Lua::LoggerResetSwitcherToPlatform},
