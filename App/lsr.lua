@@ -25,11 +25,14 @@ function main()
     -- print("------svc ::::::" .. svc)
     while true do
         local id
-        local status, msg = glr.recv()
+        local msg_type, gpid, msg = glr.recv()
         local services={status=status_server}
-        -- print(msg)
+        print(msg)
+        if msg_type == glr.CLOSED then
+           
+        else
         --msg={"host":"192.168.56.101","port":1010,"gpid",122,"type":"agent"}
-        assert(status,"glr.recv error")
+        assert(msg_type,"glr.recv error")
         msg_table=cjson.decode(msg)
         pprint.pprint(msg_table)
         if (msg_table["dev_type"]=="agent") then
@@ -46,6 +49,7 @@ function main()
         if not node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"],cjson.encode(services)) then
            pprint.pprint("Send Failure")
         end
+    end
     end
 end
 
@@ -98,7 +102,7 @@ end
 function agent_worker()
    local _router = glr.get_global(RID)
    local _amq = glr.get_global(MQID)
-   local err,msg=glr.recv()
+   local msg_type, gpid, msg=glr.recv()
    local msg_table=cjson.decode(msg)
     
    function register()
@@ -118,13 +122,8 @@ function agent_worker()
    -- pprint.print("Read source file")
    local source = io.open(configure.LUA_AGENT_APP_DIR .. msg_table.app_type .. ".lua"):read("*a")
    -- pprint.print(source)
-   local str = "..............................................................................." 
-   str = str .. str .. str .. str
-   str = str .. str .. str .. str
-   node.send(msg_table["host"],
-             msg_table["port"],
-             msg_table["gpid"], 
-             cjson.encode({
+
+   local send_msg =  cjson.encode({
                              ["header"] = {
                                 ["from"] = {},
                                 ["to"] = {
@@ -134,7 +133,13 @@ function agent_worker()
                              ["content"] = {
                                 ["code"] = source,
                              }
-                          }))
+                          })
+   pprint.pprint("SendMsg\n"..send_msg)
+   node.send(msg_table["host"],
+             msg_table["port"],
+             msg_table["gpid"], 
+             send_msg
+            )
    -- msg_table["command"]=nil
    -- msg_table["registered"]=true
 
@@ -142,7 +147,7 @@ function agent_worker()
    -- nq:put(cjson.encode(msg_table))
 
     while true do
-        err,msg=glr.recv()
+        msg_type, gpid, msg=glr.recv()
         local t=cjson.decode(msg)
         print("----------agent worker------")
         print(pprint.pprint(t))

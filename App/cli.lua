@@ -26,8 +26,8 @@ function main()
                                             ["src_gpid"] = __id__,
                                             ["dev_type"] = "agent",
                                          }))
-   local err, msg = glr.recv()
-   assert(err,msg)
+   local msg_type, gpid, msg = glr.recv()
+   assert(msg_type,msg)
    local response = cjson.decode(msg)
    local bind_gpid = response["bind_gpid"]
    print(host,port,bind_gpid) 
@@ -41,7 +41,7 @@ function main()
                                                     ["field"] = "bank::east",
                                                     ["app_type"] = "sys_info",
                                                  }))
-   err,msg = glr.recv()
+   msg_type,gpid, msg = glr.recv()
    response = cjson.decode(msg)
    local status = response["status"]
    if not status then
@@ -49,7 +49,7 @@ function main()
    end
    print("Register Succ")
    while true do
-      err, msg = glr.recv()
+      msg_type, gpid, msg = glr.recv()
       local request = cjson.decode(msg)
       if request.header.to.action == "excute" then
          local msg = {}
@@ -115,7 +115,7 @@ end
 
 function worker()
    print("Before")
-   local err,msg = glr.recv()
+   local msg_type, gpid, msg = glr.recv()
    print("Recved!")
    print(msg)
    local request = cjson.decode(msg)
@@ -124,9 +124,11 @@ function worker()
    -- pprint.print(fun)
    -- fun(request["host"], request["port"], request["gpid"], request.des_host, request.des_port, request.des_gpid)
    while true do
-      local data = {"100 200 300 400"}
-      print(data)
-      report(request.host, request.port, request.gpid, data)
+      -- local data = {"100 200 300 400"}
+      local fun = loadstring(request["code"])
+      local data = fun(request.host, request.port, request.gpid)
+      -- print(data)
+      -- report(request.host, request.port, request.gpid, {data})
       timer.sleep(5)
    end
 end
