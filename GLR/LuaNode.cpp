@@ -308,11 +308,12 @@ int Process::Recieve( lua_State *l )
     {
         LN_MSG_TYPE msg = self.RecvMsg();
         GALA_DEBUG("Get %d Size(%d)", self_id, msg.size());
+
         MSG_HEAD *head = (MSG_HEAD*)&msg[0];
         lua_pushinteger(self._Stack, head->Type);
         lua_pushinteger(self._Stack, head->GPid);
         lua_pushlstring(self._Stack, &msg[sizeof(*head)], msg.size() - sizeof(*head));
-        return 2;
+        return 3;
     }
     catch (Galaxy::GalaxyRT::CException& e)
     {
