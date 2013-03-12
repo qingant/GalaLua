@@ -5,11 +5,13 @@ package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so"
 
 local node = require "node"
-local struct = require "struct"
+--local struct = require "struct"
 local pprint = require "pprint"
 local cjson = require "cjson"
 -- local io = require "io"
 local timer = require "timer"
+local ffi = require "ffi"
+local structs = require "structs"
 function main()
    local host = "0.0.0.0"
    local port = 2345
@@ -20,55 +22,61 @@ function main()
    -- print(rt)
    
    -- entry
-   node.send(host, port, 0, cjson.encode({
-                                            ["host"] = host,
-                                            ["port"] = 2346, -- youself port
-                                            ["src_gpid"] = __id__,
-                                            ["dev_type"] = "agent",
-                                         }))
-   local msg_type, gpid, msg = glr.recv()
-   assert(msg_type,msg)
-   local response = cjson.decode(msg)
-   local bind_gpid = response["bind_gpid"]
+   local msg = ffi.new("BIND_MSG")
+   msg.Head.Action = ffi.C.ACT_BIND
+   msg.Catagory = ffi.C.DEV_AGENT
+   node.send(host, port, 0, ffi.string(msg, ffi.sizeof(msg)))
+   local msg_type, addr, rsp = glr.recv()
+   assert(msg_type,rsp)
+   -- local response = cjson.decode(msg)
+   ffi.copy(msg, rsp, ffi.sizeof(msg))
+   local bind_gpid = msg.Gpid
    print(host,port,bind_gpid) 
-   print(pprint.pprint(response))
-   node.send(host, port, bind_gpid, cjson.encode({
-                                                    ["host"] = host,
-                                                    ["port"] = 2346,
-                                                    ["gpid"] = __id__,
-                                                    ["command"] = "register",
-                                                    ["name"] = "myhost::sys::0",
-                                                    ["field"] = "bank::east",
-                                                    ["app_type"] = "sys_info",
-                                                 }))
-   msg_type,gpid, msg = glr.recv()
-   response = cjson.decode(msg)
-   local status = response["status"]
-   if not status then
+   -- print(pprint.pprint(response))
+   local reg_msg = ffi.new("ROUTER_ADD_MSG")
+   reg_msg.Head.Action = ffi.C.ACT_ROUTER_ADD
+   reg_msg.Name = "myhost::sys::0"
+   reg_msg.Field = "bank::east"
+   reg_msg.AppType =  "sys_info"
+   node.send(host, port, bind_gpid, ffi.string(reg_msg, ffi.sizeof(reg_msg)))
+   msg_type,addr, rsp = glr.recv()
+   ffi.copy(reg_msg, rsp, ffi.sizeof(reg_msg))
+   
+   -- response = cjson.decode(msg)
+   -- local status = response["status"]
+   if reg_msg.Head.Action ~= ffi.C.ACT_ACK then
       error("")
    end
    print("Register Succ")
+   local app_head = ffi.new("APP_HEADER")
    while true do
-      msg_type, gpid, msg = glr.recv()
-      local request = cjson.decode(msg)
-      if request.header.to.action == "excute" then
+      msg_type, _, msg = glr.recv()
+      ffi.copy(app_head, msg, ffi.sizeof(app_head))
+      local content = string.sub(msg, ffi.sizeof(app_head)+1)
+      pprint.pprint(content)
+      content = cjson.decode(content)
+      if msg_type == glr.CLOSED then
+         break
+      end
+      -- local request = cjson.decode(msg)
+      if app_head.Head.Action == ffi.C.ACT_DEPLOY then
          local msg = {}
-         msg["code"] = request.content.code
-         msg["host"] = host
-         msg["port"] = port
+         msg["code"] = content.code
+         msg["host"] = addr.host
+         msg["port"] = addr.port
          msg["gpid"] =  bind_gpid
          local err,id = glr.spawn(os.getenv("HOME") .. "/lib/lua/cli.lua", "worker")
          glr.send(id, cjson.encode(msg))
-      elseif request.header.to.action == "request" then
+      elseif app_head.Head.Action == ffi.C.ACT_REQUEST then
          local msg = {}
          msg["code"] = request.content.code
          msg["host"] = host
          msg["port"] = port
          msg["gpid"] =  bind_gpid
-         msg["des_host"] = request.header.request.from.host
-         msg["des_port"] = request.header.request.from.port
-         msg["des_gpid"] = request.header.request.from.gpid
-         local err,id = glr.spawn(glr.get_path(), "worker")
+         msg["des_host"] = request.header.from.host
+         msg["des_port"] = request.header.from.port
+         msg["des_gpid"] = request.header.from.gpid
+         local err,id = glr.spawn(glr.get_path(), "request_handle")
          glr.send(id, cjson.encode(msg))
       end
    end
@@ -94,7 +102,7 @@ function report (host, port, gpid, data)
    return node.send(host, port , gpid, cjson.encode(response))
 end
 function response(host, port, gpid, des_host, des_port, des_gpid, data)
-   local response = {
+   local _res = {
       ["header"] = {
          ["from"] = {
             ["type"] = "agent",
@@ -103,14 +111,14 @@ function response(host, port, gpid, des_host, des_port, des_gpid, data)
          ["to"] = {
             ["type"] = "svc",
             ["action"] = "response",
- ["host"] = des_host,
+            ["host"] = des_host,
             ["port"] = des_port,
             ["gpid"] = des_gpid,
          }
       }
    }
-   response.content = data
-   return node.send(host, port , gpid, cjson.encode(response))
+   _res.content = data
+   return node.send(host, port , gpid, cjson.encode(_res))
 end
 
 function worker()
@@ -124,7 +132,7 @@ function worker()
    -- pprint.print(fun)
    -- fun(request["host"], request["port"], request["gpid"], request.des_host, request.des_port, request.des_gpid)
    while true do
-      -- local data = {"100 200 300 400"}
+
       local fun = loadstring(request["code"])
       local data = fun(request.host, request.port, request.gpid)
       -- print(data)
@@ -134,8 +142,10 @@ function worker()
 end
 
 function request_handle()
-   local err,msg = glr.recv()
+   local msg_type, gpid, msg = glr.recv()
    local request = cjson.decode(msg)
-   local data = {"100 200 300 400"}
-   responce(request.host, request.port, request.gpid, data)
+   local fun = loadstring(request["code"])
+   print(request.host, request.port, request.gpid,request.des_host, request.des_port, request.des_gpid)
+   local data = fun(request.host, request.port, request.gpid,request.des_host, request.des_port, request.des_gpid)
+   -- responce(request.host, request.port, request.gpid,request.des_host, request.des_port, request.des_gpid, data)
 end

@@ -3,54 +3,66 @@ package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so"
 
 local node = require "node"
-local struct = require "struct"
+-- local struct = require "struct"
 local pprint = require "pprint"
 local cjson = require "cjson"
 local amq = require "amq"
 local router = require "router"
 local configure = require "configure"
+local timer = require "timer"
+local ffi = require "ffi"
+local structs = require "structs"
 --print(package.path)
 --print(package.cpath)
 local RID = "@router"
 local MQID = "@mq"
+
+
+
+
 function main()
    -- init
-    local _router=router.new("router")
-    glr.global(RID, _router)
-    local _amq=amq.new(configure.amq.path)
-    glr.global(MQID, _amq)
-    local err,status_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/status.lua", "main")
-    print("------Status :::::" .. status_server)
-    -- local err,svc=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","fake_svc")
-    -- print("------svc ::::::" .. svc)
-    while true do
-        local id
-        local msg_type, gpid, msg = glr.recv()
-        local services={status=status_server}
-        print(msg)
-        if msg_type == glr.CLOSED then
-           
-        else
-        --msg={"host":"192.168.56.101","port":1010,"gpid",122,"type":"agent"}
-        assert(msg_type,"glr.recv error")
-        msg_table=cjson.decode(msg)
-        pprint.pprint(msg_table)
-        if (msg_table["dev_type"]=="agent") then
-           -- for i=0,100 do
-           err,id=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","agent_worker")
-           -- end
-        elseif msg_table["dev_type"] == "monitor" then
-           id = status_server
-        elseif msg_table.dev_type == "display" then
-           err,id=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","display_worker")
-        end
-        services["bind_gpid"]=id
-        pprint.pprint(msg_table)
-        if not node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"],cjson.encode(services)) then
-           pprint.pprint("Send Failure")
-        end
-    end
-    end
+   local _router=router.new("router")
+   glr.global(RID, _router)
+   local _amq=amq.new(configure.amq.path)
+   glr.global(MQID, _amq)
+   local err,status_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/status.lua", "main")
+   print("------Status :::::" .. status_server)
+   -- local err,svc=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","fake_svc")
+   -- print("------svc ::::::" .. svc)
+   while true do
+      local id
+      local msg_type, addr, msg = glr.recv()
+      local services={status=status_server}
+      print(msg)
+      if msg_type == glr.CLOSED then
+         
+      else
+         --msg={"host":"192.168.56.101","port":1010,"gpid",122,"type":"agent"}
+         assert(msg_type,"glr.recv error")
+         -- msg_table=cjson.decode(msg)
+         local msg_table = ffi.new("BIND_MSG")
+         ffi.copy(msg_table, msg, ffi.sizeof(msg_table))
+         
+         pprint.pprint("DEV_CATA", msg_table.Catagory)
+         if (msg_table.Catagory == ffi.C.DEV_AGENT) then
+            -- for i=0,100 do
+            err,id=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","agent_worker")
+            -- end
+         elseif msg_table.Catagory == ffi.C.DEV_MONITOR then
+            id = status_server
+         elseif msg_table.Catagory == ffi.C.DEV_DISPLAY then
+            err,id=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","display_worker")
+         end
+         -- services["bind_gpid"]=
+         msg_table.Gpid = ffi.C.htonl(id)
+         pprint.pprint(addr)
+         pprint.pprint(addr.host,addr.port,addr.gpid)
+         if not node.send(addr.host,addr.port,addr.gpid, structs.pack(msg_table)) then
+            pprint.pprint("Send Failure")
+         end
+      end
+   end
 end
 
 --a=cjson.decode("{\"a\":\"vvv\"}")
@@ -59,14 +71,22 @@ end
 function display_worker()
    local _router = glr.get_global(RID)
    local _amq = glr.get_global(MQID)
-   local err,msg=glr.recv()
-   local msg_table=cjson.decode(msg)
-    
+   local msg_type, addr, msg=glr.recv()
+   local msg_table = ffi.new("ROUTER_ADD_MSG")
+   ffi.copy(msg_table, msg, ffi.sizeof(msg_table))
+   
    function register()
-      if msg_table["command"]=="register" then
+      if msg_table.Head.Action==ffi.C.ACT_ROUTER_ADD then
          pprint.pprint("Rigester")
          local host,port=glr.node_addr()
-         _router:register(msg_table["name"],"display",host,port,__id__, "display", msg_table["app_type"],msg_table["host"].."This is userdata")
+         _router:register(structs.str_pack(msg_table.Name),
+                          "display",
+                          host,
+                          port,
+                          __id__,
+                          "display",
+                          structs.str_pack(msg_table.AppType),
+                          "This is userdata")
       else
          error("register message expected!")
       end
@@ -75,25 +95,28 @@ function display_worker()
    register()
    print(pprint.pprint(_router:find_by_field("display")))
    local ret={status=true}
-   node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"],cjson.encode(ret))
+   msg_table.Head.Action = ffi.C.ACT_ACK
+   node.send(addr.host, addr.port, addr.gpid ,structs.pack(msg_table))
 
    local nq = _amq:NQArray():get(0)
---   nq:put()
+   --   nq:put()
 
    while true do
-      local err,msg=glr.recv()
+      local msg_type, addr ,msg = glr.recv()
       local t=cjson.decode(msg)
+      t.header.timestamp = timer.time() -- add time stamp
       pprint.pprint("------Display Recved")
       pprint.pprint(t)
       if t.header.from.type == "svc" then
          node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"], msg)
       elseif t.header.from.type == "display" then
          if t.header.to.action=="request" then
-             nq:put(msg)
+            nq:put(msg)
          elseif t.header.to.action=="router" then
-             print("::::router::",pprint.pprint(t)) 
-             t.content=_router[t.header.to.method](_router,t.header.to.args)
-             node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"], cjson.encode(t))
+            print("::::router::",pprint.pprint(t)) 
+            t.content=_router[t.header.to.method](_router,t.header.to.args)
+            pprint.pprint(t.content, "Return router info")
+            node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"], cjson.encode(t))
          end
       end
    end
@@ -102,65 +125,74 @@ end
 function agent_worker()
    local _router = glr.get_global(RID)
    local _amq = glr.get_global(MQID)
-   local msg_type, gpid, msg=glr.recv()
-   local msg_table=cjson.decode(msg)
-    
+   local msg_type, addr, msg=glr.recv()
+   -- local msg_table=cjson.decode(msg)
+   
+   local msg_table = ffi.new("ROUTER_ADD_MSG")
+   ffi.copy(msg_table, msg, ffi.sizeof(msg_table))
    function register()
-      if msg_table["command"]=="register" then
+      if msg_table.Head.Action == ffi.C.ACT_ROUTER_ADD then
          local host,port=glr.node_addr()
-         _router:register(msg_table["name"],"agent",host,port,__id__, "agent", msg_table["app_type"],msg_table["host"].."This is userdata")
+         _router:register(ffi.string(msg_table.Name, ffi.C.strlen(msg_table.Name)),
+                          "agent",
+                          host,
+                          port,
+                          __id__,
+                          "agent",
+                          ffi.string(msg_table.AppType, ffi.C.strlen(msg_table.AppType)), 
+                          "This is userdata")
       else
          error("register message expected!")
       end
 
    end
    register()
-    
-   local ret={status=true}
-   node.send(msg_table["host"],msg_table["port"],msg_table["gpid"],cjson.encode(ret))
-    
+   
+   msg_table.Head.Action = ffi.C.ACT_ACK
+   node.send(addr.host,addr.port,addr.gpid, ffi.string(msg_table, ffi.sizeof(msg_table)))
+   
    -- pprint.print("Read source file")
-   local source = io.open(configure.LUA_AGENT_APP_DIR .. msg_table.app_type .. ".lua"):read("*a")
+   local source = io.open(configure.LUA_AGENT_APP_DIR .. structs.str_pack(msg_table.AppType) .. ".lua"):read("*a")
    -- pprint.print(source)
-
-   local send_msg =  cjson.encode({
-                             ["header"] = {
-                                ["from"] = {},
-                                ["to"] = {
-                                   ["action"] = "excute",
-                                }
-                             },
-                             ["content"] = {
-                                ["code"] = source,
-                             }
-                          })
-   pprint.pprint("SendMsg\n"..send_msg)
-   node.send(msg_table["host"],
-             msg_table["port"],
-             msg_table["gpid"], 
-             send_msg
+   local send_msg = ffi.new("APP_HEADER")
+   send_msg.Head.Action = ffi.C.ACT_DEPLOY
+   send_msg.From.Catagory = ffi.C.DEV_LSR
+   send_msg.From.DevId = 0
+   
+   local content =  cjson.encode({
+                                    ["content"] = {
+                                       ["code"] = source,
+                                    }
+                                 })
+   pprint.pprint("SendMsg\n")
+   node.send(addr.host,
+             addr.port,
+             addr.gpid, 
+             structs.pack(send_msg) .. content
             )
    -- msg_table["command"]=nil
    -- msg_table["registered"]=true
 
-   local nq = _amq:NQArray():get(0)
+   -- local nq = _amq:NQArray():get(0)
    -- nq:put(cjson.encode(msg_table))
 
-    while true do
-        msg_type, gpid, msg=glr.recv()
-        local t=cjson.decode(msg)
-        print("----------agent worker------")
-        print(pprint.pprint(t))
-        if t["header"]["from"]["type"]=="agent" then 
-           if t.header.to.action == "report" then
-              nq:put(msg)
-           elseif t.header.to.action == "response" then
-              node.send(t.header.to.host, t.header.to.port, t.header.to.gpid, msg)
-           end
-        elseif  t["header"]["from"]["type"]=="svc" then
-            node.send(msg_table["host"],msg_table["port"],msg_table["gpid"],msg)
-        end
-    end
+   -- while true do
+   --    msg_type, _, msg=glr.recv()
+   --    local t=cjson.decode(msg)
+   --    t.header.timestamp = 0
+   --    print("----------agent worker------")
+   --    print(pprint.pprint(t))
+   --    if t["header"]["from"]["type"]=="agent" then 
+   --       if t.header.to.action == "report" then
+   --          nq:put(msg)
+   --       elseif t.header.to.action == "response" then
+   --          node.send(t.header.to.host, t.header.to.port, t.header.to.gpid, msg)
+   --       end
+   --    elseif  t["header"]["from"]["type"]=="svc" then
+   --       pprint.pprint("Send to SVC")
+   --       node.send(msg_table["host"],msg_table["port"],msg_table["gpid"],msg)
+   --    end
+   -- end
 end
 
 -- function fake_svc()
