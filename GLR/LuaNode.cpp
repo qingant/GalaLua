@@ -146,6 +146,10 @@ int Process::Spawn( lua_State *l )
 
 Process & Process::GetNodeById( LN_ID_TYPE id)
 {
+    if (id >= NodeMap.size())
+    {
+        THROW_EXCEPTION_EX("Process Not Exist");
+    }
 
     Process *p = NodeMap[id];
     if (p == NULL)
@@ -462,6 +466,7 @@ void Process::Destory( LN_ID_TYPE pid)
 {
     Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+
     Process *p = NodeMap[pid];
     if (p == NULL)
     {
