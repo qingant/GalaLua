@@ -22,31 +22,49 @@
 namespace GLR
 {
     typedef Galaxy::GalaxyRT::CPollSelector POLLERTYPE;
-    enum GLR_MSG_TYPE
-    {
-        REGISTER = 0,
-        REGISTER_OK = 1,
-        REGISTER_FAIL = 2,
-        APPLICATION = 3,
-    };
-#pragma  pack(1)
-    struct GLR_MSG
-    {
-        //uint32_t Len;
-        unsigned char Type;
-        struct 
-        {
-            char Host[20];
-            uint32_t  Port;
-            uint32_t  GPid;
-        } Source, Desination;
-        char Content[1];
-        GLR_MSG()
-        {
-            memset(this, 0, sizeof(*this));
-        }
-    };
-#pragma pack()
+//    enum GLR_MSG_TYPE
+//    {
+//        REGISTER = 0,
+//        REGISTER_OK = 1,
+//        REGISTER_FAIL = 2,
+//        APPLICATION = 3,
+//    };
+//#pragma  pack(1)
+//    struct GLR_MSG
+//    {
+//        //uint32_t Len;
+//        unsigned char Type;
+//        uint32_t      Gpid;
+//        //struct 
+//        //{
+//        //    char Host[20];
+//        //    uint32_t  Port;
+//        //    uint32_t  GPid;
+//        //} Source;
+//        //struct  
+//        //{
+//        //    char     _[20];
+//        //    uint32_t Serial;
+//        //    uint32_t  GPid;
+//        //}Desination;
+//        char Content[1];
+//        GLR_MSG()
+//        {
+//            memset(this, 0, sizeof(*this));
+//        }
+//    };
+//#pragma pack(1)
+//    typedef struct{
+//        char   Host[20];              // Host
+//        uint32_t   Port;              // Port
+//        uint32_t   Gpid;           
+//    }GLR_ADDR;
+//    struct GLR_BUS_HEAD 
+//    {
+//        MSG_HEAD Head;
+//        GLR_ADDR Source;
+//    };
+//#pragma pack()
     class MessageStack
     {
     public:
@@ -75,10 +93,12 @@ namespace GLR
             Task(const std::string &buf):Current(0), Len(buf.size())
             {
                 assert(buf.size()<1024*1024);
-                Buffer.resize(sizeof(GLR_MSG)+buf.size()+3, 0);
-                *((uint32_t*)&Buffer[0]) = htonl(buf.size()+sizeof(GLR_MSG) -1);
-                GALA_DEBUG("--------------- %d   %d", *((uint32_t*)&Buffer[0]), buf.size()+sizeof(GLR_MSG) -1);
-                memcpy(&Buffer[sizeof(GLR_MSG)+3], buf.c_str(), buf.size());
+                Buffer.resize(sizeof(GLR_BUS_HEAD)+buf.size(), 0);
+                *((uint32_t*)&Buffer[0]) = htonl(buf.size()+sizeof(GLR_BUS_HEAD) -4);
+                GLR_BUS_HEAD *pHead = (GLR_BUS_HEAD *)Buffer.c_str();
+                
+                //GALA_DEBUG("--------------- %d   %d", *((uint32_t*)&Buffer[0]), buf.size()+sizeof(GLR_MSG) -1);
+                memcpy(&Buffer[sizeof(GLR_BUS_HEAD)], buf.c_str(), buf.size());
 
             }
         };
@@ -87,7 +107,7 @@ namespace GLR
         MessageLinkStack(Galaxy::GalaxyRT::CSocket*, RouteMap&);
         ~MessageLinkStack();
     public:
-        void PutSendTask(const std::string &, int);
+        void PutSendTask(const std::string &, int, int);
     public:
         virtual void OnErr(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&);
         virtual void OnRecv(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&);
@@ -103,6 +123,7 @@ namespace GLR
         TaskQueue _SendTaskQ;
         RouteMap  &_Router;
         std::string _Id;
+        //uint32_t    _Port;
 
     };
 

@@ -63,7 +63,10 @@ namespace GLR
             time_t _LastOp;
             int    _Tick;
             int    _NArg;
-            ProcessStatus():_NArg(0){}
+            ProcessStatus():_NArg(0)
+            {
+                memset(this, 0, sizeof(*this));
+            }
 
         };
 

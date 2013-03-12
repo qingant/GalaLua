@@ -1,6 +1,7 @@
 #include "LuaNode.hpp"
 #include "Schedule.hpp"
 #include "GLR.hpp"
+#include "lualib.h"
 //defines of static data member
 using namespace GLR;
 std::vector<Process*> Process::NodeMap(10240); 
@@ -37,11 +38,19 @@ void Process::SendMsg( const LN_MSG_TYPE &msg )
 
     if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
     {
-        Galaxy::GalaxyRT::CLockGuard _Gl(&_IntLock);
+        //Galaxy::GalaxyRT::CLockGuard _Gl(&_IntLock);
         GALA_DEBUG("Push Direct!To %d %d", Id(), msg.size());
-        MSG_HEAD *head = (MSG_HEAD*)&msg[0];
-        lua_pushinteger(_Stack, head->Type);
-        lua_pushinteger(_Stack, head->GPid);
+        GLR_BUS_HEAD *head = (GLR_BUS_HEAD*)&msg[0];
+        lua_pushinteger(_Stack, head->Head.Type);
+        lua_newtable(_Stack);
+        lua_pushstring(_Stack, head->Source.Host);
+        lua_setfield(_Stack, -2, "host");
+
+        lua_pushinteger(_Stack, head->Source.Port);
+        lua_setfield(_Stack, -2, "port");
+
+        lua_pushinteger(_Stack, head->Source.Gpid);
+        lua_setfield(_Stack, -2, "gpid");
         lua_pushlstring(_Stack, &msg[sizeof(*head)], msg.size() - sizeof(*head));
         _Status._NArg = 3;
         _Status._State = Process::ProcessStatus::RECV_RETURN;
@@ -114,7 +123,6 @@ int Process::Spawn( lua_State *l )
         //lua_getglobal(node._Stack, method);
         node.PushFun(method);
         node.StackDump();
-    GALA_DEBUG("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA3");
         // put to schedule queue
 
 
@@ -217,14 +225,18 @@ void Process::InitNode( void )
 
 int Process::SendMsgToNode( lua_State *l )
 {
+    lua_getglobal(l, "__id__");
+    //lua_pushlstring("id");
+    LN_ID_TYPE self_id = luaL_checkinteger(l, -1);
     LN_ID_TYPE id = luaL_checkinteger(l, 1);
     size_t len = 0;
     const char *msg = luaL_checklstring(l, 2, &len);
-    LN_MSG_TYPE  pack_msg(len+sizeof(MSG_HEAD), 0);
-    MSG_HEAD *head = (MSG_HEAD*)&pack_msg[0];
-    head->Type = MSG_HEAD::APP;
-    head->GPid = id;
-    head->Len = len;
+    LN_MSG_TYPE  pack_msg(len+sizeof(GLR_BUS_HEAD), 0);
+    GLR_BUS_HEAD *head = (GLR_BUS_HEAD *)&pack_msg[0];
+    head->Head.Type = MSG_HEAD::APP;
+    head->Head.GPid = id;
+    head->Head.Len = len+sizeof(*head) - 4;
+    head->Source.Gpid = self_id;
     memcpy((void*)&pack_msg[sizeof(*head)], msg, len);
     GetNodeById(id).SendMsg(pack_msg);
     lua_pushboolean(l, 1);
@@ -252,7 +264,7 @@ void Process::Resume()
     //printf("Node(%d) Go To Here\n", _Id);
     //Status();
 
-
+    assert(_Status._NArg < 10);
     //lua_pushstring(_Stack, "Resume!");
     _Status._State = ProcessStatus::RUNNING;
     _Status._Tick++;
@@ -309,9 +321,17 @@ int Process::Recieve( lua_State *l )
         LN_MSG_TYPE msg = self.RecvMsg();
         GALA_DEBUG("Get %d Size(%d)", self_id, msg.size());
 
-        MSG_HEAD *head = (MSG_HEAD*)&msg[0];
-        lua_pushinteger(self._Stack, head->Type);
-        lua_pushinteger(self._Stack, head->GPid);
+        GLR_BUS_HEAD *head = (GLR_BUS_HEAD*)&msg[0];
+        lua_pushinteger(self._Stack, head->Head.Type);
+        lua_newtable(self._Stack);
+        lua_pushstring(self._Stack, head->Source.Host);
+        lua_setfield(self._Stack, -2, "host");
+
+        lua_pushinteger(self._Stack, head->Source.Port);
+        lua_setfield(self._Stack, -2, "port");
+
+        lua_pushinteger(self._Stack, head->Source.Gpid);
+        lua_setfield(self._Stack, -2, "gpid");
         lua_pushlstring(self._Stack, &msg[sizeof(*head)], msg.size() - sizeof(*head));
         return 3;
     }
@@ -457,13 +477,13 @@ void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::M
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
     try
     {
-        std::string pack_msg(msg.size() + sizeof(MSG_HEAD),0);
+        /*       std::string pack_msg(msg.size() + sizeof(MSG_HEAD),0);
         MSG_HEAD *head = (MSG_HEAD*)&pack_msg[0];
         head->Type = type;
         head->GPid = -1;
         head->Len = msg.size();
-        memcpy((void*)&pack_msg[sizeof(*head)], msg.c_str(), msg.size());
-        GetNodeById(pid).SendMsg(pack_msg);
+        memcpy((void*)&pack_msg[sizeof(*head)], msg.c_str(), msg.size());*/
+        GetNodeById(pid).SendMsg(msg);
     }
     catch (Galaxy::GalaxyRT::CException &e)
     {
@@ -572,10 +592,10 @@ int GLR::Process::GetGlobal( lua_State *l )
     const Globals::UserData &ud = GlobalVars.Get(id);
     void *p = lua_newuserdata(l, sizeof(ud.Content));
     memcpy(p, &ud.Content, sizeof(ud.Content));
-    
+
     luaL_getmetatable(l,ud.Name.c_str());
     lua_pushvalue(l,-1);
-    
+
     //clear __gc
     lua_pushnil(l);
     lua_setfield(l,-2,"__gc");

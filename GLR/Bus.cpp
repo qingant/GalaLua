@@ -144,9 +144,10 @@ void Bus::RegisterDevice( IController *con )
 
 void Bus::Interrupt( int device, lua_State *l )
 {
-    printf("Interrupt No (%d)\n", device);
+    GALA_DEBUG("Interrupt No (%d)\n", device);
     try
     {
+        assert(_Devices[device]!=NULL);
         _Devices[device]->Request(l);
     }
     catch (Galaxy::GalaxyRT::CException &e)

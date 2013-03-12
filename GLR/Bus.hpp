@@ -16,13 +16,30 @@ namespace GLR
     {
         enum MSG_TYPE
         {
-            APP,        //Normal Application Message
-            KILL,       //Message To Kill this GLR Process
-            CLOSED,     //Resource bind to this GLR Process closed
+            REGISTER = 0,
+            REGISTER_OK = 1,
+            REGISTER_FAIL = 2,
+            APP = 3,        //Normal Application Message
+            KILL = 4,       //Message To Kill this GLR Process
+            CLOSED = 5,     //Resource bind to this GLR Process closed
         };
         uint32_t Len;  //Message Length not including this head structure
-        char     Type; //Message Type
+        unsigned char  Type; //Message Type
         int32_t GPid; //GPid of process who send this message, nagetive if from controller
+        MSG_HEAD()
+        {
+            memset(this, 0, sizeof(*this));
+        }
+    };
+    typedef struct{
+        char   Host[20];              // Host
+        uint32_t   Port;              // Port
+        uint32_t   Gpid;           
+    }GLR_ADDR;
+    struct GLR_BUS_HEAD 
+    {
+        MSG_HEAD Head;
+        GLR_ADDR Source;
     };
 #pragma pack()
     class IController
