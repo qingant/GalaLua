@@ -106,8 +106,8 @@ function display_worker()
       -- local t=cjson.decode(msg)
       ffi.copy(app_msg, msg, ffi.sizeof(app_msg))
       -- t.header.timestamp = timer.time() -- add time stamp
-      pprint.pprint("------Display Recved")
-      pprint.pprint(t)
+      --pprint.pprint("------Display Recved")
+      --pprint.pprint(t)
       if  app_msg.From.Catagory == ffi.C.DEV_SVC then
          node.send(addr.host, addr.port, addr.gpid, msg)
       elseif app_msg.From.Catagory == ffi.C.DEV_DISPLAY then
@@ -153,7 +153,7 @@ function agent_worker()
    
    msg_table.Head.Action = ffi.C.ACT_ACK
    node.send(addr.host,addr.port,addr.gpid, ffi.string(msg_table, ffi.sizeof(msg_table)))
-   
+    
    -- pprint.print("Read source file")
    local source = io.open(configure.LUA_AGENT_APP_DIR .. structs.str_pack(msg_table.AppType) .. ".lua"):read("*a")
    -- pprint.print(source)
@@ -173,29 +173,27 @@ function agent_worker()
              addr.gpid, 
              structs.pack(send_msg) .. content
             )
-   -- msg_table["command"]=nil
-   -- msg_table["registered"]=true
-
+   -- tell svc that an agent have registered
    -- local nq = _amq:NQArray():get(0)
    -- nq:put(cjson.encode(msg_table))
 
-   -- while true do
-   --    msg_type, _, msg=glr.recv()
-   --    local t=cjson.decode(msg)
-   --    t.header.timestamp = 0
-   --    print("----------agent worker------")
-   --    print(pprint.pprint(t))
-   --    if t["header"]["from"]["type"]=="agent" then 
-   --       if t.header.to.action == "report" then
-   --          nq:put(msg)
-   --       elseif t.header.to.action == "response" then
-   --          node.send(t.header.to.host, t.header.to.port, t.header.to.gpid, msg)
-   --       end
-   --    elseif  t["header"]["from"]["type"]=="svc" then
-   --       pprint.pprint("Send to SVC")
-   --       node.send(msg_table["host"],msg_table["port"],msg_table["gpid"],msg)
-   --    end
-   -- end
+   local app_msg = ffi.new("APP_HEADER")
+   while true do
+      local msg_type, addr ,msg = glr.recv()
+      -- local t=cjson.decode(msg)
+      ffi.copy(app_msg, msg, ffi.sizeof(app_msg))
+      -- t.header.timestamp = timer.time() -- add time stamp
+      if  app_msg.From.Catagory == ffi.C.DEV_SVC then
+         node.send(addr.host, addr.port, addr.gpid, msg)
+      elseif app_msg.From.Catagory == ffi.C.DEV_AGENT then
+         if app_msg.Head.Action == ffi.C.ACT_REQUEST then
+            nq:put(msg)
+         elseif app_msg.Head.Action == ffi.C.ACT_RESPONSE then
+            addr=app_msg.To.Addr
+            node.send(addr.host, addr.port, addr.gpid, msg)
+         end
+      end
+    end
 end
 
 -- function fake_svc()
