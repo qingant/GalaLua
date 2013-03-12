@@ -30,7 +30,7 @@ function main()
    assert(msg_type,rsp)
    -- local response = cjson.decode(msg)
    ffi.copy(msg, rsp, ffi.sizeof(msg))
-   local bind_gpid = msg.Gpid
+   local bind_gpid = ffi.C.ntohl(msg.Gpid)
    print(host,port,bind_gpid) 
    -- print(pprint.pprint(response))
    local reg_msg = ffi.new("ROUTER_ADD_MSG")
@@ -65,8 +65,8 @@ function main()
          msg["host"] = addr.host
          msg["port"] = addr.port
          msg["gpid"] =  bind_gpid
-         local err,id = glr.spawn(os.getenv("HOME") .. "/lib/lua/cli.lua", "worker")
-         glr.send(id, cjson.encode(msg))
+         --local err,id = glr.spawn(os.getenv("HOME") .. "/lib/lua/cli.lua", "worker")
+         --glr.send(id, cjson.encode(msg))
       elseif app_head.Head.Action == ffi.C.ACT_REQUEST then
          local msg = {}
          msg["code"] = request.content.code

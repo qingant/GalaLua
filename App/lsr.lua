@@ -100,23 +100,26 @@ function display_worker()
 
    local nq = _amq:NQArray():get(0)
    --   nq:put()
-
+   local app_msg = ffi.new("APP_HEADER")
    while true do
       local msg_type, addr ,msg = glr.recv()
-      local t=cjson.decode(msg)
-      t.header.timestamp = timer.time() -- add time stamp
+      -- local t=cjson.decode(msg)
+      ffi.copy(app_msg, msg, ffi.sizeof(app_msg))
+      -- t.header.timestamp = timer.time() -- add time stamp
       pprint.pprint("------Display Recved")
       pprint.pprint(t)
-      if t.header.from.type == "svc" then
-         node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"], msg)
-      elseif t.header.from.type == "display" then
-         if t.header.to.action=="request" then
+      if  app_msg.From.Catagory == ffi.C.DEV_SVC then
+         node.send(addr.host, addr.port, addr.gpid, msg)
+      elseif app_msg.From.Catagory == ffi.C.DEV_DISPLAY then
+         if app_msg.Head.Action == ffi.C.ACT_REQUEST then
             nq:put(msg)
-         elseif t.header.to.action=="router" then
+         elseif app_msg.Head.Action == ffi.C.ACT_ROUTER_QUERY then
             print("::::router::",pprint.pprint(t)) 
-            t.content=_router[t.header.to.method](_router,t.header.to.args)
-            pprint.pprint(t.content, "Return router info")
-            node.send(msg_table["host"],msg_table["port"],msg_table["src_gpid"], cjson.encode(t))
+            local content={items = _router:find_by_field("agent")}
+            --pprint.pprint(t.content, "Return router info")
+            app_msg.Head.Action = ffi.C.ACT_RESPONSE
+            
+            node.send(addr.host, addr.port, addr.gpid, structs.pack(app_msg) .. cjson.encode(content))
          end
       end
    end
@@ -157,7 +160,7 @@ function agent_worker()
    local send_msg = ffi.new("APP_HEADER")
    send_msg.Head.Action = ffi.C.ACT_DEPLOY
    send_msg.From.Catagory = ffi.C.DEV_LSR
-   send_msg.From.DevId = 0
+   -- send_msg.From.DevId = 0
    
    local content =  cjson.encode({
                                     ["content"] = {
