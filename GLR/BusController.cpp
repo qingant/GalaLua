@@ -156,7 +156,6 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
     else if (pMsg->Head.Type == MSG_HEAD::APP)
     {
         
-        GALA_DEBUG("App Msg (%d) (%d)", ntohl(pMsg->GPid), msg.size());
         pMsg->Source.Gpid = ntohl( pMsg->Source.Gpid);
         pMsg->Source.Port = ntohl( pMsg->Source.Port);
         Runtime::GetInstance().GetBus().Send(ntohl(pMsg->Head.GPid), msg);
