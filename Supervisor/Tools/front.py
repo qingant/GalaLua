@@ -483,7 +483,7 @@ class MainLoop(object):
     def callback(self,loop,userdata):
         #back to FirstPage
         self._mp._rtti_.insert(0,(FirstPage,None,FirstPage(self._mp),FirstPage._focus))
-        self._mp.navigation.insert(0,FirstPage._tag,self._mp.BackToMainPage,None)
+        self._mp.navigation.insert(0,FirstPage._tag,self._mp.pre,0)
 
         if self.name is None:
             self._mp.next(self.action,self.function)
