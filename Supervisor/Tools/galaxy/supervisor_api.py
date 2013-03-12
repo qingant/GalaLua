@@ -15,11 +15,6 @@ SupervisorEntry= """
 file=%(home)s/var/supervisor/%(token)s.sock   ; (the path to the socket file)
 chmod=0700                       ; sockef file mode (default 0700)
 
-# [inet_http_server]
-# port = 0.0.0.0:%(port)s
-# username = user
-# password = 123
-
 [supervisord]
 logfile=%(home)s/var/supervisor/log/supervisord_%(token)s.log ; (main log file;default $CWD/supervisord.log)
 pidfile=%(home)s/var/supervisor/supervisord_%(token)s.pid ; (supervisord pidfile;default supervisord.pid)
@@ -122,6 +117,8 @@ class SupervisorApi(object):
             lsr["file"]=LSR_FILE
             lsr["entry"]="main"
             for i in range(const.GALA_MAX_LSR):
+                port=self._port+i
+                lsr["port"]=port
                 lsr["token"] = "lsr%.4d"%i
                 sec_lsr.append(ConfigureEntry%lsr)
             f.writelines(sec_lsr)
@@ -130,8 +127,8 @@ class SupervisorApi(object):
             svc = copy.deepcopy(group)
             svc["file"]=SVC_FILE
             svc["entry"]="main"
-            group["port"] = self._port+1
             for i in range(const.GALA_MAX_SVC):
+                svc["port"]=port+1+i
                 svc["token"] = "svc%.4d"%i
                 sec_svc.append(ConfigureEntry%svc)
             f.writelines(sec_svc)
