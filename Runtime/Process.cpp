@@ -252,6 +252,21 @@ namespace Galaxy
          return SetArgument(index, info.c_str());
       }
 
+      int CProcess::SetArgument(const CHAR* info)
+      {
+         size_t lenLimit=0;
+         size_t len = CRT_strlen(info);
+         int length=0;
+         for(int i=0;i<Argc && len>length;++i)
+         {
+             lenLimit = ArgPairs[i].first;
+             CRT_memset(Argv[i], 0x00, lenLimit);
+             CRT_snprintf(Argv[i], lenLimit, "%s", info+length);
+             length +=lenLimit-1;
+         }
+         return length;
+      }
+
       bool CProcess::SetArgument(INT index, const CHAR* info)
       {
          if (index >= Argc)

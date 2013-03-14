@@ -40,6 +40,7 @@ namespace Galaxy
          const std::string& GetOption(const std::string&);
          bool SetArgument(INT, const std::string&);
          bool SetArgument(INT, const CHAR*);
+         int SetArgument(const CHAR*);
          virtual INT Run();
          INT GetPID();
          INT GetPPID();
@@ -47,7 +48,6 @@ namespace Galaxy
          void SetUmask(mode_t mask = 0);
          bool SetRLimit(INT res, const struct rlimit *rlimit);
          struct rlimit GetRLimit(INT res);
-      protected:
          void Initialize(INT argc, CHAR **argv, CHAR **envp, const std::string &optfmt);
 
       private:
