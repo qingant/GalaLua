@@ -3,7 +3,11 @@
 
 #include "stdafx.h"
 #include "GLR.hpp"
+#include "Process.hpp"
 using namespace GLR;
+
+Galaxy::GalaxyRT::CProcess _CProcess;
+
 int main( int argc, char* argv[] )
 {
     //LN_ID_TYPE main_node_id = Process::CreateNode();
@@ -33,8 +37,18 @@ int main( int argc, char* argv[] )
     //{
     //    printf("Resume Error : %s\n", e.what());
     //}
-    GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
-    GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
+
+    _CProcess.Initialize(argc,argv,NULL,"h:p:f:e:");
+    std::string host=_CProcess.GetOption("h");
+    int port=atoi(_CProcess.GetOption("p").c_str());
+    std::string file=_CProcess.GetOption("f");
+    std::string entry=_CProcess.GetOption("e");
+
+    //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
+    //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
+    GLR::Runtime::Initialize(host, port);
+    GLR::Runtime::GetInstance().Entry(file,entry);
+    _CProcess.SetArgument("What the hell? Do not work?");
     while (true)
     {
         usleep(1024*1024*1024);

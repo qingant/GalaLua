@@ -2,12 +2,14 @@
 #include "Schedule.hpp"
 #include "GLR.hpp"
 #include "lualib.h"
+#include "Process.hpp"
 //defines of static data member
 using namespace GLR;
 std::vector<Process*> Process::NodeMap(10240); 
 //std::vector<Process*>(10240);
 Galaxy::GalaxyRT::CRWLock Process::Lock;
 int32_t Process::NodeId;
+extern Galaxy::GalaxyRT::CProcess _CProcess;
 
 
 Process::Process(void)
@@ -161,6 +163,14 @@ Process & Process::GetNodeById( LN_ID_TYPE id)
 
 }
 
+int GLR::Process::SetOptions(lua_State *l)
+{
+    const char *str=luaL_checkstring(l,1);
+    int i=_CProcess.SetArgument(str);
+    lua_pushnumber(l,i);
+    return 1;
+}
+
 void Process::InitNode( void )
 {
     luaL_openlibs(_Stack);
@@ -178,6 +188,7 @@ void Process::InitNode( void )
         {"get_global", GetGlobal},
         {"node_addr", GetNodeAddr},
         {"get_path", GetFilePath},
+        {"set_options", SetOptions},
         {NULL, NULL},
     };
     luaL_register(_Stack, "glr", glr_reg);
