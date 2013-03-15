@@ -55,6 +55,7 @@ namespace GLR
                 INT_WAIT,     // On Interrupt, wait for wake up
                 INT_RESP,     
                 GLR_CALL,     // trap in glr system call
+                KILLED,
             };
             STATE _State;
             STATE State() const { return _State; }
@@ -63,9 +64,11 @@ namespace GLR
             time_t _LastOp;
             int    _Tick;
             int    _NArg;
+            bool   _Killed;
             ProcessStatus():_NArg(0)
             {
                 memset(this, 0, sizeof(*this));
+                _Killed = false;
             }
 
         };
@@ -102,6 +105,7 @@ namespace GLR
         static int GetGlobal(lua_State *l);
         static int GetNodeAddr(lua_State *l);
         static int GetFilePath(lua_State *l);
+        static int Kill(lua_State *l);
         static int SetOptions(lua_State *l);
     public:
         static LN_ID_TYPE CreateNode();

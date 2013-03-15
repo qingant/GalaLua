@@ -40,7 +40,7 @@ void Process::SendMsg( const LN_MSG_TYPE &msg )
 
     if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
     {
-        //Galaxy::GalaxyRT::CLockGuard _Gl(&_IntLock);
+        Galaxy::GalaxyRT::CLockGuard _Gl(&_IntLock);
         GALA_DEBUG("Push Direct!To %d %d", Id(), msg.size());
         GLR_BUS_HEAD *head = (GLR_BUS_HEAD*)&msg[0];
         lua_pushinteger(_Stack, head->Head.Type);
@@ -188,6 +188,7 @@ void Process::InitNode( void )
         {"get_global", GetGlobal},
         {"node_addr", GetNodeAddr},
         {"get_path", GetFilePath},
+        {"kill", Kill},
         {"set_options", SetOptions},
         {NULL, NULL},
     };
@@ -284,6 +285,13 @@ void Process::Resume()
     _Status._State = ProcessStatus::RUNNING;
     _Status._Tick++;
     rt = lua_resume(_Stack, _Status._NArg);
+    if (_Status._Killed)
+    {
+        _Status._State = Process::ProcessStatus::KILLED;
+        Destory(_Id);
+        return;
+    }
+    
     _Status._NArg = 0;
     if (rt == LUA_YIELD)
     {
@@ -352,6 +360,7 @@ int Process::Recieve( lua_State *l )
     }
     catch (Galaxy::GalaxyRT::CException& e)
     {
+        GALA_DEBUG("%s", e.what());
         lua_pushnil(l);
         lua_pushstring(l, e.what());
         return 2;
@@ -482,9 +491,21 @@ void Process::Destory( LN_ID_TYPE pid)
     if (p == NULL)
     {
         return;
+    }else
+    {
+        if (p->_Status._State != Process::ProcessStatus::RUNNING)
+        {
+            NodeMap[pid] = NULL;
+            delete p;
+        }
+        else
+        {
+            p->_Status._Killed = true;
+        }
+
+
     }
-    NodeMap[pid] = NULL;
-    delete p;
+
 }
 
 void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::MSG_TYPE type)
@@ -636,4 +657,11 @@ int GLR::Process::GetFilePath( lua_State *l )
     Process &n = Process::GetNodeById(id);
     lua_pushstring(l, n._Path.c_str());
     return 1;
+}
+
+int GLR::Process::Kill( lua_State *l )
+{
+    int gpid = luaL_checkinteger(l, 1);
+    Destory(gpid);
+    return 0;
 }

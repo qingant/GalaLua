@@ -28,7 +28,7 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
 {
     while (true)
     {
-        Galaxy::GalaxyRT::CSelector::EV_PAIRS evs = _Poller.WaitEvent(-1);
+        Galaxy::GalaxyRT::CSelector::EV_PAIRS evs = _Poller.WaitEvent(2000);
         for (size_t i = 0; i!= evs.size(); ++i)
         {
             Galaxy::GalaxyRT::CSelector::EV_PAIR &ev = evs[i];
@@ -63,12 +63,17 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
                 GALA_DEBUG("Close Connection:%s", e.what());
                 MessageLinkStack *mls = ((MessageLinkStack*)ms);
                 GLR_BUS_HEAD msg;
+                memset(&msg, 0, sizeof(msg));
                 msg.Head.Type = MSG_HEAD::CLOSED;
                 msg.Head.GPid = -1;
                 msg.Head.Len = sizeof(MSG_HEAD) - 4;
+
+                memcpy(msg.Source.Host, mls->_Id.c_str(), mls->_Id.size()); 
+
                 Runtime::GetInstance().GetBus().Send(mls->Gpid(), std::string((const char*)&msg, sizeof(msg)), MSG_HEAD::CLOSED);
                 Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex);
                 _LinkMap[ev.first] = NULL;
+                GALA_DEBUG("FD(%d) Removed!", ev.first);
                 _Poller.Remove(ev.first);
                 delete ms;
             }
@@ -138,7 +143,7 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
         {
             THROW_EXCEPTION_EX("Fatal Error");
         }
-        
+
         char id[64] = {0};
         //snprintf(id, sizeof(id), "%s::%d", pMsg->Source.Host, pMsg->Source.Port);
         GLR_ADDR *pAddr = (GLR_ADDR*)&msg[sizeof(MSG_HEAD)];
@@ -151,11 +156,12 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
         _Sock->SegmentSend(-1, msg.c_str(), sizeof(GLR_BUS_HEAD));
         _Router.insert(std::make_pair(std::string(id), _Sock->GetFD()));
         GALA_DEBUG("%s registered", id);
+        _Id = id;
         //Runtime::GetInstance().GetBus().Send(_Gpid, msg);
     }
     else if (pMsg->Head.Type == MSG_HEAD::APP)
     {
-        
+
         pMsg->Source.Gpid = ntohl( pMsg->Source.Gpid);
         pMsg->Source.Port = ntohl( pMsg->Source.Port);
         Runtime::GetInstance().GetBus().Send(ntohl(pMsg->Head.GPid), msg);
@@ -223,7 +229,15 @@ void GLR::MessageLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, PO
 
     if (_SendTask.Current == _SendTask.Buffer.size())
     {
-        _SendTask = _SendTaskQ.Get();
+        if (_SendTaskQ.Empty())
+        {
+            return;
+        }else
+        {
+
+            _SendTask = _SendTaskQ.Get();
+        }
+
     }
 
     Task &t = _SendTask;
@@ -270,7 +284,7 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port)
     _Sock->SegmentSend(-1, buf.c_str(), buf.size());
 
     _Sock->SegmentRecv(-1, (char*)&buf[0], sizeof(GLR_BUS_HEAD));
-   // _Sock->SegmentRecv(-1, (char*)&msg, sizeof(msg));
+    // _Sock->SegmentRecv(-1, (char*)&msg, sizeof(msg));
 
     if (pHead->Type == MSG_HEAD::REGISTER_OK)
     {
@@ -406,7 +420,7 @@ void GLR::BusController::DoCheckReg( lua_State *l)
         Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 0);
         return;
     }
-    
+
     int fd = _Router.find_ex(id);
     MessageLinkStack *ms = (MessageLinkStack*)(_LinkMap[fd]);
     if (ms == NULL)
