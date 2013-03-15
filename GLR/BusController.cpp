@@ -278,7 +278,7 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port)
     pHead->Type = MSG_HEAD::REGISTER;
     pHead->Len = htonl(sizeof(MSG_HEAD) + sizeof(GLR_ADDR) - 4);
     memcpy(pAddr->Host, Runtime::GetInstance().Host().c_str(), Runtime::GetInstance().Host().size());
-    pAddr->Port = Runtime::GetInstance().NodeId();
+    pAddr->Port = htonl(Runtime::GetInstance().NodeId());
     //uint32_t len = htonl(sizeof(GLR_MSG));
     //_Sock->SegmentSend(-1, (const char*)&len, sizeof(len));
     _Sock->SegmentSend(-1, buf.c_str(), buf.size());
