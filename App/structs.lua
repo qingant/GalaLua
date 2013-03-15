@@ -77,6 +77,7 @@ typedef struct
         unsigned char Catagory;     // DEV_CATAGORY
         GLR_ADDR      Addr;
         char          AppType[20];  // Application Type
+        char          Name[20];
     }To;
 }APP_HEADER;
 #pragma pack()

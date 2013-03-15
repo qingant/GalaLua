@@ -31,6 +31,7 @@ function main()
    -- local response = cjson.decode(msg)
    ffi.copy(msg, rsp, ffi.sizeof(msg))
    local bind_gpid = ffi.C.ntohl(msg.Gpid)
+   -- local bind_gpid = msg.Gpid
    print(host,port,bind_gpid) 
    -- print(pprint.pprint(response))
    local reg_msg = ffi.new("ROUTER_ADD_MSG")
@@ -61,21 +62,21 @@ function main()
       -- local request = cjson.decode(msg)
       if app_head.Head.Action == ffi.C.ACT_DEPLOY then
          local msg = {}
-         msg["code"] = content.code
+         msg["code"] = content.content.code
          msg["host"] = addr.host
          msg["port"] = addr.port
          msg["gpid"] =  bind_gpid
-         --local err,id = glr.spawn(os.getenv("HOME") .. "/lib/lua/cli.lua", "worker")
-         --glr.send(id, cjson.encode(msg))
+         local err,id = glr.spawn(os.getenv("HOME") .. "/lib/lua/cli.lua", "worker")
+         glr.send(id, cjson.encode(msg))
       elseif app_head.Head.Action == ffi.C.ACT_REQUEST then
          local msg = {}
-         msg["code"] = request.content.code
+         msg["code"] = content.code
          msg["host"] = host
          msg["port"] = port
          msg["gpid"] =  bind_gpid
-         msg["des_host"] = request.header.from.host
-         msg["des_port"] = request.header.from.port
-         msg["des_gpid"] = request.header.from.gpid
+         msg["des_host"] = structs.str_pack(app_head.To.Addr.Host)
+         msg["des_port"] = ffi.C.ntohl(app_head.To.Addr.Port)
+         msg["des_gpid"] = ffi.C.ntohl(app_head.To.Addr.Gpid)
          local err,id = glr.spawn(glr.get_path(), "request_handle")
          glr.send(id, cjson.encode(msg))
       end
@@ -84,46 +85,34 @@ function main()
       -- node.send(host, port, bind_gpid, cjson.encode({header={from="agent"},content={aaa="Hello world"}}))
 end
 
-
+local header = ffi.new("APP_HEADER")
 function report (host, port, gpid, data)
-   local response = {
-      ["header"] = {
-         ["from"] = {
-            ["type"] = "agent",
-            ["name"] =  "myhost::sys::0",
-         },
-         ["to"] = {
-            ["type"] = "svc",
-            ["action"] = "report",
-         }
-      }
-   }
-   response.content = data
-   return node.send(host, port , gpid, cjson.encode(response))
+   header.Head.MsgId = -1
+   header.Head.Action = ffi.C.ACT_REPORT
+   header.From.Catagory = ffi.C.DEV_AGENT
+   header.From.Name = "myhost::sys::0"
+   header.To.Catagory = ffi.C.DEV_SVC
+   header.To.AppType = "sys_info"
+   return node.send(host, port , gpid, structs.pack(header) .. cjson.encode(data))
 end
 function response(host, port, gpid, des_host, des_port, des_gpid, data)
-   local _res = {
-      ["header"] = {
-         ["from"] = {
-            ["type"] = "agent",
-            ["name"] =  "myhost::sys::0",
-         },
-         ["to"] = {
-            ["type"] = "svc",
-            ["action"] = "response",
-            ["host"] = des_host,
-            ["port"] = des_port,
-            ["gpid"] = des_gpid,
-         }
-      }
-   }
-   _res.content = data
-   return node.send(host, port , gpid, cjson.encode(_res))
+
+   header.Head.MsgId = -1
+   header.Head.Action = ffi.C.ACT_RESPONSE
+
+   header.From.Catagory = ffi.C.DEV_AGENT
+   header.From.Name = "myhost::sys::0"
+   header.To.Catagory = ffi.C.DEV_SVC
+   header.To.Addr.Host = des_host
+   header.To.Addr.Port = ffi.C.htonl(des_port)
+   header.To.Addr.Gpid = ffi.C.htonl(des_gpid)
+   print( des_host, des_port, des_gpid)
+   return node.send(host, port , gpid, structs.pack(header) .. cjson.encode(data))
 end
 
 function worker()
    print("Before")
-   local msg_type, gpid, msg = glr.recv()
+   local msg_type, addr, msg = glr.recv()
    print("Recved!")
    print(msg)
    local request = cjson.decode(msg)

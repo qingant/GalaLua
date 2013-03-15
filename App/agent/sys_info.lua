@@ -9,14 +9,17 @@ while true do
    local cmd = "top -b -n 2 -d0.1|grep Cpu|tail -n 1"
 
    local out = io.popen(cmd):read("*a") 
-   print(out)
+   -- print(out)
    local words = string.gmatch(out, "(%d*%.%d*)%%(%a*)")
    local data = {}
    for k,v in words do
       data[v] = tonumber(k)
    end
-   pprint.pprint(data)
-   report(host, port, gpid, {["cpu"]=data})
-   timer.sleep(5)
+   -- pprint.pprint(data)
+   for i=0,100 do
+      data.ID = i
+      report(host, port, gpid, {["cpu"]=data})
+   end
+   timer.sleep(1)
 end
    

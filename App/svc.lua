@@ -7,13 +7,14 @@ package.path=configure.svc.PATH
 package.cpath=configure.CPATH
 
 local node = require "node"
-local struct = require "struct"
 local pprint = require "pprint"
 local cjson = require "cjson"
 local amq = require "amq"
 local router = require "router"
 local logger = require "logger"
 local dbaccess = require "dbaccess"
+local structs = require "structs"
+local ffi = require "ffi"
 
 local RID = "@router"
 local MQID = "@mq"
@@ -65,36 +66,42 @@ function worker()
    end
    while true do
       local msg = nq:get()
-      print("svc:::",msg)
-      local request = cjson.decode(msg)   
+      print("svc:::",#msg, msg)
+      local request_header = ffi.new("APP_HEADER")
+      ffi.copy(request_header, msg, ffi.sizeof(request_header))
+      local content = string.sub(msg, ffi.sizeof(request_header)+1)
+      pprint.pprint(#msg)
+      local request_body = cjson.decode(content)
+      
 
       -- local item=_router:find_by_name(request.from.name) 
       -- print("router:::",pprint.format(item))
-      
-      if request.header.to.action == "report" then
-         local route_info = _router:find_by_name(request.header.from.name)
+      pprint.pprint( request_header.Head.Action, "Action::")
+      if request_header.Head.Action == ffi.C.ACT_REPORT then
+         local route_info = _router:find_by_name(structs.str_pack(request_header.From.Name))
          print("router:::",pprint.format(route_info))
          pprint.pprint(_router:find_by_field("display"))
          local trade = require(route_info.app_type)
          local app = trade.Report:new()
          local logname =string.format("%s.log",route_info.app_type)
          local _logger = logger.new(logname)	   
-         local __gala__ = {route_info=route_info, _router=_router,_logger=_logger,_db=sqlite_conn}
-         app:init(__gala__, request)
+         local __gala__ = {route_info=route_info, _router=_router,_logger=_logger,_db=sqlite_conn, _header = request_header}
+         app:init(__gala__, request_body)
          app:Run()
          _logger:finalizer()
-      elseif request.header.to.action == "request" then
-         local route_info = _router:find_by_name(request.header.from.name)
+      elseif request_header.Head.Action == ffi.C.ACT_REQUEST then
+         local route_info = _router:find_by_name(structs.str_pack(request_header.From.Name))
          print("router:::",pprint.format(route_info))
-         local trade = require(route_info.app_type)
+         print(structs.str_pack(request_header.To.AppType))
+         local trade = require(structs.str_pack(request_header.To.AppType))
          local app = trade.Request:new()
          local logname =string.format("%s.log",route_info.app_type)
          local logger = logger.new(logname)
          local sqlite_path = configure.svc.db.sqlite
          -- local sqlite_env = dbaccess.AC_Environment:new()
          -- local sqlite_conn = sqlite_env:AC_Connect("SQLite3",sqlite_path)
-         local __gala__ = {route_info=route_info,logger=logger,db_connection=sqlite_conn, _router=_router}
-         app:init(__gala__, request)
+         local __gala__ = {route_info=route_info,logger=logger,db_connection=sqlite_conn, _router=_router,  _header = request_header}
+         app:init(__gala__, request_body)
          app:Run()
          logger:finalizer()
       end

@@ -30,14 +30,22 @@ function main()
    print("------Status :::::" .. status_server)
    -- local err,svc=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","fake_svc")
    -- print("------svc ::::::" .. svc)
+   local dev_map = {}
    while true do
       local id
       local msg_type, addr, msg = glr.recv()
       local services={status=status_server}
       print(msg)
       if msg_type == glr.CLOSED then
-         
+         pprint.pprint(dev_map)
+         pprint.pprint(addr)
+         glr.kill(dev_map[addr.host])
+         dev_map[addr.host] = nil
+         local _,all = glr.all()
+         pprint.pprint(all, "GProcesses")
+         pprint.pprint(dev_map, "map")
       else
+         
          --msg={"host":"192.168.56.101","port":1010,"gpid",122,"type":"agent"}
          assert(msg_type,"glr.recv error")
          -- msg_table=cjson.decode(msg)
@@ -48,11 +56,14 @@ function main()
          if (msg_table.Catagory == ffi.C.DEV_AGENT) then
             -- for i=0,100 do
             err,id=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","agent_worker")
+            dev_map[string.format("%s::%d", addr.host, addr.port)] = id
+
             -- end
          elseif msg_table.Catagory == ffi.C.DEV_MONITOR then
             id = status_server
          elseif msg_table.Catagory == ffi.C.DEV_DISPLAY then
             err,id=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","display_worker")
+            dev_map[string.format("%s::%d", addr.host, addr.port)] = id
          end
          -- services["bind_gpid"]=
          msg_table.Gpid = ffi.C.htonl(id)
@@ -93,7 +104,7 @@ function display_worker()
 
    end
    register()
-   print(pprint.pprint(_router:find_by_field("display")))
+   --print(pprint.pprint(_router:find_by_field("display")))
    local ret={status=true}
    msg_table.Head.Action = ffi.C.ACT_ACK
    node.send(addr.host, addr.port, addr.gpid ,structs.pack(msg_table))
@@ -102,21 +113,28 @@ function display_worker()
    --   nq:put()
    local app_msg = ffi.new("APP_HEADER")
    while true do
-      local msg_type, addr ,msg = glr.recv()
+      local msg_type, _ ,msg = glr.recv()
+      print("2display", #msg, msg)
+      -- msg = nil
+      if msg  then
+         ffi.copy(app_msg, msg, ffi.sizeof(app_msg))
+      end
       -- local t=cjson.decode(msg)
-      ffi.copy(app_msg, msg, ffi.sizeof(app_msg))
+
       -- t.header.timestamp = timer.time() -- add time stamp
       --pprint.pprint("------Display Recved")
       --pprint.pprint(t)
+      print(app_msg.From.Catagory, "Send")
       if  app_msg.From.Catagory == ffi.C.DEV_SVC then
+         print("Send 2 Display")
          node.send(addr.host, addr.port, addr.gpid, msg)
       elseif app_msg.From.Catagory == ffi.C.DEV_DISPLAY then
          if app_msg.Head.Action == ffi.C.ACT_REQUEST then
             nq:put(msg)
          elseif app_msg.Head.Action == ffi.C.ACT_ROUTER_QUERY then
-            print("::::router::",pprint.pprint(t)) 
+            -- print("::::router::",pprint.pprint(t)) 
             local content={items = _router:find_by_field("agent")}
-            --pprint.pprint(t.content, "Return router info")
+            pprint.pprint(content, "Return router info")
             app_msg.Head.Action = ffi.C.ACT_RESPONSE
             
             node.send(addr.host, addr.port, addr.gpid, structs.pack(app_msg) .. cjson.encode(content))
@@ -174,23 +192,27 @@ function agent_worker()
              structs.pack(send_msg) .. content
             )
    -- tell svc that an agent have registered
-   -- local nq = _amq:NQArray():get(0)
+   local nq = _amq:NQArray():get(0)
    -- nq:put(cjson.encode(msg_table))
 
    local app_msg = ffi.new("APP_HEADER")
    while true do
-      local msg_type, addr ,msg = glr.recv()
+      local msg_type, _ ,msg = glr.recv()
       -- local t=cjson.decode(msg)
       ffi.copy(app_msg, msg, ffi.sizeof(app_msg))
+      print(msg, app_msg.From.Catagory)
+            
       -- t.header.timestamp = timer.time() -- add time stamp
       if  app_msg.From.Catagory == ffi.C.DEV_SVC then
          node.send(addr.host, addr.port, addr.gpid, msg)
       elseif app_msg.From.Catagory == ffi.C.DEV_AGENT then
-         if app_msg.Head.Action == ffi.C.ACT_REQUEST then
+         if app_msg.Head.Action == ffi.C.ACT_REPORT then
+            print("SendMsg", #msg, msg)
             nq:put(msg)
          elseif app_msg.Head.Action == ffi.C.ACT_RESPONSE then
-            addr=app_msg.To.Addr
-            node.send(addr.host, addr.port, addr.gpid, msg)
+            local to_addr = app_msg.To.Addr
+            print(structs.str_pack(to_addr.Host), ffi.C.ntohl(to_addr.Port), ffi.C.ntohl(to_addr.Gpid))
+            node.send(structs.str_pack(to_addr.Host), ffi.C.ntohl(to_addr.Port), ffi.C.ntohl(to_addr.Gpid), msg)
          end
       end
     end
