@@ -148,7 +148,7 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
         //snprintf(id, sizeof(id), "%s::%d", pMsg->Source.Host, pMsg->Source.Port);
         GLR_ADDR *pAddr = (GLR_ADDR*)&msg[sizeof(MSG_HEAD)];
 
-        snprintf(id, sizeof(id), "%s::%d", pAddr->Host, pAddr->Port);
+        snprintf(id, sizeof(id), "%s::%d", pAddr->Host, ntohl(pAddr->Port));
         //uint32_t len = htonl(sizeof(*pMsg));
         //_Sock->SegmentSend(-1, (const char*)&len, sizeof(len));
         pMsg->Head.Type = MSG_HEAD::REGISTER_OK;
