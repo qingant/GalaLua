@@ -39,7 +39,9 @@ function main()
       if msg_type == glr.CLOSED then
          pprint.pprint(dev_map)
          pprint.pprint(addr)
-         glr.kill(dev_map[addr.host])
+         if dev_map[addr.host] then
+            glr.kill(dev_map[addr.host])
+         end
          dev_map[addr.host] = nil
          local _,all = glr.all()
          pprint.pprint(all, "GProcesses")
