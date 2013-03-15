@@ -195,14 +195,13 @@ public:
     static int Put(lua_State *L)
     {
         IMQueue *pMQ=lua_checkMQ(L,1);
-        
-        const char *buf=luaL_checkstring(L,2);
+        size_t len;
+        const char *buf=luaL_checklstring(L,2, &len);
 
-        BlockBuffer block(buf,strlen(buf)+1);
-        UINT len;
+        BlockBuffer block(buf,len+1);
         UINT id;
 
-        CALL_CPP_FUNCTION(L,id=pMQ->Put(IMQueue::MQC_RTL,block,len)); 
+        CALL_CPP_FUNCTION(L,id=pMQ->Put(IMQueue::MQC_RTL,block,(UINT&)len)); 
 
         return 0;
     }
