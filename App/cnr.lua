@@ -66,20 +66,19 @@ function router_info()
         if msg_table.Type==ffi.C.ROUTER then
             local router_arg= ffi.new("ROUTER_ARG")
             ffi.copy(router_arg, msg:sub(len+1),ffi.sizeof(router_arg))
-                print("I am here 69",ffi.C.GET,msg_table.Action)
+            local name=ffi.string(router_arg.Name,ffi.sizeof(router_arg.Name))
+            local field=ffi.string(router_arg.Field,ffi.sizeof(router_arg.Field))
+            local app_type=ffi.string(router_arg.AppType,ffi.sizeof(router_arg.AppType))
             if msg_table.Action==ffi.C.GET  then
-                print("I am here 70")
                 local ret,i
-                local name=ffi.string(router_arg.Name,ffi.sizeof(router_arg.Name))
-                local field=ffi.string(router_arg.Field,ffi.sizeof(router_arg.Field))
-                local app_type=ffi.string(router_arg.AppType,ffi.sizeof(router_arg.AppType))
                 print(name,field,app_type)
                 local record=_router:find(name,field,app_type) 
                 ret={content=record}
                 node.send(addr.host,addr.port,addr.gpid,cjson.encode(ret)) 
             elseif msg_table.Action==ffi.C.DEL then
-                if router_arg.Name~="" then
-                    _router.delete(router_arg.Name)
+                if name~=('\000'):rep(ffi.sizeof(router_arg.Name)) then
+                    print ("delete")
+                    _router:delete(name)
                 end
                 --delete ok
                 node.send(addr.host,addr.port,addr.gpid,"{'del':'true'}")  

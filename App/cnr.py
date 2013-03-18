@@ -77,10 +77,10 @@ class Node(object):
         buf += struct.pack("B",type) #
         return buf
 
-    def get_router(self,name='',field='',app_type=""):
+    def router_method(self,action,name='',field='',app_type=""):
         print "get_router"
         #monitor header
-        buf=self.moniter_header(protocol.MONITOR_ACTION["GET"],protocol.MONITOR_TYPE["ROUTER"])
+        buf=self.moniter_header(action,protocol.MONITOR_TYPE["ROUTER"])
         #arguments
         buf += name.ljust(20, "\x00")
         buf += field.ljust(20, "\x00")
@@ -92,13 +92,18 @@ class Node(object):
         print repr(text)
         print("get router over")
 
-    def del_router(self,name):
-        pass
+    def del_router(self,name=''):
+        return self.router_method(protocol.MONITOR_ACTION["DEL"],name)
+
+    def get_router(self,name='',field='',app_type=""):
+        return self.router_method(protocol.MONITOR_ACTION["GET"],name,field,app_type)
         
         
 if __name__ == "__main__":
     n = Node("0.0.0.0", 2345)
     n.get_router()
+    n.del_router("apple")
+    n.del_router()
     while True:
         pass
 
