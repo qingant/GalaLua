@@ -147,6 +147,30 @@ public:
 
         return 1;
     }
+    static int Find(lua_State *L)
+    {
+        Router *p=CheckRouter(L,1);
+        const char *name=luaL_optstring(L,2,"");
+        const char *field=luaL_optstring(L,3,"");
+        const char *app_type=luaL_optstring(L,4,"");
+        const char *dev_type=luaL_optstring(L,5,"");
+
+        std::vector<Item> v;
+        CALL_CPP_FUNCTION(L,v=p->Find(std::string(name),std::string(field),std::string(app_type),std::string(dev_type)));
+        
+        lua_newtable(L);
+        for (unsigned int i=0;i<v.size();++i)
+        {
+            PushItem2table(L,v[i]);
+            lua_rawseti(L,-2,i+1);
+        }
+
+        return 1;
+    }
+
+
+
+
 
 private:
     static Router *CheckRouter(lua_State *L,int n)
@@ -192,6 +216,7 @@ extern "C" int luaopen_router(lua_State *L)
         {"find_by_name",Router4Lua::FindByName},
         {"find_by_dev_type",Router4Lua::FindByDevType},
         {"find_by_app_type",Router4Lua::FindByAppType},
+        {"find",Router4Lua::Find},
         {NULL,NULL}
     };
     

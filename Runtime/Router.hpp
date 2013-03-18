@@ -40,6 +40,7 @@
         std::vector<Item> FindByField(const std::string &);
         std::vector<Item> FindByDevType(const std::string &);
         std::vector<Item> FindByAppType(const std::string &);
+        std::vector<Item> Find(const std::string &name,const std::string &field,const std::string &app_type,const std::string &dev_type);
     private:
         bool Initialized(void);
         Item *_FindByName(const std::string &);

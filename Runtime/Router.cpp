@@ -294,3 +294,47 @@ std::vector<Item> Router::FindByAppType(const std::string &field)
     }
     return ret;
 }
+
+std::vector<Item> Router::Find(const std::string &name,const std::string &field,const std::string &app_type,const std::string &dev_type)
+{
+    std::vector<Item> ret;
+    Item *pItem=NULL;
+    if (strlen(name.c_str())!=0) 
+    {
+        ret.push_back(FindByName(name));
+        return ret;
+    }
+
+    if (strlen(field.c_str())!=0) 
+    {
+        return FindByField(field);
+    }
+
+    if (strlen(app_type.c_str())!=0) 
+    {
+        return FindByAppType(app_type);
+    }
+
+    if (strlen(dev_type.c_str())!=0) 
+    {
+        return FindByAppType(dev_type);
+    }
+
+    //return all usable items
+    CLockGuard _Gl(_pRawMutex.get());
+
+    for (int i=0;i<MAX_ITEMS;++i)
+    {
+        pItem=GetItem(i);
+        if(pItem==NULL)
+        {
+            THROW_EXCEPTION(1,"You should not be here");
+        }   
+               
+        if (pItem->Usable)
+        {
+            ret.push_back(*pItem);
+        }       
+    }
+    return ret;
+}
