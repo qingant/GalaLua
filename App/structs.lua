@@ -37,6 +37,7 @@ typedef enum
     ACT_ROUTER_ADD = 6,
     ACT_ACK = 7,
 	ACT_DEPLOY = 8,
+    ACT_ROUTER_DEL=9,
 }ACTION_TYPE;
 typedef uint32_t MSG_ID_TYPE;
 
@@ -57,6 +58,7 @@ typedef struct
     unsigned char Catagory;     // DEV_CATAGORY
     uint32_t      Gpid;        // Gpid Binded Used to response
 }BIND_MSG;
+
 typedef struct
 {
     MSG_HEAD Head;
@@ -80,6 +82,36 @@ typedef struct
         char          Name[20];
     }To;
 }APP_HEADER;
+
+typedef enum
+{
+    REG=0,
+    GET=1,
+    PUT=2,
+    DEL=3,
+}MONITOR_ACTION;
+
+typedef enum
+{
+    ALL=0,
+    AMQ=1,
+    ROUTER=2,
+}MONITOR_TYPE;
+
+typedef struct
+{
+    char Name[20];
+    char Field[20];
+    char AppType[20];
+}ROUTER_ARG;
+
+typedef struct
+{
+    MSG_ID_TYPE     MsgId;             // MSG ID
+    unsigned char Action;  //MONITOR_ACTION  
+    unsigned char Type;     //MONITOR_TYPE    
+}MONITOR_HEADER;
+
 #pragma pack()
 ]]
 
