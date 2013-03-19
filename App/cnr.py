@@ -97,13 +97,22 @@ class Node(object):
 
     def get_router(self,name='',field='',app_type=""):
         return self.router_method(protocol.MONITOR_ACTION["GET"],name,field,app_type)
+    
+    def amq(self):
+        buf=self.moniter_header(protocol.MONITOR_ACTION["GET"],protocol.MONITOR_TYPE["AMQ"])
+        self._send(buf,protocol.MSG_TYPE["APP"],self._services_list["amq"])
+        text=self._recv()
+        print repr(text)
+        print("get amq over")
+        
         
         
 if __name__ == "__main__":
     n = Node("0.0.0.0", 2345)
-    n.get_router()
-    n.del_router("apple")
-    n.del_router()
+    n.amq()
+#    n.get_router()
+#    n.del_router("apple")
+#    n.del_router()
     while True:
         pass
 

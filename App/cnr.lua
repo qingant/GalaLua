@@ -28,13 +28,14 @@ function main()
     -- init
     local _router=router.new("router")
     glr.global(RID, _router)
---    local _amq=amq.new(configure.amq.path)
---    glr.global(MQID, _amq)
+    local _amq=amq.new(configure.amq.path)
+    glr.global(MQID, _amq)
 --    glr.set_options("hello there,here is lua lsr.lua,nice to meet you! long enough? May be! Let's make it longger! OK")
 --    local err,status_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/status.lua", "main")
     local err,router_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/cnr.lua", "router_info")
+    local err,amq_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/cnr.lua", "amq_info")
 --    local services={status=status_server,router=router_server}
-    local services={router=router_server}
+    local services={router=router_server,amq=amq_server}
     while true do
         local msg_type, addr, msg = glr.recv()
         print("len:::",string.len(msg))
@@ -50,6 +51,39 @@ function main()
    end
 end
 
+function amq_info()
+    local _amq=glr.get_global(MQID)
+    local _nqview=_amq:NQArray():get(0):view()
+
+    while true do
+        msg_type, addr, msg = glr.recv()
+        print("len:"..string.len(msg))
+        pprint.pprint(msg)
+
+        msg_table = ffi.new("MONITOR_HEADER")
+        local len=ffi.sizeof(msg_table)
+        ffi.copy(msg_table, msg,len)
+
+        if msg_table.Type==ffi.C.AMQ then
+            if msg_table.Action==ffi.C.GET  then
+                local head=_nqview:head()
+                local total=_nqview:total()
+                local tail=_nqview:tail()
+                local get_pending=_nqview:lurkers_in_get()
+                local put_pending=_nqview:lurkers_in_put()
+
+                local ret={head=head,total=total,tail=tail,get_pending=get_pending,put_pending=put_pending}
+                node.send(addr.host,addr.port,addr.gpid,cjson.encode(ret)) 
+            end
+        else
+            print("Hey,You should not send messages to me !")
+            node.send(addr.host,addr.port,addr.gpid,"{'content':'Hey,You should not send messages to me !'}")  
+        end
+    end
+end
+
+
+
 function router_info()
     local msg_type, addr, msg
     local _router=glr.get_global(RID)
@@ -57,12 +91,10 @@ function router_info()
         msg_type, addr, msg = glr.recv()
         print("len:"..string.len(msg))
         pprint.pprint(msg)
---        node.send(addr.host,addr.port,addr.gpid,"This is fuck you ") 
 
         msg_table = ffi.new("MONITOR_HEADER")
         local len=ffi.sizeof(msg_table)
         ffi.copy(msg_table, msg,len)
-        print("I am here 65")
         if msg_table.Type==ffi.C.ROUTER then
             local router_arg= ffi.new("ROUTER_ARG")
             ffi.copy(router_arg, msg:sub(len+1),ffi.sizeof(router_arg))
