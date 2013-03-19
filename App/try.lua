@@ -90,7 +90,7 @@ typedef struct
             local head = ffi.new("GLR_HEADER", {10, ffi.C.APPLICATION,0 })
             local mt = getmetatable(head)
             
-            local s = ffi.string("hello world")
+            local s = ffi.ffi.string("hello world")
             print(s, type(s))
             print(mt, type(mt))
             pprint.pprint(mt)

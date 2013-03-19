@@ -36,7 +36,7 @@ function main()
    -- print(pprint.pprint(response))
    local reg_msg = ffi.new("ROUTER_ADD_MSG")
    reg_msg.Head.Action = ffi.C.ACT_ROUTER_ADD
-   reg_msg.Name = "myhost::sys::0"
+   reg_msg.Name = string.format("myhost::sys::%d", bind_gpid)
    reg_msg.Field = "bank::east"
    reg_msg.AppType =  "sys_info"
    node.send(host, port, bind_gpid, ffi.string(reg_msg, ffi.sizeof(reg_msg)))
@@ -90,7 +90,7 @@ function report (host, port, gpid, data)
    header.Head.MsgId = -1
    header.Head.Action = ffi.C.ACT_REPORT
    header.From.Catagory = ffi.C.DEV_AGENT
-   header.From.Name = "myhost::sys::0"
+   header.From.Name = string.format("myhost::sys::%d", gpid)
    header.To.Catagory = ffi.C.DEV_SVC
    header.To.AppType = "sys_info"
    return node.send(host, port , gpid, structs.pack(header) .. cjson.encode(data))
@@ -101,7 +101,7 @@ function response(host, port, gpid, des_host, des_port, des_gpid, data)
    header.Head.Action = ffi.C.ACT_RESPONSE
 
    header.From.Catagory = ffi.C.DEV_AGENT
-   header.From.Name = "myhost::sys::0"
+   header.From.Name = string.format("myhost::sys::%d", gpid)
    header.To.Catagory = ffi.C.DEV_SVC
    header.To.Addr.Host = des_host
    header.To.Addr.Port = ffi.C.htonl(des_port)

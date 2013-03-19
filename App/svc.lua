@@ -78,17 +78,21 @@ function worker()
       -- print("router:::",pprint.format(item))
       pprint.pprint( request_header.Head.Action, "Action::")
       if request_header.Head.Action == ffi.C.ACT_REPORT then
-         local route_info = _router:find_by_name(structs.str_pack(request_header.From.Name))
-         print("router:::",pprint.format(route_info))
-         pprint.pprint(_router:find_by_field("display"))
-         local trade = require(route_info.app_type)
-         local app = trade.Report:new()
-         local logname =string.format("%s.log",route_info.app_type)
-         local _logger = logger.new(logname)	   
-         local __gala__ = {route_info=route_info, _router=_router,_logger=_logger,_db=sqlite_conn, _header = request_header}
-         app:init(__gala__, request_body)
-         app:Run()
-         _logger:finalizer()
+         local err, route_info = pcall(function () return _router:find_by_name(structs.str_pack(request_header.From.Name)) end)
+         if  err then
+            print("router:::",pprint.format(route_info))
+            pprint.pprint(_router:find_by_field("display"))
+            local trade = require(route_info.app_type)
+            local app = trade.Report:new()
+            local logname =string.format("%s.log",route_info.app_type)
+            local _logger = logger.new(logname)	   
+            local __gala__ = {route_info=route_info, _router=_router,_logger=_logger,_db=sqlite_conn, _header = request_header}
+            app:init(__gala__, request_body)
+            app:Run()
+            _logger:finalizer()
+         else
+            _router:delete(structs.str_pack(request_header.From.Name))
+         end
       elseif request_header.Head.Action == ffi.C.ACT_REQUEST then
          local route_info = _router:find_by_name(structs.str_pack(request_header.From.Name))
          print("router:::",pprint.format(route_info))

@@ -36,7 +36,7 @@ end
 
 function Report:Filter()    
    local us = self.request.cpu.us
-   if us < 0.5   then
+   if us < 1 or self.request.cpu.ID ~= 11  then
       self.request = nil
    end
 end
@@ -74,7 +74,7 @@ function Report:Run()
    if request then
       local connection = self.__gala__._db
       pprint.pprint(self.__gala__)
-      if  false then 
+      if  true then 
          local cpu_info = request.cpu
          local prepare = 'insert into cpu_info(us,sy,ni,id,wa,hi,si,st) values(?,?,?,?,?,?,?,?)'
          local strsql = string.format("%s,%s,%s,%s,%s,%s,%s,%s",cpu_info.us,cpu_info.sy,cpu_info.ni,cpu_info.id,cpu_info.wa,cpu_info.hi,cpu_info.si,cpu_info.st)

@@ -30,6 +30,7 @@ function main()
    print("------Status :::::" .. status_server)
    -- local err,svc=glr.spawn(os.getenv("HOME") .. "/lib/lua/lsr.lua","fake_svc")
    -- print("------svc ::::::" .. svc)
+   local myhost, myport = glr.node_addr()
    local dev_map = {}
    while true do
       local id
@@ -39,10 +40,22 @@ function main()
       if msg_type == glr.CLOSED then
          pprint.pprint(dev_map)
          pprint.pprint(addr)
+         function delete_junk_items()
+            local items = _router:find_by_field("agent")
+            for _,it in pairs(items) do
+             
+               if it.addr.host == myhost and it.addr.port == myport and it.addr.gpid == dev_map[addr.host] then
+                  _router:delete(it.name)
+               end
+            end
+         end
+         
          if dev_map[addr.host] then
             glr.kill(dev_map[addr.host])
+            delete_junk_items()
          end
          dev_map[addr.host] = nil
+         
          local _,all = glr.all()
          pprint.pprint(all, "GProcesses")
          pprint.pprint(dev_map, "map")
@@ -69,8 +82,9 @@ function main()
          end
          -- services["bind_gpid"]=
          msg_table.Gpid = ffi.C.htonl(id)
+         msg_table.Head.Action = ffi.C.ACT_ACK
          pprint.pprint(addr)
-         pprint.pprint(addr.host,addr.port,addr.gpid)
+         print(addr.host,addr.port,addr.gpid)
          if not node.send(addr.host,addr.port,addr.gpid, structs.pack(msg_table)) then
             pprint.pprint("Send Failure")
          end
