@@ -1,7 +1,7 @@
 # -*- Makefile -*-
 G++		= g++
 GCC		= gcc
-COMMINC		=  -I./include -I../Stub   -I. -I.. -I../Common  -I/usr/include/libxml2  -I../Runtime  -I../LuaJIT-2.0.0/src/
+COMMINC		=  -I./include -I../Stub   -I. -I.. -I../Common -I../Config -I/usr/include/libxml2  -I../Runtime  -I../LuaJIT-2.0.0/src/
 LNKFLAG 		= -shared
 COMPWARN    	= -Wall -Wextra -Woverloaded-virtual
 CMPFLAG 		= -c -g  -fPIC -pthread $(COMPWARN) $(COMMINC)  -D_UNIX95_   -Wno-write-strings  -fno-strict-aliasing  -Wno-missing-field-initializers -D_DEBUG_
