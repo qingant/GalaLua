@@ -42,11 +42,11 @@ public:
     static int Total(lua_State *L)
     {
         IMQView *view=lua_checkIMQView(L,1);
-        int chl=luaL_checkint(L,2);
+   //     int chl=luaL_checkint(L,2);
          
         int size=0;
         
-        CALL_CPP_FUNCTION(L,view->Total((IMQueue::EMQCHL)chl));
+        CALL_CPP_FUNCTION(L,view->Total(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
         return 1;
@@ -54,11 +54,12 @@ public:
     static int Head(lua_State *L)
     {
         IMQView *view=lua_checkIMQView(L,1);
-        int chl=luaL_checkint(L,2);
+  //      int chl=luaL_checkint(L,2);
          
         int size=0;
         
-        CALL_CPP_FUNCTION(L,view->Head((IMQueue::EMQCHL)chl));
+//        CALL_CPP_FUNCTION(L,view->Head((IMQueue::EMQCHL)chl));
+        CALL_CPP_FUNCTION(L,view->Head(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
         return 1;
@@ -66,11 +67,11 @@ public:
     static int Tail(lua_State *L)
     {
         IMQView *view=lua_checkIMQView(L,1);
-        int chl=luaL_checkint(L,2);
+//        int chl=luaL_checkint(L,2);
          
         int size=0;
         
-        CALL_CPP_FUNCTION(L,view->Tail((IMQueue::EMQCHL)chl));
+        CALL_CPP_FUNCTION(L,view->Tail(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
         return 1;
@@ -78,11 +79,11 @@ public:
     static int LurkersInGet(lua_State *L)
     {
         IMQView *view=lua_checkIMQView(L,1);
-        int chl=luaL_checkint(L,2);
+ //       int chl=luaL_checkint(L,2);
          
         int size=0;
         
-        CALL_CPP_FUNCTION(L,view->LurkersInGet((IMQueue::EMQCHL)chl));
+        CALL_CPP_FUNCTION(L,view->LurkersInGet(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
         return 1;
