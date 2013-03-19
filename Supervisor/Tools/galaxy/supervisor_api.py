@@ -29,14 +29,14 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 ConfigureEntry= """
 [program:%(token)s]
-command=glr %(host)s %(port)d %(file)s %(entry)s
+command=glr -h %(host)s -p %(port)d -f %(file)s -e %(entry)s
 stdout_logfile=%(home)s/var/supervisor/log/%(token)s.log
 autostart=false
 
 """
 MoniterEntry="""
 [program:%(token)s]
-command=glr %(host)s %(port)d %(file)s %(entry)s
+command=glr -h %(host)s -p %(port)d -f %(file)s -e %(entry)s
 stdout_logfile=%(home)s/var/supervisor/log/%(token)s.log
 autostart=false
 """
