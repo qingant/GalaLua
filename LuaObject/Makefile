@@ -11,5 +11,5 @@ logger.so:LuaLogger.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lxml2 -o $@
 Configure.so:LuaConfigure.o
-    @echo $(PLATFORM)
-    $(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lMTRCofigure -lxml2 -o $@
+	@echo $(PLATFORM)
+	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB)	-lGalaxyRT -lMTRCofigure -lxml2	-o $@
