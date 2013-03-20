@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -pedantic -std=c99 -Wall -O2 -shared -fpic -I /usr/local/include/luajit-2.0 -I /usr/include/mysql -I /usr/include -I /usr/include/pgsql/server/ -I /opt/ibm/db2/V9.7/include/ -I /u01/app/oracle/product/10.2.0/rdbms/public/ -I .
+CFLAGS=-g -pedantic -std=c99 -Wall -O2 -shared -fpic -I /usr/local/include/luajit-2.0 -I /usr/include/mysql -I $(HOME)/Sqlite3/include -I /usr/include/pgsql/server/ -I /opt/ibm/db2/V9.7/include/ -I /u01/app/oracle/product/10.2.0/rdbms/public/ -I .
 AR=ar rcu
 RANLIB=ranlib
 RM=rm -rf
@@ -8,7 +8,7 @@ MKDIR=mkdir -p
 COMMON_LDFLAGS=
 MYSQL_LDFLAGS=$(COMMON_LDFLAGS) -lmysqlclient -L /usr/lib64/mysql
 PSQL_LDFLAGS=$(COMMON_LDFLAGS) -lpq
-SQLITE3_LDFLAGS=$(COMMON_LDFLAGS) -lsqlite3 -L /usr/lib64/
+SQLITE3_LDFLAGS=$(COMMON_LDFLAGS) -lsqlite3 -L $(HOME)/Sqlite3/lib 
 DB2_LDFLAGS=$(COMMON_LDFLAGS) -L/opt/ibm/db2/V9.7/lib64 -L/opt/ibm/db2/V9.7/lib32 -ldb2
 ORACLE_LDFLAGS=$(COMMON_LDFLAGS) -L/u01/app/oracle/product/10.2.0/lib -locijdbc11
 
