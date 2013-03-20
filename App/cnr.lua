@@ -32,10 +32,17 @@ function main()
     glr.global(MQID, _amq)
 --    glr.set_options("hello there,here is lua lsr.lua,nice to meet you! long enough? May be! Let's make it longger! OK")
 --    local err,status_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/status.lua", "main")
+
     local err,router_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/cnr.lua", "router_info")
     local err,amq_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/cnr.lua", "amq_info")
---    local services={status=status_server,router=router_server}
-    local services={router=router_server,amq=amq_server}
+    local err,node_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/cnr.lua", "node_info")
+
+    print("-----links---------------------")
+    local a=node.get_all_links()
+    pprint.pprint(a)
+    print("------links------------------")
+
+    local services={router=router_server,amq=amq_server,node=node_server}
     while true do
         local msg_type, addr, msg = glr.recv()
         print("len:::",string.len(msg))
@@ -48,12 +55,19 @@ function main()
         else
             print("Warnning:Not a monitor register message::",msg)
         end
+    print("-----links---------------------")
+    local a=node.get_all_links()
+    pprint.pprint(a)
+    print("------links------------------")
+
+
    end
 end
 
 function amq_info()
     local _amq=glr.get_global(MQID)
     local _nqview=_amq:NQArray():get(0):view()
+
 
     while true do
         msg_type, addr, msg = glr.recv()
@@ -122,3 +136,36 @@ function router_info()
     end
 end
 
+function node_info()
+    while true do
+        local msg_type, addr, msg = glr.recv()
+        print("len:"..string.len(msg))
+        pprint.pprint(msg)
+
+        msg_table = ffi.new("MONITOR_HEADER")
+        local len=ffi.sizeof(msg_table)
+        ffi.copy(msg_table, msg,len)
+        arg=cjson.decode(msg:sub(len+1))
+        if msg_table.Type==ffi.C.NODE and msg_table.Action==ffi.C.GET then
+            local err,gpids=glr.all()
+            assert(err,gpids)
+            if arg["gpid"] then
+                node.send(addr.host,addr.port,addr.gpid,cjson.encode(gpids))
+            elseif arg["status"] then
+                local l=arg["status"]
+                pprint.pprint (l)
+                if #l==0 then
+                    l=gpids 
+                end
+                local s={}
+                for i,v in pairs(l) do
+                    err,s[tostring(v)]=glr.status(v)
+                end
+                node.send(addr.host,addr.port,addr.gpid,cjson.encode(s))
+            end
+        else
+            print("Hey,You should not send messages to me !")
+            node.send(addr.host,addr.port,addr.gpid,"{'content':'Hey,You should not send messages to me !'}")  
+        end
+    end
+end

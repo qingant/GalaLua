@@ -50,8 +50,8 @@ class Node(object):
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
         self._sock.connect((self._host, self._port))
 
-#        self._self_host,self._self_port=s.getsockname()
-#        print self._self_port,self._self_host
+        self._self_host,self._self_port=self._sock.getsockname()
+        print self._self_port,self._self_host
 
         self._send("",protocol.MSG_TYPE["REGISTER"])
             
@@ -89,8 +89,8 @@ class Node(object):
         self._send(buf,protocol.MSG_TYPE["APP"],self._services_list["router"])
         
         text=self._recv()
-        print repr(text)
-        print("get router over")
+       # print repr(text)
+        return text
 
     def del_router(self,name=''):
         return self.router_method(protocol.MONITOR_ACTION["DEL"],name)
@@ -102,14 +102,32 @@ class Node(object):
         buf=self.moniter_header(protocol.MONITOR_ACTION["GET"],protocol.MONITOR_TYPE["AMQ"])
         self._send(buf,protocol.MSG_TYPE["APP"],self._services_list["amq"])
         text=self._recv()
+       # print repr(text)
+        return json.loads(text)
+
+    def get_nodes_gpids(self):
+        buf=self.moniter_header(protocol.MONITOR_ACTION["GET"],protocol.MONITOR_TYPE["NODE"])
+        gpid_buf=buf+"{\"gpid\":1}"
+        self._send(gpid_buf,protocol.MSG_TYPE["APP"],self._services_list["node"])
+        text=self._recv()
+       # print repr(text)
+        return json.loads(text)
+
+    def get_nodes_status(self,gpid_list=[]):
+        '''return {gpid:status map}'''
+        buf=self.moniter_header(protocol.MONITOR_ACTION["GET"],protocol.MONITOR_TYPE["NODE"])
+
+        status_buf=buf+json.dumps({"status":gpid_list})
+        self._send(status_buf,protocol.MSG_TYPE["APP"],self._services_list["node"])
+
+        text=self._recv()
         print repr(text)
-        print("get amq over")
-        
-        
-        
+        return json.loads(text)
+         
 if __name__ == "__main__":
     n = Node("0.0.0.0", 2345)
-    n.amq()
+    print n.get_router()
+    print n.amq()
 #    n.get_router()
 #    n.del_router("apple")
 #    n.del_router()

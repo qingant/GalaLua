@@ -46,6 +46,7 @@ MONITOR_TYPE={
     "ALL":0,
     "AMQ":1,
     "ROUTER":2,
+    "NODE":3,
 }
 
 #typedef struct

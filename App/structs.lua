@@ -96,6 +96,7 @@ typedef enum
     ALL=0,
     AMQ=1,
     ROUTER=2,
+    NODE=3,
 }MONITOR_TYPE;
 
 typedef struct
