@@ -2,6 +2,7 @@
 #include "lua.hpp"
 #include <vector>
 #include <string>
+#include <map>
 
 #include <exception>
 #include <tr1/unordered_map>
@@ -80,6 +81,7 @@ namespace GLR
         void Response(int pid, int narg, ...);
         //void Response(int pid, int narg){Response(pid,narg,NULL);}
         void Return(int pid, int narg,...);
+        void Return( int pid, int narg,int type,std::map<std::string,int>m);
         void Send(int pid, const std::string&, MSG_HEAD::MSG_TYPE type = MSG_HEAD::APP);
         Galaxy::GalaxyRT::CPthreadMutex &Lock(){return _Lock;}
         ~Bus(void);

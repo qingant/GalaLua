@@ -110,6 +110,7 @@ void GLR::MessageServerStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &, POL
 void GLR::MessageServerStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLLERTYPE &_Poller )
 {
     int recvfd = _Sock->Accept(NULL, NULL);
+//    printf("****************************************GLR::MessageServerStack::OnRecv  %d \n",recvfd);
     _LinkMap[recvfd] = new MessageLinkStack(new Galaxy::GalaxyRT::CSocket(recvfd), _Router);
     _Poller.Register(recvfd, Galaxy::GalaxyRT::EV_IN);
     //_Poller.Remove(ev.first, Galaxy::GalaxyRT::EV_IN);
@@ -147,7 +148,8 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
         char id[64] = {0};
         //snprintf(id, sizeof(id), "%s::%d", pMsg->Source.Host, pMsg->Source.Port);
         GLR_ADDR *pAddr = (GLR_ADDR*)&msg[sizeof(MSG_HEAD)];
-
+        
+//        printf("****************%s::%d------%d\n",pAddr->Host, ntohl(pAddr->Port),pAddr->Port);
         snprintf(id, sizeof(id), "%s::%d", pAddr->Host, ntohl(pAddr->Port));
         //uint32_t len = htonl(sizeof(*pMsg));
         //_Sock->SegmentSend(-1, (const char*)&len, sizeof(len));
@@ -317,6 +319,42 @@ GLR::BusController::~BusController()
 
 }
 
+void GLR::BusController::GetAllLinks( lua_State *l )
+{
+    lua_getglobal(l,"__id__");
+    int pid = luaL_checkinteger(l,-1);
+
+    try
+    {
+        std::map<std::string,int> all=GetAllLinks();
+//        printf("%s  %d %d size:%d  \n",__func__,__LINE__,pid,all.size());
+        Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TTABLE,all);
+    }
+    catch (Galaxy::GalaxyRT::CException& e)
+    {
+        std::string errmsg = "Get All links Error";
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        return;
+    }
+
+}
+
+std::map<std::string,int> GLR::BusController::GetAllLinks(void)
+{
+    std::map<std::string,int> ret;
+    for (unsigned int i=0;i<_LinkMap.size();++i)
+    {
+        if (_LinkMap[i]!=NULL && typeid(MessageLinkStack)==typeid(*_LinkMap[i]))
+        {
+            MessageLinkStack *p=(MessageLinkStack *)_LinkMap[i];
+//            printf("*******************%s  %d  %s",__func__,__LINE__,p->_Id.c_str());
+            
+            ret[p->_Id]=p->_SendTaskQ.Size();
+        }
+    }
+    return ret;
+}
+
 void GLR::BusController::Request( lua_State *l )
 {
     int type = luaL_checkinteger(l,2);
@@ -330,6 +368,10 @@ void GLR::BusController::Request( lua_State *l )
         break;
     case NODE_CHECK_REG:
         DoCheckReg(l);
+        break;
+    case NODE_GET_ALL_LINKS:
+        GetAllLinks(l);
+        break;
     default:
         break;
     }

@@ -165,12 +165,16 @@ namespace GLR
             NODE_REG,
             NODE_SEND,
             NODE_CHECK_REG,
+            NODE_GET_ALL_LINKS,
         };
     public:
         BusController(); 
         ~BusController();
         virtual void Request(lua_State *);
     private:
+        void GetAllLinks( lua_State *l );
+        std::map<std::string,int> GetAllLinks( void);
+
         void DoNodeReg(lua_State*);
         void DoIsReg(lua_State*);
         void DoNodeSend(lua_State*);
