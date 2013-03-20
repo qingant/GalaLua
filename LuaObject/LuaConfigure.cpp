@@ -211,7 +211,9 @@ int luaopen_configure(lua_State *L)
     luaL_register(L,NULL,m);
     
     lua_pushvalue(L,-1);
-    lua_setfield(L,-1,"__index");
+    lua_setfield(L,-2,"__index");
+    
+    setfield_string(L,ConfigurePlt4Lua::_tname,"__my_name");
 
     luaL_register(L,"Configure",f);
 
