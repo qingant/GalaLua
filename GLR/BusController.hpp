@@ -145,12 +145,14 @@ namespace GLR
     class BusWorker: public Galaxy::GalaxyRT::CRunnable
     {
     public:
-        BusWorker(MLinkMap &, Galaxy::GalaxyRT::CPthreadMutex&, POLLERTYPE &);
+        BusWorker(RouteMap &, MLinkMap &, Galaxy::GalaxyRT::CPthreadMutex&, POLLERTYPE &);
         ~BusWorker();
     public:
         virtual void *Run(const Galaxy::GalaxyRT::CThread &t);
         virtual void Clean(const Galaxy::GalaxyRT::CThread &);
     private:
+
+        RouteMap    &_Router;
         MLinkMap    &_LinkMap;
         Galaxy::GalaxyRT::CPthreadMutex &_Mutex;
         POLLERTYPE &_Poller;
@@ -183,7 +185,7 @@ namespace GLR
         MLinkMap _LinkMap;
         Galaxy::GalaxyRT::CPthreadMutex _Mutex;
         POLLERTYPE _Poller;
-        RouteMap   _Router;
+        RouteMap _Router;
         BusWorker  _Worker;
     };
 }

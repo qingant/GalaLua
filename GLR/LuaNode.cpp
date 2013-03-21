@@ -34,15 +34,17 @@ void Process::SendMsg( const LN_MSG_TYPE &msg )
 {
     GALA_DEBUG("Send %d", _Id);
     GALA_DEBUG("This(%p) LuaState(%p)", this, _Stack);
+
     Galaxy::GalaxyRT::CLockGuard _gl(&_Lock);
     bool isEmpty = _Channel.Empty();
 
 
     if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
     {
-        Galaxy::GalaxyRT::CLockGuard _Gl(&_IntLock);
+        Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock);
         GALA_DEBUG("Push Direct!To %d %d", Id(), msg.size());
         GLR_BUS_HEAD *head = (GLR_BUS_HEAD*)&msg[0];
+        GALA_DEBUG("Reintepret");
         lua_pushinteger(_Stack, head->Head.Type);
         lua_newtable(_Stack);
         lua_pushstring(_Stack, head->Source.Host);
@@ -57,7 +59,9 @@ void Process::SendMsg( const LN_MSG_TYPE &msg )
         _Status._NArg = 3;
         _Status._State = Process::ProcessStatus::RECV_RETURN;
         //StackDump();
+        GALA_DEBUG("PutTask");
         Runtime::GetInstance().GetSchedule().PutTask(*this);
+        GALA_DEBUG("Return");
 
     }
     else
@@ -270,7 +274,6 @@ void Process::Preempt( lua_State *l, lua_Debug *ar )
 void Process::Resume()
 {
     //int narg = 0;
-    Galaxy::GalaxyRT::CLockGuard _Gl(&_IntLock);
     int rt = 0;
     /* if (_Status.State() == ProcessStatus::RUNNING)
     {
@@ -279,7 +282,7 @@ void Process::Resume()
     //printf("Resumed!\n");
     //printf("Node(%d) Go To Here\n", _Id);
     //Status();
-
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_IntLock);
     assert(_Status._NArg < 10);
     //lua_pushstring(_Stack, "Resume!");
     _Status._State = ProcessStatus::RUNNING;
@@ -288,10 +291,14 @@ void Process::Resume()
     if (_Status._Killed)
     {
         _Status._State = Process::ProcessStatus::KILLED;
-        Destory(_Id);
+        //Destory(_Id);
+        //_Gl.~CLockGuard();
+        //_Gl::~CLockGuard();
+
+        //Destory(_Id);   // very very dangerous
         return;
     }
-    
+
     _Status._NArg = 0;
     if (rt == LUA_YIELD)
     {
@@ -493,10 +500,13 @@ void Process::Destory( LN_ID_TYPE pid)
         return;
     }else
     {
-        if (p->_Status._State != Process::ProcessStatus::RUNNING)
+        if (p->_Status._State == Process::ProcessStatus::RECV_WAIT ||
+            p->_Status._State == Process::ProcessStatus::INT_WAIT 
+            )
         {
             NodeMap[pid] = NULL;
             delete p;
+            //p->_Status._Killed = true;
         }
         else
         {
@@ -524,7 +534,7 @@ void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::M
     }
     catch (Galaxy::GalaxyRT::CException &e)
     {
-        GALA_DEBUG("%s", e.what());
+        GALA_DEBUG("Send To (%d) err:\n%s", pid, e.what());
     }
 
 
@@ -533,7 +543,7 @@ void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::M
 int Process::Status( lua_State *l )
 {
 
-    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
+    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock,        Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
 
     int pid = luaL_checkinteger(l, 1);

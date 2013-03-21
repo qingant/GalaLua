@@ -13,8 +13,8 @@
 #include "BusController.hpp"
 #include "GLR.hpp"
 
-GLR::BusWorker::BusWorker( MLinkMap &lm, Galaxy::GalaxyRT::CPthreadMutex &lock, POLLERTYPE & pl)
-    :_LinkMap(lm), _Mutex(lock), _Poller(pl)
+GLR::BusWorker::BusWorker(RouteMap &rm, MLinkMap &lm, Galaxy::GalaxyRT::CPthreadMutex &lock, POLLERTYPE & pl)
+    :_Router(rm), _LinkMap(lm), _Mutex(lock), _Poller(pl)
 {
 
 }
@@ -73,6 +73,7 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
                 Runtime::GetInstance().GetBus().Send(mls->Gpid(), std::string((const char*)&msg, sizeof(msg)), MSG_HEAD::CLOSED);
                 Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex);
                 _LinkMap[ev.first] = NULL;
+                _Router.erase(mls->_Id);
                 GALA_DEBUG("FD(%d) Removed!", ev.first);
                 _Poller.Remove(ev.first);
                 delete ms;
@@ -303,11 +304,12 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port)
 
 GLR::BusController::BusController()
     :_LinkMap(10240, NULL),
-    _Worker(_LinkMap, _Mutex, _Poller)
+    _Worker(_Router, _LinkMap, _Mutex, _Poller)
 {
     const std::string &host = Runtime::GetInstance().Host();
     int port = Runtime::GetInstance().NodeId();
     Galaxy::GalaxyRT::CTCPSocketServer *s = new Galaxy::GalaxyRT::CTCPSocketServer(host, port);
+    GALA_DEBUG("%d", s->GetFD());
     _LinkMap[s->GetFD()] = new MessageServerStack(s, _LinkMap, _Router);
     _Poller.Register(s->GetFD(), Galaxy::GalaxyRT::EV_IN);
     Galaxy::GalaxyRT::CThread *t = new Galaxy::GalaxyRT::CThread(_Worker, 1);
