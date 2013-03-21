@@ -46,7 +46,7 @@ public:
          
         int size=0;
         
-        CALL_CPP_FUNCTION(L,view->Total(IMQueue::MQC_BAT));
+        CALL_CPP_FUNCTION(L,size=view->Total(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
         return 1;
@@ -59,7 +59,7 @@ public:
         int size=0;
         
 //        CALL_CPP_FUNCTION(L,view->Head((IMQueue::EMQCHL)chl));
-        CALL_CPP_FUNCTION(L,view->Head(IMQueue::MQC_BAT));
+        CALL_CPP_FUNCTION(L,size=view->Head(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
         return 1;
@@ -71,7 +71,7 @@ public:
          
         int size=0;
         
-        CALL_CPP_FUNCTION(L,view->Tail(IMQueue::MQC_BAT));
+        CALL_CPP_FUNCTION(L,size=view->Tail(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
         return 1;
@@ -83,7 +83,7 @@ public:
          
         int size=0;
         
-        CALL_CPP_FUNCTION(L,view->LurkersInGet(IMQueue::MQC_BAT));
+        CALL_CPP_FUNCTION(L,size=view->LurkersInGet(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
         return 1;
@@ -92,7 +92,7 @@ public:
     {
         IMQView *view=lua_checkIMQView(L,1);
         int size=0;
-        CALL_CPP_FUNCTION(L,view->LurkersInPut());
+        CALL_CPP_FUNCTION(L,size=view->LurkersInPut());
 
         lua_pushnumber(L,size);
         return 1;
