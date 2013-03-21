@@ -2,8 +2,7 @@
 
 Container
 
---]]
-
+--]] 
 local os = require "os"
 package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so"
@@ -37,10 +36,10 @@ function main()
     local err,amq_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/cnr.lua", "amq_info")
     local err,node_server = glr.spawn(os.getenv("HOME") .. "/lib/lua/cnr.lua", "node_info")
 
-    print("-----links---------------------")
-    local a=node.get_all_links()
-    pprint.pprint(a)
-    print("------links------------------")
+--    print("-----links---------------------")
+--    local a=node.get_all_links()
+--    pprint.pprint(a)
+--    print("------links------------------")
 
     local services={router=router_server,amq=amq_server,node=node_server}
     while true do
@@ -55,10 +54,10 @@ function main()
         else
             print("Warnning:Not a monitor register message::",msg)
         end
-    print("-----links---------------------")
-    local a=node.get_all_links()
-    pprint.pprint(a)
-    print("------links------------------")
+--    print("-----links---------------------")
+--    local a=node.get_all_links()
+--    pprint.pprint(a)
+--    print("------links------------------")
 
 
    end
@@ -137,6 +136,90 @@ function router_info()
 end
 
 function node_info()
+    local status_server={}
+    local lsr_host="0.0.0.0"
+    local lsr_port=2345
+    local svc_host="0.0.0.0"
+    local svc_port=2346
+
+    node.register(lsr_host, lsr_port)
+    node.register(svc_host, svc_port)
+
+    function get_status_server()
+        function _get_status_server(host,port)
+            local msg = ffi.new("BIND_MSG")
+            msg.Head.Action = ffi.C.ACT_BIND
+            msg.Catagory = ffi.C.DEV_MONITOR
+                print("send before((((",("#"):rep(12))
+            if not node.send(host,port, 0, structs.pack(msg)) then
+                print(("#"):rep(12))
+                return 
+            end
+            local gpid
+--            while true do
+                local msg_type, addr, rsp = glr.recv()
+                pprint.pprint(rsp)
+                ffi.copy(msg, rsp, ffi.sizeof(msg))
+
+ --               if addr.host==host and addr.port==port then
+                    gpid=ffi.C.ntohl(msg.Gpid)
+--                    break
+--                end
+--            end
+            return {gpid=gpid,host=host,port=port}
+        end
+        status_server.lsr=_get_status_server(lsr_host,lsr_port)
+        status_server.svc=_get_status_server(svc_host,svc_port) 
+    end
+    
+    get_status_server() 
+    pprint.pprint(status_server,"status_server")
+    
+    function get_gpids(t)
+        local msg_table = ffi.new("MONITOR_HEADER")
+        local msg_type, addr, msg 
+
+        msg_table.Type=ffi.C.NODE 
+        msg_table.Action=ffi.C.GET
+        local v=status_server[t]
+        if v then
+            node.send(v.host,v.port,v.gpid,structs.pack(msg_table)..cjson.encode({gpid=true}))
+            msg_type, addr, msg = glr.recv()
+        end
+        return cjson.decode(msg)
+    end
+    
+    function get_status(t,gpid_list)
+        local gpid_list=gpid_list or {}
+
+        local msg_table = ffi.new("MONITOR_HEADER")
+        local msg_type, addr, msg 
+        msg_table.Type=ffi.C.NODE 
+        msg_table.Action=ffi.C.GET
+        local v=status_server[t]
+
+        local m=structs.pack(msg_table)
+
+        m=m..cjson.encode({status=gpid_list})
+
+        if v then
+            node.send(v.host,v.port,v.gpid,m)
+            msg_type, addr, msg = glr.recv()
+            return cjson.decode(msg)
+        end
+    end
+
+--    local gpids=get_gpids("lsr")                    
+--    pprint.pprint(gpids,"gpids")
+--
+--    local gpids=get_gpids("svc")                    
+--    pprint.pprint(gpids,"gpids")
+--
+--    local status=get_status("lsr")                    
+--    pprint.pprint(status,"status")
+--
+--    local status=get_status("svc",{1,2})                    
+--    pprint.pprint(status,"status")
     while true do
         local msg_type, addr, msg = glr.recv()
         print("len:"..string.len(msg))
@@ -145,23 +228,33 @@ function node_info()
         msg_table = ffi.new("MONITOR_HEADER")
         local len=ffi.sizeof(msg_table)
         ffi.copy(msg_table, msg,len)
+
         arg=cjson.decode(msg:sub(len+1))
+
         if msg_table.Type==ffi.C.NODE and msg_table.Action==ffi.C.GET then
-            local err,gpids=glr.all()
-            assert(err,gpids)
             if arg["gpid"] then
+                local gpids={}
+                local l=arg["gpid"]
+                if #l==0 then
+                    l={"lsr","svc"}
+                end
+
+                for i,v in pairs(l) do
+                    gpids[v]=get_gpids(v)
+                end
                 node.send(addr.host,addr.port,addr.gpid,cjson.encode(gpids))
             elseif arg["status"] then
+                local status={}
+
                 local l=arg["status"]
-                pprint.pprint (l)
                 if #l==0 then
-                    l=gpids 
+                    l={"lsr","svc"}
                 end
-                local s={}
+
                 for i,v in pairs(l) do
-                    err,s[tostring(v)]=glr.status(v)
+                    status[v]=get_status(v,arg[v])
                 end
-                node.send(addr.host,addr.port,addr.gpid,cjson.encode(s))
+                node.send(addr.host,addr.port,addr.gpid,cjson.encode(status))
             end
         else
             print("Hey,You should not send messages to me !")
@@ -169,3 +262,4 @@ function node_info()
         end
     end
 end
+

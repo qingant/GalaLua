@@ -105,32 +105,38 @@ class Node(object):
        # print repr(text)
         return json.loads(text)
 
-    def get_nodes_gpids(self):
+    def get_nodes_gpids(self,gpid=[]):
         buf=self.moniter_header(protocol.MONITOR_ACTION["GET"],protocol.MONITOR_TYPE["NODE"])
-        gpid_buf=buf+"{\"gpid\":1}"
+        gpid_buf=buf+json.dumps({"gpid":gpid})
         self._send(gpid_buf,protocol.MSG_TYPE["APP"],self._services_list["node"])
         text=self._recv()
        # print repr(text)
         return json.loads(text)
 
-    def get_nodes_status(self,gpid_list=[]):
-        '''return {gpid:status map}'''
+    def get_nodes_status(self,type=[],gpids={}):
+        '''type=["lsr","svc"]
+           gpids={"lsr":[1,2,3],"svc":[0,1,2,3]}
+           return {gpid:status map}'''
         buf=self.moniter_header(protocol.MONITOR_ACTION["GET"],protocol.MONITOR_TYPE["NODE"])
-
-        status_buf=buf+json.dumps({"status":gpid_list})
+        status=gpids
+        status.update({"status":type})
+        status_buf=buf+json.dumps(status)
         self._send(status_buf,protocol.MSG_TYPE["APP"],self._services_list["node"])
 
         text=self._recv()
-        print repr(text)
         return json.loads(text)
          
 if __name__ == "__main__":
-    n = Node("0.0.0.0", 2345)
-    print n.get_router()
-    print n.amq()
-#    n.get_router()
-#    n.del_router("apple")
-#    n.del_router()
+    n = Node("0.0.0.0", 2348)
+#    print n.get_router()
+#    print "*"*10
+#    print n.amq()
+#    print "*"*10
+    print n.get_nodes_gpids()
+    print "*"*10
+    a=n.get_nodes_status()
+    print a["svc"]
+    print "over"
     while True:
         pass
 
