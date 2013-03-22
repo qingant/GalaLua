@@ -26,7 +26,7 @@ public:
         ConfigurePlt **p=(ConfigurePlt **)lua_newuserdata(L,sizeof(ConfigurePlt *));
 
         CALL_CPP_FUNCTION(L,*p=new ConfigurePlt(path_str,prot));
-        
+
         luaL_getmetatable(L,_tname);
         lua_setmetatable(L,-2);
 
@@ -45,7 +45,7 @@ public:
     }
     static int Put(lua_State *L)
     {
-        ConfigurePlt *p=CheckConfigurePlt(L,1);    
+        ConfigurePlt *p=CheckConfigurePlt(L,1);
 
         const char *path=luaL_checkstring(L,2);
         const char *value=luaL_checkstring(L,3);
@@ -59,13 +59,13 @@ public:
         //std::string value_str(value);
 
         CALL_CPP_FUNCTION(L,p->Put(path_str,const_cast<char *>(value)));
-        
+
         return 0;
-    } 
+    }
 
     static int Get(lua_State *L)
     {
-        ConfigurePlt *p=CheckConfigurePlt(L,1);    
+        ConfigurePlt *p=CheckConfigurePlt(L,1);
 
         const char *path=luaL_checkstring(L,2);
 
@@ -73,7 +73,7 @@ public:
         std::string value;
 
         CALL_CPP_FUNCTION(L,value=p->Get(path_str));
-        
+
         lua_pushstring(L,value.c_str());
 
         return 1;
@@ -81,7 +81,7 @@ public:
 
     static int Get_ex(lua_State *L)
     {
-        ConfigurePlt *p=CheckConfigurePlt(L,1);    
+        ConfigurePlt *p=CheckConfigurePlt(L,1);
 
         const char *path=luaL_checkstring(L,2);
         if(path==NULL)
@@ -92,10 +92,10 @@ public:
         std::pair<std::string,std::string>value;
 
         CALL_CPP_FUNCTION(L,value=p->Get_ex(path_str));
-        
+
         lua_pushstring(L,value.first.c_str());
         lua_pushstring(L,value.second.c_str());
-         
+
         return 2;      //return a pair
     }
 
@@ -106,7 +106,7 @@ public:
         const char *path=luaL_checkstring(L,2);
         if(path==NULL)
         {
-            return luaL_error(L,"string expected! %s   %d",__func__,__LINE__);    
+            return luaL_error(L,"string expected! %s   %d",__func__,__LINE__);
         }
         std::string path_str(path);
         CALL_CPP_FUNCTION(L,p->Load(path_str));
@@ -121,7 +121,7 @@ public:
         const char *path=luaL_checkstring(L,2);
         if(path==NULL)
         {
-            return luaL_error(L,"string expected! %s   %d",__func__,__LINE__);    
+            return luaL_error(L,"string expected! %s   %d",__func__,__LINE__);
         }
 
         std::string path_str(path);
@@ -138,7 +138,7 @@ public:
 
         if(path==NULL)
         {
-            return luaL_error(L,"string expected! %s   %d",__func__,__LINE__);    
+            return luaL_error(L,"string expected! %s   %d",__func__,__LINE__);
         }
 
         std::string path_str(path);
@@ -156,7 +156,7 @@ public:
 
         if(path==NULL)
         {
-            return luaL_error(L,"string expected! %s   %d",__func__,__LINE__);    
+            return luaL_error(L,"string expected! %s   %d",__func__,__LINE__);
         }
 
         std::string path_str(path);
@@ -182,7 +182,7 @@ const char *ConfigurePlt4Lua::_tname="ConfigurePlt";
 
 
 extern "C"
-int luaopen_configure(lua_State *L)
+int luaopen_Configure(lua_State *L)
 {
     int ret=0;
     struct luaL_Reg f[]={
@@ -209,10 +209,10 @@ int luaopen_configure(lua_State *L)
         return luaL_error(L,"%s  existed!  %s  %d",ConfigurePlt4Lua::_tname,__func__,__LINE__);
     }
     luaL_register(L,NULL,m);
-    
+
     lua_pushvalue(L,-1);
     lua_setfield(L,-2,"__index");
-    
+
     setfield_string(L,ConfigurePlt4Lua::_tname,"__my_name");
 
     luaL_register(L,"Configure",f);
