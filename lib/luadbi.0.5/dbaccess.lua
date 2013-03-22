@@ -50,7 +50,7 @@ end
 
 function Cursor:close()
     if self._statement then
-       self._statement:close() 
+       self._statement:close()
     end
 end
 
@@ -86,7 +86,7 @@ function Cursor:fetchall()
         table.insert(rows,record)
          record = self:fetchone()
     end
-    return rows    
+    return rows
 end
 
 local Connection = {_conn = nil}
@@ -125,7 +125,7 @@ end
 function Connection:execute(sql_string,...)
     if self._conn then
         local stm
-	local err 
+	local err
 	stm,err = self:prepare(sql_string)
         if not stm then
 	    error(err)
@@ -138,7 +138,7 @@ function Connection:execute(sql_string,...)
 	local cur = Cursor:new(stm)
 	return cur
     else
-       error("the connection object invalid") 
+       error("the connection object invalid")
     end
 end
 
@@ -149,15 +149,15 @@ function connect(driver, ...)
 
     if not modulefile then
         local available = table.concat(available_drivers(), ',')
-	error(string.format("Driver '%s' not found. Available drivers are: %s", driver, available))
+	    error(string.format("Driver '%s' not found. Available drivers are: %s", driver, available))
     end
 
     local m, err = pcall(require,modulefile)
-    
+
     if not m then
 	-- cannot load the module, we cannot continue
         local available = table.concat(available_drivers(), ',')
-	error(string.format('Cannot load driver %s. Available drivers are: %s', driver, available))
+	    error(string.format('Cannot load driver %s. Available drivers are: %s,error:%s', driver, available,err))
     end
 
     local class_str = string.format('DBD.%s.Connection', driver)
@@ -165,17 +165,17 @@ function connect(driver, ...)
     local connection_class = package.loaded[class_str]
 
     -- Calls DBD.{Driver}.New(...)
-    --return connection_class.New(...)    
+    --return connection_class.New(...)
     local con = Connection:new();
     m,err = connection_class.New(...)
     if not m then
         error(err)
     end
-    con._conn =  m   
+    con._conn =  m
     return con
 end
 
--- Help function to do prepare and execute in 
+-- Help function to do prepare and execute in
 -- a single step
 --[=[function Do(dbh, sql, ...)
     local sth,err = dbh:prepare(sql)
@@ -196,5 +196,5 @@ end
 
 -- Lit drivers available on this system
 function Drivers()
-    return available_drivers() 
+    return available_drivers()
 end
