@@ -34,7 +34,7 @@ function main()
          local oper = request.action
 	     if not oper then
 	         response = response_format("false","","msg","miss operater cmd:alter or query")
-	         local err = node.send(host,port,gpid,cjson.encode(response))
+	         local err = glr.send(addr, cjson.encode(response))
              if not err then
                 error("send error")
              end
