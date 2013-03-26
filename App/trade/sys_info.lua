@@ -2,7 +2,6 @@ module(..., package.seeall)
 
 local pprint = require "pprint"
 require "router"
-require "node"
 local ffi = require "ffi"
 local structs = require "structs"
 local cjson = require "cjson"
@@ -36,7 +35,7 @@ end
 
 function Report:Filter()    
    local us = self.request.cpu.us
-   if us < 1 or self.request.cpu.ID ~= 11  then
+   if us < 1   then
       self.request = nil
    end
 end
@@ -46,20 +45,20 @@ function Report:Broadcast(msg)
       local displays = self.__gala__._router:find_by_field("display")
       -- self.request.header.from.type = "svc"
       -- self.request.header.id = -1024
-      pprint.pprint(displays)
+      -- pprint.pprint(displays)
       local _logger = self.__gala__._logger
       _logger:debug(cjson.encode(displays))
-      for i=1,#displays do
-         
-         local item =displays[i]
-         print(item.addr.host, item.addr.port, __id__)
-         node.register(item.addr.host, item.addr.port)
+      for index,item in pairs(displays) do
+         print("BroadCast")
+         -- local item =displays[i]
+         -- print(item.addr.host, item.addr.port, __id__)
+         glr.connect(item.addr.host, item.addr.port)
          print(item.addr.host, item.addr.port , item.addr.gpid)
          local header = self.__gala__._header
          header.From.Catagory = ffi.C.DEV_SVC
          header.Head.Action = ffi.C.ACT_REPORT
-         print(item.addr.host, item.addr.port , item.addr.gpid, cjson.encode(msg))
-         node.send(item.addr.host, item.addr.port , item.addr.gpid, structs.pack(header) .. cjson.encode(msg))
+         -- print(item.addr.host, item.addr.port , item.addr.gpid, cjson.encode(msg))
+         glr.send(item.addr, structs.pack(header) .. cjson.encode(msg))
       end
    end
 end
@@ -110,7 +109,7 @@ function Request:Run()
    header.From.Catagory = ffi.C.DEV_SVC
    function request_agent()
       local source = io.open(configure.LUA_AGENT_APP_DIR .. structs.str_pack(header.To.AppType) .. "_request.lua"):read("*a")
-      local host, port = glr.node_addr()
+      local host, port = glr.sys.host, glr.sys.port
 
       header.Head.Action = ffi.C.ACT_REQUEST
       header.To.Catagory = ffi.C.DEV_AGENT
@@ -122,9 +121,9 @@ function Request:Run()
       pprint.pprint(name, "name")
       pprint.pprint(addr, "addr")
 
-      node.register(addr.addr.host, addr.addr.port)
+      glr.connect(addr.addr.host, addr.addr.port)
       print(addr.addr.host, addr.addr.port, addr.addr.gpid)
-      node.send(addr.addr.host, addr.addr.port, addr.addr.gpid,
+      glr.send(addr.addr,
                 structs.pack(header) .. cjson.encode({code = source}))
    end
    request_agent()
@@ -141,8 +140,8 @@ function Request:Run()
    -- print(self.__gala__.route_info.addr.host, self.__gala__.route_info.addr.port, self.__gala__.route_info.addr.gpid)
    -- print("Run!")
    print(self.__gala__.route_info.addr.host, self.__gala__.route_info.addr.port, self.__gala__.route_info.addr.gpid)
-   node.register(self.__gala__.route_info.addr.host, self.__gala__.route_info.addr.port)
-   node.send(self.__gala__.route_info.addr.host, self.__gala__.route_info.addr.port, self.__gala__.route_info.addr.gpid,
+   glr.connect(self.__gala__.route_info.addr.host, self.__gala__.route_info.addr.port)
+   glr.send(self.__gala__.route_info.addr,
              structs.pack(header) .. content)
 
 end

@@ -1,4 +1,5 @@
 local host, port , gpid = ...
+local cli = require "cli"
 pprint.print("Come on")
 -- local timer = require "timer"
 -- local os = require "os"
@@ -18,8 +19,8 @@ while true do
    -- pprint.pprint(data)
    for i=0,100 do
       data.ID = i
-      report(host, port, gpid, {["cpu"]=data})
+      cli.report(host, port, gpid, {["cpu"]=data})
    end
-   timer.sleep(1)
+   glr.time.sleep(1)
 end
    

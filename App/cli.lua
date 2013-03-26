@@ -1,3 +1,6 @@
+module(..., package.seeall)
+local __main__ = ...
+local __self__ = package.loaded[__main__]
 
 local os = require "os"
 local io = require "io"
@@ -12,20 +15,21 @@ local cjson = require "cjson"
 local timer = require "timer"
 local ffi = require "ffi"
 local structs = require "structs"
+
 function main()
    local host = "0.0.0.0"
    local port = 2345
-   local rt = node.register(host, port, __id__)
+   local rt = glr.connect(host, port)
 
-
-   -- print("Register")
+   
+   print("Register")
    -- print(rt)
    
    -- entry
    local msg = ffi.new("BIND_MSG")
    msg.Head.Action = ffi.C.ACT_BIND
    msg.Catagory = ffi.C.DEV_AGENT
-   node.send(host, port, 0, ffi.string(msg, ffi.sizeof(msg)))
+   glr.send({host = host, port = port, gpid = 0}, structs.pack(msg))
    local msg_type, addr, rsp = glr.recv()
    assert(msg_type,rsp)
    -- local response = cjson.decode(msg)
@@ -39,7 +43,7 @@ function main()
    reg_msg.Name = string.format("myhost::sys::%d", bind_gpid)
    reg_msg.Field = "bank::east"
    reg_msg.AppType =  "sys_info"
-   node.send(host, port, bind_gpid, ffi.string(reg_msg, ffi.sizeof(reg_msg)))
+   glr.send({host = host, port = port, gpid = bind_gpid}, ffi.string(reg_msg, ffi.sizeof(reg_msg)))
    msg_type,addr, rsp = glr.recv()
    ffi.copy(reg_msg, rsp, ffi.sizeof(reg_msg))
    
@@ -55,18 +59,20 @@ function main()
       ffi.copy(app_head, msg, ffi.sizeof(app_head))
       local content = string.sub(msg, ffi.sizeof(app_head)+1)
       pprint.pprint(content)
-      content = cjson.decode(content)
       if msg_type == glr.CLOSED then
          break
       end
       -- local request = cjson.decode(msg)
+      content = cjson.decode(content)
+
       if app_head.Head.Action == ffi.C.ACT_DEPLOY then
          local msg = {}
          msg["code"] = content.content.code
          msg["host"] = addr.host
          msg["port"] = addr.port
          msg["gpid"] =  bind_gpid
-         local err,id = glr.spawn(os.getenv("HOME") .. "/lib/lua/cli.lua", "worker")
+         local err,id = glr.spawn("cli", "worker")
+         print(id)
          glr.send(id, cjson.encode(msg))
       elseif app_head.Head.Action == ffi.C.ACT_REQUEST then
          local msg = {}
@@ -93,7 +99,7 @@ function report (host, port, gpid, data)
    header.From.Name = string.format("myhost::sys::%d", gpid)
    header.To.Catagory = ffi.C.DEV_SVC
    header.To.AppType = "sys_info"
-   return node.send(host, port , gpid, structs.pack(header) .. cjson.encode(data))
+   return glr.send({host = host, port = port , gpid = gpid}, structs.pack(header) .. cjson.encode(data))
 end
 function response(host, port, gpid, des_host, des_port, des_gpid, data)
 
@@ -107,7 +113,7 @@ function response(host, port, gpid, des_host, des_port, des_gpid, data)
    header.To.Addr.Port = ffi.C.htonl(des_port)
    header.To.Addr.Gpid = ffi.C.htonl(des_gpid)
    print( des_host, des_port, des_gpid)
-   return node.send(host, port , gpid, structs.pack(header) .. cjson.encode(data))
+   return glr.send({host = host, port = port , gpid = gpid}, structs.pack(header) .. cjson.encode(data))
 end
 
 function worker()

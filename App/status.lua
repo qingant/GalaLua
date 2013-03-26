@@ -1,3 +1,6 @@
+module(..., package.seeall)
+local __main__ = ...
+local __self__ = package.loaded[__main__]
 local os = require "os"
 package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so"
@@ -38,6 +41,7 @@ local string =require  "string"
 --end
 
 function main()
+
     while true do
         local msg_type, addr, msg = glr.recv()
 
@@ -50,7 +54,7 @@ function main()
             assert(err,gpids)
             pprint.pprint(gpids,"status::gpids")
             if arg["gpid"] then
-                node.send(addr.host,addr.port,addr.gpid,cjson.encode(gpids))
+                glr.send(addr,cjson.encode(gpids))
             elseif arg["status"] then
                 local l=arg["status"]
                 pprint.pprint (l)
@@ -61,11 +65,11 @@ function main()
                 for i,v in pairs(l) do
                     err,s[tostring(v)]=glr.status(v)
                 end
-                node.send(addr.host,addr.port,addr.gpid,cjson.encode(s))
+                glr.send(addr,cjson.encode(s))
             end
         else
             print("Hey,You should not send messages to me !")
-            node.send(addr.host,addr.port,addr.gpid,"{'content':'Hey,You should not send messages to me !'}")  
+            glr.send(addr,"{'content':'Hey,You should not send messages to me !'}")  
         end
     end
 end
