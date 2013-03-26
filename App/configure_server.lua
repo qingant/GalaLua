@@ -26,8 +26,11 @@ function main()
        error("new configure object failure")
    end
    while true do
-      local err,addr,msg = glr.recv()
-      if err then
+      local msg_type,addr,msg = glr.recv()
+      if not msg_type then
+          error("msg_type value is nil")
+      end
+      if msg_type ~= glr.CLOSED then
          local request = cjson.decode(msg)
          local response
          --local host = addr.host
