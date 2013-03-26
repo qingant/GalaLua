@@ -73,7 +73,7 @@ function main()
          msg["gpid"] =  bind_gpid
          local err,id = glr.spawn("cli", "worker")
          print(id)
-         glr.send(id, cjson.encode(msg))
+         -- glr.send(id, cjson.encode(msg))
       elseif app_head.Head.Action == ffi.C.ACT_REQUEST then
          local msg = {}
          msg["code"] = content.code
@@ -83,7 +83,7 @@ function main()
          msg["des_host"] = structs.str_pack(app_head.To.Addr.Host)
          msg["des_port"] = ffi.C.ntohl(app_head.To.Addr.Port)
          msg["des_gpid"] = ffi.C.ntohl(app_head.To.Addr.Gpid)
-         local err,id = glr.spawn(glr.get_path(), "request_handle")
+         local err,id = glr.spawn("cli", "request_handle")
          glr.send(id, cjson.encode(msg))
       end
    end
