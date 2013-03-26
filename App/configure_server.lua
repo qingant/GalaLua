@@ -1,3 +1,5 @@
+module(...,package.seeall)
+
 local os = require "os"
 local string = require "string"
 package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
@@ -28,9 +30,9 @@ function main()
       if err then
          local request = cjson.decode(msg)
          local response
-         local host = addr.host
-         local port = addr.port
-	     local gpid = addr.gpid
+         --local host = addr.host
+         --local port = addr.port
+	     --local gpid = addr.gpid
          local oper = request.action
 	     if not oper then
 	         response = response_format("false","","msg","miss operater cmd:alter or query")
@@ -50,7 +52,7 @@ function main()
 	         else
 	             response = response_format("true","","","")
              end
-             local err = node.send(host,port,gpid,cjson.encode(response))
+             local err = glr.send(addr,cjson.encode(response))
              if not err then
                 error("send error")
              end
@@ -62,7 +64,7 @@ function main()
 	         local flag = request.isset
 	         if not flag then
 	             response = response_format("false","","msg","the operater cmd is query but it has not flag: true or false ")
-                 local err = node.send(host,port,gpid,cjson.encode(response))
+                 local err = glr.send(addr,cjson.encode(response))
                  if not err then
                     error("send error")
                  end
@@ -73,7 +75,7 @@ function main()
 		         else
 		             response = response_format("true","","content",msg)
 		         end
-                 local err = node.send(host,port,gpid,cjson.encode(response))
+                 local err = glr.send(addr,cjson.encode(response))
                  if not err then
                     error("send error")
                  end
@@ -81,7 +83,7 @@ function main()
 	         end
 	     else
 	         response = response_format("false","","msg","operater cmd must be :alter or query")
-             local err = node.send(host,port,gpid,cjson.encode(response))
+             local err = glr.send(addr,cjson.encode(response))
              if not err then
                 error("send error")
              end
