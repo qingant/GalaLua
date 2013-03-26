@@ -56,7 +56,10 @@ void Runtime::Entry( const std::string &path, const std::string &entry )
 {
     LN_ID_TYPE main_node_id = Process::CreateNode();
     Process &main_node = Process::GetNodeById(main_node_id);
-    main_node.LoadFile(path);
-    main_node.PushFun(entry);
+    /* main_node.LoadFile(path);
+    main_node.PushFun(entry);*/
+    //lua_getglobal(main_node._Stack, "glr.spawn");
+    main_node.Entry(path, entry);
+
     main_node.Start(*_Schedule);
 }

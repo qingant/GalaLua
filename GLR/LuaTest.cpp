@@ -38,10 +38,27 @@ int main( int argc, char* argv[] )
     //    printf("Resume Error : %s\n", e.what());
     //}
 
-    _CProcess.Initialize(argc,argv,NULL,"h:p:f:e:");
-    std::string host=_CProcess.GetOption("h");
-    int port=atoi(_CProcess.GetOption("p").c_str());
-    std::string file=_CProcess.GetOption("f");
+    _CProcess.Initialize(argc,argv,NULL,"m:e:d:?h:?p:?");
+    std::string host;
+    if (_CProcess.ExistOption("h"))
+    {
+        host = _CProcess.GetOption("h");
+    }
+    else
+    {
+        host = "0.0.0.0";
+    }
+    int port = 0;
+    if (_CProcess.ExistOption("p"))
+    {
+        port = atoi(_CProcess.GetOption("p").c_str());
+    }
+    if (_CProcess.ExistOption("d"))
+    {
+        std::string path = _CProcess.GetOption("d");
+        setenv("LUA_PATH", path.c_str(), 1);
+    }
+    std::string file=_CProcess.GetOption("m");
     std::string entry=_CProcess.GetOption("e");
 
     //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));

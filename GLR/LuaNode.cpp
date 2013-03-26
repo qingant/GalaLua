@@ -3,6 +3,7 @@
 #include "GLR.hpp"
 #include "lualib.h"
 #include "Process.hpp"
+#include "resource.h"
 //defines of static data member
 using namespace GLR;
 std::vector<Process*> Process::NodeMap(10240); 
@@ -123,18 +124,62 @@ int Process::Spawn( lua_State *l )
         // Create Lua Node
         LN_ID_TYPE node_id = CreateNode();
         Process &node = GetNodeById(node_id);
-        node.LoadFile(module);
+        //node.LoadFile(module);
+        // node.DoString(std::string(module, len));
+        //lua_getglobal(node._Stack, "loadstring");
+        //lua_pushlstring(node._Stack, module, len);
+        lua_getglobal(node._Stack, "require");
+        lua_pushstring(node._Stack, module);
+        if (lua_pcall(node._Stack, 1,1,0) != 0)
+        {
+            const char *msg = luaL_checklstring(node._Stack, -1, NULL);
+            THROW_EXCEPTION_EX(msg);
+        }
+
+
+        node.StackDump();
+        
+        lua_getfield(node._Stack, -1, method);
+        node.StackDump();
         //luaL_loadfile(node._Stack, module);
         // Register Node Entry
         //lua_getglobal(node._Stack, method);
-        node.PushFun(method);
-        node.StackDump();
+        // node.PushFun(method);
+        
+        for (int i = 3; i <= lua_gettop(l); ++i)
+        {
+            int type = lua_type(l,i);
+            size_t len = 0;
+            const char * str = NULL;
+            switch (type)
+            {
+            case LUA_TSTRING:
+                str = luaL_checklstring(l,i,&len);
+                lua_pushlstring(node._Stack,str, len);
+                break;
+            case LUA_TBOOLEAN:
+                len = lua_toboolean(l,i);
+                lua_pushboolean(node._Stack, len);
+                break;
+            case LUA_TNUMBER:
+                len = luaL_checkinteger(l, i);
+                lua_pushinteger(node._Stack, len);
+                break;
+            default:
+                i = 1024;                    // Ìø³öÑ­»·
+                break;
+            }
+        }
+        
+
         // put to schedule queue
 
 
         // Return Value to Calling Lua Node
         lua_pushboolean(l, 1);
         lua_pushinteger(l, node_id);
+
+        GALA_DEBUG("Return...");
         node.Start(Schedule::GetInstance());
         return 2;
         // Op on Self State
@@ -196,10 +241,10 @@ void Process::InitNode( void )
         {"set_options", SetOptions},
         {NULL, NULL},
     };
-    luaL_register(_Stack, "glr", glr_reg);
-    lua_setglobal(_Stack, "glr");
+    luaL_register(_Stack, "_glr", glr_reg);
+    lua_setglobal(_Stack, "_glr");
 
-    lua_getglobal(_Stack, "glr");
+    lua_getglobal(_Stack, "_glr");
     lua_pushstring(_Stack,"id");
     lua_pushinteger(_Stack, _Id);
     lua_settable(_Stack, -3);
@@ -231,11 +276,34 @@ void Process::InitNode( void )
     lua_pushinteger(_Stack, _Id);
     lua_setglobal(_Stack, "__id__");
 
+
     // getnid
 
+    //GALA_DEBUG((const char*)glr_lua);
+    if (luaL_loadbuffer(_Stack, (const char*)glr_lua, strlen((const char*)glr_lua), "glr")!= 0)
+    {
+        GALA_DEBUG("Load String Failure");
+        StackDump();
+        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        THROW_EXCEPTION_EX(msg);
+    }
+
+    lua_pushstring(_Stack, "glr");
+    //StackDump();
+
+
+    if(lua_pcall(_Stack, 1, 1, 0) != 0)
+    {
+        GALA_DEBUG("Call String Failure");
+        StackDump();
+        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        THROW_EXCEPTION_EX(msg);
+    }
 
 
     StackDump();
+    lua_setglobal(_Stack, "glr");
+
 
 
     _Status._State = ProcessStatus::CREATED;
@@ -296,6 +364,7 @@ void Process::Resume()
         //_Gl::~CLockGuard();
 
         //Destory(_Id);   // very very dangerous
+        THROW_EXCEPTION_EX("Killed");
         return;
     }
 
@@ -378,12 +447,23 @@ int Process::Recieve( lua_State *l )
 
 void Process::DoString( const std::string &code )
 {
-    luaL_dostring(_Stack, code.c_str());
+    if ((luaL_loadstring(_Stack, code.c_str()) !=0) && (lua_pcall(_Stack, 0, 0, 0) != 0))
+    {
+        StackDump();
+        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        THROW_EXCEPTION_EX(msg);
+    }
+    else
+    {
+        _Path = "";
+        printf("Load String Succeed\n");
+    }
 }
 
 void Process::PushFun( const std::string &fname )
 {
     lua_getglobal(_Stack,fname.c_str());
+
 }
 
 void Process::Status()
@@ -655,6 +735,7 @@ int GLR::Process::GetGlobal( lua_State *l )
 
 int GLR::Process::GetNodeAddr( lua_State *l )
 {
+
     lua_pushstring(l, Runtime::GetInstance().Host().c_str());
     lua_pushinteger(l, Runtime::GetInstance().NodeId());
     return 2;
@@ -674,4 +755,18 @@ int GLR::Process::Kill( lua_State *l )
     int gpid = luaL_checkinteger(l, 1);
     Destory(gpid);
     return 0;
+}
+
+void GLR::Process::Entry( const std::string &module, const std::string &entry, ... )
+{
+    lua_getglobal(_Stack, "require");
+    lua_pushstring(_Stack, module.c_str());
+    if (lua_pcall(_Stack, 1, 1, 0) != 0)
+    {
+        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        THROW_EXCEPTION_EX(msg);
+    }
+    StackDump();
+    lua_getfield(_Stack, -1, entry.c_str());
+    StackDump();
 }
