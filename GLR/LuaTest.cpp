@@ -65,7 +65,7 @@ int main( int argc, char* argv[] )
     //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
     GLR::Runtime::Initialize(host, port);
     GLR::Runtime::GetInstance().Entry(file,entry);
-    _CProcess.SetArgument("What the hell? Do not work?");
+    //_CProcess.SetArgument("What the hell? Do not work?");
     while (true)
     {
         usleep(1024*1024*1024);

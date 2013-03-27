@@ -55,6 +55,7 @@ get_global = _glr.get_global
 CLOSED = _glr.CLOSED
 KILL = _glr.KILL
 AF_INET = _glr.AF_INET
+msg_available = _glr.msg_available
 
 time = {
    now = function () return _glr.int(0,0) end;

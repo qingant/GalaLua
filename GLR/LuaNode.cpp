@@ -138,14 +138,14 @@ int Process::Spawn( lua_State *l )
 
 
         node.StackDump();
-        
+
         lua_getfield(node._Stack, -1, method);
         node.StackDump();
         //luaL_loadfile(node._Stack, module);
         // Register Node Entry
         //lua_getglobal(node._Stack, method);
         // node.PushFun(method);
-        
+
         for (int i = 3; i <= lua_gettop(l); ++i)
         {
             int type = lua_type(l,i);
@@ -170,7 +170,7 @@ int Process::Spawn( lua_State *l )
                 break;
             }
         }
-        
+
 
         // put to schedule queue
 
@@ -239,6 +239,7 @@ void Process::InitNode( void )
         {"get_path", GetFilePath},
         {"kill", Kill},
         {"set_options", SetOptions},
+        {"msg_available", MessageAvailable},
         {NULL, NULL},
     };
     luaL_register(_Stack, "_glr", glr_reg);
@@ -769,4 +770,15 @@ void GLR::Process::Entry( const std::string &module, const std::string &entry, .
     StackDump();
     lua_getfield(_Stack, -1, entry.c_str());
     StackDump();
+}
+
+int GLR::Process::MessageAvailable( lua_State *l )
+{
+    lua_getglobal(l, "__id__");
+    //lua_pushlstring("id");
+    LN_ID_TYPE self_id = luaL_checkinteger(l, -1);
+    LN_ID_TYPE id = luaL_checkinteger(l, 1);
+    Process &self = GetNodeById(self_id);
+    lua_pushboolean(l, self._Channel.Empty()?0:1);
+    return 1;
 }
