@@ -29,14 +29,14 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 ConfigureEntry= """
 [program:%(token)s]
-command=glr -h %(host)s -p %(port)d -f %(file)s -e %(entry)s
+command=glr -h %(host)s -p %(port)d -m %(file)s -e %(entry)s -d %(home)s/lib/lua/?.lua
 stdout_logfile=%(home)s/var/supervisor/log/%(token)s.log
 autostart=false
 
 """
 MoniterEntry="""
 [program:%(token)s]
-command=glr -h %(host)s -p %(port)d -f %(file)s -e %(entry)s
+command=glr -h %(host)s -p %(port)d -m %(file)s -e %(entry)s -d %(home)s/lib/lua/?.lua
 stdout_logfile=%(home)s/var/supervisor/log/%(token)s.log
 autostart=false
 """
@@ -44,9 +44,9 @@ autostart=false
 HOME=os.getenv("HOME")
 
 '''FIXME::if process exit accidently,send message to moniter process'''
-SVC_FILE=os.path.join(HOME,"lib/lua/svc.lua")
-LSR_FILE=os.path.join(HOME,"lib/lua/lsr.lua")
-Moniter_FILE=os.path.join(HOME,"lib/lua/moniter.lua")
+SVC_FILE="svc"
+LSR_FILE="lsr"
+Moniter_FILE="monitor"
 
 class SupervisorApi(object):
     def __init__(self,index,user,passwd):
@@ -88,7 +88,8 @@ class SupervisorApi(object):
         return state[ret]
 
     def getPid(self):
-        ''''''
+        '''
+        '''
         return self._handle.supervisor.getPID()
 
     def create(self):
