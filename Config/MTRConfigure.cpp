@@ -474,11 +474,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_AppLoger_Usable()
 }
 void CMonitorConfigure::set_MonitorList_Monitor_AppLoger_Usable(bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_AppLoger__UNIONSELECTOR_Usable();
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_AppLoger__UNIONSELECTOR_Usable();
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
@@ -701,11 +701,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_SVC_DBConnection_Usable()
 }
 void CMonitorConfigure::set_MonitorList_Monitor_SVC_DBConnection_Usable(bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_SVC_DBConnection__UNIONSELECTOR_Usable();
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_SVC_DBConnection__UNIONSELECTOR_Usable();
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
@@ -718,11 +718,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_SVC_Usable()
 }
 void CMonitorConfigure::set_MonitorList_Monitor_SVC_Usable(bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_SVC_DBConnection_Usable();
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_SVC_DBConnection_Usable();
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
@@ -739,11 +739,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_LSRList_Usable(int32_t LSRListI
 }
 void CMonitorConfigure::set_MonitorList_Monitor_LSRList_Usable(int32_t LSRListIdx,bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_LSRList_LSR_Usable(LSRListIdx);
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_LSRList_LSR_Usable(LSRListIdx);
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
@@ -917,11 +917,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_LSRList_LSR_Protocol__UNIONSELE
 }
 void CMonitorConfigure::set_MonitorList_Monitor_LSRList_LSR_Protocol__UNIONSELECTOR_LSRSTREAM_Address_Usable(int32_t LSRListIdx,bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_LSRList_LSR_Protocol__UNIONSELECTOR_LSRSTREAM_Address__UNIONSELECTOR_Usable(LSRListIdx);
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_LSRList_LSR_Protocol__UNIONSELECTOR_LSRSTREAM_Address__UNIONSELECTOR_Usable(LSRListIdx);
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
@@ -962,11 +962,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_LSRList_LSR_Protocol__UNIONSELE
 }
 void CMonitorConfigure::set_MonitorList_Monitor_LSRList_LSR_Protocol__UNIONSELECTOR_LSRSTREAM_Usable(int32_t LSRListIdx,bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_LSRList_LSR_Protocol__UNIONSELECTOR_LSRSTREAM_Address_Usable(LSRListIdx);
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_LSRList_LSR_Protocol__UNIONSELECTOR_LSRSTREAM_Address_Usable(LSRListIdx);
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
@@ -1007,11 +1007,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_LSRList_LSR_Protocol_Usable(int
 }
 void CMonitorConfigure::set_MonitorList_Monitor_LSRList_LSR_Protocol_Usable(int32_t LSRListIdx,bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_LSRList_LSR_Protocol__UNIONSELECTOR_Usable(LSRListIdx);
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_LSRList_LSR_Protocol__UNIONSELECTOR_Usable(LSRListIdx);
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
@@ -1024,11 +1024,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_LSRList_LSR_Usable(int32_t LSRL
 }
 void CMonitorConfigure::set_MonitorList_Monitor_LSRList_LSR_Usable(int32_t LSRListIdx,bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_LSRList_LSR_Protocol_Usable(LSRListIdx);
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_LSRList_LSR_Protocol_Usable(LSRListIdx);
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
@@ -1045,11 +1045,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_CNRList_Usable(int32_t CNRListI
 }
 void CMonitorConfigure::set_MonitorList_Monitor_CNRList_Usable(int32_t CNRListIdx,bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_CNRList_CNR_Usable(CNRListIdx);
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_CNRList_CNR_Usable(CNRListIdx);
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
@@ -1249,11 +1249,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_CNRList_CNR_PlugIn_Usable(int32
 }
 void CMonitorConfigure::set_MonitorList_Monitor_CNRList_CNR_PlugIn_Usable(int32_t CNRListIdx,bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_CNRList_CNR_PlugIn__UNIONSELECTOR_Usable(CNRListIdx);
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_CNRList_CNR_PlugIn__UNIONSELECTOR_Usable(CNRListIdx);
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
@@ -1266,11 +1266,11 @@ PBYTE CMonitorConfigure::get_MonitorList_Monitor_CNRList_CNR_Usable(int32_t CNRL
 }
 void CMonitorConfigure::set_MonitorList_Monitor_CNRList_CNR_Usable(int32_t CNRListIdx,bool Enable,bool isLoad)
 {
-    bool value0 = *(bool *)get_MonitorList_Monitor_CNRList_CNR_PlugIn_Usable(CNRListIdx);
+    /*bool value0 = *(bool *)get_MonitorList_Monitor_CNRList_CNR_PlugIn_Usable(CNRListIdx);
     if(!Enable || !value0)
     {
         Enable = false ;
-    }
+    }*/
     if(isLoad)
     {
         Enable = true;
