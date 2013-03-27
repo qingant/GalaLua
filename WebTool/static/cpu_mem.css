@@ -1,0 +1,149 @@
+body{
+	width:990px;
+	height:600px;
+	margin:0px auto;
+}
+
+.CM_page{
+    width:auto;
+    height:auto;
+    box-shadow:0px 0px 10px #222;
+   background-color:black;
+}
+    
+
+.inner_nav{
+    width:150px;
+    float:left;
+    position:relative;
+    color:white;
+    letter-spacing:-1px;
+    overflow:hidden;
+    -moz-box-shadow:0px 0px 10px #222;
+    -webkit-box-shadow:0px 0px 10px #222;
+    box-shadow:0px 0px 10px #222;
+	font-size:0.9em;
+}
+
+
+.inner_content{
+	display:none;
+	width: 600px;
+	float:right;
+}
+
+.cpumeminfo{
+   border:1px solid #888;
+   width:200px;
+   height:150px;
+   position:relative;
+   top:0px;
+   margin:0px; border: solid black 1px;
+   background-color:white; 
+   }
+   
+.meminfo{
+   border:1px solid #888;
+   width:200px;
+   height:150px;
+   position:relative;
+   top:10px;
+   margin:0px; border: solid black 1px;
+   background-color:white; 
+   }
+
+
+.bigCPU{
+   border:1px solid #888;
+   width:225px;
+   height:100px;
+   position:relative;
+   margin:0px auto;
+	border: solid black 1px;
+   }
+   
+.bigMEM{
+   border:1px solid #888;
+   width:225px;
+   height:100px;
+   position:relative;
+   margin:0px auto;  
+   border: solid black 1px;
+   }
+
+.buttoninfo{
+   width:200px;
+   height:50px;
+   position:relative;
+   top:20px;
+   margin:0px; 
+}
+
+.inner_cpu_info{
+    position:absolute;
+	float:left;
+	width:225px;
+	display:none;
+}
+
+.inner_cpu_pic{
+	margin:0px auto;
+	width:225px;
+	height:150px;
+}
+
+.init_content{
+	text-align:center;
+	font-size:1em;
+	width:700px;
+}
+
+.inner_mem_info{
+    position:absolute;
+	float:left;
+	width:225px;
+	display:none;
+	top:150px;
+}
+
+.inner_mem_pic{
+	margin:0px auto;
+	width:225px;
+	height:150px;
+}
+
+.list_block ul{
+	list-style:none;
+    position:relative;
+}
+
+.list_block ul li{
+	display:block;
+    float:left;
+    clear:both;
+}
+
+.list_block ul li a{
+	text-align:center;
+	width:110px;
+    float:right;
+    clear:both;
+	color:white;
+    text-decoration:none;
+    display:block;
+    height:25px;
+    line-height:25px;
+    background-color:black;
+    margin:1px -20px 1px 0px;
+    opacity:0.7;
+    color:#f0f0f0;
+    font-size:0.9em;
+    border:2px solid white;
+    outline:none;
+    text-shadow:-1px 1px 1px #000;
+}
+
+.sub_nav{
+   margin-left:-10px;
+}
+

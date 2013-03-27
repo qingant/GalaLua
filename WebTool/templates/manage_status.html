@@ -1,0 +1,102 @@
+$def with (galaxy)
+
+$var title: Agree Financial Architecture Status
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:meld="http://www.plope.com/software/meld3">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="/static/status.css" type="text/css" media="screen" charset="utf-8"/>
+    <script type="text/javascript" src="/static/jquery.js"></script>
+    <script type="text/javascript" src="/static/base.js"></script>
+    <script type="text/javascript" src="/static/jquery.flot.js"></script>
+    <script type="text/javascript" src="/static/jquery-ui.js"></script>
+    <script type="text/javascript">
+
+    function show_manage(id){    
+    if($$("#"+id).css("display")=="none"){
+    $$("#"+id).css("display","inline");
+    }else{
+    $$("#"+id).css("display","none");
+    }
+    }
+
+    var command_url="/manage/admin/start/"
+    var result_url="/manage/admin/start/"
+    var html_url="/manage/admin/status/"
+
+    //jQuery.get(url,data,success(data, textStatus, jqXHR),dataType)
+    function sendCommand(_group, _token, _command) {
+        $$.get(command_url, 
+               {command:_command,group:_group,token:_token}, 
+               function(data,textStatus,jqXHR){
+                   //再次请求result
+                   $$("#statusmessage").html("");
+                   getResult(data,_group,_token,_command);
+               },
+               "json");
+    }
+
+    //jQuery.post(url,data,success(data, textStatus, jqXHR),dataType)
+    function getResult(_result_id,_group,_token,_command) {
+        $$.post(result_url, 
+                {result_id:_result_id}, 
+                function(data){
+                    //展示数据
+                    $$("#statusmessage").append(data)
+                    //再次请求result
+                    if (data!="Finish") {
+                        getResult(_result_id,_group,_token,_command);
+                        $$("statusmessage").html(data)
+                    }
+                    //update show
+                    updateShow(_group,_token)
+                    },"html");
+    }
+
+    function updateShow(_group,_token) {
+        $$.post(html_url, 
+               {group:_group,token:_token}, 
+               function(data,textStatus,jqXHR){
+                   $$("#"+_group+_token).html(data)
+               },
+               "html");
+    }
+    </script>
+  </head>
+  <body>
+    <div id="wrapper">
+      <div meld:id="content">
+
+        <div class="" id="statusmessage"></div>
+
+        <form meld:id="form" action="/manage/admin/look/" method="get">
+          <ul id="buttons" class="clr">
+            <li id="refresh"><a href="index.html?action=refresh">&amp;&nbsp;</a></li>
+            <li id="restart_all"><a href="index.html?action=restartall">&amp;&nbsp;</a></li>
+            <li id="stop_all"><a href="index.html?action=stopall">&amp;&nbsp;</a></li>
+          </ul>
+          
+          <dl id="platform">
+            
+            $:galaxy.render()
+            
+          </dl>
+
+        </form>
+        
+      </div>
+
+      <div class="push">
+      </div>
+    </div>
+
+    <div id="footer" class="clr">
+      <div class="left">
+        <a href="http://supervisord.org">Supervisor</a>
+      </div>
+      <div class="right">
+        &amp;copy; 2006-<span meld:id="copyright_date">#</span> <strong><a href="http://agendaless.com/">Agendaless Consulting and Contributors</a></strong>
+      </div>
+    </div>
+  </body>
+</html>

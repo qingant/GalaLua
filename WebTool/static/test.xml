@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test>
+      <user>asdfasdf</user>
+      <passwd>passwd</passwd>
+      <user>asdfasdf1</user>
+      <passwd>passwd1</passwd>
+      <user>asdfasdf2</user>
+      <passwd>passwd2</passwd>
+      <user>asdfasdf3</user>
+      <passwd>passwd3</passwd>
+      <user>xhb</user>
+      <passwd>123</passwd>    
+</test>

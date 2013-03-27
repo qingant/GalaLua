@@ -1,0 +1,420 @@
+
+body{
+   margin:0 auto;
+   font-size:12px;
+   height:auto;
+   width:1000px;
+   }
+
+.header{
+   background-position:top center;
+   background-color:white;
+   position:relative;
+   width:auto;
+   height:110px;
+   color: black;
+   float:center;
+   text-align:center;
+}
+
+.header img{
+   float:center;
+}
+
+.logo { 
+   height:110px;
+   width:50px;
+   float:left; 
+   padding:22px 0 0 10px;
+   background-color:white;
+   }
+
+.infobar{
+   position:relative;
+   width:900px;
+   height:30px;
+   font-size:1em;
+   text-align:right;
+   line-height:30px;
+}
+
+.infobar li{margin-right:12px; float:right;}
+
+.navbar{
+   background-color:white;
+   position:relative;
+   top:30px;
+   width:900px;
+   height:30px;
+   margin:0px auto;
+}
+.navbar ul {font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;font-size:1.5em;margin:0px auto;}
+.navbar li {padding-left:35px;  float:left; display:inline;}
+
+
+
+
+
+.indexpage{
+   background-color:white;
+   width:650px;
+   position:relative;
+   float:right;
+}
+
+.login{
+   width:200px;
+   height:200px;
+   color:#123321;
+   float:center;
+   margin:0 auto;
+}
+
+ul{
+   list-style:none;
+   line-height:25px;
+   }
+
+.nav{
+   width:180px;
+   float:left;	
+   }
+   
+.config{
+   border-radius:5px;
+   width:180px;
+   float:left;	
+   background-color:white;
+   box-shadow:0px 0px 5px #222; 
+   }
+   
+
+.configarea table{
+   width:400px;
+   margin-left: 0px;
+   margin-top: 5px;
+   font-family:sans-serif;
+   font-size:1.2em;
+   border-top:1px solid white;
+   }
+
+.configarea{
+   background-color:#eeeeee;
+}
+   
+.configarea tr td{
+    width:250px;
+}
+   
+.configarea button{
+    margin-top:5px;
+    float:right;
+    margin-bottom:5px;
+    margin-right:5px;
+    
+}  
+.content_show{
+   margin-top:10px;
+   margin-left:5px;
+   margin-bottom:50px;
+   width:990px;
+   height:auto;
+   float:left;	
+   position:relative;
+   text-align:center;
+   background-color:white;
+   z-index:0;
+   -moz-box-shadow:0px 0px 10px #222;
+   -webkit-box-shadow:0px 0px 10px #222;
+   box-shadow:0px 0px 5px #222;
+   }
+   
+.content_show_form{
+   margin-top:10px;
+   margin-left:5px;
+   margin-bottom:20px;
+   width:450px;
+   float:left;	
+   position:relative;
+   height:auto;
+   text-align:center;
+   background-color:white;
+   z-index:0;
+   -moz-box-shadow:0px 0px 10px #222;
+   -webkit-box-shadow:0px 0px 10px #222;
+   box-shadow:0px 0px 5px #222;
+   }
+
+.admin_help{
+   margin-top:10px;
+   margin-right:5px;
+   width:320px;
+   float:right;	
+   position:absolute;
+   left:600px;
+   top:5px;
+   height:auto;
+   text-align:center;
+   background-color:white;
+   z-index:2;
+   box-shadow:0px 0px 1px gray;
+   }
+   
+.groups_help{
+   margin-top:10px;
+   margin-right:0px;
+   width:250px;
+   float:right;	
+   position:relative;
+   height:80px;
+   text-align:center;
+   background-color:white;
+   z-index:2;
+   box-shadow:0px 0px 9px gray;
+   }   
+
+.help_bar{
+   margin-right:20px;
+   margin-left:0px;
+   width:250px;
+   float:right;	
+   position:relative;
+   height:auto;
+   background-color:white;
+}   
+
+div.group_nav{
+   float:left;
+   border:2px solid #888;
+   text-align:center;
+   }
+
+div.group{
+   float:left;
+   }
+
+dt{
+   background:#EEEEEE;
+   padding:5px;
+   border-top:1px solid #BBB;
+   margin-bottom:1px;
+   height:20px;
+   text-align:center;
+   font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+   box-shadow:1px 1px 1px #222;
+   }
+
+
+dd{
+   position:relative;
+   margin-left:-38px;
+   }
+
+dd ul li{
+    margin-top:3px;
+    margin-bottom:3px;
+    width:175px;
+    float:left;
+    background-color:#e9eaee;
+}
+   
+dd ul li a{
+    font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+    text-decoration:none;
+    color:black;
+    font-style:bold;
+    }
+    
+.inner_content{
+    float:right;
+    margin-top:10px;
+    margin-left:20px;
+    margin-bottom:10px;
+    height:500px;
+    width:500px;
+    box-shadow:0px 0px 5px #222;
+    display:none;
+}
+
+.manage_config{
+   border-radius:5px;
+   width:180px;
+   float:left;	
+   background-color:white;
+   box-shadow:0px 0px 5px #222; 
+   }
+   
+.manage_config li{
+    margin-top:5px;
+    margin-bottom:5px;
+    width:175px;
+    float:left;
+}
+
+.manage_config li a{
+    font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+    text-decoration:none;
+    color:black;
+    font-style:bold;
+}
+
+.process_body{
+    width:1000px;
+    height:auto;
+    margin:0 auto;
+    background-color:black;
+}
+
+.process_nav{
+    margin-top:40px;
+    float:left;
+    width:200px;
+    height:auto;
+    background-color:#ddd9d9;
+}
+
+.process_nav dt{
+   padding:5px;
+   margin-top:1px;
+   margin-bottom:1px;
+   margin-left:1px;
+   height:20px;
+   text-align:center;
+   font-family:sans-serif;
+   font-size:1.2em;
+   box-shadow:1px 1px 1px #222;
+}
+
+.process_content{
+    float:right;
+    width:750px;
+    height:auto;
+    background-color:white;
+    margin-top:10px;
+    margin-bottom:5px;
+    margin-left:20px;
+    box-shadow:1px 1px 3px #222;
+}
+
+.process_hover{
+    background-color: #A6A6A7;
+    color:#fff;
+    cursor:pointer;
+}
+
+.process_page{
+    margin:5px;
+    font-size:1.1em;
+    display:block;
+    width:25px;
+    float:left;
+    text-align:center;
+}
+
+.process_content table{
+    border-spacing:0px 5px;
+    text-align:center;
+    margin-left:5px;
+    margin-right:5px;
+    margin-top:5px;
+    margin-bottom:5px;
+    border-bottom-style:solid;
+}
+
+.process_content table tbody tr td {
+    width:150px;
+    color:black;
+    padding:3px;
+}  
+
+.process_content table thead tr td{
+    border-bottom-style:solid;
+}  
+
+.process_info_dialog{
+    background-color:white;
+    z-index:99;
+    box-shadow:0px 0px 5px #222;
+}
+
+.process_info_filter{
+    float:right;
+    margin-top:10px;
+    margin-right:10px;
+}
+
+.manage_group_nav{
+    margin-top:10px;
+    margin-left:10px;
+    border:1px solid black;
+    float:left;
+    width:200px;
+}
+
+.manage_group_nav dt{
+     background:white;
+     padding:5px;
+     border-top:1px solid #BBB;
+     margin-bottom:1px;
+     height:20px;
+     text-align:center;
+     font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+     box-shadow:1px 1px 1px #222;
+}
+
+.manage_group_nav ul li{
+    margin-top:3px;
+    margin-bottom:3px;
+    background-color:white;
+}
+
+.manage_group_content{
+    margin-left:50px;
+    margin-top:10px;
+    border:1px solid white;
+    position:relative;
+    float:left;
+    width:700px;
+    height:auto;
+}
+
+.manage_group_content table{
+    border-spacing:0px 5px;
+    text-align:center;
+    margin-left:5px;
+    margin-right:5px;
+    margin-top:5px;
+    margin-bottom:5px;
+    border-bottom-style:solid;
+    border-left-style:1px solid gray;
+    border-right-style:1px solid gray;
+    border-top-style:solid;
+}
+
+.manage_group_content table tbody tr td {
+    width:auto;
+    height:50px;
+    color:black;
+    padding:15px;
+}  
+
+.manage_group_content table thead tr td{
+    border-bottom-style:solid;
+}  
+
+
+.manage_group_page{
+    width:990px;
+    height:650px;
+    margin-top:10px;
+    border:1px solid black;
+}
+
+.manage_group_status{
+    margin-left:10px;
+    margin-top:10px;
+    width:800px;
+    height:100px;
+    float:left;
+    border:1px solid black;
+}
