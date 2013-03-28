@@ -107,6 +107,7 @@ function Connection:autocommit(turn_on)
 end
 
 function Connection:close()
+    self:commit()
     return self._conn:close()
 end
 
@@ -164,8 +165,6 @@ function connect(driver, ...)
 
     local connection_class = package.loaded[class_str]
 
-    -- Calls DBD.{Driver}.New(...)
-    --return connection_class.New(...)
     local con = Connection:new();
     m,err = connection_class.New(...)
     if not m then
@@ -174,25 +173,6 @@ function connect(driver, ...)
     con._conn =  m
     return con
 end
-
--- Help function to do prepare and execute in
--- a single step
---[=[function Do(dbh, sql, ...)
-    local sth,err = dbh:prepare(sql)
-
-    if not sth then
-	return false, err
-    end
-
-    local ok, err = sth:execute(...)
-
-    if not ok then
-        return false, err
-    end
-
-    return sth:affected()
-end
-]=]
 
 -- Lit drivers available on this system
 function Drivers()
