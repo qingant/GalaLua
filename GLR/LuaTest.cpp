@@ -56,7 +56,10 @@ int main( int argc, char* argv[] )
     if (_CProcess.ExistOption("d"))
     {
         std::string path = _CProcess.GetOption("d");
-        setenv("LUA_PATH", path.c_str(), 1);
+        std::string lua_path = path + "?.lua";
+        std::string lua_cpath = path + "?.so";
+        setenv("LUA_PATH", lua_path.c_str(), 1);
+        setenv("LUA_CPATH",lua_cpath.c_str(), 1);
     }
     std::string file=_CProcess.GetOption("m");
     std::string entry=_CProcess.GetOption("e");
