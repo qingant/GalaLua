@@ -145,8 +145,8 @@ int Process::Spawn( lua_State *l )
         // Register Node Entry
         //lua_getglobal(node._Stack, method);
         // node.PushFun(method);
-
-        for (int i = 3; i <= lua_gettop(l); ++i)
+        int i = 3;
+        for ( ; i <= lua_gettop(l); ++i)
         {
             int type = lua_type(l,i);
             size_t len = 0;
@@ -171,7 +171,7 @@ int Process::Spawn( lua_State *l )
             }
         }
 
-
+        node._Status._NArg = (i-3);
         // put to schedule queue
 
 
