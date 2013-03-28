@@ -22,7 +22,7 @@ local MQID = "@mq"
 
 function main(...)
    local err, status = glr.spawn("status", "main")
-
+   local err, dis = glr.spawn("trigger", "dispatcher")
    while true do
       local msg_type, addr, msg = glr.recv()
       if msg_type == glr.CLOSED then
@@ -49,16 +49,18 @@ function dispatcher()
       collections.List.pushright(workers, worker)
    end
    function collect_idle()
-      while glr.msg_available() then
+      while glr.msg_available() do
          local msg_type, addr, msg = glr.recv()
-         if msg_type != glr.CLOSED then
+         if msg_type ~= glr.CLOSED then
             local p = cjson.decode(msg)
             collections.List.pushright(workers, p.gpid)
          end
+      end
    end
    while true do
+      print("msg")
       local msg = nq:get()
-   
+      print("msg")
       if collections.List.empty(workers) then
          collect_idle()
       end
@@ -70,10 +72,9 @@ function dispatcher()
       glr.send(worker, msg)
    end
 end
-
 function worker(dispacher)
    while true do
-      local _amq = glr.get_global()
+      local _amq = glr.get_global(MQID)
       local _nq = _amq:NQArray():get(1)
       local msg_type, addr, msg = glr.recv()
       local request_header = ffi.new("APP_HEADER")

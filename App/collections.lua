@@ -36,5 +36,5 @@ function List.popright (list)
 end
 
 function List.empty(list)
-   return (list.first > last)
+   return (list.first > list.last)
 end

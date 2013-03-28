@@ -1,11 +1,13 @@
+module(..., package.seeall)
+
 local os = require "os"
 package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so"
 
 function main()
  
-   local host, port = glr.node_addr()
-   print(string.format("GLR Repl at (%s::%d)", glr.node_addr()))
+   local host, port = glr.sys.host,glr.sys.port
+   print(string.format("GLR Repl at (%s::%d)", host, port))
    while true do
       -- err,msg = glr.recv()
       -- print(msg)
