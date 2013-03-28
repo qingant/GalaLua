@@ -17,7 +17,7 @@ local ffi = require "ffi"
 local structs = require "structs"
 --print(package.path)
 --print(package.cpath)
-local RID = "@router"
+--local RID = "@router"
 local MQID = "@mq"
 -- local glr = require "glr"
 
@@ -97,6 +97,7 @@ function main()
          end
       end
    end
+   _router:finalizer()
 end
 
 --a=cjson.decode("{\"a\":\"vvv\"}")
@@ -172,6 +173,7 @@ function display_worker()
          end
       end
    end
+   _router:finalizer()
 end 
 
 function agent_worker()
@@ -252,5 +254,6 @@ function agent_worker()
          end
       end
     end
+   _router:finalizer()
 end
 
