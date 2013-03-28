@@ -138,12 +138,12 @@ class Node(object):
         return json.loads(text)
          
 if __name__ == "__main__":
-    n = Node("0.0.0.0", 2348)
+    n = Node("0.0.0.0", 2346)
     print n.get_router(field="bug")
     print "*"*10
     print n.amq()
     print "*"*10
-
+    print("get node*******************")
     print n.get_nodes_gpids()
     print "*"*10
     a=n.get_nodes_status()
