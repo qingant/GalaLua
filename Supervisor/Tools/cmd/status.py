@@ -382,6 +382,52 @@ class MonitorServicePage(ProcessTemplate):
             #for indent
             b=urwid.Padding(b,left=4)
             ret.append(b)
+
+        for i in range(const.GALA_MAX_CTR):
+            if not self._conf.GetCTRUsable(i):
+                continue
+            token = "ctr%.4d"%i
+            title="%s%d"%(lang.ctr,i)
+            sta = self._mon.get_info(token)
+            alias=self._conf.GetCTRName(i)
+
+            userdata={}
+            userdata["tag"]=title
+            userdata["title"]=alias
+            userdata["token"]=token
+            userdata["focus_index"]=len(ret)
+            userdata["index"]=i
+            
+            raw=self.show(sta,title,alias)
+
+            b = urwid.AttrMap(customize.CButton(raw,self.click,userdata),"button_normal","button_select")
+            #for indent
+            b=urwid.Padding(b,left=4)
+            ret.append(b)
+        for i in range(const.GALA_MAX_TRIGGER):
+            if not self._conf.GetTriggerUsable(i):
+                continue
+            token = "trigger%.4d"%i
+            title="%s%d"%(lang.trigger,i)
+            sta = self._mon.get_info(token)
+            alias=self._conf.GetTriggerName(i)
+
+            userdata={}
+            userdata["tag"]=title
+            userdata["title"]=alias
+            userdata["token"]=token
+            userdata["focus_index"]=len(ret)
+            userdata["index"]=i
+            
+            raw=self.show(sta,title,alias)
+
+            b = urwid.AttrMap(customize.CButton(raw,self.click,userdata),"button_normal","button_select")
+            #for indent
+            b=urwid.Padding(b,left=4)
+            ret.append(b)
+
+
+
         for i in range(const.GALA_MAX_SVC):
             if not self._conf.GetSVCUsable(i):
                 break

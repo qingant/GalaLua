@@ -30,6 +30,32 @@ class GroupConfig(object):
                 l.append(i)
         return l
 
+    def GetTriggerName(self,index):
+        return "trigger%.4d"%(index)
+
+    def GetTriggerUsable(self,index):
+        return True
+    def GetTriggerList(self):
+        l = []
+        for i in range(const.GALA_MAX_TRIGGER):
+            if self.GetTriggerUsable(i):
+                l.append(i)
+        return l
+
+    def GetCTRName(self, index):
+        return "ctr%.4d"%(index)
+
+    def GetCTRList(self):
+        l = []
+        for i in range(const.GALA_MAX_CTR):
+            if self.GetCTRUsable(i):
+                l.append(i)
+        return l
+
+    def GetCTRUsable(self,index):
+        return True
+
+
 class Configure(object):
     def __init__(self, tok = "node.conf",mode='r'):
         pass

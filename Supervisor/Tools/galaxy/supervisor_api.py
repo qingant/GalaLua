@@ -29,11 +29,12 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 ConfigureEntry= """
 [program:%(token)s]
-command=glr -h %(host)s -p %(port)d -m %(file)s -e %(entry)s -d %(home)s/lib/lua/?.lua
+command=glr -h %(host)s -p %(port)d -m %(module)s -e %(entry)s -d %(home)s/lib/lua/?.lua -c %(home)s/lib/lua/?.so
 stdout_logfile=%(home)s/var/supervisor/log/%(token)s.log
 autostart=false
 
 """
+
 MoniterEntry="""
 [program:%(token)s]
 command=glr -h %(host)s -p %(port)d -m %(file)s -e %(entry)s -d %(home)s/lib/lua/?.lua
@@ -44,9 +45,11 @@ autostart=false
 HOME=os.getenv("HOME")
 
 '''FIXME::if process exit accidently,send message to moniter process'''
-SVC_FILE="svc"
-LSR_FILE="lsr"
-Moniter_FILE="monitor"
+SVC_MODULE="svc"
+LSR_MODULE="lsr"
+CTR_MODULE="ctr"
+TRIGGER_MODULE="trigger"
+Moniter_MODULE="monitor"
 
 class SupervisorApi(object):
     def __init__(self,index,user,passwd):
@@ -112,27 +115,51 @@ class SupervisorApi(object):
             f.write(SupervisorEntry%group)
 
             #f.write(MoniterEntry%group)
+            sec_ctr = []
+            ctr = copy.deepcopy(group)
+            ctr["module"]=CTR_MODULE
+            ctr["entry"]="main"
+            port=self._port
+            for i in range(const.GALA_MAX_CTR):
+                port+=1
+                ctr["port"]=port
+                ctr["token"] = "ctr%.4d"%i
+                sec_ctr.append(ConfigureEntry%ctr)
+            f.writelines(sec_ctr)
+
+            sec_trigger = []
+            trigger = copy.deepcopy(group)
+            trigger["module"]=TRIGGER_MODULE
+            trigger["entry"]="main"
+            for i in range(const.GALA_MAX_TRIGGER):
+                port+=1
+                trigger["port"]=port
+                trigger["token"] = "trigger%.4d"%i
+                sec_trigger.append(ConfigureEntry%trigger)
+            f.writelines(sec_trigger)
+
+            sec_svc = []
+            svc = copy.deepcopy(group)
+            svc["module"]=SVC_MODULE
+            svc["entry"]="main"
+            for i in range(const.GALA_MAX_SVC):
+                port+=1
+                svc["port"]=port
+                svc["token"] = "svc%.4d"%i
+                sec_svc.append(ConfigureEntry%svc)
+            f.writelines(sec_svc)
 
             lsr = copy.deepcopy(group)
             sec_lsr = []
-            lsr["file"]=LSR_FILE
+            lsr["module"]=LSR_MODULE
             lsr["entry"]="main"
             for i in range(const.GALA_MAX_LSR):
-                port=self._port+i
+                port+=1
                 lsr["port"]=port
                 lsr["token"] = "lsr%.4d"%i
                 sec_lsr.append(ConfigureEntry%lsr)
             f.writelines(sec_lsr)
 
-            sec_svc = []
-            svc = copy.deepcopy(group)
-            svc["file"]=SVC_FILE
-            svc["entry"]="main"
-            for i in range(const.GALA_MAX_SVC):
-                svc["port"]=port+1+i
-                svc["token"] = "svc%.4d"%i
-                sec_svc.append(ConfigureEntry%svc)
-            f.writelines(sec_svc)
 
             f.close()
 

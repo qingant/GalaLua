@@ -187,6 +187,30 @@ class StopPage(object):
                 if not self.stopProcess(token,"%s%s"%(name,alias)):
                     self.FailSummary(index)
 
+            for i in range(const.GALA_MAX_TRIGGER):
+                if not conf.GetTRIGGERUsable(i):
+                    break
+                token = "trigger%.4d"%i
+                name="%s%d"%(lang.trigger,i)
+                alias=conf.GetTriggerName(i)
+                if alias!='':
+                    alias="-%s"%alias
+                if not self.stopProcess(token,"%s%s"%(name,alias)):
+                    self.FailSummary(index)
+
+            for i in range(const.GALA_MAX_CTR):
+                if not conf.GetCTRUsable(i):
+                    break
+                token = "ctr%.4d"%i
+                name="%s%d"%(lang.ctr,i)
+                alias=conf.GetCTRName(i)
+                if alias!='':
+                    alias="-%s"%alias
+                if not self.stopProcess(token,"%s%s"%(name,alias)):
+                    self.FailSummary(index)
+
+
+
             self.OutputAndDraw("\n  [%s]"%(lang.wg_guard,), True)
             if not self.stopMonitor(gmonitor):
                 self.FailSummary(index)
@@ -238,6 +262,30 @@ class StopPage(object):
                     alias="-%s"%(alias)
                 if not self.stopProcess(token,"%s%s"%(name,alias)):
                     self.FailSummary(index)
+
+            for i in range(const.GALA_MAX_TRIGGER):
+                if not conf.GetTriggerUsable(i):
+                    break
+                token = "trigger%.4d"%i
+                name="%s%d"%(lang.trigger,i)
+                alias=conf.GetTriggerName(i)
+                if alias!='':
+                    alias="-%s"%alias
+                if not self.stopProcess(token,"%s%s"%(name,alias)):
+                    self.FailSummary(index)
+
+            for i in range(const.GALA_MAX_CTR):
+                if not conf.GetCTRUsable(i):
+                    break
+                token = "ctr%.4d"%i
+                name="%s%d"%(lang.ctr,i)
+                alias=conf.GetCTRName(i)
+                if alias!='':
+                    alias="-%s"%alias
+                if not self.stopProcess(token,"%s%s"%(name,alias)):
+                    self.FailSummary(index)
+
+
             # services from configure file
             for i,n in self._mp.MG.getStopAll():
                 if not self.stopProcess(i,n):
@@ -388,6 +436,34 @@ class StartPage(object):
             if not self.startProcess(i,n):
                 self.FailSummary(index)
 
+        for i in range(const.GALA_MAX_CTR):
+            if not conf.GetCTRUsable(i):
+                break
+            token = "ctr%.4d"%i
+
+            name="%s%d"%(lang.ctr,i)
+            alias=conf.GetCTRName(i)
+            if alias!='':
+                alias="-%s"%alias
+            if not self.startProcess(token,"%s%s"%(name,alias)):
+                self.FailSummary(index)
+
+
+        for i in range(const.GALA_MAX_TRIGGER):
+            if not conf.GetTriggerUsable(i):
+                break
+            token = "trigger%.4d"%i
+
+            name="%s%d"%(lang.trigger,i)
+            alias=conf.GetTriggerName(i)
+            if alias!='':
+                alias="-%s"%alias
+            if not self.startProcess(token,"%s%s"%(name,alias)):
+                self.FailSummary(index)
+
+
+
+
         for i in range(const.GALA_MAX_CNR):
             if not conf.GetCNRUsable(i):
                 break
@@ -439,7 +515,36 @@ class StartPage(object):
                 self.FailSummary(index)
                 return
 
+        self.OutputAndDraw("\n  [%s]"%(lang.ctr,), True)
+
+        for i in range(const.GALA_MAX_CTR):
+            if not conf.GetCTRUsable(i):
+                break
+            token = "ctr%.4d"%i
+
+            name="%s%d"%(lang.ctr,i)
+            alias=conf.GetCTRName(i)
+            if alias!='':
+                alias="-%s"%alias
+            if not self.startProcess(token,"%s%s"%(name,alias)):
+                self.FailSummary(index)
+
+        self.OutputAndDraw("\n  [%s]"%(lang.trigger,), True)
+
+        for i in range(const.GALA_MAX_TRIGGER):
+            if not conf.GetTriggerUsable(i):
+                break
+            token = "trigger%.4d"%i
+
+            name="%s%d"%(lang.trigger,i)
+            alias=conf.GetTriggerName(i)
+            if alias!='':
+                alias="-%s"%alias
+            if not self.startProcess(token,"%s%s"%(name,alias)):
+                self.FailSummary(index)
+
         self.OutputAndDraw("\n  [%s]"%(lang.cnr,), True)
+
 
         for i in range(const.GALA_MAX_CNR):
             if not conf.GetCNRUsable(i):

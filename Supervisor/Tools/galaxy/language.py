@@ -10,6 +10,9 @@ exit_info=u"确定要退出吗? (y/n)[y]"
 workgroup=u"工作组"
 svc = u"处理器"
 lsr = u"接入适配器"
+trigger= u"清洗器"
+ctr = u"管理器"
+
 cnr = u"接出适配器"
 ms_group=u'监控服务'
 ms_guard=u'监控服务守护'
