@@ -109,6 +109,7 @@ end
 
 function Router_M:init()
     self._conn=dbaccess.connect("SQLite3",self.path)
+    self._conn:autocommit(true)
 
     --query the table table_name exists or not
     function create_table_if_not_exist(name,table_struct)
