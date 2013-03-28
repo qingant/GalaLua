@@ -73,7 +73,7 @@ function main()
          msg["gpid"] =  bind_gpid
          local err,id = glr.spawn("cli", "worker")
          print(id)
-         -- glr.send(id, cjson.encode(msg))
+         glr.send(id, cjson.encode(msg))
       elseif app_head.Head.Action == ffi.C.ACT_REQUEST then
          local msg = {}
          msg["code"] = content.code

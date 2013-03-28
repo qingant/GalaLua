@@ -120,6 +120,8 @@ function display_worker()
                           __id__,
                           "display",
                           structs.str_pack(msg_table.AppType),
+                          "lsr0",
+                          glr.time.now(),
                           "This is userdata")
          print("------------------------- Reigester",structs.str_pack(msg_table.Name),
                "display",
@@ -192,6 +194,8 @@ function agent_worker()
                           __id__,
                           "agent",
                           ffi.string(msg_table.AppType, ffi.C.strlen(msg_table.AppType)), 
+                          "lsr0",
+                          glr.time.now(),
                           "This is userdata")
       else
          error("register message expected!")

@@ -4,7 +4,6 @@ local os = require "os"
 package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so"
 
-local node = require "node"
 -- local struct = require "struct"
 local pprint = require "pprint"
 local cjson = require "cjson"

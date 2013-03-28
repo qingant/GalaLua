@@ -6,10 +6,13 @@ local os = require "os"
 package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so"
 
-local configure=require("Configure")
---package.path=configure.svc.PATH
---package.cpath=configure.CPATH
 
+local configure=require("Configure")
+
+local config = require("configure")
+package.path=config.svc.PATH
+package.cpath=config.CPATH
+print(config.svc.PATH)
 local node = require "node"
 local pprint = require "pprint"
 local cjson = require "cjson"
@@ -101,7 +104,14 @@ function dispatcher()
 end
 
 function worker(dispatcherid)
+--   local _router = glr.get_global(RID)
    local _router=router.router()
+   local _amq = glr.get_global(MQID)
+
+   local nq = _amq:NQArray():get(1)
+
+   -- sqlite access connection create
+
    local conf = glr.get_global(MTCFGID)
    local err,dbtype = pcall(conf.get,conf,basepath .. "SVC/DBConnection/_SCROLLTYPE")
    if not err then
@@ -120,7 +130,7 @@ function worker(dispatcherid)
    end
 
    while true do
-      local msg = glr.recv()
+      local msg_type, addr, msg = glr.recv()
       print("svc:::",#msg, msg)
       local request_header = ffi.new("APP_HEADER")
       ffi.copy(request_header, msg, ffi.sizeof(request_header))
@@ -135,6 +145,7 @@ function worker(dispatcherid)
          -- print("router:::",pprint.format(route_info))
          pprint.pprint(_router:find_by_field("display"))
          local app_type = structs.str_pack(request_header.To.AppType)
+         package.path=config.svc.PATH
          local trade = require(app_type)
          local app = trade.Report:new()
          local logname =string.format("%s.log",app_type)
