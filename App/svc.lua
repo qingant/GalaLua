@@ -101,14 +101,7 @@ function dispatcher()
 end
 
 function worker(dispatcherid)
---   local _router = glr.get_global(RID)
-    local _router=router.router()
-   local _amq = glr.get_global(MQID)
-
-   local nq = _amq:NQArray():get(0)
-
-   -- sqlite access connection create
-
+   local _router=router.router()
    local conf = glr.get_global(MTCFGID)
    local err,dbtype = pcall(conf.get,conf,basepath .. "SVC/DBConnection/_SCROLLTYPE")
    if not err then
@@ -127,15 +120,13 @@ function worker(dispatcherid)
    end
 
    while true do
-      local msg = nq:get()
+      local msg = glr.recv()
       print("svc:::",#msg, msg)
       local request_header = ffi.new("APP_HEADER")
       ffi.copy(request_header, msg, ffi.sizeof(request_header))
       local content = string.sub(msg, ffi.sizeof(request_header)+1)
       pprint.pprint(#msg)
       local request_body = cjson.decode(content)
-
-
       -- local item=_router:find_by_name(request.from.name)
       -- print("router:::",pprint.format(item))
       pprint.pprint( request_header.Head.Action, "Action::")
@@ -162,8 +153,6 @@ function worker(dispatcherid)
          local logname =string.format("%s.log",route_info.app_type)
          local logger = logger.new(logname)
          local sqlite_path = configure.svc.db.sqlite
-         -- local sqlite_env = dbaccess.AC_Environment:new()
-         -- local sqlite_conn = sqlite_env:AC_Connect("SQLite3",sqlite_path)
          local __gala__ = {route_info=route_info,logger=logger,db_connection=sqlite_conn, _router=_router,  _header = request_header}
          app:init(__gala__, request_body)
          app:Run()
@@ -171,7 +160,6 @@ function worker(dispatcherid)
       end
       glr.send(dispatcherid, cjson.encode({gpid = __id__}))
    end
-   -- close db connect
    sqlite_conn:close()
 end
 
