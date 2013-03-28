@@ -38,7 +38,7 @@ int main( int argc, char* argv[] )
     //    printf("Resume Error : %s\n", e.what());
     //}
 
-    _CProcess.Initialize(argc,argv,NULL,"m:e:d:?h:?p:?");
+    _CProcess.Initialize(argc,argv,NULL,"m:e:d:?h:?p:?c:?");
     std::string host;
     if (_CProcess.ExistOption("h"))
     {
@@ -60,6 +60,11 @@ int main( int argc, char* argv[] )
         //std::string lua_cpath = path + "?.so";
         setenv("LUA_PATH", path.c_str(), 1);
         //setenv("LUA_CPATH",lua_cpath.c_str(), 1);
+    }
+    if (_CProcess.ExistOption("c"))
+    {
+        std::string cpath = _CProcess.GetOption("c");
+        setenv("LUA_CPATH", cpath.c_str(), 1);
     }
     std::string file=_CProcess.GetOption("m");
     std::string entry=_CProcess.GetOption("e");
