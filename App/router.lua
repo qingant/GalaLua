@@ -14,10 +14,10 @@ local router_path=os.getenv("HOME").."/tmp/router.db"
 Router_M={path=router_path,name="router",struct="(name text, field text,host text,port integer,gpid integer,dev_type text,app_type text,lsr_name text,timestamp integer,userdata text)"}
 
 function subscription()
-    --[--[
+    --[==[
             dev text, whom text,topic text,who text
             设备类型,  设备id  ,订阅的内容, 订阅者
-    --]--]
+    --]==]
     Subscriber=Router_M:new{name="subscription",struct="(dev text, whom text,topic text,who text)"}
 
 --    function Subscriber:find_by_dev(dev)
@@ -77,18 +77,6 @@ function router()
         local cmd=string.format("delete from %s where lsr_name='%s' and timestamp<>%d ",lsr_name,timestamp)
         self._conn:execute(cmd) 
         self._conn:commit()
-    end
-
-    function Router:find(name,field,app_type)
-        if name and name~='' then
-            return self:find_by_name(name)
-        end
-        if field and field~='' then
-            return self:find_by_field(field)
-        end
-        if app_type and app_type~=''then 
-            return self:find_by_app_type(app_type)
-        end
     end
 
     function Router:find_by_field(field)

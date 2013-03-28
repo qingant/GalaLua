@@ -6,7 +6,6 @@ local os = require "os"
 package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so"
 
-local node = require "node"
 -- local struct = require "struct"
 local pprint = require "pprint"
 local cjson = require "cjson"
@@ -26,8 +25,9 @@ local MQID = "@mq"
 function main()
    -- init
    pprint.pprint(glr)
-   local _router=router.new("router")
-   glr.global(RID, _router)
+--   local _router=router.new("router")
+--   glr.global(RID, _router)
+   local _router=router.router()
    local _amq = amq.new(configure.amq.path)
    print("global")
    glr.global(MQID, _amq)
@@ -104,7 +104,8 @@ end
 --print(cjson.encode(a))
 function display_worker()
    print("Display")
-   local _router = glr.get_global(RID)
+   --local _router = glr.get_global(RID)
+   local _router=router.router()
    local _amq = glr.get_global(MQID)
    local msg_type, addr, msg=glr.recv()
    local msg_table = ffi.new("ROUTER_ADD_MSG")
@@ -172,7 +173,8 @@ function display_worker()
 end 
 
 function agent_worker()
-   local _router = glr.get_global(RID)
+   --local _router = glr.get_global(RID)
+   local _router=router.router()
    local _amq = glr.get_global(MQID)
    local msg_type, addr, msg=glr.recv()
    -- local msg_table=cjson.decode(msg)

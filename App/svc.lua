@@ -28,8 +28,8 @@ function main()
    --node.register("0.0.0.0", 2345)
    local _router,_amq
    function init_fake_global_var()
-      _router=router.new("router")
-      glr.global(RID,_router, "Router4Lua")
+--      _router=router.new("router")
+--      glr.global(RID,_router, "Router4Lua")
       _amq = amq.new(os.getenv("HOME") .. "/channels/testAMQ.chl")
       glr.global(MQID, _amq, "CGalaxyMQ");
    end
@@ -45,15 +45,26 @@ function main()
       err,processes[i]= glr.spawn("svc","worker")
    end
 
+   local msg_table = ffi.new("BIND_MSG")
    while true do
-      msg = glr.recv()
-      ---do something here
-      print(msg)
+       print("This SVC>>>>>>>")
+        local msg_type, addr, msg= glr.recv()
+       print("This SVC recv over >>>>>>>")
+        pprint.pprint(addr)
+        ffi.copy(msg_table, msg, ffi.sizeof(msg_table))
+        if msg_table.Catagory==ffi.C.DEV_MONITOR then
+            msg_table.Gpid = ffi.C.htonl(status_server)
+            msg_table.Head.Action = ffi.C.ACT_ACK
+            if not glr.send(addr, structs.pack(msg_table)) then
+                pprint.pprint("Send Failure")
+            end 
+        end
    end
 end
 
 function worker()
-   local _router = glr.get_global(RID)
+--   local _router = glr.get_global(RID)
+    local _router=router.router()
    local _amq = glr.get_global(MQID)
    
    local nq = _amq:NQArray():get(0)

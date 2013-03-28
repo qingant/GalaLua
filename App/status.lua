@@ -6,7 +6,6 @@ package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so"
 
 local cjson = require "cjson" 
-local node = require "node"
 local pprint = require "pprint"
 local configure = require "configure"
 local timer = require "timer"
@@ -43,14 +42,16 @@ local string =require  "string"
 function main()
 
     while true do
+        print("STATUS_SERVER:")
         local msg_type, addr, msg = glr.recv()
+        pprint.pprint(addr,"STATUS_SERVER:REV")
 
         msg_table = ffi.new("MONITOR_HEADER")
         local len=ffi.sizeof(msg_table)
         ffi.copy(msg_table, msg,len)
         arg=cjson.decode(msg:sub(len+1))
         if msg_table.Type==ffi.C.NODE and msg_table.Action==ffi.C.GET then
-            local err,gpids=glr.all()
+            local err,gpids=glr.status.processes()
             assert(err,gpids)
             pprint.pprint(gpids,"status::gpids")
             if arg["gpid"] then
@@ -63,7 +64,7 @@ function main()
                 end
                 local s={}
                 for i,v in pairs(l) do
-                    err,s[tostring(v)]=glr.status(v)
+                    err,s[tostring(v)]=glr.status.status(v)
                 end
                 glr.send(addr,cjson.encode(s))
             end

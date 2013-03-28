@@ -68,6 +68,7 @@ class Node(object):
             text=self._recv()
             self._services_list=json.loads(text[self.MONITER_HEADER_len:])
         get_services_list()
+        print(self._services_list)
         print "register over"
 
     def moniter_header(self,action,type):
@@ -77,15 +78,17 @@ class Node(object):
         buf += struct.pack("B",type) #
         return buf
 
-    def router_method(self,action,name='',field='',app_type=""):
+    #def router_method(self,action,name='',field='',app_type=""):
+    def router_method(self,action,arg={}):
         print "get_router"
         #monitor header
         buf=self.moniter_header(action,protocol.MONITOR_TYPE["ROUTER"])
         #arguments
-        buf += name.ljust(20, "\x00")
-        buf += field.ljust(20, "\x00")
-        buf += app_type.ljust(20, "\x00")
-        print len(buf)
+#        buf += name.ljust(20, "\x00")
+#        buf += field.ljust(20, "\x00")
+#        buf += app_type.ljust(20, "\x00")
+        buf+=json.dumps(arg)
+#        print len(buf)
         self._send(buf,protocol.MSG_TYPE["APP"],self._services_list["router"])
         
         text=self._recv()
@@ -93,10 +96,18 @@ class Node(object):
         return text
 
     def del_router(self,name=''):
-        return self.router_method(protocol.MONITOR_ACTION["DEL"],name)
+        return self.router_method(protocol.MONITOR_ACTION["DEL"],{"name":name})
 
     def get_router(self,name='',field='',app_type=""):
-        return self.router_method(protocol.MONITOR_ACTION["GET"],name,field,app_type)
+        arg={}
+        if name!="" :
+            arg["name"]=name
+        if field!="" :
+            arg["field"]=field
+        if app_type!="" :
+            arg["app_type"]=app_type
+
+        return self.router_method(protocol.MONITOR_ACTION["GET"],arg)
     
     def amq(self):
         buf=self.moniter_header(protocol.MONITOR_ACTION["GET"],protocol.MONITOR_TYPE["AMQ"])
@@ -128,10 +139,11 @@ class Node(object):
          
 if __name__ == "__main__":
     n = Node("0.0.0.0", 2348)
-#    print n.get_router()
-#    print "*"*10
-#    print n.amq()
-#    print "*"*10
+    print n.get_router(field="bug")
+    print "*"*10
+    print n.amq()
+    print "*"*10
+
     print n.get_nodes_gpids()
     print "*"*10
     a=n.get_nodes_status()

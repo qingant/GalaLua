@@ -101,13 +101,6 @@ typedef enum
 
 typedef struct
 {
-    char Name[20];
-    char Field[20];
-    char AppType[20];
-}ROUTER_ARG;
-
-typedef struct
-{
     MSG_ID_TYPE     MsgId;             // MSG ID
     unsigned char Action;  //MONITOR_ACTION  
     unsigned char Type;     //MONITOR_TYPE    
