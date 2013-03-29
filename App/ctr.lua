@@ -40,13 +40,16 @@ function main()
     assert(err,amq_server)
     local err,node_server = glr.spawn("ctr", "node_info")
     assert(err,node_server)
+
+    local err,configure_server= glr.spawn("configure_server", "main")
+    assert(err,configure_server)
     
 --    print("-----links---------------------")
 --    local a=glr.get_all_links()
 --    pprint.pprint(a)
 --    print("------links------------------")
 
-    local services={router=router_server,amq=amq_server,node=node_server}
+    local services={router=router_server,amq=amq_server,node=node_server,configure=configure_server}
     pprint.pprint(services)
     while true do
         local msg_type, addr, msg = glr.recv()

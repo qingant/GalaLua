@@ -136,18 +136,22 @@ class Node(object):
 
         text=self._recv()
         return json.loads(text)
+
+    def get_configure_gpid(self):
+        return self._services_list["configure"]
          
 if __name__ == "__main__":
     n = Node("0.0.0.0", 2346)
-    print n.get_router(field="bug")
-    print "*"*10
-    print n.amq()
-    print "*"*10
-    print("get node*******************")
-    print n.get_nodes_gpids()
-    print "*"*10
-    a=n.get_nodes_status()
-    print a["svc"]
+#    print n.configure()
+#    print n.get_router(field="bug")
+#    print "*"*10
+#    print n.amq()
+#    print "*"*10
+#    print("get node*******************")
+#    print n.get_nodes_gpids()
+#    print "*"*10
+#    a=n.get_nodes_status()
+#    print a["svc"]
     print "over"
     while True:
         pass
