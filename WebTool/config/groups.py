@@ -2,7 +2,7 @@
 import web
 from web import form as webform
 import os
-from cnr import Node
+from Python_Api.cnr import Node
 import json
 import traceback as tb
 import afa_context as context
@@ -14,17 +14,18 @@ define = etree.XML(open(monitor_path).read())
 #config = configure.Configure(mode="w")
 #node = cnr.Node("0.0.0.0", 1234)
 
-class config(object):
+class config():
     def __init__(self, host, port):
         self._host = host
         self._port = port
         self._node = Node(host, port)
+        self._port = self._node.get_configure_gpid()
         self._const = 4
 
     def Get(self, path):
        
         msg = {'action':'query', 'path':path, 'isset':'false'}
-        self._node._send(json.dumps(msg), 3)
+        self._node._send(json.dumps(msg), 3, self._port)
       
         result = eval(json.loads(self._node._recv()))
         status = result['status']
@@ -32,6 +33,7 @@ class config(object):
             if result['content']:
                 content = result['content']
                 return content
+
             else:
                 return None
         else: 
@@ -41,7 +43,7 @@ class config(object):
 
     def Put(self, path, value):
         msg = {'action':'alter', 'path':path, 'value':value}
-        self._node._send(json.dumps(msg), 3)
+        self._node._send(json.dumps(msg), 3, self._port)
         result = eval(json.loads(self._node._recv()))
         return result
 
@@ -109,7 +111,7 @@ class group_form:
                           "log":self.get_log,
                           "logpattern":self.get_logpattern
                           }
-        self._config = config("0.0.0.0", 1234)
+        self._config = config("0.0.0.0", 2346)
 
 
     def _gen_union(self, item, item_path, form):
@@ -153,7 +155,6 @@ class group_form:
         title = item.attrib["title"]
         array = []
         for i in range(count):
-            print "im the i ", i, count
             
             usable_path = "%s[%d]/Usable"%(struct_path, i)
 
@@ -167,7 +168,7 @@ class group_form:
                 struct_form = framed_form(visible = is_first, attrib = {"enum":item.tag+str(i)})
                 new_form.frames.append(struct_form)
                 self._gen_struct(struct, "%s[%d]"%(struct_path, i), struct_form)
-                struct_form.frames.append(webform.Button("submit", type="submit", html=u"删除适配器", disabled="1", onclick = "return trigeDelete(\"%s\");"%usable_path))
+                struct_form.frames.append(webform.Button("submit", type="button", html=u"删除适配器", disabled="1", onclick = "return trigeDelete(\"%s\", \"%s\");"%(usable_path, self.cat)))
 
         for i in range(count):
             usable_path = "%s[%d]/Usable"%(struct_path, i)
@@ -283,33 +284,33 @@ class group_form:
         
     def get_lsr(self):
         root = define.xpath("/Configure/_STRUCTURE/MonitorList/Monitor/LSRList")[0]
-        path = "/Configure/_STRUCTURE/MonitorList/Monitor[00]/LSRList"
+        path = "/Configure/_STRUCTURE/MonitorList[00]/Monitor/LSRList"
         return self.gen_form(root, path)
     def get_cnr(self):
         root = define.xpath("/Configure/_STRUCTURE/MonitorList/Monitor/CNRList")[0]
-        path = "/Configure/_STRUCTURE/MonitorList/Monitor[00]/CNRList"
+        path = "/Configure/_STRUCTURE/MonitorList[00]/Monitor/CNRList"
         return self.gen_form(root, path)
     def get_log(self):
         root = define.xpath("/Configure/_STRUCTURE/MonitorList/Monitor/LowLoger")[0]
-        path = "/Configure/_STRUCTURE/MonitorList/Monitor[00]/LowLoger"
+        path = "/Configure/_STRUCTURE/MonitorList[00]/Monitor/LowLoger"
         
         return self.gen_form(root, path)
     def get_logpattern(self):
         root = define.xpath("/Configure/_STRUCTURE/MonitorList/Monitor/AppLoger")[0]
-        path = "/Configure/_STRUCTURE/MonitorList/Monitor[00]/AppLoger"
+        path = "/Configure/_STRUCTURE/MonitorList[00]/Monitor/AppLoger"
         return self.gen_form(root, path)
 
 
 
     def get_base(self):
         root = define.xpath("/Configure/_STRUCTURE/MonitorList/Monitor/Base")[0]
-        path = "/Configure/_STRUCTURE/MonitorList/Monitor[00]/Base"
+        path = "/Configure/_STRUCTURE/MonitorList[00]/Monitor/Base"
         return self.gen_form(root, path)
 
 #different orcal
     def get_svc(self):
         root = define.xpath("/Configure/_STRUCTURE/MonitorList/Monitor/SVC")[0]
-        path = "/Configure/_STRUCTURE/MonitorList/Monitor[00]/SVC"
+        path = "/Configure/_STRUCTURE/MonitorList[00]/Monitor/SVC"
         return self.gen_form(root, path)
 
     def get(self):
@@ -319,12 +320,22 @@ class group_form:
         
 class look:
     def __init__(self):
-        self._node = config('0.0.0.0', 1234)
+        self._node = config('0.0.0.0', 2346)
 
     def GET(self, cat = None, nothing = None):
 #        admin_group = [(0, config.GetWorkGroupConfig(0))]  #add the 0th config group
 #        groups = admin_group+ [x for x in config.GetWGPList() ] # 第0个工作组为管理工作组
-        
+       
+        data = web.input()
+        try:
+            usable = data['path']
+            self._node.Put(usable, u'0')
+            cat = data['cat']
+        except Exception:
+            pass
+
+ 
+        print data
         if cat is None:
             return context.render.config_group(True)
 #            raise web.seeother('/')
@@ -333,12 +344,12 @@ class look:
             return context.render.config_group_form(True, form)
             
         
-    def POST(self, cat = None, index = None):
+    def POST(self, cat = None, op = None):
         # print web.data()
         
         data = web.input()
         print "*"*20
-        print cat
+        print data
         for k,v in data.iteritems():
             print "im the k ", k  
             if k is not None and not k == "submit" and not k[0] == "@":

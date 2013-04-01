@@ -13,7 +13,6 @@ body{
    width:auto;
    height:110px;
    color: black;
-   float:center;
    text-align:center;
 }
 
@@ -124,8 +123,8 @@ ul{
    text-align:center;
    background-color:white;
    z-index:0;
-   -moz-box-shadow:0px 0px 10px #222;
-   -webkit-box-shadow:0px 0px 10px #222;
+   moz-box-shadow:0px 0px 10px #222;
+   webkit-box-shadow:0px 0px 10px #222;
    box-shadow:0px 0px 5px #222;
    }
    
@@ -222,7 +221,6 @@ dd ul li a{
     font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
     text-decoration:none;
     color:black;
-    font-style:bold;
     }
     
 .inner_content{
@@ -259,10 +257,9 @@ dd ul li a{
 }
 
 .process_body{
-    width:1000px;
+    width:990px;
     height:auto;
-    margin:0 auto;
-    background-color:black;
+    background-color:white;
 }
 
 .process_nav{
@@ -287,12 +284,12 @@ dd ul li a{
 
 .process_content{
     float:right;
-    width:750px;
+    width:780px;
     height:auto;
     background-color:white;
-    margin-top:10px;
+    margin-top:5px;
     margin-bottom:5px;
-    margin-left:20px;
+    margin-left:5px;
     box-shadow:1px 1px 3px #222;
 }
 
@@ -327,7 +324,7 @@ dd ul li a{
     padding:3px;
 }  
 
-.process_content table thead tr td{
+.process_content table thead tr th{
     border-bottom-style:solid;
 }  
 

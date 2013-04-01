@@ -12,14 +12,14 @@ function trigeEdit(self)
     $("input[disabled]").each( function () {this.disabled = false;});
     $("select[disabled]").each( function () {this.disabled = false;} );
     $("button[disabled]").each( function () {this.disabled = false;} );
-
     // this.name = "1234";
     return false;
 };
 
-function trigeDelete(usable)
+function trigeDelete(usable, cat)
 {
     document.getElementById(usable).value = "0";
+    $.get("/cfg/groups/", {'path':usable, 'cat':cat}, function(){window.location.reload();});
     return true;
 }
 
@@ -57,7 +57,7 @@ function trigeChange(self)
             $("div[enum="+tag+"]").each(function ()
                                                 {
                                                     this.style.display = "none";
-                                                    $("*[name$=Usable]", this).each(function (){this.value = "0";});
+                                                    //$("*[name$=Usable]", this).each(function (){this.value = "1";});
                                                 }
                                                );
 

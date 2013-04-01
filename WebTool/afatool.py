@@ -42,7 +42,7 @@ from user_admin.check import login, logout
 from user_admin.register import add_user, add_page
 
 from monitor_sys.cpumem import cpu, mem, printt, resetall, meminfo, monitor
-from monitor_sys.process import process, process_per_info
+from monitor_sys.process import process, process_per_info, node_status
 from monitor_sys.save_layout import current_layout, load_current_layout
 
 from manage.admin import look as manage_admin_look
@@ -79,6 +79,8 @@ urls = (
     '/monitor/sys/widget/meminfo', 'meminfo',
     '/monitor/sys/layout', 'current_layout',
     '/monitor/sys/load_current_layout', 'load_current_layout',
+    '/monitor/sys/node_status', 'node_status',
+    '/monitor/sys/node_status/(.*)', 'node_status',
  
     #system configuration
     '/cfg/admin/','config_admin_look',

@@ -56,8 +56,14 @@ $def with (content)
         </li>
 
         <li><a href="javascript:contentGoto('/monitor/sys/')">系统监控</a></li>
-        <li><a href="javascript:contentGoto('/monitor/app/')">应用监控</a></li>
-        
+
+        <li><a href="#">应用监控</a>
+             <ul id="sub_menu" style="display:none;">
+                <li><a href = "javascript:contentGoto('/monitor/sys/process');">路由表信息</a></li>
+                <li><a href = "javascript:contentGoto('/monitor/sys/node_status');">节点信息</a></li>
+             </ul>           
+        </li>
+   
         <li><a href="#">平台管理</a>
  
            <ul id="sub_menu" style="display:none;">
