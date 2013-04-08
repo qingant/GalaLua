@@ -4,9 +4,53 @@
 #include "stdafx.h"
 #include "GLR.hpp"
 #include "Process.hpp"
+#include <unistd.h>
 using namespace GLR;
 
 Galaxy::GalaxyRT::CProcess _CProcess;
+
+void daemonize(void)  
+{  
+    pid_t pid, sid;  
+    int fd;   
+  
+    /* Fork off the parent process */  
+    pid = CRT_fork();  
+    if (pid < 0)    
+    {     
+        exit(1);  
+    }     
+  
+    if (pid > 0)    
+    {     
+        exit(0); /*Killing the Parent Process*/  
+    }     
+  
+    /* At this point we are executing as the child process */  
+  
+    /* Create a new SID for the child process */  
+    sid = setsid();  
+    if (sid < 0)    
+    {  
+        exit(1);  
+    }  
+  
+    /* Change the current working directory. */  
+    if ((chdir("/")) < 0)  
+    {  
+        exit(1);  
+    }  
+  
+    fd = CRT_open("/dev/null",O_RDWR, 0);  
+    if (fd != -1)  
+    {  
+        CRT_dup2 (fd,0);  
+        CRT_dup2 (fd,1);  
+        CRT_dup2 (fd,2);  
+    }  
+    /*resettign File Creation Mask */  
+    CRT_umask(027);  
+}  
 
 int main( int argc, char* argv[] )
 {
@@ -38,7 +82,12 @@ int main( int argc, char* argv[] )
     //    printf("Resume Error : %s\n", e.what());
     //}
 
-    _CProcess.Initialize(argc,argv,NULL,"m:e:d:?h:?p:?c:?");
+    _CProcess.Initialize(argc,argv,NULL,"m:e:d:?h:?p:?c:?D");
+    if (_CProcess.ExistOption("D"))
+    {
+        daemonize();
+    }
+
     std::string host;
     if (_CProcess.ExistOption("h"))
     {
