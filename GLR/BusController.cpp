@@ -385,7 +385,10 @@ void GLR::BusController::DoNodeReg( lua_State *l )
     int pid = luaL_checkinteger(l,-1);
     const char* host = luaL_checkstring(l, 3);
     int port = luaL_checkinteger(l, 4);
-    //int des_pid = luaL_checkinteger(l, 5);
+
+    //default des_pid=0
+    int des_pid = luaL_optint(l, 5,0);
+
     char id[64] = {0};
     snprintf(id, sizeof(id), "%s::%d", host, port);
     if(_Router.has_key(id))
@@ -408,7 +411,7 @@ void GLR::BusController::DoNodeReg( lua_State *l )
             Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
             return;
         }
-        //   ms->_Gpid = des_pid;
+        ms->_Gpid = des_pid;
         _LinkMap[c->GetFD()] = ms;
         _Router.insert(std::make_pair(std::string(id), c->GetFD()));
         _Poller.Register(c->GetFD(), Galaxy::GalaxyRT::EV_IN);
