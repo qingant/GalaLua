@@ -14,7 +14,7 @@ from galaxy import utils
 
 utils.checkPathAndCreate()
 
-LOGFILE=os.path.join(utils.getInstanceHome(),"log/galacmd.log")
+LOGFILE=os.path.join(utils.getInstanceHome(),"log/aimcmd.log")
 LOGLEVEL=logging.DEBUG
 
 StatusPage=cmd.status.StatusPage

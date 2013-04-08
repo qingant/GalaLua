@@ -9,6 +9,7 @@ import copy
 import const
 from supervisor import xmlrpc
 import logging
+import configure
 
 SupervisorEntry= """
 [unix_http_server]
