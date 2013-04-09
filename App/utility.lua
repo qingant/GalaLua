@@ -22,21 +22,52 @@ local RID = "@router"
 local MQID = "@mq"
 
 
-local _router = router.new("router")
+-- local _router = router.new("router")
 local _amq = amq.new(configure.amq.path)
 local myhost, myport = glr.sys.host, glr.sys.port
 
 function router_info()
    -- init
    -- _router:delete("10549531@CSharp")
-   pprint.pprint(_router:find_by_field("display"), "display")
-   pprint.pprint(_router:find_by_field("agent"), "agent")
+   -- pprint.pprint(_router:find_by_field("display"), "display")
+   -- pprint.pprint(_router:find_by_field("agent"), "agent")
+   _router = router.router()
+   pprint.pprint(_router:find_by_cata("display"), "display")
+   pprint.pprint(_router:find_by_cata("agent"), "agent")
+   glr.exit()
 end
 
 function amq_info()
    local amq_view = _amq:NQArray():get(0):view()
-   pprint.pprint({msg_number = amq_view:total(0),
+   pprint.pprint({msg_number0 = amq_view:total(0),
                  }, 
                  "MQ Info")
+   glr.exit()
 end
 
+function dev_define()
+   local _dev = router.device()
+   pprint.pprint(_dev:all(), "Device Define")
+   glr.exit()
+end
+
+function dev_add()
+   local _dev = router.device()
+   local desp = {
+      cpu = {
+         "request",
+         "report",
+      }
+   }
+   _dev:delete("sys")
+   _dev:add("sys", cjson.encode(desp))
+   pprint.pprint(_dev:all(), "Device Define")
+   glr.exit()
+
+end
+
+function sub_info()
+   local _sub = router.subscription()
+   pprint.pprint(_sub:all(), "Subscription")
+   glr.exit()
+end

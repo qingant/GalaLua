@@ -4,7 +4,7 @@ local __self__ = package.loaded[__main__]
 
 local os = require "os"
 local io = require "io"
-package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua"
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/lib/lua/?.lua" .. ";" ..  os.getenv("HOME") .. "/workspace/trade/?.lua"
 package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so"
 
 local node = require "node"
@@ -12,7 +12,6 @@ local node = require "node"
 local pprint = require "pprint"
 local cjson = require "cjson"
 -- local io = require "io"
-local timer = require "timer"
 local ffi = require "ffi"
 local structs = require "structs"
 
@@ -22,7 +21,7 @@ function main()
    local rt = glr.connect(host, port)
 
    
-   print("Register")
+   -- print("Register")
    -- print(rt)
    
    -- entry
@@ -42,7 +41,7 @@ function main()
    reg_msg.Head.Action = ffi.C.ACT_ROUTER_ADD
    reg_msg.Name = string.format("myhost::sys::%d", bind_gpid)
    reg_msg.Field = "bank::east"
-   reg_msg.AppType =  "sys_info"
+   reg_msg.AppType =  "sys"
    glr.send({host = host, port = port, gpid = bind_gpid}, ffi.string(reg_msg, ffi.sizeof(reg_msg)))
    msg_type,addr, rsp = glr.recv()
    ffi.copy(reg_msg, rsp, ffi.sizeof(reg_msg))
@@ -92,13 +91,13 @@ function main()
 end
 
 local header = ffi.new("APP_HEADER")
-function report (host, port, gpid, data)
+function report (host, port, gpid, data, app)
    header.Head.MsgId = -1
    header.Head.Action = ffi.C.ACT_REPORT
    header.From.Catagory = ffi.C.DEV_AGENT
    header.From.Name = string.format("myhost::sys::%d", gpid)
    header.To.Catagory = ffi.C.DEV_SVC
-   header.To.AppType = "sys_info"
+   header.To.AppType = app
    return glr.send({host = host, port = port , gpid = gpid}, structs.pack(header) .. cjson.encode(data))
 end
 function response(host, port, gpid, des_host, des_port, des_gpid, data)
@@ -128,19 +127,22 @@ function worker()
    -- fun(request["host"], request["port"], request["gpid"], request.des_host, request.des_port, request.des_gpid)
    while true do
 
-      local fun = loadstring(request["code"])
-      local data = fun(request.host, request.port, request.gpid)
+      -- local fun = loadstring(request["code"])
+      local mod = require("sys.cpu.agent.report")
+      local data = mod.entry(request.host, request.port, request.gpid)
       -- print(data)
       -- report(request.host, request.port, request.gpid, {data})
-      timer.sleep(5)
+      glr.time.sleep(5)
    end
 end
 
 function request_handle()
    local msg_type, gpid, msg = glr.recv()
    local request = cjson.decode(msg)
-   local fun = loadstring(request["code"])
+   --local fun = loadstring(request["code"])
+   local mod = require "sys.cpu.agent.request"
+   mod.entry(request.host, request.port, request.gpid,request.des_host, request.des_port, request.des_gpid)
    print(request.host, request.port, request.gpid,request.des_host, request.des_port, request.des_gpid)
-   local data = fun(request.host, request.port, request.gpid,request.des_host, request.des_port, request.des_gpid)
+   -- local data = fun(request.host, request.port, request.gpid,request.des_host, request.des_port, request.des_gpid)
    -- responce(request.host, request.port, request.gpid,request.des_host, request.des_port, request.des_gpid, data)
 end

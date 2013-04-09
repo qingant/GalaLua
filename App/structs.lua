@@ -38,6 +38,9 @@ typedef enum
     ACT_ACK = 7,
 	ACT_DEPLOY = 8,
     ACT_ROUTER_DEL=9,
+    ACT_SUBSCRIB = 10,
+    ACT_SUBSCRIB_DEL = 11,
+    ACT_SUBSCRIB_QRY = 12,
 }ACTION_TYPE;
 typedef uint32_t MSG_ID_TYPE;
 

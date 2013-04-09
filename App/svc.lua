@@ -73,9 +73,9 @@ end
 function dispatcher()
    local _amq = glr.get_global(MQID)
    local nq = _amq:NQArray():get(0)
-
+   
    local workers = collections.List.new()
-   for i=1,100 do
+   for i=1,10 do
       local err, worker = glr.spawn("svc", "worker", __id__)
       collections.List.pushright(workers, worker)
    end
@@ -88,9 +88,12 @@ function dispatcher()
          end
       end
    end
+   local number = 0
+
    while true do
       local msg = nq:get()
-
+      number = number + 1
+      print("Number", number)
       if collections.List.empty(workers) then
          collect_idle()
       end
@@ -128,29 +131,32 @@ function worker(dispatcherid)
           error(sqlite_conn)
       end
    end
+   package.path=config.svc.PATH
 
    while true do
       local msg_type, addr, msg = glr.recv()
-      print("svc:::",#msg, msg)
+      -- print("svc:::",#msg, msg)
       local request_header = ffi.new("APP_HEADER")
       ffi.copy(request_header, msg, ffi.sizeof(request_header))
       local content = string.sub(msg, ffi.sizeof(request_header)+1)
-      pprint.pprint(#msg)
+      -- pprint.pprint(#msg)
       local request_body = cjson.decode(content)
-      -- local item=_router:find_by_name(request.from.name)
-      -- print("router:::",pprint.format(item))
+      local item = _router:find_by_name(structs.str_pack(request_header.From.Name))
+      print("router:::",pprint.format(item))
       pprint.pprint( request_header.Head.Action, "Action::")
-      if request_header.Head.Action == ffi.C.ACT_REPORT then
+      if false then
+         print("over", __id__)
+      elseif request_header.Head.Action == ffi.C.ACT_REPORT then
 
          -- print("router:::",pprint.format(route_info))
-         pprint.pprint(_router:find_by_field("display"))
+         -- pprint.pprint(_router:find_by_field("display"))
          local app_type = structs.str_pack(request_header.To.AppType)
-         package.path=config.svc.PATH
-         local trade = require(app_type)
+         local trade = require(app_type .. ".server.report")
+         print(app_type .. ".server.report")
          local app = trade.Report:new()
          local logname =string.format("%s.log",app_type)
          local _logger = logger.new(logname)
-         local __gala__ = {_router=_router,_logger=_logger,_db=sqlite_conn, _header = request_header}
+         local __gala__ = {_router=_router,_logger=_logger,_db=sqlite_conn, _header = request_header, _router_info = item}
          app:init(__gala__, request_body)
          app:Run()
          _logger:finalizer()
@@ -159,11 +165,11 @@ function worker(dispatcherid)
          local route_info = _router:find_by_name(structs.str_pack(request_header.From.Name))
          print("router:::",pprint.format(route_info))
          print(structs.str_pack(request_header.To.AppType))
-         local trade = require(structs.str_pack(request_header.To.AppType))
+         local trade = require(structs.str_pack(request_header.To.AppType) .. ".server.request")
          local app = trade.Request:new()
          local logname =string.format("%s.log",route_info.app_type)
          local logger = logger.new(logname)
-         local sqlite_path = configure.svc.db.sqlite
+         -- local sqlite_path = configure.svc.db.sqlite
          local __gala__ = {route_info=route_info,logger=logger,db_connection=sqlite_conn, _router=_router,  _header = request_header}
          app:init(__gala__, request_body)
          app:Run()

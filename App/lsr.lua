@@ -29,6 +29,7 @@ function main()
 --   glr.global(RID, _router)
    local _router=router.router()
    local _amq = amq.new(configure.amq.path)
+   _router:delete_stale("lsr0", glr.glr_stamp())
    print("global")
    glr.global(MQID, _amq)
    print("Init")
@@ -48,10 +49,10 @@ function main()
          pprint.pprint(dev_map)
          pprint.pprint(addr)
          function delete_junk_items()
-            local items = _router:find_by_field("agent")
+            local items = _router:find_by_cata("agent")
             for _,it in pairs(items) do
              
-               if it.addr.host == myhost and it.addr.port == myport and it.addr.gpid == dev_map[addr.host] then
+               if it.host == myhost and it.port == myport and it.gpid == dev_map[addr.host] then
                   _router:delete(it.name)
                end
             end
@@ -97,7 +98,7 @@ function main()
          end
       end
    end
-   _router:finalizer()
+   -- _router:finalizer()
 end
 
 --a=cjson.decode("{\"a\":\"vvv\"}")
@@ -107,6 +108,8 @@ function display_worker()
    print("Display")
    --local _router = glr.get_global(RID)
    local _router=router.router()
+   local _subscrib = router.subscription()
+   local _dev_map = router.device()
    local _amq = glr.get_global(MQID)
    local msg_type, addr, msg=glr.recv()
    local msg_table = ffi.new("ROUTER_ADD_MSG")
@@ -115,14 +118,15 @@ function display_worker()
       if msg_table.Head.Action==ffi.C.ACT_ROUTER_ADD then
          local host,port=glr.sys.host, glr.sys.port
          _router:register(structs.str_pack(msg_table.Name),
-                          "display",
+                          "",
                           host,
                           port,
                           __id__,
                           "display",
                           structs.str_pack(msg_table.AppType),
                           "lsr0",
-                          glr.time.now(),
+                          glr.glr_stamp(),
+                          "display",
                           "This is userdata")
          print("------------------------- Reigester",structs.str_pack(msg_table.Name),
                "display",
@@ -140,40 +144,60 @@ function display_worker()
    local ret={status=true}
    msg_table.Head.Action = ffi.C.ACT_ACK
    glr.send(addr, structs.pack(msg_table))
-
+   
    local nq = _amq:NQArray():get(0)
-   --   nq:put()
    local app_msg = ffi.new("APP_HEADER")
+   local subscribes = {}
+
    while true do
-      local msg_type, _ ,msg = glr.recv()
-      print("2display", #msg, msg)
-      -- msg = nil
+      local msg_type, msg_addr ,msg = glr.recv()
       if msg  then
          ffi.copy(app_msg, msg, ffi.sizeof(app_msg))
       end
-      -- local t=cjson.decode(msg)
-
-      -- t.header.timestamp = timer.time() -- add time stamp
-      --pprint.pprint("------Display Recved")
-      --pprint.pprint(t)
-      print(app_msg.From.Catagory, "Send")
+      
       if  app_msg.From.Catagory == ffi.C.DEV_SVC then
-         print("Send 2 Display")
-         glr.send(addr, msg)
+         
+         local gpid = subscribes[structs.str_pack(app_msg.To.AppType)] or 0
+         local des_addr = {host = addr.host, port = addr.port, gpid = gpid}
+         pprint.pprint(structs.str_pack(app_msg.To.AppType), "Topic")
+         pprint.pprint(subscribes, "Sub")
+
+         pprint.pprint(des_addr, "Send2Display")
+         glr.send(des_addr, msg)
       elseif app_msg.From.Catagory == ffi.C.DEV_DISPLAY then
          if app_msg.Head.Action == ffi.C.ACT_REQUEST then
             nq:put(msg)
          elseif app_msg.Head.Action == ffi.C.ACT_ROUTER_QUERY then
-            -- print("::::router::",pprint.pprint(t)) 
-            local content={items = _router:find_by_field("agent")}
-            -- pprint.pprint(content, "Return router info")
+            local content={items = _router:find_by_cata("agent")}
+            for _,item in pairs(content.items) do
+               local desp = cjson.decode(_dev_map:find(item.dev_type)[1].desp)
+               item.desp = desp
+            end
+            pprint.pprint(content, "Router")
             app_msg.Head.Action = ffi.C.ACT_RESPONSE
             
             glr.send(addr, structs.pack(app_msg) .. cjson.encode(content))
+         elseif app_msg.Head.Action == ffi.C.ACT_SUBSCRIB then
+            local content = cjson.decode(string.sub(msg, ffi.sizeof(app_msg) + 1))
+            _subscrib:subscribe(content.dev_type, content.dev_id, content.topic, content.event_type, content.self)
+            subscribes[string.format("%s.%s", content.dev_type, content.topic)] = msg_addr.gpid
+            pprint.pprint(subscribes)
+            app_msg.Head.Action = ffi.C.ACT_RESPONSE
+            glr.send(addr, structs.pack(app_msg) .. cjson.encode({}))
+         elseif app_msg.Head.Action == ffi.C.ACT_SUBSCRIB_DEL then
+            local content = cjson.decode(string.sub(msg, ffi.sizeof(app_msg) + 1))
+            _subscrib:delete(content.condition)
+            app_msg.Head.Action = ffi.C.ACT_RESPONSE
+            glr.send(addr, structs.pack(app_msg))
+         elseif app_msg.Head.Action == ffi.C.ACT_SUBSCRIB_QRY then
+            local cond = string.format("who=%s", structs.str_pack(app_msg.From.Name))
+            local subs = _subscrib:find(cond)
+            app_msg.Head.Action = ffi.C.ACT_RESPONSE
+            glr.send(addr, structs.pack(app_msg) .. cjson.encode(subs))
          end
       end
    end
-   _router:finalizer()
+   -- _router:finalizer()
 end 
 
 function agent_worker()
@@ -189,15 +213,16 @@ function agent_worker()
       if msg_table.Head.Action == ffi.C.ACT_ROUTER_ADD then
          local host = glr.sys.host
          local port = glr.sys.port
-         _router:register(ffi.string(msg_table.Name, ffi.C.strlen(msg_table.Name)),
+         _router:register(structs.str_pack(msg_table.Name),
                           "agent",
                           host,
                           port,
                           __id__,
-                          "agent",
-                          ffi.string(msg_table.AppType, ffi.C.strlen(msg_table.AppType)), 
+                          structs.str_pack(msg_table.AppType),
+                          "",
                           "lsr0",
-                          glr.time.now(),
+                          glr.glr_stamp(),
+                          "agent",
                           "This is userdata")
       else
          error("register message expected!")
@@ -210,7 +235,15 @@ function agent_worker()
    glr.send(addr, structs.pack(msg_table))
     
    -- pprint.print("Read source file")
-   local source = io.open(configure.LUA_AGENT_APP_DIR .. structs.str_pack(msg_table.AppType) .. ".lua"):read("*a")
+   local handle = io.open(configure.LUA_AGENT_APP_DIR .. structs.str_pack(msg_table.AppType) .. ".lua")
+   print(structs.str_pack(msg_table.AppType))
+   local source
+   if handle then
+      source = handle:read("*a")
+   else
+      source = ""
+   end
+   
    -- pprint.print(source)
    local send_msg = ffi.new("APP_HEADER")
    send_msg.Head.Action = ffi.C.ACT_DEPLOY
@@ -254,6 +287,6 @@ function agent_worker()
          end
       end
     end
-   _router:finalizer()
+   -- _router:finalizer()
 end
 
