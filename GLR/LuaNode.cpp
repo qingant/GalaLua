@@ -212,6 +212,20 @@ Process & Process::GetNodeById( LN_ID_TYPE id)
 
 }
 
+int GLR::Process::GetOption(lua_State *l)
+{
+    const char *str=luaL_checkstring(l,1);
+    if (!_CProcess.ExistOption(str))
+    {
+        lua_pushnil(l);
+    }
+    else
+    {
+        std::string opt=_CProcess.GetOption(str);
+        lua_pushstring(l,opt.c_str());
+    }
+    return 1;
+}
 int GLR::Process::SetOptions(lua_State *l)
 {
     const char *str=luaL_checkstring(l,1);
@@ -239,6 +253,7 @@ void Process::InitNode( void )
         {"get_path", GetFilePath},
         {"kill", Kill},
         {"set_options", SetOptions},
+        {"get_option", GetOption},
         {"msg_available", MessageAvailable},
         {NULL, NULL},
     };

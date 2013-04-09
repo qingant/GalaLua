@@ -107,6 +107,7 @@ namespace GLR
         static int GetFilePath(lua_State *l);
         static int Kill(lua_State *l);
         static int SetOptions(lua_State *l);
+        static int GetOption(lua_State *l);
         static int MessageAvailable(lua_State *l);
     public:
         static LN_ID_TYPE CreateNode();

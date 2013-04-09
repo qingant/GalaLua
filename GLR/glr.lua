@@ -56,6 +56,8 @@ CLOSED = _glr.CLOSED
 KILL = _glr.KILL
 AF_INET = _glr.AF_INET
 msg_available = _glr.msg_available
+get_option=_glr.get_option
+set_options=_glr.set_options
 
 time = {
    now = function () return _glr.int(0,0) end;
@@ -64,3 +66,4 @@ time = {
 
 
 return M
+
