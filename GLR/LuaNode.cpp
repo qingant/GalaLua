@@ -722,6 +722,7 @@ int GLR::Process::RegisterGlobal( lua_State *l )
     {
         return luaL_error(l,"userdata do not has metatable  %s %d",__func__,__LINE__);
     }
+    //!+ 这要求所操作类型具有"__my_name"属性
     lua_getfield(l,-1,"__my_name");
 
     const char *type = luaL_checkstring(l, -1);
@@ -808,5 +809,7 @@ int GLR::Process::GLRStamp( lua_State *l )
 
 int GLR::Process::Exit( lua_State *l )
 {
+    //TODO: 判断调用方进程号，只有主进程（0号）方可exit
+    //TODO: 使用其他信号，优雅可控的退出程序
     kill(getpid(), SIGKILL);
 }
