@@ -1,5 +1,5 @@
 SQLITE_HOME = $(HOME)/Sqlite3
-DES = cp sqlite json dba struct
+DES = cp sqlite json dba struct zip
 all:$(DES)
 .PHONY:$(DES)
 
@@ -14,3 +14,5 @@ dba:
 	cd luadbi.0.5 && make sqlite3 && mv *.so $(HOME)/lib/lua/ && make clean
 struct:
 	cd lua-struct && make && mv struct.so $(HOME)/lib/lua/ && make clean
+zip:
+	cd lua-zip && make
