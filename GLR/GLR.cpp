@@ -40,6 +40,7 @@ void GLR::Runtime::Initialize()
     _Bus->RegisterDevice(new SocketController());
     _Bus->RegisterDevice(new BusController());
     //_Host = 
+    time(&_Stamp);
 }
 
 void GLR::Runtime::Initialize( const std::string &host, int port )

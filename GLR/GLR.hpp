@@ -35,12 +35,13 @@ namespace GLR
         void NodeId(int val) { _NodeId = val; }
         const std::string &Host() const { return _Host; }
         void Host(const std::string &val) { _Host = val; }
- 
+        time_t Stamp() const {return _Stamp;}
     private:
         Schedule *_Schedule;
         Bus      *_Bus;
         std::string _Host;
        int _NodeId;
+       time_t  _Stamp;
 
     };
 

@@ -255,6 +255,7 @@ void Process::InitNode( void )
         {"set_options", SetOptions},
         {"get_option", GetOption},
         {"msg_available", MessageAvailable},
+        {"glr_stamp", GLRStamp},
         {NULL, NULL},
     };
     luaL_register(_Stack, "_glr", glr_reg);
@@ -795,5 +796,11 @@ int GLR::Process::MessageAvailable( lua_State *l )
     LN_ID_TYPE id = luaL_checkinteger(l, 1);
     Process &self = GetNodeById(self_id);
     lua_pushboolean(l, self._Channel.Empty()?0:1);
+    return 1;
+}
+
+int GLR::Process::GLRStamp( lua_State *l )
+{
+    lua_pushinteger(l,Runtime::GetInstance().Stamp());
     return 1;
 }

@@ -58,7 +58,7 @@ AF_INET = _glr.AF_INET
 msg_available = _glr.msg_available
 get_option=_glr.get_option
 set_options=_glr.set_options
-
+glr_stamp = _glr.glr_stamp
 time = {
    now = function () return _glr.int(0,0) end;
    sleep = function (sec)  return _glr.int(0,1,sec) end

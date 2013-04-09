@@ -109,6 +109,7 @@ namespace GLR
         static int SetOptions(lua_State *l);
         static int GetOption(lua_State *l);
         static int MessageAvailable(lua_State *l);
+        static int GLRStamp(lua_State *l);
     public:
         static LN_ID_TYPE CreateNode();
         static Process &GetNodeById(LN_ID_TYPE);
