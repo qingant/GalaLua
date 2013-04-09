@@ -10,7 +10,7 @@
 ** > - big endian
 ** < - little endian
 ** ![num] - alignment  no suport
-** x - pading no suport
+** x - pading
 ** b/B - signed/unsigned int8_t
 ** h/H - signed/unsigned int16_t
 ** l/Ln - signed/unsigned interger with size `n' (default is size of int64_t)
@@ -104,6 +104,7 @@ static size_t optsize (lua_State *L, char opt, const char **fmt) {
         luaL_error(L, "number size is not sizeof(int32_t) or sizeof(int84_t)");
       return sz;
     }
+    case 'x': return getnum(fmt,1);
     case 'c': return getnum(fmt,0);
     case 'i': case 'I': {
       int sz = getnum(fmt, sizeof(int32_t));
@@ -174,15 +175,23 @@ static int b_pack (lua_State *L) {
         putinteger(L, &b, arg++, h.endian, size);
         break;
       }
+      case 'x': {
+        int ii = 0;
+        for(;ii < size ;ii++)
+          luaL_addchar(&b, '\0');
+        break;
+      }
       case 'c': case 's': {
         size_t l;
         const char *s = luaL_checklstring(L, arg++, &l);
         if (size == 0) size = l;
-        luaL_argcheck(L, l >= (size_t)size, arg, "string too short");
-        luaL_addlstring(&b, s, size);
+        luaL_argcheck(L, l <= (size_t)size, arg, "string too short");
+        luaL_addlstring(&b, s,l);
+        int ii = 0 ;
+        for(;ii < size - l;ii++)
+          luaL_addchar(&b, '\0');
         if (opt == 's') {
           luaL_addchar(&b, '\0');  /* add zero at the end */
-          size++;
         }
         break;
       }
@@ -240,6 +249,10 @@ static int b_unpack (lua_State *L) {
         int issigned = islower(opt);
         lua_Number res = getinteger(data+pos, h.endian, issigned, size);
         lua_pushnumber(L, res);
+        break;
+      }
+      case 'x': {
+        lua_pushnumber(L,-1);
         break;
       }
       case 'c': {
