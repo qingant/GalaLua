@@ -8,11 +8,12 @@ package.cpath = package.cpath .. ";" .. os.getenv("HOME") .. "/lib/lua/?.so;" ..
 
 -- 设置zloader模块的加载路径
 package.path =  "/home/aim/dev/lua-zip/?.lua" .. ";" .. package.path 
--- 安装zip的loader
-assert(require "zloader")
 
 -- 设置zip文件的加载路径
-package.zpath="/home/ocaml/lib/?.zip;/home/ocaml/workspace/HelloLua/src/test.zip/?.lua;/home/aim/dev/lua-zip/test.zip/?.lua"
+package.zpath="/home/aim/GalaLua/lib/lua-zip/test.zip/?.lua;"
+
+-- 安装zip的loader
+assert(require "zloader")
 
 -- 测试从zip loader进来的lua脚本
 assert(require "ssss")

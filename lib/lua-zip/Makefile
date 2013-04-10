@@ -1,6 +1,6 @@
 #all:zip.so
 #zip.so:
-# 	gcc -shared  -fPIC -ansi -fstack-check lua_zip.c  -llua -o zip.so -I/usr/local/include/ -I/usr/local/lib/libzip/include/ -lzzip -lzip -L /usr/local/lib/
+# 
 # 	mv $@ $(HOME)/lib/lua/
 # 
 #clean:
@@ -8,7 +8,7 @@
 # 	rm -rf *.so
 # 
 all:
-	cd zz && ./configure --prefix=$(HOME)/lib && make && make check && make install
+	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c  -o minizip.so -lluajit -lzip -I../libzip-0.11/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib 
 	cp zloader.lua $(HOME)/lib/lua
 
 clean:

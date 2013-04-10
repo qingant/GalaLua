@@ -7,10 +7,10 @@
 local table,string,os,package = table,string,os,package
 local pairs,ipairs,print,loadstring,assert = pairs,ipairs,print,loadstring,assert
 
-package.cpath=package.cpath .. ";" .. "/home/aim/dev/lua-zip/?.so"
---local zip=package.loadlib("./zip.so","luaopen_zip")
+package.cpath=package.cpath .. ";" .. "/home/aim/GalaLua/lib/lua-zip/?.so"
 
-local zip = require("zip")
+
+local zip = require("minizip")
 require "print_r"
 
 module(..., package.seeall)
@@ -24,6 +24,8 @@ local function mklibs()
    for path,pattern in string.gmatch(package.zpath..";", "([^;]*zip)[\\/](.-);") do	--split at ;
       if not htab[path] then
          local z,err = zip.open(path)
+         print("Hello ")
+         print_r.print_r(z)
          if z then
             htab[path] = z
             ftab[path] = {}
