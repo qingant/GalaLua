@@ -14,4 +14,4 @@ all:
 
 clean:
 	#find -name "*.o" | xargs rm
-	#find -name "*.so" | xargs rm
+
