@@ -18,24 +18,34 @@
                 <TCP/>
                 <UNIX/>
             </SocketType>
-            <LogType meta="enum">
+            <AppType meta="enum">
                 <DATEMODE/>
                 <APPMODE/>
                 <CUSTOMMODE/>
-            </LogType>
+            </AppType>
             <ConectorType meta="enum">
                 <ECHO/>
                 <TIMEOUT/>
                 <SQUARE/>
                 <STATE/>
             </ConectorType>
-            <LowType meta="enum">
-                <DEBUG/>
+            <LevelType meta="enum">
                 <INFO/>
+                <DEBUG/>
                 <WARN/>
                 <ERROR/>
                 <FATAL/>
-            </LowType>
+            </LevelType>
+            <Switch meta="enum">
+                <ENABLE/>
+                <DISABLE/>
+            </Switch>
+            <AppLogNameType meta="enum">
+                <DETAILS/>
+            </AppLogNameType>
+            <AppLogDirType meta="enum">
+                <NONE/>
+            </AppLogDirType>
     </_TYPEDEFINE>
     <_VERSION>2.0</_VERSION>
     <_NAME>MonitorConfigure</_NAME>
@@ -68,32 +78,37 @@
                     </SVCLimits>
                 </Base>
                 <LowLoger name="" meta = "entry" UIType="enum" commit ="" title="平台日志配置">
-                    <type>LowType</type>
+                    <type>LevelType</type>
                 </LowLoger>
-                <AppLoger name="" meta = "union" UIType="union" commit ="" title="应用日志配置">
-                    <_SCROLLTYPE name="" meta="entry" UIType="entry" commit="" title="日志类型">
-                        <type>LogType</type>
-                    </_SCROLLTYPE>
-                    <_UNIONSELECTOR name="" meta="struct" UIType="struct" commit="" title="日志模式配置">
-                        <DATEMODE name="" meta = "struct" UIType="struct" commit ="" title="日期模式">
-                            <NamePattern name="" meta="entry" default="" UIType="readonly" commit="" title="日志名称">
-                                <type>string</type>
-                                <size>128</size>
-                            </NamePattern>
-                        </DATEMODE>
-                        <APPMODE name="" meta = "struct" UIType="struct" commit ="" title="应用模式">
-                            <NamePattern name="" meta="entry" default="" UIType="readonly" commit="" title="日志名称">
-                                <type>string</type>
-                                <size>128</size>
-                            </NamePattern>
-                        </APPMODE>
-                        <CUSTOMMODE name="" meta = "struct" UIType="struct" commit ="" title="自定义模式">
-                            <NamePattern name="" meta="entry" default="" UIType="entry" commit="" title="日志名称">
-                                <type>string</type>
-                                <size>128</size>
-                            </NamePattern>
-                        </CUSTOMMODE>
-                    </_UNIONSELECTOR>
+                <AppLoger name="" meta = "struct" UIType="struct" commit ="" title="应用日志配置">
+                    <Level name="" meta = "entry" UIType="enum" commit ="" title="日志等级">
+                        <type>LevelType</type>
+                    </Level>
+                    <Details name="" meta = "entry" UIType="enum" commit ="" title="日志明细开关">
+                        <type>Switch</type>
+                    </Details>
+                    <Size name="" meta = "entry" UIType="entry" commit ="" title="日志分片大小">
+                        <type>int</type>
+                        <limit>
+                            <min>0</min>
+                        </limit>
+                    </Size>
+                    <Files name="" meta = "entry" UIType="entry" commit ="" title="最大文件数">
+                        <type>int</type>
+                        <limit>
+                            <min>0</min>
+                        </limit>
+                    </Files>
+                    <Dir name="" meta = "entry" UIType="entry" commit ="" title="日志路径">
+                        <type>string</type>
+                        <size>128</size>
+                    </Dir>
+                    <NameFormat name="" meta = "entry" UIType="enum" commit ="" title="日志名称模式">
+                        <type>AppLogNameType</type>
+                    </NameFormat>
+                    <DirFormat name="" meta = "entry" UIType="enum" commit ="" title="日志名称模式">
+                        <type>AppLogDirType</type>
+                    </DirFormat>
                 </AppLoger>
                 <SVC name="" meta = "struct" UIType="struct" commit ="" title="SVC配置">
                     <Threads name="" meta="entry" default="8" UIType="entry" commit="" title="线程数配置">
