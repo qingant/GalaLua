@@ -8,5 +8,5 @@ CMPFLAG 		= -c -g  -fPIC -pthread $(COMPWARN) $(COMMINC)  -D_UNIX95_   -Wno-writ
 PLIBDIR		= -lGalaxyStub  -L$(HOME)/lib/
 LIBDIR		=-L$(HOME)/lib
 STUBLIB		= -lGalaxyStub
-SYTMLIB 	= -lc -lm -ldl -lpthread   -L$(HOME)/lib/  -lrt #-ltcmalloc_minimal
+SYTMLIB 	= -lc -lm -ldl -lpthread  -L$(HOME)/lib/  -L$(HOME)/lib/lib -lrt #-ltcmalloc_minimal
 
