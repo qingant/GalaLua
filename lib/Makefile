@@ -15,6 +15,6 @@ dba:
 struct:
 	cd lua-struct && make && mv struct.so $(HOME)/lib/lua/ && make clean
 libzip:
-	cd libzip-0.11 && ./configure --prefix=$(HOME)/lib --enable-shared=no && make && make install
+	cd libzip-0.11 && ./configure --prefix=$(HOME)/lib --enable-static=no && make && make install
 luazip:
 	cd lua-zip && make

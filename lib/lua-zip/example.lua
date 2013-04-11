@@ -12,18 +12,27 @@ function main()
    os.execute("rm -f " .. zf_name)
 
    -- 创建一个zip文件
-   local zf = assert(zip.open(zf_name, zip.CREATE))
+   local zf = assert(zip.open(zf_name, zip.OR(zip.CREATE, zip.CHECKCONS)))
 
    print("example go ...")
 
-   -- 增加文件到zip文件中
-   --zf.add("test_minizip.lua", "file", _0, 0, -1)
-   zf:add("dir/add.txt", "string", "Contents")
+   -- 增加文件夹
+   zf:add_dir("dir")
+   if 1 == zf:name_locate("dir") then
+      print("add dir success \n" )
+   end
+
+   -- 增加文件到zip文件中   
+   zf:add("dir/add.txt", "string", "add.txt's context from here")
+   assert(zf:add("test_minizip.lua", "file", "test_minizip.lua", 0, -1))
    zf:close()
 
    zf = assert(zip.open(zf_name, zip.CHECKCONS))
    -- 操作文件对象
-  -- local file = zf.open("add.TXT", zip.OR(zip.FL_NOCASE, zip.FL_NODIR))
+   local file = assert(zf:open("add.TXT", zip.OR(zip.FL_NOCASE, zip.FL_NODIR)))
+
+   -- 写文件
+   -- 读文件
    local ctx = assert(file:read(256))
    print(ctx)
    file:close()
@@ -34,3 +43,4 @@ end
 
 -- 测试入口
 main()
+
