@@ -3,6 +3,9 @@ module("Gala",package.seeall)
 
 local pprint = require "pprint"
 local router = require "router"
+local ffi = require "ffi"
+local cjson = require "cjson"
+local structs = require "structs"
 
 Gala = {}
 Gala.__doc__ = {
