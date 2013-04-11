@@ -1,5 +1,5 @@
 
-module("Gala",package.seeall)
+module(...,package.seeall)
 
 local pprint = require "pprint"
 local router = require "router"
