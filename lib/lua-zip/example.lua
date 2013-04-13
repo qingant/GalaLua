@@ -32,8 +32,9 @@ function main()
    assert(zf:add("test_minizip.lua", "file", "test_minizip.lua", 0, -1))
 
    -- 增加zip中文件的comment
-   zf:set_file_comment(3, "add.txt's commnet")
-   comment = zf:get_file_comment(3)
+   local idx = zf:name_locate("dir/add.txt")
+   zf:set_file_comment( idx, "add.txt's commnet" )
+   comment = zf:get_file_comment( idx )
    print(comment)
    zf:close()
 
