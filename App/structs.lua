@@ -17,7 +17,7 @@ uint16_t ntohs(uint16_t netshort);
 size_t strlen(const char *s);
 #pragma pack(1)
 
-typedef enum
+typedef enum 
 {
     DEV_AGENT = 0,
     DEV_DISPLAY = 1,
@@ -27,7 +27,7 @@ typedef enum
     DEV_MONITOR = 5,
 } DEV_CATAGORY;
 
-typedef enum
+typedef enum 
 {
     ACT_REPORT = 0,
     ACT_REQUEST = 1,
@@ -41,7 +41,6 @@ typedef enum
     ACT_SUBSCRIB = 10,
     ACT_SUBSCRIB_DEL = 11,
     ACT_SUBSCRIB_QRY = 12,
-    ACT_CONTROL = 13,
 }ACTION_TYPE;
 typedef uint32_t MSG_ID_TYPE;
 
@@ -106,8 +105,8 @@ typedef enum
 typedef struct
 {
     MSG_ID_TYPE     MsgId;             // MSG ID
-    unsigned char Action;  //MONITOR_ACTION
-    unsigned char Type;     //MONITOR_TYPE
+    unsigned char Action;  //MONITOR_ACTION  
+    unsigned char Type;     //MONITOR_TYPE    
 }MONITOR_HEADER;
 
 #pragma pack()
