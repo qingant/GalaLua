@@ -399,6 +399,7 @@ void Process::Resume()
     else if (rt == 0)
     {
         _Status._State = ProcessStatus::STOPED;
+        THROW_EXCEPTION_EX("Stopped!");
         return;
     }
     //lua_newthread()

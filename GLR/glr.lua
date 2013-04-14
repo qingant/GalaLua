@@ -66,4 +66,92 @@ time = {
 }
 
 
+net = {
+
+   -- const viarible --
+   AF_INET = _glr.AF_INET;
+   AF_UNIX = _glr.AF_UNIX;
+
+
+
+   -- interface -- 
+   tcp_server =  function (host, port)
+      
+      return _glr.int(1,     
+                      -- Interrupt ID
+                      0,   
+                      -- Operation Type: make server
+                      AF_INET,   
+                      -- Domain
+                      host,   
+                      -- host
+                      port 
+                      -- port
+                     )
+   end;
+
+    un_server = function (path)
+      return _glr.int(1,       
+                      -- Interrupt ID
+                      0, 
+                      -- Operation Type: make server
+                      AF_UNIX,   
+                      -- Domain
+                      path
+                      -- Path
+                     )
+   end;
+
+   tcp_conn = function (host, port)
+      
+      return _glr.int(1,     
+                      -- Interrupt ID
+                      1,   
+                      -- Operation Type: connect to server
+                      AF_INET,   
+                      -- Domain
+                      host,   
+                      -- host
+                      port 
+                      -- port
+                     )
+   end;
+
+   un_conn = function (path)
+      return _glr.int(1,       
+                      -- Interrupt ID
+                      1, 
+                      -- Operation Type: connect
+                      AF_UNIX,   
+                      -- Domain
+                      path
+                      -- Path
+                     )
+   end;
+   accept = function (fd)
+      return _glr.int(1, 4, fd)
+   end;
+   recv =  function (fd, len)
+      return _glr.int(1,     
+                      -- Interrupt ID
+                      2,       
+                      -- Operation Type: recv 
+                      fd,           
+                      -- fd
+                      len
+                      -- length
+                     )           
+   end;
+
+   send = function (fd, buf)
+      return _glr.int(1, 3, fd, buf)
+   end;
+
+   close = function (fd)
+      return _glr.int(1, 5, fd)
+   end;
+}
+
+
+
 return M

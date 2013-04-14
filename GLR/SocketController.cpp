@@ -115,6 +115,7 @@ void GLR::SocketWorker::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev )
 
 }
 
+
 GLR::SocketController::SocketController()
     :_LinkMap(10240, NULL),_Worker(_LinkMap, _Mutex, _Poller)
 {

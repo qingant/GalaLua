@@ -85,6 +85,7 @@ namespace GLR
     public:
         static void Status();
     private:
+        //TODO: use concurrent map instead
         static std::vector<Process*> NodeMap;
 
         static Galaxy::GalaxyRT::CRWLock  Lock;
