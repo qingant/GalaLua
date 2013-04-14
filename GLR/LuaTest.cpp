@@ -116,7 +116,11 @@ int main( int argc, char* argv[] )
         setenv("LUA_CPATH", cpath.c_str(), 1);
     }
     std::string file=_CProcess.GetOption("m");
-    std::string entry=_CProcess.GetOption("e");
+    std::string entry = "main";
+    if (_CProcess.ExistOption("e"))
+    {
+        entry = _CProcess.GetOption("e");
+    }
 
     //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
     //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
