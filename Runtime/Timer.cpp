@@ -22,6 +22,7 @@ CTimer::CTimer(TIMERHANDLER handle, INT tick)
     :_Handle(handle),
      _Tick(tick) 
 {
+    time(&_TimeStamp);
     std::make_heap(_Heap.begin(), _Heap.end());
 }
 CTimer::~CTimer()

@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 
-/* Time-stamp: <2012-08-01 01:17:26 星期三 by tao> */
+/* Time-stamp: <2013-03-01 04:55:34 星期五 by matao> */
 
 /**
  * @file   Timer.hpp
@@ -56,12 +56,10 @@ namespace Galaxy
                 return ((*this)==t) || !((*this) < t);
             }
             bool operator < (const TIMEREVENT &rhs){
-                GALA_ERROR("Operator <");
                 return ((_Val.tv_sec > rhs._Val.tv_sec) || ((_Val.tv_sec == rhs._Val.tv_sec) && (_Val.tv_usec > rhs._Val.tv_usec)));
                 //return (sec>rhs.sec);
             }
             bool operator < (const TPType &rhs){
-                GALA_ERROR("Operator <");
                 return ((_Val.tv_sec > rhs.tv_sec) || ((_Val.tv_sec == rhs.tv_sec) && (_Val.tv_usec > rhs.tv_usec)));
                 //return (sec>rhs.sec);
             }
