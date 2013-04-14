@@ -11,8 +11,8 @@ void Clock::Request( lua_State *l )
     Process &nd = Runtime::GetInstance().GetProcess(pid);
     if (type == GET_TIME)
     {
-        lua_pushinteger(l, _Timer.GetTimeStamp());
-        Runtime::GetInstance().GetBus().Return(pid, 1);
+        //lua_pushinteger(l, _Timer.GetTimeStamp());
+        Runtime::GetInstance().GetBus().Return(pid, LUA_TNUMBER, _Timer.GetTimeStamp());
     }
     else if (type == Clock::DO_TIMEOUT)
     {
