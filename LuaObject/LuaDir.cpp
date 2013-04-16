@@ -5,6 +5,7 @@
 static int LUA_dir(lua_State *l)
 {
     const char *dir_path = luaL_checkstring(l, 1);
+    /* printf( " Lua_dir === %s\n", dir_path);*/
     DIR *dp =  opendir(dir_path);
     if (dp != NULL)
     {
@@ -25,10 +26,13 @@ static int LUA_dir(lua_State *l)
             lua_rawseti(l, -2, i);
         }
         closedir(dp);
-        return 1;
-        
+        return 1;        
     }
-    return luaL_error(l, "error");
+    
+    char msg[ 2048];
+    memset( msg, 0x00, sizeof( msg));
+    snprintf( msg, sizeof( msg), " Lua_dir error: %s %s", dir_path, strerror( errno));
+    return luaL_error(l, msg);
 }
 
 
@@ -59,17 +63,23 @@ static int LUA_dir_type(lua_State *l)
         return 1;
 
     }
-    return luaL_error(l, "error");
+
+    char msg[ 2048];
+    memset( msg, 0x00, sizeof( msg));
+    snprintf( msg, sizeof( msg), " Lua_dir error: %s %s", path, strerror( errno));
+    return luaL_error(l, msg);
 }
 
 extern "C" int luaopen__dir(lua_State *L)
 {
 
-    luaL_Reg f[]={
+    static const luaL_Reg f[]={
         {"dir",LUA_dir},
         {"dir_type",LUA_dir_type},
         {NULL,NULL}
     };
-    luaL_register(L,"_dir",f);
-    return 0;
+
+    luaL_register(L,"dir",f);
+    
+    return 1;
 }

@@ -1,4 +1,5 @@
-all:router.so amq.so  logger.so Configure.so _dir.so
+all:router.so amq.so  logger.so Configure.so _dir.so cp
+
 include ../mk.rules
 amq:amq.so
 router.so:LuaRouter.o
@@ -16,3 +17,5 @@ Configure.so:LuaConfigure.o
 _dir.so:LuaDir.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@
+cp:
+	cp -rf *.so $(HOME)/lib/lua
