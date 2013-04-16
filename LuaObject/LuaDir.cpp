@@ -79,7 +79,7 @@ extern "C" int luaopen__dir(lua_State *L)
         {NULL,NULL}
     };
 
-    luaL_register(L,"dir",f);
+    luaL_register(L,"_dir",f);
     
     return 1;
 }
