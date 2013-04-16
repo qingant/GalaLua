@@ -82,7 +82,7 @@ int main( int argc, char* argv[] )
     //    printf("Resume Error : %s\n", e.what());
     //}
 
-    _CProcess.Initialize(argc,argv,NULL,"m:e:d:?h:?p:?c:?D");
+    _CProcess.Initialize(argc,argv,NULL,"m:e:d:?h:?p:?c:?Di:");
     if (_CProcess.ExistOption("D"))
     {
         daemonize();
