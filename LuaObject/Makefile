@@ -1,4 +1,4 @@
-all:router.so amq.so  logger.so Configure.so dir.so
+all:router.so amq.so  logger.so Configure.so _dir.so
 include ../mk.rules
 amq:amq.so
 router.so:LuaRouter.o
@@ -13,6 +13,6 @@ logger.so:LuaLogger.o
 Configure.so:LuaConfigure.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB)	-lGalaxyRT -lMTRCofigure -lxml2	-o $@
-dir.so:LuaDir.o
+_dir.so:LuaDir.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@

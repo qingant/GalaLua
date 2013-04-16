@@ -62,7 +62,7 @@ static int LUA_dir_type(lua_State *l)
     return luaL_error(l, "error");
 }
 
-extern "C" int luaopen_dir(lua_State *L)
+extern "C" int luaopen__dir(lua_State *L)
 {
 
     luaL_Reg f[]={
@@ -70,6 +70,6 @@ extern "C" int luaopen_dir(lua_State *L)
         {"dir_type",LUA_dir_type},
         {NULL,NULL}
     };
-    luaL_register(L,NULL,f);
+    luaL_register(L,"_dir",f);
     return 0;
 }
