@@ -23,6 +23,10 @@ extern "C"
 }
 #endif
 
+
+/*
+ * 测试案例：在当前目录新建res目录，然后再res目录下创建名为h和a的两个文件
+ */
 int main(int argc, char *argv[])
 {
     const char *resx = "res.rs";
