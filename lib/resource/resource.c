@@ -11,15 +11,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "bswap.h"
-#include "resource.h"
+#if defined(__linux__) || defined(__aix__)
+#include <limits.h>
+#endif
 
 #ifndef PATH_MAX
-#define PATH_MAX    (4096)
+#  define PATH_MAX    (4096)
 #endif
+
 #ifndef NAME_MAX
-#define NAME_MAX    (255)
+#  define NAME_MAX    (255)
 #endif
+
+#include "bswap.h"
+#include "resource.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -255,17 +260,14 @@ static int resx_read_internal(const off_t offset, void * const buf,
 int32_t resx_environ_read(const resx_environ_t * const resxenvp,
         const char *pathname)
 {
-    resx_node_t resxnode;
-    int32_t next = 0;
-
     const char *retval;
     char name[NAME_MAX + 1] = {[sizeof(name) - 1] = '\0'};
     char buf[PATH_MAX + 1] = {[sizeof(buf) - 1] = '\0'};
 
+    int32_t next = 0;
+    resx_node_t resxnode;
     while (true)
     {
-        printf("File %s, Function %s, Line %d: next = %d\n", __FILE__,
-                __FUNCTION__, __LINE__, next);
         if (resx_read_internal(resxenvp->offset + next, &resxnode,
                 sizeof(resx_node_t), resxenvp->stream) != 0)
         {
@@ -274,21 +276,20 @@ int32_t resx_environ_read(const resx_environ_t * const resxenvp,
             return -1;
         }
         resxnode_betoh(&resxnode);
-        next = resxnode.name;
-        printf("File %s, Function %s, Line %d: length = %d\n"
-                "offset = %d, name = %d\n", __FILE__, __FUNCTION__, __LINE__,
-                resxnode.length, resxenvp->offset, next);
-        if (resx_read_internal(resxenvp->offset + next, &name[0],
+        if (resx_read_internal(resxenvp->offset + resxnode.name, &name[0],
                 sizeof(name) - 1, resxenvp->stream) != 0)
         {
             fprintf(stderr, "Error: File %s, Function %s, Line %d.\n",
                     __FILE__, __FUNCTION__, __LINE__);
             return -1;
         }
-        printf("File %s, Function %s, Line %d: "
-                "name = %s\n", __FILE__, __FUNCTION__, __LINE__, &name[0]);
+        fprintf(stdout, "File %s, Function %s, Line %d, name = %s\n",
+                __FILE__, __FUNCTION__, __LINE__, &name[0]);
         if ((retval = resx_dirname(pathname, &buf[0], sizeof(buf) - 1)) != NULL)
         { // 当前路径pathname仍然存在‘/’分隔符
+            fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s, "
+                    "buf = %s, name = %s, retval = %s\n", __FILE__,
+                    __FUNCTION__, __LINE__, pathname, buf, &name[0], retval);
             if (strncmp(&name[0], &buf[0], sizeof(name) - 1) != 0)
             { // 遍历同辈节点，寻找指定名字的目录
                 next = resxnode.next;
@@ -296,7 +297,11 @@ int32_t resx_environ_read(const resx_environ_t * const resxenvp,
             else
             { // 进入子目录，在子目录中继续查找文件
                 next = resxnode.children;
+                pathname = retval;
             }
+            fprintf(stdout, "File %s, Function %s, Line %d, resxnode.next = %d, "
+                    "resxnode.children = %d\n", __FILE__, __FUNCTION__,
+                    __LINE__, resxnode.next, resxnode.children);
             if (next == RESOURCE_CHAOS)
             {
                 fprintf(stderr, "Debug: File %s, Function %s, Line %d, "
@@ -307,8 +312,13 @@ int32_t resx_environ_read(const resx_environ_t * const resxenvp,
         }
         else if (buf[0] == '\0')
         { // pathname中已不存在目录名（也就是说，不存在以‘/’分隔的字段
+            fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s\n",
+                    __FILE__, __FUNCTION__, __LINE__, pathname);
             if ((retval = resx_basename(pathname, &buf[0], sizeof(buf) - 1)) != NULL)
             {
+                fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s, "
+                        "buf = %s, retval = %s, name = %s\n", __FILE__,
+                        __FUNCTION__, __LINE__, pathname, buf, retval, &name[0]);
                 if (strncmp(&name[0], &buf[0], sizeof(name) - 1) != 0)
                 { // 遍历同辈节点，寻找指定名字的目录
                     next = resxnode.next;
@@ -352,7 +362,6 @@ int32_t resx_environ_read(const resx_environ_t * const resxenvp,
                     "'%s'.\n", __FILE__, __FUNCTION__, __LINE__, pathname);
             return -1;
         }
-        pathname = retval;
     }
     return 0;
 }

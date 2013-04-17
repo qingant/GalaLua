@@ -20,8 +20,19 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <libgen.h>
-
 #include <time.h>
+
+#if defined(__linux__) || defined(__aix__)
+#include <limits.h>
+#endif
+
+#ifndef PATH_MAX
+#  define PATH_MAX    (4096)
+#endif
+
+#ifndef NAME_MAX
+#  define NAME_MAX    (255)
+#endif
 
 #include "bswap.h"
 #include "resource.h"
@@ -94,7 +105,6 @@ static int make_node_directory(const char *pathname, FILE * const stream,
     }
     buf[length - 1] = '/';
 
-    location_t previous = {.nodep = NULL, .offset = RESOURCE_CHAOS};
     DIR * const dirp = opendir(buf);
     if (dirp == NULL)
     {
@@ -106,6 +116,7 @@ static int make_node_directory(const char *pathname, FILE * const stream,
     int32_t retval;
     struct dirent entry, *entryp;
     resx_node_t *nodep;
+    location_t previous = {.nodep = NULL, .offset = RESOURCE_CHAOS};
     do
     {
         if ((errcode = readdir_r(dirp, &entry, &entryp)) != 0)
@@ -130,13 +141,31 @@ static int make_node_directory(const char *pathname, FILE * const stream,
                         __FILE__, __FUNCTION__, __LINE__);
                 return -1;
             }
+            if (parent != NULL && parent->nodep != NULL)
+            {
+                fprintf(stdout, "File %s, Function %s, Line %d, "
+                        "parent->offset = %d, parent->nodep->children = %d.\n",
+                        __FILE__, __FUNCTION__, __LINE__, parent->offset,
+                        parent->nodep->children);
+            }
             if ((retval = make_node_generic(buf, nodep, stream, parent)) == -1)
             {
                 fprintf(stderr, "Error: File %s, Function %s, Line %d.\n",
                         __FILE__, __FUNCTION__, __LINE__);
                 return -1;
             }
+            if (parent != NULL && parent->nodep != NULL)
+            {
+                fprintf(stdout, "File %s, Function %s, Line %d, "
+                        "parent->offset = %d, parent->nodep->children = %d.\n",
+                        __FILE__, __FUNCTION__, __LINE__, parent->offset,
+                        parent->nodep->children);
+            }
             nodep->prev = previous.offset;
+            fprintf(stdout, "File %s, Function %s, Line %d, pathname = {%s}, "
+                    "d_name = {%s}, nodep->prev = %d.\n", __FILE__,
+                    __FUNCTION__, __LINE__, pathname, &entryp->d_name[0],
+                    nodep->prev);
             if (previous.nodep != NULL)
             {
                 previous.nodep->next = retval;
@@ -147,6 +176,11 @@ static int make_node_directory(const char *pathname, FILE * const stream,
                             __FILE__, __FUNCTION__, __LINE__, strerror(errno));
                     return -1;
                 }
+                fprintf(stdout, "File %s, Function %s, Line %d, previous.offset = %d, "
+                        "previous.nodep->next = %d, node->children = %d.\n",
+                        __FILE__, __FUNCTION__, __LINE__, previous.offset,
+                        previous.nodep->next, previous.nodep->children);
+
                 resxnode_htobe(previous.nodep);
                 if (resx_fstream_write(previous.nodep, sizeof(resx_node_t),
                         (size_t) 1U, stream) < (size_t) 1U)
@@ -162,6 +196,36 @@ static int make_node_directory(const char *pathname, FILE * const stream,
             previous.nodep = nodep;
         }
     } while (entryp != NULL);
+    // 处理最后一个节点
+    if (previous.nodep != NULL)
+    {
+        previous.nodep->next = RESOURCE_CHAOS;
+        // 写入节点
+        if (fseeko(stream, previous.offset, SEEK_SET) == -1)
+        {
+            fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                    __FILE__, __FUNCTION__, __LINE__, strerror(errno));
+            return -1;
+        }
+        fprintf(stdout, "File %s, Function %s, Line %d, offset = %d, node->prev = %d, "
+                "node->next = %d, node->children = %d.\n", __FILE__, __FUNCTION__,
+                __LINE__, previous.offset, previous.nodep->prev,
+                previous.nodep->next, previous.nodep->children);
+        resxnode_htobe(previous.nodep);
+        if (resx_fstream_write(previous.nodep, sizeof(resx_node_t),
+                (size_t) 1U, stream) < (size_t) 1U)
+        {
+            fprintf(stderr, "Error: File %s, Function %s, Line %d.\n",
+                    __FILE__, __FUNCTION__, __LINE__);
+            return -1;
+        }
+    }
+    if (parent != NULL && parent->nodep != NULL)
+    {
+        fprintf(stdout, "File %s, Function %s, Line %d, parent->offset = %d, "
+                "parent->nodep->children = %d\n", __FILE__, __FUNCTION__, __LINE__,
+                parent->offset, parent->nodep->children);
+    }
     return 0;
 }
 
@@ -172,11 +236,13 @@ static int32_t make_node_generic(const char * const pathname,
     char name[NAME_MAX + 1] = {[sizeof(name) - 1] = '\0'};
     char path[PATH_MAX + 1] = {[sizeof(path) - 1] = '\0'};
 
+    resx_node_init(nodep);
+
     struct stat statbuf;
     if (stat(pathname, &statbuf) == -1)
     {
-        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
-                __FILE__, __FUNCTION__, __LINE__, strerror(errno));
+        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, %s.\n",
+                __FILE__, __FUNCTION__, __LINE__, strerror(errno), pathname);
         return -1;
     }
     if (strlcpy(&path[0], pathname, sizeof(path)) >= sizeof(path))
@@ -210,8 +276,6 @@ static int32_t make_node_generic(const char * const pathname,
     }
     // 定位到文件名或目录名所在位置
     nodep->name = retval + sizeof(resx_node_t);
-    printf("File %s, Function %s, Line %d, %d, name = %d.\n",
-                __FILE__, __FUNCTION__, __LINE__, retval, nodep->name);
     if (fseeko(stream, nodep->name, SEEK_SET) == -1)
     {
         fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
@@ -224,9 +288,18 @@ static int32_t make_node_generic(const char * const pathname,
                 __FILE__, __FUNCTION__, __LINE__);
         return -1;
     }
+    fprintf(stdout, "File %s, Function %s, Line %d, offset = %d, name = {%s}.\n",
+                __FILE__, __FUNCTION__, __LINE__, retval, &name[0]);
     // 将offset定位到文件内容所在位置
     nodep->offset = nodep->name + length;
     // 节点的父节点
+    if (parent != NULL && parent->nodep != NULL)
+    {
+        fprintf(stdout, "File %s, Function %s, Line %d, "
+                "parent->offset = %d, parent->nodep->children = %d.\n",
+                __FILE__, __FUNCTION__, __LINE__, parent->offset,
+                parent->nodep->children);
+    }
     if (parent != NULL)
     {
         nodep->parent = parent->offset;
@@ -240,6 +313,13 @@ static int32_t make_node_generic(const char * const pathname,
     {
         nodep->parent = RESOURCE_CHAOS;
     }
+    if (parent != NULL && parent->nodep != NULL)
+    {
+        fprintf(stdout, "File %s, Function %s, Line %d, "
+                "parent->offset = %d, parent->nodep->children = %d.\n",
+                __FILE__, __FUNCTION__, __LINE__, parent->offset,
+                parent->nodep->children);
+    }
     if (S_ISREG(statbuf.st_mode))
     {
         // 文件的长度
@@ -250,6 +330,8 @@ static int32_t make_node_generic(const char * const pathname,
                     __FILE__, __FUNCTION__, __LINE__, strerror(errno));
             return -1;
         }
+        fprintf(stdout, "File %s, Function %s, Line %d, regular = {%s}.\n",
+                        __FILE__, __FUNCTION__, __LINE__, pathname);
         FILE * const fin = fopen(pathname, "rb");
         if (fin == NULL)
         {
@@ -271,7 +353,9 @@ static int32_t make_node_generic(const char * const pathname,
         // 目录的长度
         nodep->length = 0;
         // @TODO 处理目录
-        location_t child = {.nodep = nodep, .offset = retval};
+        fprintf(stdout, "File %s, Function %s, Line %d, directory = {%s}.\n",
+                        __FILE__, __FUNCTION__, __LINE__, pathname);
+        location_t child = {.offset = retval, .nodep = nodep};
         if (make_node_directory(pathname, stream, &child, &path[0],
                 sizeof(path)) != 0)
         {
@@ -279,6 +363,12 @@ static int32_t make_node_generic(const char * const pathname,
                     __FUNCTION__, __LINE__);
             return -1;
         }
+    }
+    if (parent != NULL && parent->nodep != NULL)
+    {
+        fprintf(stdout, "File %s, Function %s, Line %d, parent->offset = %d, "
+                "parent->nodep->children = %d\n", __FILE__, __FUNCTION__, __LINE__,
+                parent->offset, parent->nodep->children);
     }
     return retval;
 }
@@ -292,7 +382,9 @@ static int make_resx_node(FILE * const stream, const int argc,
     int32_t retval;
     for (resx_node_t *nodep; argind < argc; ++argind)
     {
-        printf("Line %d: argv[%d] = %s\n", __LINE__, argind, argv[argind]);
+        fprintf(stdout, "--------------------------------\n");
+        fprintf(stdout, "File %s, Function %s, Line %d: argv[%d] = {%s}\n",
+                __FILE__, __FUNCTION__, __LINE__, argind, argv[argind]);
         if ((nodep = (resx_node_t *) malloc(sizeof(resx_node_t))) == NULL)
         {
             fprintf(stderr, "Error: File %s, Function %s, Line %d, malloc.\n",
@@ -309,8 +401,6 @@ static int make_resx_node(FILE * const stream, const int argc,
         nodep->prev = previous.offset;
         if (previous.nodep != NULL)
         {
-            printf("File %s, Function %s, Line %d, offset = %d\n",
-                    __FILE__, __FUNCTION__, __LINE__, previous.offset);
             previous.nodep->next = retval;
             // 写入节点
             if (fseeko(stream, previous.offset, SEEK_SET) == -1)
@@ -319,6 +409,11 @@ static int make_resx_node(FILE * const stream, const int argc,
                         __FILE__, __FUNCTION__, __LINE__, strerror(errno));
                 return -1;
             }
+            fprintf(stdout, "File %s, Function %s, Line %d, nodep->prev = %d, "
+                    " previous.nodep->prev = %d, previous.nodep->next = %d, "
+                    "previous.nodep->children = %d\n", __FILE__, __FUNCTION__,
+                    __LINE__, nodep->prev, previous.nodep->prev,
+                    previous.nodep->next, previous.nodep->children);
             resxnode_htobe(previous.nodep);
             if (resx_fstream_write(previous.nodep, sizeof(resx_node_t),
                     (size_t) 1U, stream) < (size_t) 1U)
@@ -329,6 +424,7 @@ static int make_resx_node(FILE * const stream, const int argc,
             }
             free(previous.nodep);
             previous.nodep = NULL;
+            previous.offset = RESOURCE_CHAOS;
         }
         previous.offset = retval;
         previous.nodep = nodep;
@@ -344,6 +440,10 @@ static int make_resx_node(FILE * const stream, const int argc,
                     __FILE__, __FUNCTION__, __LINE__, strerror(errno));
             return -1;
         }
+        fprintf(stdout, "File %s, Function %s, Line %d, offset = %d, node->prev = %d, "
+                "node->next = %d, node->childrent = %d.\n", __FILE__, __FUNCTION__,
+                __LINE__, previous.offset, previous.nodep->prev,
+                previous.nodep->next, previous.nodep->children);
         resxnode_htobe(previous.nodep);
         if (resx_fstream_write(previous.nodep, sizeof(resx_node_t),
                 (size_t) 1U, stream) < (size_t) 1U)
@@ -395,11 +495,6 @@ static int make_resx_head(FILE * const stream)
     resxhead.ident[RESX_DATA] = RESXDATA2MSB;
     resxhead.ident[RESX_MAJOR_VERSION] = RESX_MAJOR_CURRENT;
     resxhead.ident[RESX_MINOR_VERSION] = RESX_MINOR_CURRENT;
-
-    printf("creation = %d\n"
-            "length = %d\n"
-            "nodesize = %d\n", resxhead.creation,
-            resxhead.length, resxhead.nodesize);
 
     resxhead_htobe(&resxhead);
     if (resx_fstream_write(&resxhead, sizeof(resx_head_t), (size_t) 1U, stream)
