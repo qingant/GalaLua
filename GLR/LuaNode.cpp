@@ -116,6 +116,7 @@ int Process::Spawn( lua_State *l )
 
         const char *method = NULL;
         method = lua_tolstring(l, 2, &len);
+
         if (module == NULL)
         {
             THROW_EXCEPTION_EX("Extract Para Error");
@@ -214,16 +215,22 @@ Process & Process::GetNodeById( LN_ID_TYPE id)
 
 int GLR::Process::GetOption(lua_State *l)
 {
-    const char *str=luaL_checkstring(l,1);
-    if (!_CProcess.ExistOption(str))
+    //if (!_CProcess.ExistOption(str))
+    //{
+    //    lua_pushnil(l);
+    //}
+    //else
+    //{
+    //    std::string opt=_CProcess.GetOption(str);
+    //    lua_pushstring(l,opt.c_str());
+    //}
+    lua_newtable(l);
+    for (size_t i = 0; i != _CProcess.Arguments.size(); ++i)
     {
-        lua_pushnil(l);
+        lua_pushstring(l, _CProcess.Arguments[i].c_str());
+        lua_rawseti(l, -2, i);
     }
-    else
-    {
-        std::string opt=_CProcess.GetOption(str);
-        lua_pushstring(l,opt.c_str());
-    }
+    
     return 1;
 }
 int GLR::Process::SetOptions(lua_State *l)
@@ -288,7 +295,6 @@ void Process::InitNode( void )
 
     //StackDump();
     //lua_pop(_Stack,1);
-
 
     // some global var
     lua_pushinteger(_Stack, _Id);
@@ -812,5 +818,5 @@ int GLR::Process::Exit( lua_State *l )
 {
     //TODO: 判断调用方进程号，只有主进程（0号）方可exit
     //TODO: 使用其他信号，优雅可控的退出程序
-    kill(getpid(), SIGKILL);
+    return kill(getpid(), SIGKILL);
 }
