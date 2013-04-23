@@ -13,34 +13,34 @@ void daemonize(void)
 {  
     pid_t pid, sid;  
     int fd;   
-  
+
     /* Fork off the parent process */  
     pid = CRT_fork();  
     if (pid < 0)    
     {     
         exit(1);  
     }     
-  
+
     if (pid > 0)    
     {     
         exit(0); /*Killing the Parent Process*/  
     }     
-  
+
     /* At this point we are executing as the child process */  
-  
+
     /* Create a new SID for the child process */  
     sid = setsid();  
     if (sid < 0)    
     {  
         exit(1);  
     }  
-  
+
     /* Change the current working directory. */  
     if ((chdir("/")) < 0)  
     {  
         exit(1);  
     }  
-  
+
     fd = CRT_open("/dev/null",O_RDWR, 0);  
     if (fd != -1)  
     {  
@@ -82,7 +82,9 @@ int main( int argc, char* argv[] )
     //    printf("Resume Error : %s\n", e.what());
     //}
 
-    _CProcess.Initialize(argc,argv,NULL,"m:e:d:?h:?p:?c:?Di:");
+
+    _CProcess.Initialize(argc,argv,NULL,"m:?e:d:?h:?p:?c:?D");
+
     if (_CProcess.ExistOption("D"))
     {
         daemonize();
@@ -102,20 +104,22 @@ int main( int argc, char* argv[] )
     {
         port = atoi(_CProcess.GetOption("p").c_str());
     }
+    std::string path = "./\?.lua;";
     if (_CProcess.ExistOption("d"))
     {
-        std::string path = _CProcess.GetOption("d");
-        //std::string lua_path = path + "?.lua";
-        //std::string lua_cpath = path + "?.so";
-        setenv("LUA_PATH", path.c_str(), 1);
-        //setenv("LUA_CPATH",lua_cpath.c_str(), 1);
+        path += _CProcess.GetOption("d");
     }
+
+    setenv("LUA_PATH", path.c_str(), 1);
+
+    std::string cpath = "./\?.so;";
     if (_CProcess.ExistOption("c"))
     {
-        std::string cpath = _CProcess.GetOption("c");
-        setenv("LUA_CPATH", cpath.c_str(), 1);
+        cpath += _CProcess.GetOption("c");
     }
-    std::string file=_CProcess.GetOption("m");
+
+    setenv("LUA_CPATH", cpath.c_str(), 1);
+
     std::string entry = "main";
     if (_CProcess.ExistOption("e"))
     {
@@ -125,7 +129,15 @@ int main( int argc, char* argv[] )
     //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
     //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
     GLR::Runtime::Initialize(host, port);
-    GLR::Runtime::GetInstance().Entry(file,entry);
+    if (_CProcess.ExistOption("m"))
+    {
+        std::string file=_CProcess.GetOption("m");
+        GLR::Runtime::GetInstance().Entry(file,entry);
+    }
+    else
+    {
+        GLR::Runtime::GetInstance().EntryEx(_CProcess.Arguments[1]);
+    }
     //_CProcess.SetArgument("What the hell? Do not work?");
     while (true)
     {
@@ -133,6 +145,6 @@ int main( int argc, char* argv[] )
     }
     //printf("test\n");
     //scanf("%d",new int);
-	return 0;
+    return 0;
 }
 

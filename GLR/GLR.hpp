@@ -27,6 +27,7 @@ namespace GLR
         Process  & GetProcess(int pid) const;
     public:
         void Entry(const std::string &path, const std::string &entry);
+        void EntryEx(const std::string &path);
     private:
         void Initialize();
     public:

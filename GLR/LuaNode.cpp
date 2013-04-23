@@ -509,7 +509,7 @@ void Process::Start( Schedule &sche)
 void Process::LoadFile( const std::string &path )
 {
 
-    if ((luaL_loadfile(_Stack, path.c_str()) !=0) || (lua_pcall(_Stack, 0, 0, 0) != 0))
+    if (luaL_loadfile(_Stack, path.c_str()) !=0)
     {
         StackDump();
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
@@ -518,8 +518,11 @@ void Process::LoadFile( const std::string &path )
     else
     {
         _Path = path;
+        lua_pushstring(_Stack, "__main__");
+        _Status._NArg = 1; // one argument
         printf("Load File(%s) Succeed\n", path.c_str());
     }
+    
 }
 
 void Process::StackDump()
