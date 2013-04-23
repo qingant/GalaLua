@@ -46,6 +46,7 @@ void * GLR::SocketWorker::Run( const Galaxy::GalaxyRT::CThread & )
             } 
             else if (ev.second&Galaxy::GalaxyRT::EV_IN)
             {
+                GALA_DEBUG("EV_IN");
                 OnRecv(ev);
             }
             else if (ev.second&Galaxy::GalaxyRT::EV_OUT)
@@ -86,14 +87,14 @@ void GLR::SocketWorker::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev )
     int fd = ev.first;
     LinkStack *ls = _LinkMap[fd];
     assert(ls!=NULL);
-
     try
     {
+
         ls->OnRecv(ev, _Poller);
     }
     catch (Galaxy::GalaxyRT::CException &e)
     {
-
+        GALA_DEBUG(e.what());
         OnErr(ev);
 
     }
@@ -105,6 +106,7 @@ void GLR::SocketWorker::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev )
     LinkStack *ls = _LinkMap[fd];
     try
     {
+
         ls->OnSend(ev, _Poller);
     }
     catch (Galaxy::GalaxyRT::CException &e)
@@ -219,6 +221,7 @@ void GLR::SocketController::DoRecv( lua_State *l )
     int pid = luaL_checkinteger(l,-1);
     int fd = luaL_checkinteger(l,3);
     int len = luaL_checkinteger(l, 4);
+    GALA_DEBUG("RECV %d %d", fd,  len);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex);
     LinkStack *ls = _LinkMap[fd];
     if (ls == NULL)
@@ -228,9 +231,11 @@ void GLR::SocketController::DoRecv( lua_State *l )
         return;
     }
 
+    Runtime::GetInstance().GetBus().IntSuspend(pid);  
+    
+
     ls->PutRecvTask(pid, len);
     _Poller.Register(fd, Galaxy::GalaxyRT::EV_IN);
-    Runtime::GetInstance().GetBus().IntSuspend(pid);
 }
 
 void GLR::SocketController::DoSend( lua_State *l)
@@ -249,9 +254,10 @@ void GLR::SocketController::DoSend( lua_State *l)
         Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
         return;
     }
+
+    Runtime::GetInstance().GetBus().IntSuspend(pid);
     ls->PutSendTask(pid, std::string(buf, len));
     _Poller.Register(fd, Galaxy::GalaxyRT::EV_OUT);
-    Runtime::GetInstance().GetBus().IntSuspend(pid);
 }
 
 void GLR::SocketController::DoAccept( lua_State *l )
@@ -367,11 +373,12 @@ void GLR::StreamLinkStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLL
 void GLR::StreamLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLLERTYPE &_Poller )
 {
     //_Sock->SetNonBlocking();
+    GALA_DEBUG("Recv");
     int fd = ev.first;
     Task &t = _RecvTasks.Head();
     if (t.Type == StreamLinkStack::RECV)
     {
-
+        assert(t.RecvArg.Len - t.Current!=0);
         size_t len = _Sock->Recv(&t.Buffer[t.Current], 
             t.RecvArg.Len - t.Current);
 
@@ -387,8 +394,8 @@ void GLR::StreamLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POL
             //Process &n = Runtime::GetInstance().GetProcess(pid);
             //lua_pushlstring(n.Stack(), t.Buffer.c_str(), t.RecvArg.Len);
             _Poller.Remove(fd, Galaxy::GalaxyRT::EV_IN);
+            GALA_DEBUG("Removed! %d", fd);
             Runtime::GetInstance().GetBus().Response(pid,1, LUA_TSTRING, t.Buffer.c_str(), t.Buffer.size());
-            GALA_ERROR("%d",fd);
             _RecvTasks.Get();
 
         }
@@ -416,6 +423,7 @@ void GLR::StreamLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev , PO
         _SendTasks.Get();
         if (_SendTasks.Empty())
         {
+            GALA_DEBUG("Remove");
             _Poller.Remove(fd, Galaxy::GalaxyRT::EV_OUT);
         }
 
