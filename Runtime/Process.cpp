@@ -130,53 +130,32 @@ namespace Galaxy
         };
 
 
-        bool CProcess::ParseOpt(const std::string &optfmt)
+        bool CProcess::ParseOpt(const std::string &)
         {
-            int rc;
             std::string tmp(1,0);
-            opterr = 0;
-            for(rc=0;rc!=-1;)
+            int argc = 1;
+            char **argv = Argv;
+            for(;argc < Argc;)
             {
-                int argc = Argc;
-                char **argv = Argv;
-                rc = getopt(argc, argv, optfmt.c_str());
-
-                if (rc == -1)
+                const char *item = argv[argc];
+                if ((strlen(item) == 2) && (item[0] == '-') && isalpha(item[1]))
                 {
-                    break;
-                }
-
-                else if (rc == '?')
-                {
-                    continue;
-                    tmp[0] = optopt;
-                    /*   if(optarg == NULL)
+                    tmp[0] = item[1];
+                    
+                    const char *next = argv[argc+1];
+                    if (next[0] != '-')
                     {
-                    Options.insert(std::make_pair(tmp, std::string("")));
+                        argc++;
+                        Options.insert(std::make_pair(tmp, std::string(next)));
                     }
                     else
                     {
-                    Options.insert(std::make_pair(tmp, std::string(optarg)));
+
+                        Options.insert(std::make_pair(tmp, std::string("")));
                     }
-                    */
-                    std::string err(30, 0);
-                    CRT_snprintf(&err[0], err.size(), "invalid option: [ %s ]", tmp.c_str());
-                    tmp.resize(CRT_strlen(&tmp[0]));
-                    THROW_GENERALERROR(CException, err);
+
                 }
-                tmp[0] = rc;
-                if (rc == ':')
-                {
-                    tmp[0] = optopt;
-                }
-                if(optarg == NULL)
-                {
-                    Options.insert(std::make_pair(tmp, std::string("")));
-                }
-                else
-                {
-                    Options.insert(std::make_pair(tmp, std::string(optarg)));
-                }
+                argc++;
             }
             return true;
         }
@@ -270,8 +249,8 @@ namespace Galaxy
         {
             size_t lenLimit=0;
             size_t len = CRT_strlen(info);
-            int length=0;
-            for(int i=0;i<Argc && len>length;++i)
+            size_t length=0;
+            for(size_t i=0;i<(size_t)Argc && len>length;++i)
             {
                 lenLimit = ArgPairs[i].first;
                 CRT_memset(Argv[i], 0x00, lenLimit);
