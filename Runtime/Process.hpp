@@ -50,15 +50,18 @@ namespace Galaxy
          struct rlimit GetRLimit(INT res);
          void Initialize(INT argc, CHAR **argv, CHAR **envp, const std::string &optfmt);
 
+
+      public:
+          std::vector<std::string>  Arguments;
       private:
          bool ParseOpt(const std::string&);
       private:
          INT Argc;
          CHAR **Argv;
          CHAR **Envp;
-         ARGPAIRS ArgPairs;
          OPTMAP Options;
          std::vector<std::string> MainArg;
+         ARGPAIRS ArgPairs;
          // std::auto_ptr<COptions> _COpts;
       };
 
