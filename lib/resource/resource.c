@@ -11,9 +11,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#if defined(__linux__) || defined(__aix__)
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__aix__)
 #include <limits.h>
 #endif
+
+#include "bswap.h"
+#include "resource.h"
 
 #ifndef PATH_MAX
 #  define PATH_MAX    (4096)
@@ -22,9 +25,6 @@
 #ifndef NAME_MAX
 #  define NAME_MAX    (255)
 #endif
-
-#include "bswap.h"
-#include "resource.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -100,10 +100,10 @@ static int resx_environ_open_internal(resx_environ_t * const resxenvp)
     resxenvp->offset -= resxenvp->length;
     resxenvp->nodesize = resxhead.nodesize;
 
-    printf("File %s, Function %s, Line %d: length = %d\n"
-            "nodesize = %d\n"
-            "offset = %d\n", __FILE__, __FUNCTION__, __LINE__,
-            resxenvp->length, resxenvp->nodesize, resxenvp->offset);
+//    printf("File %s, Function %s, Line %d: length = %d\n"
+//            "nodesize = %d\n"
+//            "offset = %d\n", __FILE__, __FUNCTION__, __LINE__,
+//            resxenvp->length, resxenvp->nodesize, resxenvp->offset);
 
     return 0;
 }
@@ -283,13 +283,13 @@ int32_t resx_environ_read(const resx_environ_t * const resxenvp,
                     __FILE__, __FUNCTION__, __LINE__);
             return -1;
         }
-        fprintf(stdout, "File %s, Function %s, Line %d, name = %s\n",
-                __FILE__, __FUNCTION__, __LINE__, &name[0]);
+//        fprintf(stdout, "File %s, Function %s, Line %d, name = %s\n",
+//                __FILE__, __FUNCTION__, __LINE__, &name[0]);
         if ((retval = resx_dirname(pathname, &buf[0], sizeof(buf) - 1)) != NULL)
         { // 当前路径pathname仍然存在‘/’分隔符
-            fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s, "
-                    "buf = %s, name = %s, retval = %s\n", __FILE__,
-                    __FUNCTION__, __LINE__, pathname, buf, &name[0], retval);
+//            fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s, "
+//                    "buf = %s, name = %s, retval = %s\n", __FILE__,
+//                    __FUNCTION__, __LINE__, pathname, buf, &name[0], retval);
             if (strncmp(&name[0], &buf[0], sizeof(name) - 1) != 0)
             { // 遍历同辈节点，寻找指定名字的目录
                 next = resxnode.next;
@@ -299,9 +299,9 @@ int32_t resx_environ_read(const resx_environ_t * const resxenvp,
                 next = resxnode.children;
                 pathname = retval;
             }
-            fprintf(stdout, "File %s, Function %s, Line %d, resxnode.next = %d, "
-                    "resxnode.children = %d\n", __FILE__, __FUNCTION__,
-                    __LINE__, resxnode.next, resxnode.children);
+//            fprintf(stdout, "File %s, Function %s, Line %d, resxnode.next = %d, "
+//                    "resxnode.children = %d\n", __FILE__, __FUNCTION__,
+//                    __LINE__, resxnode.next, resxnode.children);
             if (next == RESOURCE_CHAOS)
             {
                 fprintf(stderr, "Debug: File %s, Function %s, Line %d, "
@@ -312,13 +312,13 @@ int32_t resx_environ_read(const resx_environ_t * const resxenvp,
         }
         else if (buf[0] == '\0')
         { // pathname中已不存在目录名（也就是说，不存在以‘/’分隔的字段
-            fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s\n",
-                    __FILE__, __FUNCTION__, __LINE__, pathname);
+//            fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s\n",
+//                    __FILE__, __FUNCTION__, __LINE__, pathname);
             if ((retval = resx_basename(pathname, &buf[0], sizeof(buf) - 1)) != NULL)
             {
-                fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s, "
-                        "buf = %s, retval = %s, name = %s\n", __FILE__,
-                        __FUNCTION__, __LINE__, pathname, buf, retval, &name[0]);
+//                fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s, "
+//                        "buf = %s, retval = %s, name = %s\n", __FILE__,
+//                        __FUNCTION__, __LINE__, pathname, buf, retval, &name[0]);
                 if (strncmp(&name[0], &buf[0], sizeof(name) - 1) != 0)
                 { // 遍历同辈节点，寻找指定名字的目录
                     next = resxnode.next;

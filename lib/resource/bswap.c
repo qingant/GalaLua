@@ -30,12 +30,12 @@ extern "C"
 #  if defined(__aix__) || (defined(__linux__) && (__GLIBC__ < 2 || __GLIBC_MINOR__ < 9))
 #    if BYTE_ORDER == BIG_ENDIAN
 
-uint16_t htobe16(const uint16_t h16)
+inline uint16_t htobe16(const uint16_t h16)
 {
     return h16;
 }
 
-uint16_t htole16(const uint16_t h16)
+inline uint16_t htole16(const uint16_t h16)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap16(h16);
@@ -44,12 +44,12 @@ uint16_t htole16(const uint16_t h16)
 #endif
 }
 
-uint16_t be16toh(const uint16_t be16)
+inline uint16_t be16toh(const uint16_t be16)
 {
     return be16;
 }
 
-uint16_t le16toh(const uint16_t le16)
+inline uint16_t le16toh(const uint16_t le16)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap16(le16);
@@ -58,12 +58,12 @@ uint16_t le16toh(const uint16_t le16)
 #endif
 }
 
-uint32_t htobe32(const uint32_t h32)
+inline uint32_t htobe32(const uint32_t h32)
 {
     return h32;
 }
 
-uint32_t htole32(const uint32_t h32)
+inline uint32_t htole32(const uint32_t h32)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap32(h32);
@@ -72,12 +72,12 @@ uint32_t htole32(const uint32_t h32)
 #endif
 }
 
-uint32_t be32toh(const uint32_t be32)
+inline uint32_t be32toh(const uint32_t be32)
 {
     return be32;
 }
 
-uint32_t le32toh(const uint32_t le32)
+inline uint32_t le32toh(const uint32_t le32)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap32(le32);
@@ -86,12 +86,12 @@ uint32_t le32toh(const uint32_t le32)
 #endif
 }
 
-uint64_t htobe64(const uint64_t h64)
+inline uint64_t htobe64(const uint64_t h64)
 {
     return h64;
 }
 
-uint64_t htole64(const uint64_t h64)
+inline uint64_t htole64(const uint64_t h64)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap64(h64);
@@ -100,12 +100,12 @@ uint64_t htole64(const uint64_t h64)
 #endif
 }
 
-uint64_t be64toh(const uint64_t be64)
+inline uint64_t be64toh(const uint64_t be64)
 {
     return be64;
 }
 
-uint64_t le64toh(const uint64_t le64)
+inline uint64_t le64toh(const uint64_t le64)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap64(le64);
@@ -116,7 +116,7 @@ uint64_t le64toh(const uint64_t le64)
 
 #    elif BYTE_ORDER == LITTLE_ENDIAN  // end of '#elif BYTE_ORDER == BIG_ENDIAN'
 
-uint16_t htobe16(const uint16_t h16)
+inline uint16_t htobe16(const uint16_t h16)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap16(h16);
@@ -125,12 +125,12 @@ uint16_t htobe16(const uint16_t h16)
 #endif
 }
 
-uint16_t htole16(const uint16_t h16)
+inline uint16_t htole16(const uint16_t h16)
 {
     return h16;
 }
 
-uint16_t be16toh(const uint16_t be16)
+inline uint16_t be16toh(const uint16_t be16)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap16(be16);
@@ -139,12 +139,12 @@ uint16_t be16toh(const uint16_t be16)
 #endif
 }
 
-uint16_t le16toh(const uint16_t le16)
+inline uint16_t le16toh(const uint16_t le16)
 {
     return le16;
 }
 
-uint32_t htobe32(const uint32_t h32)
+inline uint32_t htobe32(const uint32_t h32)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap32(h32);
@@ -153,12 +153,12 @@ uint32_t htobe32(const uint32_t h32)
 #endif
 }
 
-uint32_t htole32(const uint32_t h32)
+inline uint32_t htole32(const uint32_t h32)
 {
     return h32;
 }
 
-uint32_t be32toh(const uint32_t be32)
+inline uint32_t be32toh(const uint32_t be32)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap32(be32);
@@ -167,12 +167,12 @@ uint32_t be32toh(const uint32_t be32)
 #endif
 }
 
-uint32_t le32toh(const uint32_t h32)
+inline uint32_t le32toh(const uint32_t h32)
 {
     return h32;
 }
 
-uint64_t htobe64(const uint64_t h64)
+inline uint64_t htobe64(const uint64_t h64)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap64(h64);
@@ -181,12 +181,12 @@ uint64_t htobe64(const uint64_t h64)
 #endif
 }
 
-uint64_t htole64(const uint64_t h64)
+inline uint64_t htole64(const uint64_t h64)
 {
     return h64;
 }
 
-uint64_t be64toh(const uint64_t be64)
+inline uint64_t be64toh(const uint64_t be64)
 {
 #if defined(__GNUC__) && __GNUC__ > 3 && __GNUC_MINOR__ > 2
     return __builtin_bswap64(be64);
@@ -195,7 +195,7 @@ uint64_t be64toh(const uint64_t be64)
 #endif
 }
 
-uint64_t le64toh(const uint64_t le64)
+inline uint64_t le64toh(const uint64_t le64)
 {
     return le64;
 }
