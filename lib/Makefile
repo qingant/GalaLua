@@ -19,4 +19,4 @@ libzip:
 luazip:
 	cd lua-zip && make
 lfs:
-	cd luafilesystem make && make install
+	cd luafilesystem && make && make install

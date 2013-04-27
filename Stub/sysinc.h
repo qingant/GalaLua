@@ -33,6 +33,7 @@
 #include <sys/errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/resource.h>
 
 #include <sys/uio.h>
 
