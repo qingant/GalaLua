@@ -60,15 +60,27 @@
     <_STRUCTURE>
         <MonitorList name="" meta="array" count="1" macro="MONITOR_MAX" UIType="array" title="监控配置列表">
             <Monitor name="" meta="struct" UIType="arraystruct" title="具体监控配置" AliasPath="Base/Alias">
+                <LuaEnvList name="" meta="array" count="8" UIType="arraystruct" title="lua环境列表">
+                    <LuaEnv name="" meta="struct" UIType="struct" title="lua环境配置">
+                        <Path name="" meta="entry" UIType="entry" commit="" title="路径配置">
+                            <type>path</type>
+                            <size>128</size>
+                        </Path>
+                    </LuaEnv>
+                </LuaEnvList>
                 <Base name="" meta = "struct" UIType="struct" title="基本配置">
                     <Alias name=""  meta="entry" default="" UIType="entry" commit="" title="别名">
                       <type>string</type>
                       <size>32</size>
                     </Alias>
-                    <Token name="" meta = "entry" default="" UIType="entry" commit ="" title="CTR路径配置">
+                    <AMQToken name="" meta = "entry" default="" UIType="entry" commit ="" title="AMQ路径配置">
                         <type>path</type>
                         <size>32</size>
-                    </Token>
+                    </AMQToken>
+                    <RTToken name="" meta = "entry" default="" UIType="entry" commit ="" title="路由表路径配置">
+                        <type>path</type>
+                        <size>32</size>
+                    </RTToken>
                     <SVCLimits name="" meta = "entry" default="2" UIType="entry" commit ="" title="SVC数量配置">
                         <type>int</type>
                         <limit>
@@ -163,6 +175,21 @@
                          </_UNIONSELECTOR>
                     </DBConnection>
                 </SVC>
+                <CTR name="" meta="struct" UIType="struct" commit="" title="监听器配置" >
+                    <Address name="" meta="struct" UIType="struct" commit="" title="地址配置">
+                        <IP  name="" meta="entry" UIType="entry" commit="" title="IP配置">
+                            <type>ip</type>
+                            <size>16</size>
+                        </IP>
+                        <Port name="" meta="entry" UIType="entry" commit="" title="端口配置">
+                            <type>int</type>
+                            <limit>
+                                <min>1024</min>
+                                <max>65535</max>
+                            </limit>
+                        </Port>
+                    </Address>
+                </CTR>
                 <LSRList name="" meta="array" count="64" UIType="array" commit="" title="监听器列表">
                     <LSR name="" meta="struct" UIType="arraystruct" commit="" title="监听器配置" AliasPath="Alias">
                         <Alias name="" meta="entry" default="" UIType="entry" commit="" title="别名配置">
@@ -243,45 +270,6 @@
                         </Protocol>
                     </LSR>
                 </LSRList>
-                <CNRList name="" meta="array" count="64" UIType="array" commit="" title="接出适配器列表">
-                    <CNR name="" meta="struct" UIType="arraystruct" commit="" title="接出适配器配置" AliasPath="Alias">
-                        <Alias name="" meta="entry" default="" UIType="entry" commit="" title="别名配置">
-                            <type>string</type>
-                            <size>32</size>
-                        </Alias>
-                        <PlugIn name="" meta="union" default="" UIType="union" commit="" title="适配器类型">
-                            <_SCROLLTYPE name="" meta="entry" UIType="entry" commit="" title="类型配置">
-                                <type>ConectorType</type>
-                            </_SCROLLTYPE>
-                            <_UNIONSELECTOR name="" meta="struct" UIType="struct" commit="" title="具体配置">
-                                <ECHO name="" meta="struct" UIType="struct" commit="" title="echo适配器">
-                                    <ImplDllName name="" meta="entry" default="TimeOutCNR.so" UIType="readonly" commit="" title="动态库连接配置">
-                                        <type>string</type>
-                                        <size>32</size>
-                                    </ImplDllName>
-                                </ECHO>
-                                <TIMEOUT name="" meta="struct" UIType="struct" commit="" title="TimeOut适配器">
-                                    <ImplDllName name="" meta="entry" default="TimeOutCNR.so" UIType="readonly" commit="" title="动态库连接配置">
-                                        <type>string</type>
-                                        <size>32</size>
-                                    </ImplDllName>
-                                </TIMEOUT>
-                                <SQUARE name="" meta="struct" UIType="struct" commit="" title="Square适配器">
-                                    <ImplDllName name="" meta="entry" default="SquareCNR.so" UIType="readonly" commit="" title="动态库连接配置">
-                                        <type>string</type>
-                                        <size>32</size>
-                                    </ImplDllName>
-                                </SQUARE>
-                                <STATE name="" meta="struct" UIType="struct" commit="" title="Status适配器">
-                                    <ImplDllName name="" meta="entry" default="StatusCNR.so" UIType="readonly" commit="" title="动态库连接配置">
-                                        <type>string</type>
-                                        <size>32</size>
-                                    </ImplDllName>
-                                </STATE>
-                            </_UNIONSELECTOR>
-                        </PlugIn>
-                    </CNR>
-                </CNRList>
             </Monitor>
         </MonitorList>
     </_STRUCTURE>

@@ -3,8 +3,22 @@
     <_STRUCTURE>
         <MonitorList>
             <Monitor>
+                <LuaEnvLists>
+                    <LuaEnvList0>
+                        <LuaEnv>
+                            <Path>~/lib/lua/?.lua</Path>
+                        </LuaEnv>
+                    </LuaEnvList0>
+                    <LuaEnvList1>
+                        <LuaEnv>
+                            <Path>~/lib/lua/?.so</Path>
+                        </LuaEnv>
+                    </LuaEnvList1>
+                </LuaEnvLists>
                 <Base>
                     <Alias>Monitor0001</Alias>
+                    <AMQToken>AMQToken.chl</AMQToken>
+                    <RTToken>RouterToken.db</RTToken>
                     <Token>MTR.00.CTR</Token>
                     <SVCLimits>4</SVCLimits>
                 </Base>
@@ -47,6 +61,12 @@
                          </_UNIONSELECTOR>
                     </DBConnection>
                 </SVC>
+                <CTR>
+                    <Address>
+                        <IP>0.0.0.0</IP>
+                        <Port>5000</Port>
+                    </Address>
+                </CTR>
                 <LSRLists>
                     <LSRList0>
                         <LSR>
@@ -109,52 +129,6 @@
                         </LSR>
                     </LSRList1>
                 </LSRLists>
-                <CNRLists>
-                    <CNRList0>
-                        <CNR>
-                            <Alias>__TMO__</Alias>
-                            <PlugIn>
-                                <_SCROLLTYPE>1</_SCROLLTYPE>
-                                <_UNIONSELECTOR>
-                                    <ECHO>
-                                        <ImplDllName>EchoCNR.so</ImplDllName>
-                                    </ECHO>
-                                    <TIMEOUT>
-                                        <ImplDllName>TimeOutCNR.so</ImplDllName>
-                                    </TIMEOUT>
-                                    <SQUARE>
-                                        <ImplDllName>SquareCNR.so</ImplDllName>
-                                    </SQUARE>
-                                    <STATE>
-                                        <ImplDllName>StatusCNR.so</ImplDllName>
-                                    </STATE>
-                                </_UNIONSELECTOR>
-                            </PlugIn>
-                        </CNR>
-                    </CNRList0>
-                    <CNRList1>
-                        <CNR>
-                            <Alias>status</Alias>
-                            <PlugIn>
-                                <_SCROLLTYPE>3</_SCROLLTYPE>
-                                <_UNIONSELECTOR>
-                                    <ECHO>
-                                        <ImplDllName>EchoCNR.so</ImplDllName>
-                                    </ECHO>
-                                    <TIMEOUT>
-                                        <ImplDllName>TimeOutCNR.so</ImplDllName>
-                                    </TIMEOUT>
-                                    <SQUARE>
-                                        <ImplDllName>SquareCNR.so</ImplDllName>
-                                    </SQUARE>
-                                    <STATE>
-                                        <ImplDllName>StatusCNR.so</ImplDllName>
-                                    </STATE>
-                                </_UNIONSELECTOR>
-                            </PlugIn>
-                        </CNR>
-                    </CNRList1>
-                </CNRLists>
             </Monitor>
         </MonitorList>
     </_STRUCTURE>
