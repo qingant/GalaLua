@@ -130,6 +130,9 @@
                             <max>200</max>
                         </limit>
                     </Threads>
+                    <MaxProcess name="" meta="entry" UIType="entry" commit="" title="最大处理进程数">
+                        <type>int</type>
+                    </MaxProcess>
                     <IsFlush name="" meta="entry" default="true" UIType="entry" commit="" title="是否刷新">
                         <type>bool</type>
                     </IsFlush>

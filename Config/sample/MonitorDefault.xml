@@ -41,6 +41,7 @@
                 </AppLoger>
                 <SVC>
                     <Threads>8</Threads>
+                    <MaxProcess>256</MaxProcess>
                     <IsFlush>1</IsFlush>
                     <DBConnection>
                         <_SCROLLTYPE>4</_SCROLLTYPE>
