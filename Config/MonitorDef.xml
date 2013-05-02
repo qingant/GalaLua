@@ -34,10 +34,13 @@
             <AppLogNameType meta="enum">
                 <NONETYPE/>
                 <DETAILS/>
+                <SIMPLE/>
             </AppLogNameType>
             <AppLogDirType meta="enum">
                 <NONETYPE/>
-                <DEFAULT/>
+                <DATE/>
+                <DAY/>
+                <WEEK/>
             </AppLogDirType>
     </_TYPEDEFINE>
     <_VERSION>2.0</_VERSION>

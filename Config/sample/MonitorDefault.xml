@@ -32,7 +32,7 @@
                     <Files>200000</Files>
                     <Dir>~/log/</Dir>
                     <NameFormat>1</NameFormat>
-                    <DirFormat>1</DirFormat>
+                    <DirFormat>0</DirFormat>
                 </AppLoger>
                 <SVC>
                     <Threads>8</Threads>
