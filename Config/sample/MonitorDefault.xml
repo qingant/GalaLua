@@ -26,18 +26,13 @@
                     <Level>0</Level>
                 </LowLoger>
                 <AppLoger>
-                    <_SCROLLTYPE>0</_SCROLLTYPE>
-                    <_UNIONSELECTOR>
-                        <DATEMODE>
-                            <NamePattern>~/log/$(date)/P$(MC)_$(TC)_$(seq).log</NamePattern>
-                        </DATEMODE>
-                        <APPMODE>
-                            <NamePattern></NamePattern>
-                        </APPMODE>
-                        <CUSTOMMODE>
-                            <NamePattern></NamePattern>
-                        </CUSTOMMODE>
-                    </_UNIONSELECTOR>
+                    <Level>0</Level>
+                    <Details>1</Details>
+                    <Size>64*1024*1024</Size>
+                    <Files>200000</Files>
+                    <Dir>~/log/</Dir>
+                    <NameFormat>1</NameFormat>
+                    <DirFormat>1</DirFormat>
                 </AppLoger>
                 <SVC>
                     <Threads>8</Threads>
@@ -76,11 +71,11 @@
                             <Threads>8</Threads>
                             <ThreadStackSize>4194304</ThreadStackSize>
                             <Protocol>
-                                <_SCROLLTYPE>0</_SCROLLTYPE>
+                                <_SCROLLTYPE>1</_SCROLLTYPE>
                                 <_UNIONSELECTOR>
                                     <LSRSTREAM>
                                         <Address>
-                                            <_SCROLLTYPE>0</_SCROLLTYPE>
+                                            <_SCROLLTYPE>1</_SCROLLTYPE>
                                             <_UNIONSELECTOR>
                                                 <UNIX>
                                                     <Token></Token>
@@ -106,11 +101,11 @@
                             <Threads>8</Threads>
                             <ThreadStackSize>4194304</ThreadStackSize>
                             <Protocol>
-                                <_SCROLLTYPE>0</_SCROLLTYPE>
+                                <_SCROLLTYPE>1</_SCROLLTYPE>
                                 <_UNIONSELECTOR>
                                     <LSRSTREAM>
                                         <Address>
-                                            <_SCROLLTYPE>0</_SCROLLTYPE>
+                                            <_SCROLLTYPE>1</_SCROLLTYPE>
                                             <_UNIONSELECTOR>
                                                 <UNIX>
                                                     <Token></Token>
