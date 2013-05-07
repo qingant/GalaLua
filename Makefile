@@ -19,4 +19,4 @@ lobj:
 # pyo:
 # 	make -C PyObject/
 lib:
-	make -C lib/
+	make -C Lib/
