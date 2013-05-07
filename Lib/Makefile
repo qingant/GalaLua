@@ -1,5 +1,5 @@
 SQLITE_HOME = $(HOME)/
-DES =  json sqlite dba struct zip lfs cp
+DES =  json sqlite dba struct libzip lfs cp
 all:$(DES)
 .PHONY:$(DES)
 
@@ -15,7 +15,7 @@ dba:
 struct:
 	cd lua-struct && make && mv struct.so $(HOME)/lib/lua/ && make clean
 libzip:
-	cd libzip-0.11 && ./configure --prefix=$(HOME)/lib --enable-static=no && make && make install
+	cd lua-zip && make && make clean
 luazip:
 	cd lua-zip && make
 lfs:
