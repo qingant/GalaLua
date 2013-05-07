@@ -110,12 +110,6 @@ int daemonize(const int nochdir, const int noclose)
                         close(fd);
                     }
                 }
-                else
-                {
-                    fprintf(stderr, "Error: File %s, Function %s, Line %d, "
-                            "%s.\n", __FILE__, __FUNCTION__, __LINE__,
-                            strerror(errno));
-                }
             }
             return 0; /* grandchild returned */
         }
