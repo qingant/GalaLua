@@ -1,3 +1,0 @@
-"""
-handles for system monitor
-"""
