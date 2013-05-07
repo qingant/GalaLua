@@ -8,6 +8,8 @@ libGalaxyQueue.so:$(OBJS)
 	@echo $(PLATFORM)
 	$(G++) $(LNKFLAG) $? $(SYTMLIB) $(STUBLIB) -o $@
 	mv $@ $(HOME)/lib/
+	mkdir -p $(HOME)/include/AMQ/
+	cp *.hpp $(HOME)/include/AMQ/
 
 Test5:Sample/Test5.o
 	rm -f $@

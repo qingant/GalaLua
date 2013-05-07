@@ -10,5 +10,7 @@ libGalaxyRT.so:$(OBJS)
 	rm -f $@
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lxml2 -o $@
 	mv $@ $(HOME)/lib/
+	mkdir -p $(HOME)/include/Runtime/
+	cp *.hpp $(HOME)/include/Runtime/
 
 CMPFLAG_:=$(SUBCMPFLAG)

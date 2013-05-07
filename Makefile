@@ -12,7 +12,7 @@ amq:
 	make -C AMQ/
 luajit:
 	make -C LuaJIT-2.0.0/  && make -C LuaJIT-2.0.0/ install 
-glr:
+glr:luajit
 	make -C GLR/
 lobj:
 	make -C LuaObject/
