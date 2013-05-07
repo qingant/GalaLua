@@ -21,6 +21,10 @@
 
 #include "bswap.h"
 
+#ifdef __GNUC__
+#define inline __inline__
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {

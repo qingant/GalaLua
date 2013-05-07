@@ -55,7 +55,7 @@ extern "C"
 #define RESX_MINOR_VERSION      7   /* File minor version byte index */
 #define RESX_MINOR_CURRENT      0
 
-#if defined(__linux__) || defined(__linux) || defined(linux)
+#if defined(linux) || defined(__linux) || defined(__linux__)
     #ifndef EXECUTION_SELF
         #define EXECUTION_SELF      "/proc/self/exe"
     #endif
@@ -107,7 +107,7 @@ void resx_head_init(resx_head_t * const resxheadp);
 
 void resx_node_init(resx_node_t * const resxnodep);
 
-#if defined(__linux__) || defined(__linux) || defined(linux)
+#if defined(linux) || defined(__linux) || defined(__linux__)
 int resx_environ_open(resx_environ_t * const resxenvp);
 #else
 int resx_environ_open(resx_environ_t * const resxenvp, const char *pathname);
@@ -115,16 +115,16 @@ int resx_environ_open(resx_environ_t * const resxenvp, const char *pathname);
 
 void resx_environ_close(resx_environ_t * const resxenvp);
 
+#ifndef resx_read
+#define resx_read(buf, bufsiz, resxenvp)    resx_fstream_read((buf), 1U, (bufsiz), (resxenvp)->stream)
+#endif
+
 int32_t resx_environ_read(const resx_environ_t * const resxenvp,
         const char *pathname);
 
 size_t strlcpy(char * const dst, const char * const src, size_t siz);
 
 size_t strlcat(char * const dst, const char * const src, size_t siz);
-
-#ifndef resx_read
-#define resx_read(buf, bufsiz, resxenvp)    resx_fstream_read((buf), 1U, (bufsiz), (resxenvp)->stream)
-#endif
 
 size_t resx_fstream_read(void * const buf, const size_t siz,
         const size_t nitems, FILE * const stream);
