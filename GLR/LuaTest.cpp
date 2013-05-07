@@ -104,7 +104,20 @@ int main( int argc, char* argv[] )
     {
         port = atoi(_CProcess.GetOption("p").c_str());
     }
+    std::string cpath = "./\?.so;";
+    char *cwd = NULL;
+    char clib_path[256] = {};
+
+    char lib_path[256] = {};
+    cwd = getenv("GDK_HOME");
+    if (cwd != NULL)
+    {
+        snprintf(clib_path, sizeof(clib_path), "%s/lib/lua/?.so;%s/lib/lua/?.so;", cwd, getenv("HOME"));
+        snprintf(lib_path, sizeof(lib_path), "%s/lib/lua/?.lua;%s/lib/lua/?.lua;", cwd, getenv("HOME"));
+    }
+
     std::string path = "./\?.lua;";
+    path += lib_path;
     if (_CProcess.ExistOption("d"))
     {
         path += _CProcess.GetOption("d");
@@ -112,7 +125,8 @@ int main( int argc, char* argv[] )
 
     setenv("LUA_PATH", path.c_str(), 1);
 
-    std::string cpath = "./\?.so;";
+
+    cpath += clib_path;
     if (_CProcess.ExistOption("c"))
     {
         cpath += _CProcess.GetOption("c");
