@@ -1,0 +1,764 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="glr\LuaNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glr\LuaTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glr\Schedule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_aux.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_base.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_bit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_debug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_ffi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_io.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_jit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_math.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_os.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_package.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_string.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lib_table.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\ljamalg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_alloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_api.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_asm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_bc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_bcread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_bcwrite.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_carith.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_ccall.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_ccallback.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_cconv.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_cdata.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_char.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_clib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_cparse.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_crecord.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_ctype.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_debug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_dispatch.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_err.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_ffrecord.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_func.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_gc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_gdbjit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_ir.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_lex.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_lib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_load.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_mcode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_meta.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_obj.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_opt_dce.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_opt_fold.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_opt_loop.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_opt_mem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_opt_narrow.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_opt_sink.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_opt_split.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_parse.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_record.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_snap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_state.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_str.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_strscan.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_tab.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_trace.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_udata.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_vmevent.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\lj_vmmath.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\luajit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\host\buildvm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\host\buildvm_asm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\host\buildvm_fold.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\host\buildvm_lib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\host\buildvm_peobj.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="luajit-2.0.0\src\host\minilua.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Dll.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Event.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Exception.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\File.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\GalaxmlParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Handle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\IPC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Options.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Pipe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\PQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Sync.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\XML.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="runtime\Zlib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLR\SocketController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLR\GLR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLR\Controllers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLR\BusController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLR\Bus.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\GalaxyMQ.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQAnchor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQBlock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQCarrier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQCond.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQDQ.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQException.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQLicense.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQMedia.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQMutex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQNodes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQNQ.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQPooler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQSuite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AMQ\MQView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="glr\LuaNode.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="glr\Schedule.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\dynasm\dasm_arm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\dynasm\dasm_mips.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\dynasm\dasm_ppc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\dynasm\dasm_proto.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\dynasm\dasm_x86.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lauxlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_alloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_arch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_asm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_asm_arm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_asm_mips.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_asm_ppc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_asm_x86.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_bc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_bcdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_bcdump.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_carith.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_ccall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_ccallback.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_cconv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_cdata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_char.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_clib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_cparse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_crecord.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_ctype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_def.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_dispatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_emit_arm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_emit_mips.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_emit_ppc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_emit_x86.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_err.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_errmsg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_ff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_ffdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_ffrecord.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_folddef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_frame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_func.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_gc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_gdbjit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_ir.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_ircall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_iropt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_jit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_lex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_lib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_libdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_mcode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_meta.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_obj.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_parse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_recdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_record.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_snap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_state.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_str.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_strscan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_tab.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_target.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_target_arm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_target_mips.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_target_ppc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_target_x86.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_trace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_traceerr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_udata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_vm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lj_vmevent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lua.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\luaconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\luajit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lualib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\lua.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\host\buildvm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="luajit-2.0.0\src\host\buildvm_arch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Any.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Buffer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Client.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Dll.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Event.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Exception.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\File.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\GalaxmlParser.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Handle.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\IPC.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Logger.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Object.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Options.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Pipe.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\PQueue.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\prettyprint98.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Process.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Queue.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Server.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Socket.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Sync.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Thread.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Timer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Transaction.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\TypeInc.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Utils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\XML.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runtime\Zlib.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GLR\Bus.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\GalaxyMQ.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQAncestor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQAnchor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQBlock.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQBuilder.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQCarrier.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQCond.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQDQ.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQException.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQI.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQLicense.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQMedia.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQMutex.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQNodes.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQNQ.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQPooler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQSuite.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\MQView.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AMQ\stlincl.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="luajit-2.0.0\doc\changes.html" />
+    <None Include="luajit-2.0.0\doc\contact.html" />
+    <None Include="luajit-2.0.0\doc\extensions.html" />
+    <None Include="luajit-2.0.0\doc\ext_c_api.html" />
+    <None Include="luajit-2.0.0\doc\ext_ffi.html" />
+    <None Include="luajit-2.0.0\doc\ext_ffi_api.html" />
+    <None Include="luajit-2.0.0\doc\ext_ffi_semantics.html" />
+    <None Include="luajit-2.0.0\doc\ext_ffi_tutorial.html" />
+    <None Include="luajit-2.0.0\doc\ext_jit.html" />
+    <None Include="luajit-2.0.0\doc\faq.html" />
+    <None Include="luajit-2.0.0\doc\install.html" />
+    <None Include="luajit-2.0.0\doc\luajit.html" />
+    <None Include="luajit-2.0.0\doc\running.html" />
+    <None Include="luajit-2.0.0\doc\status.html" />
+    <None Include="AMQ\Makefile" />
+  </ItemGroup>
+</Project>
