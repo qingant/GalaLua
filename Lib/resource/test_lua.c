@@ -5,15 +5,21 @@
  *      Author: esuomyekcim
  */
 
+#include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <inttypes.h>
+#include <sys/types.h>
+
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+#if defined(linux) || defined(__linux) || defined(__linux__)
 #include <sysexits.h>
+#endif
 
 #include <lua.h>
 #include <lualib.h>
@@ -22,7 +28,7 @@
 #include "resource.h"
 
 #ifndef LUA_SCRIPT
-#define LUA_SCRIPT "hello.lua"
+#define LUA_SCRIPT "test.lua"
 #endif
 
 #ifdef __cplusplus
@@ -73,6 +79,8 @@ int main(int argc, char *argv[])
                 lua_tostring(state, -1));
         lua_pop(state, 1);
     }
+
+    fprintf(stdout, "\n");
 
     lua_close(state);
     exit(EXIT_SUCCESS);
