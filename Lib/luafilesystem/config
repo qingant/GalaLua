@@ -1,10 +1,10 @@
 # Installation directories
 
 # Default installation prefix
-PREFIX=$(HOME)/lib
+PREFIX=$(HOME)/
 
 # System's libraries directory (where binary libraries are installed)
-LUA_LIBDIR= $(PREFIX)/lua
+LUA_LIBDIR= $(PREFIX)/lib/lua
 
 # Lua includes directory
 LUA_INC= $(PREFIX)/include/luajit-2.0/
