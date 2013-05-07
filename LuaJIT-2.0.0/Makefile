@@ -24,7 +24,7 @@ ABIVER=  5.1
 # Change the installation path as needed. This automatically adjusts
 # the paths in src/luaconf.h, too. Note: PREFIX must be an absolute path!
 #
-export PREFIX= $(HOME)/lib
+export PREFIX= $(HOME)/
 ##############################################################################
 
 DPREFIX= $(DESTDIR)$(PREFIX)

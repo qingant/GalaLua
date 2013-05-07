@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -pedantic -std=c99 -Wall -O2 -shared -fpic -I /usr/local/include/luajit-2.0 -I /usr/include/mysql -I $(HOME)/Sqlite3/include -I /usr/include/pgsql/server/ -I /opt/ibm/db2/V9.7/include/ -I /u01/app/oracle/product/10.2.0/rdbms/public/ -I .
+CFLAGS=-g -pedantic -std=c99 -Wall -O2 -shared -fpic -I ../../LuaJIT-2.0.0/src -I /usr/include/mysql -I $(HOME)/Sqlite3/include -I /usr/include/pgsql/server/ -I /opt/ibm/db2/V9.7/include/ -I /u01/app/oracle/product/10.2.0/rdbms/public/ -I .
 AR=ar rcu
 RANLIB=ranlib
 RM=rm -rf

@@ -1,13 +1,13 @@
 SQLITE_HOME = $(HOME)/Sqlite3
-DES = cp sqlite json dba struct zip lfs
+DES =  json dba struct zip lfs cp
 all:$(DES)
 .PHONY:$(DES)
 
 cp:
 	cp -rf *.lua $(HOME)/lib/lua/
 	cp -rf luadbi.0.5/dbaccess.lua $(HOME)/lib/lua/
-sqlite:
-	cd sqlite-src-3070900/sqlite-src-3070900 && ./configure --prefix=$(SQLITE_HOME) --disable-tcl --enable-shared --enable-threadsafe --enable-cross-thread-connections && make && make install && make clean
+# sqlite:
+# 	cd sqlite-src-3070900/sqlite-src-3070900 && ./configure --prefix=$(SQLITE_HOME) --disable-tcl --enable-shared --enable-threadsafe --enable-cross-thread-connections && make && make install && make clean
 json:
 	cd lua-cjson-2.1.0 && make && mv cjson.so $(HOME)/lib/lua/ && make clean
 dba:

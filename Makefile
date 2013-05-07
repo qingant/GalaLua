@@ -10,19 +10,13 @@ rt:
 	make -C Runtime/
 amq:
 	make -C AMQ/
-cfg:
-	make -C Config/
 luajit:
 	make -C LuaJIT-2.0.0/  && make -C LuaJIT-2.0.0/ install 
 glr:
 	make -C GLR/
 lobj:
 	make -C LuaObject/
-pyo:
-	make -C PyObject/
-app:
-	make -C App/
-sup:
-	make -C Supervisor/
+# pyo:
+# 	make -C PyObject/
 lib:
 	make -C lib/

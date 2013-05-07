@@ -1,4 +1,5 @@
-all:libGalaxyQueue.so Test5 Test8 Test7 Test9
+all:libGalaxyQueue.so 
+test:Test5 Test8 Test7 Test9
 include ../mk.rules
 
 
