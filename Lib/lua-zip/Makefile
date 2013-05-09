@@ -10,7 +10,7 @@
 all:libzip minizip
 
 libzip:
-	cd libzip-0.11.1 && ./configure && make -C lib && cp -f lib/.libs/libzip.so $(HOME)/lib/
+	cd libzip-0.11.1 && ./configure && make -C lib && cp -af lib/.libs/libzip.so* $(HOME)/lib/
 
 minizip:
 	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c  -o minizip.so -lluajit -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib 
