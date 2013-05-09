@@ -68,12 +68,13 @@ function format(t, name, indent)
    local function addtocart (value, name, indent, saved, field)
       indent = indent or ""
       saved = saved or {}
-      field = field or name
-
+      field = field or name or ""
+      
       cart = cart .. indent .. field
 
+
       if type(value) ~= "table" then
-         cart = cart .. " = " .. basicSerialize(value) .. ";\n"
+         cart = cart  .. basicSerialize(value) .. ";\n"
       else
          if saved[value] then
             cart = cart .. " = {...}; " .. saved[value] 
@@ -99,9 +100,13 @@ function format(t, name, indent)
       end
    end
 
-   name = name or "__unnamed__"
+   name = name -- or "__unnamed__"
    if type(t) ~= "table" then
-      return name .. " = " .. basicSerialize(t)
+      if name then
+         return name .. " = " .. basicSerialize(t)
+      else
+         return basicSerialize(t)
+      end
    end
    cart, autoref = "", ""
    addtocart(t, name, indent)
