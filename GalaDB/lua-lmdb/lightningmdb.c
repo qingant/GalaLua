@@ -329,6 +329,7 @@ static int cursor_get(lua_State *L) {
     MDB_cursor_op op = luaL_checkinteger(L,3);
     int err;
     pop_val(L,2,&k);
+    //k.mv_data 
     err = mdb_cursor_get(cursor,&k,&v,op);
     switch (err) {
     case MDB_NOTFOUND:
