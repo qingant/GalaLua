@@ -4,6 +4,7 @@
 #include "lualib.h"
 #include "Process.hpp"
 #include "resource.h"
+#include <algorithm>
 //defines of static data member
 using namespace GLR;
 std::vector<Process*> Process::NodeMap(10240); 
@@ -230,7 +231,7 @@ int GLR::Process::GetOption(lua_State *l)
         lua_pushstring(l, _CProcess.Arguments[i].c_str());
         lua_rawseti(l, -2, i);
     }
-    
+
     return 1;
 }
 int GLR::Process::SetOptions(lua_State *l)
@@ -522,7 +523,7 @@ void Process::LoadFile( const std::string &path )
         _Status._NArg = 1; // one argument
         printf("Load File(%s) Succeed\n", path.c_str());
     }
-    
+
 }
 
 void Process::StackDump()
@@ -795,9 +796,18 @@ void GLR::Process::Entry( const std::string &module, const std::string &entry, .
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
         THROW_EXCEPTION_EX(msg);
     }
-    StackDump();
-    lua_getfield(_Stack, -1, entry.c_str());
-    StackDump();
+    char tmp[1024] = {};
+    std::string::const_iterator it = entry.begin(), it1 = entry.begin();
+    do 
+    {
+        it = std::find(it1, entry.end(), '.');
+        memset(tmp,0 , sizeof(tmp));
+        std::copy(it1, it, tmp);
+        it1 = it + 1;
+        lua_getfield(_Stack, -1, tmp);
+        StackDump();
+    }while (it != entry.end());
+
 }
 
 int GLR::Process::MessageAvailable( lua_State *l )
