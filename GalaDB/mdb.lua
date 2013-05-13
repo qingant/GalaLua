@@ -448,11 +448,11 @@ end
 if ... == "__main__" then
     local path = "./temp/bar"
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
-	local root1 = "Domain"
+    local root1 = "Domain"
     local db = mdb:new(path)
     function test(db)
         
-		local e = db:get_root(root1)
+        local e = db:get_root(root1)
         pprint.pprint(e, "Root")
         local e1 = e:add_node("Bank")
         local e2 = e1:add_node("Branch")
@@ -464,8 +464,8 @@ if ... == "__main__" then
         e3:add_attrib("Alias", "fenhang1")
         e3:add_pair("Head", "Mr.Wang")
         e3:add_pair("Head", "Mrs.Wang")
-		print("Not Commit")
-		pprint.pprint(db, "ddd")
+        print("Not Commit")
+        pprint.pprint(db, "ddd")
         db:commit()
         print("Commit!")
         pprint.pprint(db.env:stat(db.dbi))
@@ -478,10 +478,10 @@ if ... == "__main__" then
 
 
     function test1(db)
-		db:get_root(root1):show()
+        db:get_root(root1):show()
     end
     function test_xpath(db)
-		local e = db:get_root(root1)
+        local e = db:get_root(root1)
         local branch = e:xpath("Bank/Branch")
         print("Show Branch", branch)
         branch:show()
@@ -493,7 +493,7 @@ if ... == "__main__" then
         
     end
     function test_value(db)
-		local e = db:get_root(root1)
+        local e = db:get_root(root1)
         -- local db = mdb:new(path)
         -- local e = db:get_root("Domain")
         print("TestValue")
@@ -505,60 +505,60 @@ if ... == "__main__" then
 
     end
     function test_xml(db)
-		
-		local el = db:get_root(root1)
+        
+        local el = db:get_root(root1)
 
         pprint.pprint(el:to_xml())
-		el:remove("Bank/Branch2")
-		pprint.pprint(el:to_xml())
+        el:remove("Bank/Branch2")
+        pprint.pprint(el:to_xml())
     end
-	local another = "Define"
-	function test_symlink(db)
-		local r = db:get_root(another)
-		local domain_root = db:get_root(root1)
-		local part = domain_root:xpath("Bank/Branch2")
-		print("Node from Domain:")
-		part:show()
-		print("Add to Define:")
-		r:add_ref("Branch2", part)
-		print("Now Define:")
-		r:show()
+    local another = "Define"
+    function test_symlink(db)
+        local r = db:get_root(another)
+        local domain_root = db:get_root(root1)
+        local part = domain_root:xpath("Bank/Branch2")
+        print("Node from Domain:")
+        part:show()
+        print("Add to Define:")
+        r:add_ref("Branch2", part)
+        print("Now Define:")
+        r:show()
 
-		
-		db:commit()
-	end
-	function test_more_sym(db)
-		local another = "Define"
-		local r = db:get_root(another)
-		local domain_root = db:get_root(root1)
-		local part = domain_root:xpath("Bank/Branch2")
-		print("delete ref:")
-		r:remove("Branch2")
-		print("Symbolink to:")
-		r:show()
-		print("Original:")
-		domain_root:show()
-		print ""
-		print("Delete Orig:")
-		part:remove()
-		print("Orig:")
-		domain_root:show()
-		print("Symlink to:")
-		r:show()
-	end
-	function test_more_xpath(db)
-		local another = "Define"
-		local r = db:get_root(another)
-		local e = r:xpath("Branch2/Head")
-		print "More on xpath:"
-		e:show()
-	end
+        
+        db:commit()
+    end
+    function test_more_sym(db)
+        local another = "Define"
+        local r = db:get_root(another)
+        local domain_root = db:get_root(root1)
+        local part = domain_root:xpath("Bank/Branch2")
+        print("delete ref:")
+        r:remove("Branch2")
+        print("Symbolink to:")
+        r:show()
+        print("Original:")
+        domain_root:show()
+        print ""
+        print("Delete Orig:")
+        part:remove()
+        print("Orig:")
+        domain_root:show()
+        print("Symlink to:")
+        r:show()
+    end
+    function test_more_xpath(db)
+        local another = "Define"
+        local r = db:get_root(another)
+        local e = r:xpath("Branch2/Head")
+        print "More on xpath:"
+        e:show()
+    end
     db:with(test)
     db:with(test1)
     db:withReadOnly(test_xpath)
     db:withReadOnly(test_value)
     db:with(test_xml)
-	db:with(test_symlink)
-	db:with(test_more_sym)
-	db:with(test_more_xpath)
+    db:with(test_symlink)
+    db:with(test_more_sym)
+    db:with(test_more_xpath)
 end
