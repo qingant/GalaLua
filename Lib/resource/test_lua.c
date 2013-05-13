@@ -71,15 +71,43 @@ int main(int argc, char *argv[])
     lua_State * const state = luaL_newstate();
     luaL_openlibs(state);
 
-    int errcode = luaL_loadbuffer(state, buff, retval, LUA_SCRIPT) || lua_pcall(state, 0, 0, 0);
-    if (errcode)
+    switch(luaL_loadbuffer(state, buff, retval, LUA_SCRIPT))
     {
-        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
-                __FILE__, __FUNCTION__, __LINE__,
-                lua_tostring(state, -1));
-        lua_pop(state, 1);
+        case LUA_ERRSYNTAX:
+        {
+            return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                    "syntax error during pre-compilation.\n", __FILE__,
+                    __FUNCTION__, __LINE__);
+        }
+        case LUA_ERRMEM:
+        {
+            return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                    "memory allocation error.\n", __FILE__, __FUNCTION__,
+                    __LINE__);
+        }
     }
 
+    switch(lua_pcall(state, 0, LUA_MULTRET, 0))
+    {
+        case LUA_ERRRUN:
+        {
+            return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                    "a runtime error.\n", __FILE__, __FUNCTION__,
+                    __LINE__);
+        }
+        case LUA_ERRMEM:
+        {
+            return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                    "memory allocation error.\n", __FILE__, __FUNCTION__,
+                    __LINE__);
+        }
+        case LUA_ERRERR:
+        {
+            return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                    " error while running the error handler function.\n",
+                    __FILE__, __FUNCTION__, __LINE__);
+        }
+    }
     fprintf(stdout, "\n");
 
     lua_close(state);

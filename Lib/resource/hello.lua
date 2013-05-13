@@ -1,8 +1,11 @@
-hello = {}
+--*-- coding: utf-8 --*--
 
-function hello.hello()
-    print("helloworld, 12345677890")
-    return "hello.hello.hello.abcdefghijklmn"
+module(..., package.seeall)
+
+function main()
+    print("hello_lua: main()")
 end
 
-return hello
+function helloworld()
+    print("hello world")
+end

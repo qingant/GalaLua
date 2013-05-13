@@ -1,12 +1,15 @@
 CC          = gcc
-CFLAGS      = -g -std=gnu99 -Wall
+CFLAGS      = -std=gnu99 -g -Wall
 INPATH      = -I. -I/usr/include/lua5.1
 LDPATH      = -L.
 LDLIBS      = 
 LDFLAGS     = -fPIC -shared
 
 CXX         = g++
-CXXFLAGS    = -g -std=gnu++98
+CXXFLAGS    = -std=gnu++98 -g -Wall
+
+AR          = ar
+ARFLAGS     = rcs
 
 all: mkresx.out libresource.so libresxloader.so test.out test_lua.out test_lua2.out
 
@@ -43,23 +46,20 @@ test:
 	echo "uvw xyz" > resx/uvw.txt
 	./mkresx.out -o resx.rs hello.txt resx world.txt
 	cat resx.rs >> test.out
-	rm -f resx.rs
 	./test.out
 
 test_lua:
-	echo "local retval = os.date(\"*t\")" > test.lua
-	echo "retval = os.date(\"%F %T\", os.time(retval))" >> test.lua
-	echo "io.write(string.format(\"%s\\n\", retval))" >> test.lua
-	./mkresx.out -o resx.rs test.lua
+	echo "local retval = os.date(\"*t\")" > test_lua
+	echo "retval = os.date(\"%F %T\", os.time(retval))" >> test_lua
+	echo "io.write(string.format(\"%s\", retval))" >> test_lua
+	./mkresx.out -o resx.rs test_lua
 	cat resx.rs >> test_lua.out
-	rm -f resx.rs
 	./test_lua.out
 	
 test_lua2:
-	./mkresx.out -o resx.rs hello.lua
+	./mkresx.out -o resx.rs hello_lua
 	cat resx.rs >> test_lua2.out
-	rm -f resx.rs
-	./test_lua2.out test.lua
+	./test_lua2.out test_lua
 
 clean:
-	rm -f *.o *.so *.out
+	rm -f *.o *.so *.out *.rs
