@@ -207,6 +207,33 @@ function element:_xpath(path)
 
 end
 element.xpath = element._xpath
+
+function element:_xpath_attr_selector(elist, attr_key, attr_value)
+
+    local rt = {}
+    if attr_value then
+        for k,v in pairs(elist) do
+            if v[attr_key] == attr_value then
+                rt[#rt+1] = v
+            end
+        end
+    else
+        for k,v in pairs(elist) do
+            if v[attr_key] ~= nil then
+                rt[#rt+1] = v
+            end
+        end
+    end
+end
+function element:_xpath_any_selector(  )
+    return self:get_child()
+end
+function element:_xpath_all_selector(  )
+
+end
+function element:xpath( path )
+    -- is root /path/to/*@xxx=yy
+end
 function element:_get_dup(op)
     local cur = self._db.txn:cursor_open(self._db.dbi)
 
@@ -396,7 +423,9 @@ function element:add_node(k)
     local ch = string.format("c:%s", k)
     --pprint.pprint(self._db)
     print("AddNode",self.key, ch)
-    self._db.txn:put(self._db.dbi, self.key, ch,lightningmdb.MDB_NODUPDATA)
+    --if self:get_child(k) == nil then
+        self._db.txn:put(self._db.dbi, self.key, ch,lightningmdb.MDB_NODUPDATA)
+    --end
 
     local key = string.format("%s%s%s", self.key, path_sep,  k)
     print("Child",self.key, key)
@@ -409,7 +438,7 @@ function element:_raw_put(v)
     print(debug.traceback())
     self._db.txn:put(self._db.dbi, self.key, v,lightningmdb.MDB_NODUPDATA)
 end
-function element:add_ref(k, link)
+function element:_add_ref(k, link)
     local key = string.format("%s%s%s", self.key, path_sep,  k)
     link:_raw_put(string.format("r:%s", key))
     self:_raw_put(string.format("s:%s`%s", k, link.key))
@@ -418,6 +447,11 @@ function element:add_ref(k, link)
                        real_key = key,
                        e_type = "ref",
                        _root = self._root}
+end
+
+function element:add_ref( link )
+    local _, name = xpath_split(link.key)
+    return self:_add_ref(name, link)
 end
 
 function element:show(indent)
@@ -451,7 +485,7 @@ function element:to_xml(str)
     if str == nil then
         str = ""
     end
-    local tmp = split(self.key, "/")
+    local tmp = split(self.real_key or self.key, "/")
     local root = tmp[#tmp]
     local values = self:get_value()
     local attrs = self:get_attrib()
@@ -554,10 +588,11 @@ if ... == "__main__" then
         print("Node from Domain:")
         part:show()
         print("Add to Define:")
-        r:add_ref("Branch2", part)
+        r:add_ref(part)
         print("Now Define:")
         r:show()
-
+        print("symlink xml!")
+        pprint.pprint(r:to_xml())
         
         db:commit()
     end
