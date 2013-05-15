@@ -17,8 +17,8 @@ local logging = require("logging")
     a:key`value  attribute key -> value
     c:key        children  path/key -> Node
     v:value      list item  [value ...]
-	s:name`link  symbolink to link
-	r:ref        node who refered to this node
+    s:name`link  symbolink to link
+    r:ref        node who refered to this node
 ]]
 local function split(pString, pPattern)
    local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
@@ -40,11 +40,11 @@ local function split(pString, pPattern)
 end
 
 local function xpath_split(path)
-	if string.contains(path, "/") then
-		return string.match(path, "(.*)/([^/]*)")
-	else
-		return "",path
-	end
+    if string.contains(path, "/") then
+        return string.match(path, "(.*)/([^/]*)")
+    else
+        return "",path
+    end
 end
 
 mdb = {}
@@ -71,70 +71,76 @@ end
 function mdb:get_root(name)
     local o = element:new{_db = self, 
                        key = path_sep .. name,
-					   is_root = true,
-					   e_type = "regular"
-	}
-	o._root = o
-	return o
+                       is_root = true,
+                       e_type = "regular"
+    }
+    o._root = o
+    return o
 end
 
 function mdb:clear()
     -- TODO:
 end
 function mdb:_implement_storage()
-	-- show all key-value pairs in this document
-	-- TODO:
+    -- show all key-value pairs in this document
+    -- TODO:
+    local cur = self.txn:cursor_open(self.dbi)
+    local flag = lightningmdb.MDB_NEXT
+    repeat
+        local k,v = cur:get(self.key, flag)
+        print("IMPL",k, "->",v)
+    until k == nil
 end
 function mdb:commit()
-	if  self.txn ~= nil then
-		self.txn:commit()
-		self.txn = nil
-		self.dbi = nil
-	else
-		error("Not In Transaction")
-	end
+    if  self.txn ~= nil then
+        self.txn:commit()
+        self.txn = nil
+        self.dbi = nil
+    else
+        error("Not In Transaction")
+    end
     -- self.txn = self.env:txn_begin(nil, 0)
 end
 
 function mdb:abort()
-	if  self.txn ~= nil then
-		self.txn:abort()
-		self.txn = nil
-		self.dbi = nil
-	else
-		error("Not In Transaction")
-	end
+    if  self.txn ~= nil then
+        self.txn:abort()
+        self.txn = nil
+        self.dbi = nil
+    else
+        error("Not In Transaction")
+    end
     -- self.txn = self.env:txn_begin(nil, 0)
 end
 function mdb:beginTrans()
-	assert(self.txn == nil, "Alredy in Transaction")
+    assert(self.txn == nil, "Alredy in Transaction")
     self.txn = self.env:txn_begin(nil, lightningmdb.MDB_RDONLY)
-	self.dbi = self.txn:dbi_open(nil,lightningmdb.MDB_DUPSORT)
+    self.dbi = self.txn:dbi_open(nil,lightningmdb.MDB_DUPSORT)
 end
 function mdb:beginWRTrans()
-	assert(self.txn == nil, "Alredy in Transaction")
-	self.txn = self.env:txn_begin(nil, 0)
-	self.dbi = self.txn:dbi_open(nil,lightningmdb.MDB_DUPSORT)
+    assert(self.txn == nil, "Alredy in Transaction")
+    self.txn = self.env:txn_begin(nil, 0)
+    self.dbi = self.txn:dbi_open(nil,lightningmdb.MDB_DUPSORT)
 end
 mdb.beginRDTrans = mdb.beginTrans
 
 function mdb:_with(action, ...)
-	local err, value = pcall(action, self, ...)
-	if self.txn ~= nil then
-		self:abort()
-	end
-	if not err then
-		error(value)
-	end
-	return value
+    local err, value = pcall(action, self, ...)
+    if self.txn ~= nil then
+        self:abort()
+    end
+    if not err then
+        error(value)
+    end
+    return value
 end
 function mdb:with(action, ...)
-	self:beginWRTrans()
-	return self:_with(action, ...)
+    self:beginWRTrans()
+    return self:_with(action, ...)
 end
 function mdb:withReadOnly(action, ...)
-	self:beginTrans()
-	return self:_with(action, ...)
+    self:beginTrans()
+    return self:_with(action, ...)
 end
 function element:new(o)
     -- local key = "/" .. name
@@ -144,54 +150,80 @@ function element:new(o)
     return o
 end
 -- function element:init(_db, key, e_type)
--- 	table.update(self, {_db = _db,
--- 						key = key,
--- 						e_type = e_type,
--- 						})
-	
+--  table.update(self, {_db = _db,
+--                      key = key,
+--                      e_type = e_type,
+--                      })
+    
 -- end
 function element:get_root()
-	return self._root
+    return self._root
 end
-function element:xpath(path)
+function element:is_leaf()
+    if self._is_leaf == nil  then
+        self._is_leaf = (#self:get_value() ~= 0)
+    end
+    return self._is_leaf
+end
+function element:walk(op, ...)
+    op(self,...)
+    for k,v in pairs(self:get_child()) do
+        print(k,v)
+        v:walk(op, ...)
+    end
+end
+
+-- w3c style xpath support, not that complete
+--function element:xpath( path )
+
+--end
+
+function element:_xpath(path)
     -- if not self.is_root then
     --  error("Not A Root Element")
     -- end
-	if path == nil or path == "" then
-		return self
-	end
+    if path == nil or path == "" then
+        return self
+    end
     local _path = string.format("%s%s%s", self.key,path_sep, path)
-	local e_type
-	-- logging.log(_path)
+    local e_type
+    -- logging.log(_path)
     if self._db.txn:get(self._db.dbi, _path) then
-		return element:new{_db = self._db,
-						   key = _path,
-						   e_type = self.e_type,
-						   _root = self._root}
-	else
-		while true do
-			local _relative_path = string.match(_path, "/[^/]*/(.*)")
-			local parent, name = xpath_split(_relative_path)
-			if _relative_path == "" then
-				error(string.format("`%s` -> `%s` not found!", self.key, path))
-			end
+        return element:new{_db = self._db,
+                           key = _path,
+                           e_type = self.e_type,
+                           _root = self._root}
+    else
+        while true do
+            local _relative_path = string.match(_path, "/[^/]*/(.*)")
+            local parent, name = xpath_split(_relative_path)
+            if _relative_path == "" then
+                error(string.format("`%s` -> `%s` not found!", self.key, path))
+            end
 
-			return self._root:xpath(parent):get_child(name)
-		end
-	end
+            return self._root:_xpath(parent):get_child(name)
+        end
+    end
 
 end
-
+element.xpath = element._xpath
 function element:_get_dup(op)
     local cur = self._db.txn:cursor_open(self._db.dbi)
+
     local flag = lightningmdb.MDB_SET_KEY
+    -- assert(self._db.txn:get(self._db.dbi,self.key), self.key)
     local k,v = cur:get(self.key, flag)
-    flag = lightningmdb.MDB_NEXT_DUP
+
+    
     local dict = {}
+    if k == nil or v == nil then
+        return dict
+    end
+    flag = lightningmdb.MDB_NEXT_DUP
     repeat
-		if k and v then
-			op(dict, k, v)
-		end
+    
+        op(dict, k, v)
+    
         k,v = cur:get(self.key, flag)
     until k == nil
     cur:close()
@@ -201,71 +233,71 @@ function element:get_parent()
     if self.is_root then
         error("This is Root ")
     end
-	if self.real_key then
-		--print("Real", self.real_key)
+    if self.real_key then
+        --print("Real", self.real_key)
         local parent, this = xpath_split(self.real_key)
         if self._db.txn:get(self._db.dbi, parent) then
-			-- print(xpath_split(self.key))
-			-- print("eeeeeeeeee")
-			print("Return")
+            -- print(xpath_split(self.key))
+            -- print("eeeeeeeeee")
+            print("Return")
             return element:new{_db = self._db, 
                                key = parent,
                                e_type = "regular",
-							   _root = self._root}
+                               _root = self._root}
         else
-			-- TODO: 判断新的real_key和key是否有交集，如果没有，则应该是该引用节点已经被删除
+            -- TODO: 判断新的real_key和key是否有交集，如果没有，则应该是该引用节点已经被删除
             return element:new{_db = self._db, 
-							   key = xpath_split(self.key),
-							   e_type = "ref",
-							   real_key = parent,
-							   _root = self._root}
+                               key = xpath_split(self.key),
+                               e_type = "ref",
+                               real_key = parent,
+                               _root = self._root}
         end
 
-	else
-		local parent, _ = xpath_split(self.key)
+    else
+        local parent, _ = xpath_split(self.key)
         return element:new{_db = self._db,
-						   key = parent,
-						   e_type = "regular",
-						   _root = self._root}
+                           key = parent,
+                           e_type = "regular",
+                           _root = self._root}
     end
 end
 function element:_remove_parent_refer()
-	local parent = self:get_parent()
+    local parent = self:get_parent()
 
-	if parent.e_type == "regular" then
-		local _, this = xpath_split(self.key)
-		local map = {ref="s:", regular="c:"}
-		local this_key = string.format("%s%s`%s", map[self.e_type], this, self.key)
-		print(parent.key, this_key)
-		parent._db.txn:del(parent._db.dbi, parent.key, this_key)
-	else
-		error("symbolink readonly")
-	end
+    if parent.e_type == "regular" then
+        local _, this = xpath_split(self.key)
+        local map = {ref="s:", regular="c:"}
+        local this_key = string.format("%s%s`%s", map[self.e_type], this, self.key)
+        print(parent.key, this_key)
+        parent._db.txn:del(parent._db.dbi, parent.key, this_key)
+    else
+        error("symbolink readonly")
+    end
 end
 function element:_remove()
     if self.e_type == "regular" then
-		-- remove all childs
+        -- remove all childs
         for k,v in pairs(self:get_child()) do
             v:_remove()
         end
 
-		-- remove refers
-		for i, v in ipairs(self:get_refers()) do
-			v:_remove()
-		end
-		-- remove all 
-		self._db.txn:del(self._db.dbi, self.key, nil)
-	else
-		self._db.txn:del(self._db.dbi, self.key, string.format("r:%s", self.real_key))
+        -- remove refers
+        for i, v in ipairs(self:get_refers()) do
+            v:_remove()
+        end
+        -- remove all 
+        self._db.txn:del(self._db.dbi, self.key, nil)
+    else
+        self._db.txn:del(self._db.dbi, self.key, string.format("r:%s", self.real_key))
     end
     if string.contains(self.key, "/") then
-		self:_remove_parent_refer()
+        self:_remove_parent_refer()
     end
 end
 
 
-function element:remove(xpath)
-	self:xpath(xpath):_remove()
+function element:remove(_xpath)
+    self:_xpath(_xpath):_remove()
 end
 function element:get_attrib()
 
@@ -283,16 +315,16 @@ function element:get_attrib()
 
 end
 function element:get_refers()
-	-- get elements who index this element
-	return self:_get_dup(function (dict, k, v)
+    -- get elements who index this element
+    return self:_get_dup(function (dict, k, v)
                              if k and v  and k == self.key and string.sub(v, 1, 2) == "r:" then
                                  local ct = string.sub(v, 3)
-								 print("Ref Key", ct)
-								 dict[#dict+1] = element:new{_db = self._db,
-															 key = self.key,
-															 real_key = ct,
-															 e_type = "ref",
-															 _root = self._root}
+                                 print("Ref Key", ct)
+                                 dict[#dict+1] = element:new{_db = self._db,
+                                                             key = self.key,
+                                                             real_key = ct,
+                                                             e_type = "ref",
+                                                             _root = self._root}
                              end
                          end)
 end
@@ -306,28 +338,29 @@ function element:get_child(name)
         return els[name]
     else
         return self:_get_dup(function (dict, k, v)
-								 local meta = string.sub(v, 1, 2)
+                                 local meta = string.sub(v, 1, 2)
+                                 assert(#k < 1000,"Key is too long,there may be something wrong")
                                  if k and v  and k == self.key and (meta == "c:" or meta == "s:") then -- `s:` means 'symbolink to'
-									 local name, key, real_key
-									 if meta == "s:" then
-										 name, key = unpack(string.split(string.sub(v,3), "`"))
-									 else
-										 name = string.sub(v, 3)
-										 key = string.format("%s%s%s", self.key, path_sep, name)
-									 end
-									 local e_type
-									 if self.e_type == "ref" or meta == "s:" then
-										 e_type = "ref"    -- ref
-										 real_key = string.format("%s%s%s", self.key, path_sep, name)
-									 else
-										 e_type = "regular" -- regular 
-									 end
-									 dict[name] = element:new{_db = self._db,
-															  key = key,
-															  e_type = e_type,
-															  real_key = real_key,
-															  _root = self._root}
-															
+                                     local name, key, real_key
+                                     if meta == "s:" then
+                                         name, key = unpack(string.split(string.sub(v,3), "`"))
+                                     else
+                                         name = string.sub(v, 3)
+                                         key = string.format("%s%s%s", self.key, path_sep, name)
+                                     end
+                                     local e_type
+                                     if self.e_type == "ref" or meta == "s:" then
+                                         e_type = "ref"    -- ref
+                                         real_key = string.format("%s%s%s", self.key, path_sep, name)
+                                     else
+                                         e_type = "regular" -- regular 
+                                     end
+                                     dict[name] = element:new{_db = self._db,
+                                                              key = key,
+                                                              e_type = e_type,
+                                                              real_key = real_key,
+                                                              _root = self._root}
+                                                            
                                  end
                              end)
     end
@@ -362,27 +395,29 @@ function element:add_node(k)
 
     local ch = string.format("c:%s", k)
     --pprint.pprint(self._db)
-	print(self.key, ch)
+    print("AddNode",self.key, ch)
     self._db.txn:put(self._db.dbi, self.key, ch,lightningmdb.MDB_NODUPDATA)
 
     local key = string.format("%s%s%s", self.key, path_sep,  k)
     print("Child",self.key, key)
-    
-    return element:new{_db = self._db, key = key, e_type = "regular", _root = self._root}
+
+    o = element:new{_db = self._db, key = key, e_type = "regular", _root = self._root}
+--    o:_raw_put("t:node")
+    return o
 end
 function element:_raw_put(v)
-	print(debug.traceback())
-	self._db.txn:put(self._db.dbi, self.key, v,lightningmdb.MDB_NODUPDATA)
+    print(debug.traceback())
+    self._db.txn:put(self._db.dbi, self.key, v,lightningmdb.MDB_NODUPDATA)
 end
 function element:add_ref(k, link)
-	local key = string.format("%s%s%s", self.key, path_sep,  k)
-	link:_raw_put(string.format("r:%s", key))
-	self:_raw_put(string.format("s:%s`%s", k, link.key))
-	return element:new{_db = self._db,
-					   key = link.key,
-					   real_key = key,
-					   e_type = "ref",
-					   _root = self._root}
+    local key = string.format("%s%s%s", self.key, path_sep,  k)
+    link:_raw_put(string.format("r:%s", key))
+    self:_raw_put(string.format("s:%s`%s", k, link.key))
+    return element:new{_db = self._db,
+                       key = link.key,
+                       real_key = key,
+                       e_type = "ref",
+                       _root = self._root}
 end
 
 function element:show(indent)
@@ -473,8 +508,7 @@ if ... == "__main__" then
         -- db:close()
         -- db = mdb:new(path)
         -- e = db:get_root("Domain")
-        
-    end
+     end
 
 
     function test1(db)
@@ -482,13 +516,13 @@ if ... == "__main__" then
     end
     function test_xpath(db)
         local e = db:get_root(root1)
-        local branch = e:xpath("Bank/Branch")
+        local branch = e:_xpath("Bank/Branch")
         print("Show Branch", branch)
         branch:show()
 
         print("Show Host")
 
-        local host = branch:xpath("Host1")
+        local host = branch:_xpath("Host1")
         host:show()
         
     end
@@ -497,7 +531,7 @@ if ... == "__main__" then
         -- local db = mdb:new(path)
         -- local e = db:get_root("Domain")
         print("TestValue")
-        local branch = e:xpath("Bank/Branch2/Head")
+        local branch = e:_xpath("Bank/Branch2/Head")
         local values = branch:get_value()
         pprint.pprint(values)
         pprint.pprint(branch:get_value())
@@ -516,7 +550,7 @@ if ... == "__main__" then
     function test_symlink(db)
         local r = db:get_root(another)
         local domain_root = db:get_root(root1)
-        local part = domain_root:xpath("Bank/Branch2")
+        local part = domain_root:_xpath("Bank/Branch2")
         print("Node from Domain:")
         part:show()
         print("Add to Define:")
@@ -531,7 +565,7 @@ if ... == "__main__" then
         local another = "Define"
         local r = db:get_root(another)
         local domain_root = db:get_root(root1)
-        local part = domain_root:xpath("Bank/Branch2")
+        local part = domain_root:_xpath("Bank/Branch2")
         print("delete ref:")
         r:remove("Branch2")
         print("Symbolink to:")
@@ -549,11 +583,31 @@ if ... == "__main__" then
     function test_more_xpath(db)
         local another = "Define"
         local r = db:get_root(another)
-        local e = r:xpath("Branch2/Head")
+        local e = r:_xpath("Branch2/Head")
         print "More on xpath:"
         e:show()
     end
+    function test_walk( db )
+        local r = db:get_root(root1)
+        local iter = 
+        function (e)
+            if e:is_leaf() then
+                print(e:is_leaf())
+                pprint.pprint(e:get_value(), e.key)
+            end
+        end
+        r:walk(iter)
+    end
+    function test5( db )
+        local r = db:get_root("device")
+        r:add_node("dev_type12"):add_node("3desp213")
+        r:add_node("dev_type1122"):add_node("3desp213")
+        db:_implement_storage()
+        r:show()
+        db:commit()
+    end
     db:with(test)
+
     db:with(test1)
     db:withReadOnly(test_xpath)
     db:withReadOnly(test_value)
@@ -561,4 +615,6 @@ if ... == "__main__" then
     db:with(test_symlink)
     db:with(test_more_sym)
     db:with(test_more_xpath)
+    db:withReadOnly(test_walk)
+    db:with(test5)
 end
