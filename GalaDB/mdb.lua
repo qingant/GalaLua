@@ -229,10 +229,63 @@ function element:_xpath_any_selector(  )
     return self:get_child()
 end
 function element:_xpath_all_selector(  )
-
+    local all = {}
+    self:walk(function ( e )
+              all[e.key] = e
+    end)
+    return all
+end
+function element:_xpath_collect( all, tokens, idx )
+    if #tokens < idx then
+        print("Return all")
+        return all
+    end
+    local result = {}
+    for k,v in pairs(all) do
+        if v then
+            --pprint.pprint(v)
+            print("Xpath Collect", k,v)
+            local r = v:_xpath_selector(tokens, idx)
+            table.update(result, r)
+        end
+    end
+    return result
+end
+function element:_xpath_selector( tokens, idx )
+    assert(self, "`self` is nil")
+    local tok = tokens[idx]
+    print("XPATH", tok, idx)
+    local sel
+    if string.sub(tok, 1, 2) == "**" then
+        assert(idx==#tokens, "** selector can only used at last")
+        local all = self:_xpath_all_selector()
+        if string.sub(tok,3,3) == "@" then
+            local k,v = string.split(string.sub(tok,3),"=")
+            sel =  self:_xpath_attr_selector(all,k,v)
+            
+        else
+            sel = all
+        end
+    elseif string.sub(tok,1,1) == "*" then
+        local all = self:get_child()
+        if string.sub(tok,2,2) == "@" then
+            local k,v = string.split(string.sub(tok,3),"=")
+            sel = self:_xpath_attr_selector(all, k, v)
+        else
+            print("here")
+            sel = all
+        end
+    else
+        sel = {self:get_child(tok)}
+    end
+    print("Return", #tokens, idx+1)
+    return self:_xpath_collect(sel, tokens, idx+1)
 end
 function element:xpath( path )
     -- is root /path/to/*@xxx=yy
+    local o = self:_xpath_selector(string.split(path, "/"),1)
+    print("Xpath,return")
+    return o
 end
 function element:_get_dup(op)
     local cur = self._db.txn:cursor_open(self._db.dbi)
@@ -253,7 +306,7 @@ function element:_get_dup(op)
     
         k,v = cur:get(self.key, flag)
     until k == nil
-    cur:close()
+    --cur:close()
     return dict
 end
 function element:get_parent()
@@ -294,8 +347,13 @@ function element:_remove_parent_refer()
     if parent.e_type == "regular" then
         local _, this = xpath_split(self.key)
         local map = {ref="s:", regular="c:"}
-        local this_key = string.format("%s%s`%s", map[self.e_type], this, self.key)
-        print(parent.key, this_key)
+        local this_key 
+        if self.e_type == "ref" then
+            this_key = string.format("s:%s`%s" , this, self.key)
+        else
+            this_key = string.format("c:%s", this)
+        end
+        print("REMove parent",parent.key, this_key)
         parent._db.txn:del(parent._db.dbi, parent.key, this_key)
     else
         error("symbolink readonly")
@@ -362,6 +420,7 @@ function element:get_child(name)
         local key = string.format("%s%s%s", self.key, path_sep,  name)
         -- local v = assert(self._db.txn:get(self._db.dbi, key), key)
         local els = self:get_child(nil)
+        -- pprint.pprint(els)
         return els[name]
     else
         return self:_get_dup(function (dict, k, v)
@@ -382,6 +441,7 @@ function element:get_child(name)
                                      else
                                          e_type = "regular" -- regular 
                                      end
+                                     print("Get", name)
                                      dict[name] = element:new{_db = self._db,
                                                               key = key,
                                                               e_type = e_type,
@@ -424,7 +484,7 @@ function element:add_node(k)
     --pprint.pprint(self._db)
     print("AddNode",self.key, ch)
     --if self:get_child(k) == nil then
-        self._db.txn:put(self._db.dbi, self.key, ch,lightningmdb.MDB_NODUPDATA)
+    self._db.txn:put(self._db.dbi, self.key, ch,lightningmdb.MDB_NODUPDATA)
     --end
 
     local key = string.format("%s%s%s", self.key, path_sep,  k)
@@ -622,6 +682,12 @@ if ... == "__main__" then
         print "More on xpath:"
         e:show()
     end
+    function test_more_more_xpath( db )
+        print("Test More More Xpath")
+        local another = "Define"
+        local r = db:get_root(another)
+        r:xpath("Branch2/*")
+    end
     function test_walk( db )
         local r = db:get_root(root1)
         local iter = 
@@ -650,6 +716,7 @@ if ... == "__main__" then
     db:with(test_symlink)
     db:with(test_more_sym)
     db:with(test_more_xpath)
+    db:withReadOnly(test_more_more_xpath)
     db:withReadOnly(test_walk)
     db:with(test5)
 end
