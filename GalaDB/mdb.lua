@@ -85,11 +85,12 @@ function mdb:_implement_storage()
     -- show all key-value pairs in this document
     -- TODO:
     local cur = self.txn:cursor_open(self.dbi)
-    local flag = lightningmdb.MDB_NEXT
+    local flag = lightningmdb.MDB_NEXT_DUP
     repeat
         local k,v = cur:get(self.key, flag)
         print("IMPL",k, "->",v)
     until k == nil
+    cur:close()
 end
 function mdb:commit()
     if  self.txn ~= nil then
@@ -127,6 +128,7 @@ mdb.beginRDTrans = mdb.beginTrans
 function mdb:_with(action, ...)
     local err, value = pcall(action, self, ...)
     if self.txn ~= nil then
+        print("ABORT!")
         self:abort()
     end
     if not err then
@@ -206,24 +208,27 @@ function element:_xpath(path)
     end
 
 end
-element.xpath = element._xpath
+--element.xpath = element._xpath
 
 function element:_xpath_attr_selector(elist, attr_key, attr_value)
 
     local rt = {}
     if attr_value then
         for k,v in pairs(elist) do
-            if v[attr_key] == attr_value then
+
+            if v:get_attrib()[attr_key] == attr_value then
                 rt[#rt+1] = v
             end
         end
     else
         for k,v in pairs(elist) do
-            if v[attr_key] ~= nil then
+            print("ATTR",k,v, v:get_attrib()[attr_key])
+            if v:get_attrib()[attr_key] ~= nil then
                 rt[#rt+1] = v
             end
         end
     end
+    return rt
 end
 function element:_xpath_any_selector(  )
     return self:get_child()
@@ -231,13 +236,14 @@ end
 function element:_xpath_all_selector(  )
     local all = {}
     self:walk(function ( e )
-              all[e.key] = e
+              if e.key ~= self.key then
+                  all[e.key] = e
+              end
     end)
     return all
 end
 function element:_xpath_collect( all, tokens, idx )
     if #tokens < idx then
-        print("Return all")
         return all
     end
     local result = {}
@@ -246,7 +252,9 @@ function element:_xpath_collect( all, tokens, idx )
             --pprint.pprint(v)
             print("Xpath Collect", k,v)
             local r = v:_xpath_selector(tokens, idx)
-            table.update(result, r)
+            if r then
+                table.update(result, r)
+            end
         end
     end
     return result
@@ -260,7 +268,8 @@ function element:_xpath_selector( tokens, idx )
         assert(idx==#tokens, "** selector can only used at last")
         local all = self:_xpath_all_selector()
         if string.sub(tok,3,3) == "@" then
-            local k,v = string.split(string.sub(tok,3),"=")
+            local k,v = unpack(string.split(string.sub(tok,4),"="))
+            print("@",k,v)
             sel =  self:_xpath_attr_selector(all,k,v)
             
         else
@@ -284,7 +293,6 @@ end
 function element:xpath( path )
     -- is root /path/to/*@xxx=yy
     local o = self:_xpath_selector(string.split(path, "/"),1)
-    print("Xpath,return")
     return o
 end
 function element:_get_dup(op)
@@ -292,6 +300,7 @@ function element:_get_dup(op)
 
     local flag = lightningmdb.MDB_SET_KEY
     -- assert(self._db.txn:get(self._db.dbi,self.key), self.key)
+    assert(type(self.key) == "string", "Key Cannot be of type other than string")
     local k,v = cur:get(self.key, flag)
 
     
@@ -306,7 +315,7 @@ function element:_get_dup(op)
     
         k,v = cur:get(self.key, flag)
     until k == nil
-    --cur:close()
+    cur:close()
     return dict
 end
 function element:get_parent()
@@ -441,7 +450,7 @@ function element:get_child(name)
                                      else
                                          e_type = "regular" -- regular 
                                      end
-                                     print("Get", name)
+                                     --print("Get", name)
                                      dict[name] = element:new{_db = self._db,
                                                               key = key,
                                                               e_type = e_type,
@@ -495,7 +504,7 @@ function element:add_node(k)
     return o
 end
 function element:_raw_put(v)
-    print(debug.traceback())
+    --print(debug.traceback())
     self._db.txn:put(self._db.dbi, self.key, v,lightningmdb.MDB_NODUPDATA)
 end
 function element:_add_ref(k, link)
@@ -683,10 +692,28 @@ if ... == "__main__" then
         e:show()
     end
     function test_more_more_xpath( db )
-        print("Test More More Xpath")
+        print("Test More More Xpath With Sym")
         local another = "Define"
         local r = db:get_root(another)
-        r:xpath("Branch2/*")
+        pprint.pprint(r:xpath("Branch2/*"))
+        pprint.pprint(r:xpath("**"))
+        print("Test More More Xpath orig")
+        local domain_root = db:get_root(root1)
+        print("Domain Root All")
+        pprint.pprint(domain_root:xpath("**"))
+        print("/Domain/Bank/**")
+        pprint.pprint(domain_root:xpath("Bank/**"))
+        print("/Domain/Bank/**@IP")
+        pprint.pprint(domain_root:xpath("Bank/**@IP"))
+        print("/Domain/Bank/**@Serial=1")
+        pprint.pprint(domain_root:xpath("Bank/**@Serial=1"))
+
+        print("/Domain/Bank/*/**@IP")
+
+        pprint.pprint(domain_root:xpath("Bank/*/**@IP"))
+
+
+
     end
     function test_walk( db )
         local r = db:get_root(root1)
@@ -707,16 +734,28 @@ if ... == "__main__" then
         r:show()
         db:commit()
     end
-    db:with(test)
+    function test_remove_root_child( db )
+        local domain_root = db:get_root(root1)
+        print(domain_root:to_xml())
+        domain_root:_xpath("Bank"):remove()
+        print(domain_root:to_xml())
+    end
+    local limit = 1
+    for i=1,limit do
+        db:with(test)
 
-    db:with(test1)
-    db:withReadOnly(test_xpath)
-    db:withReadOnly(test_value)
-    db:with(test_xml)
-    db:with(test_symlink)
-    db:with(test_more_sym)
-    db:with(test_more_xpath)
-    db:withReadOnly(test_more_more_xpath)
-    db:withReadOnly(test_walk)
-    db:with(test5)
+        db:with(test1)
+        db:withReadOnly(test_xpath)
+        db:withReadOnly(test_value)
+        db:with(test_xml)
+        db:with(test_symlink)
+        db:with(test_more_sym)
+        db:with(test_more_xpath)
+        db:withReadOnly(test_more_more_xpath)
+        db:withReadOnly(test_walk)
+        db:with(test5)
+        db:with(test_remove_root_child)
+        collectgarbage("collect")
+    end
+
 end
