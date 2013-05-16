@@ -113,6 +113,7 @@ static int env_open(lua_State *L) {
     if ( !path ) {
         return str_error_and_out(L,"path required");
     }
+    mdb_env_set_maxreaders(env, 1024);
     err = mdb_env_open(env,path,flags,mode);
     return success_or_err(L,err);
 }
@@ -210,6 +211,7 @@ static int env_set_mapsize(lua_State *L) {
 
 static int env_set_maxreaders(lua_State *L) {
 // TODO
+    //mdb_env_set_maxreaders()
     return unimplemented(L);
 }
 
@@ -256,7 +258,7 @@ static int env_dbi_close(lua_State* L) {
 
 
 static const luaL_Reg env_methods[] = {
-    {"__gc",env_close},
+    //{"__gc",env_close},  you should never need this
     {"open",env_open},
     {"copy",env_copy},
     {"stat",env_stat},
@@ -330,14 +332,15 @@ static int cursor_get(lua_State *L) {
     int err;
     pop_val(L,2,&k);
     //k.mv_data 
+    char tmp[256] = {};
     err = mdb_cursor_get(cursor,&k,&v,op);
     switch (err) {
     case MDB_NOTFOUND:
         lua_pushnil(L);
         return 1;
     case 0:
-        lua_pushlstring(L,k.mv_data,k.mv_size);
-        lua_pushlstring(L,v.mv_data,v.mv_size);
+        lua_pushlstring(L,(const char*)k.mv_data,k.mv_size);
+        lua_pushlstring(L,(const char*)v.mv_data,v.mv_size);
         return 2;
     }
     return error_and_out(L,err);
@@ -373,7 +376,7 @@ static int cursor_count(lua_State *L) {
 }
 
 static const luaL_Reg cursor_methods[] = {
-    {"__gc",cursor_close},
+    //{"__gc",cursor_close},
     {"close",cursor_close},
     {"txn",cursor_txn},
     {"dbi",cursor_dbi},
@@ -546,7 +549,8 @@ static int txn_cursor_renew(lua_State *L) {
 }
 
 static const luaL_Reg txn_methods[] = {
-    {"__gc",txn_abort}, /* if the transaction is properly committed, the sensible thing
+    //{"__gc",txn_abort}, 
+    /* if the transaction is properly committed, the sensible thing
                          * would be to abort it in gc */
     {"commit",txn_commit},
     {"abort",txn_abort},

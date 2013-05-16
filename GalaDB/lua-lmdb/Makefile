@@ -8,14 +8,14 @@ ifeq ($(LUAVER),5.2)
   LUALIB= $(LUA)
   LUABIN= $(LUA)
 else
-  LUA=/opt/agree/
-  LUAINC= $(LUA)/include
+  LUA=$(HOME)
+  LUAINC= $(LUA)/include/luajit-2.0
   LUALIB= $(LUA)/lib
   LUABIN= $(LUA)/bin
 endif
 
 
-LMDB=/opt/agree/
+LMDB=$(HOME)
 LMDBINC= $(LMDB)
 LMDBLIB= $(LMDB)
 
@@ -30,7 +30,7 @@ endif
 WARN= -pedantic -Wall
 CFLAGS= $(INCS) $(WARN) $G -g  -fPIC
 LDFLAGS= -L$(LUALIB) -L$(LMDBLIB) -llmdb $(PLATFORM_LDFLAGS)
-INCS= -I$(LUAINC) -I$(LMDBINC)
+INCS= -I$(LUAINC) -I$(LMDBINC) -I../lmdb/
 
 MYNAME= lightningmdb
 MYLIB= $(MYNAME)

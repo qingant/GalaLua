@@ -18,16 +18,16 @@ local function basic_test()
   -- env
   local e = lightningmdb.env_create()
   print(e)
-  os.execute("mkdir -f ./temp/foo")
-  print(e:open("./temp/foo",0,420))
+  os.execute("mkdir  /tmp/temp/foo")
+  print(e:open("/tmp/temp/foo",0,420))
   print("fixedmap",lightningmdb.MDB_FIXEDMAP)
   print("read only",lightningmdb.MDB_RDONLY)
 
   print("-- stats --")
-  -- pt(e:stat())
+  pt(e:stat())
 
   print("-- info --")
-  -- pt(e:info())
+  pt(e:info())
   print("get_path",e:get_path())
 
 
@@ -53,13 +53,13 @@ local function grow_db()
   local num_pages = 5
   local e
 
-  os.execute("mkdir ./temp/bar")
+  os.execute("mkdir /tmp/temp/bar")
 
   local function grow()
     e = lightningmdb.env_create()
     num_pages = num_pages * 2
     print(e:set_mapsize(num_pages*4096))
-    print(e:open("./temp/bar",0,420))
+    print(e:open("/tmp/temp/bar",0,420))
   end
 
   grow()
