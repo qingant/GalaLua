@@ -52,17 +52,27 @@ local element = {}
 local path_sep = "/"
 local indent_one = "    "
 local num_pages = 1024*1024
-function mdb:new(path)
-    local e = lightningmdb.env_create()
+function mdb.init(path)
+    local e=lightningmdb.env_create()
     e:set_mapsize(num_pages*4096)
-    e:open(path,0,420)
+    assert(e:open(path,0,420))
+    return e
+end
+
+function mdb:new(e)
+--    local e = lightningmdb.env_create()
+--    e:set_mapsize(num_pages*4096)
+--    e:open(path,0,420)
     -- local t = e:txn_begin(nil,0)
     -- local db = t:dbi_open(nil,lightningmdb.MDB_DUPSORT)
+    assert(e,"must pass env")
     local o = {env = e, txn = nil, dbi = nil}
     setmetatable(o, self)
     self.__index = self
     return o
 end
+
+
 
 function mdb:close( ... )
     self.env:close()
@@ -597,7 +607,7 @@ if ... == "__main__" then
     local path = "./temp/bar"
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
     local root1 = "Domain"
-    local db = mdb:new(path)
+    local db = mdb:new(mdb.init(path))
     function test(db)
         
         local e = db:get_root(root1)

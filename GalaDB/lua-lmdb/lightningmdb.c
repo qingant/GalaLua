@@ -296,6 +296,10 @@ void env_register(lua_State* L) {
 	
     /* //lua_settable(L,-1); */
 	 _register(L, ENV, env_methods);
+
+    //GLR global
+    lua_pushstring(L,ENV);
+    lua_setfield(L,-2,"__my_name");
     /* //luaL_getmetatable(L,ENV); */
 	/* lua_pushvalue(L, -1); */
     /* lua_setfield(L,-2,"__index"); */
@@ -685,6 +689,7 @@ int luaopen_lightningmdb(lua_State *L) {
     setfield_enum(MDB_SET);
     setfield_enum(MDB_SET_KEY);
     setfield_enum(MDB_SET_RANGE );
+
 
     env_register(L);
 	lua_setfield(L, -2, ENV);
