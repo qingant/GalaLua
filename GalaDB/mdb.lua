@@ -582,6 +582,16 @@ function element:to_xml(str)
     return str
 end
 
+function element:exist( nodename )
+    local node = self:_xpath(nodename)
+    pprint.pprint(node, 'node')
+    if node ~= nil then
+        return true
+    else
+        return false
+    end
+end
+
 -- tests
 if ... == "__main__" then
     local path = "./temp/bar"
@@ -740,6 +750,12 @@ if ... == "__main__" then
         domain_root:_xpath("Bank"):remove()
         print(domain_root:to_xml())
     end
+    function test_exist( db )
+        local e = db:get_root(root1)
+        local branch = e:_xpath("Bank/Branch")
+        print(domain_root:exist("Host1"))
+        print(domain_root:exist("Host2"))
+    end
     local limit = 1
     for i=1,limit do
         db:with(test)
@@ -747,6 +763,7 @@ if ... == "__main__" then
         db:with(test1)
         db:withReadOnly(test_xpath)
         db:withReadOnly(test_value)
+        db:withReadOnly(test_exist)
         db:with(test_xml)
         db:with(test_symlink)
         db:with(test_more_sym)
