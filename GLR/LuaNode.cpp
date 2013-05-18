@@ -130,6 +130,9 @@ int Process::Spawn( lua_State *l )
         // node.DoString(std::string(module, len));
         //lua_getglobal(node._Stack, "loadstring");
         //lua_pushlstring(node._Stack, module, len);
+
+        node.Entry(module, method);
+        /*
         lua_getglobal(node._Stack, "require");
         lua_pushstring(node._Stack, module);
         if (lua_pcall(node._Stack, 1,1,0) != 0)
@@ -143,6 +146,7 @@ int Process::Spawn( lua_State *l )
 
         lua_getfield(node._Stack, -1, method);
         node.StackDump();
+        */
         //luaL_loadfile(node._Stack, module);
         // Register Node Entry
         //lua_getglobal(node._Stack, method);
@@ -181,7 +185,6 @@ int Process::Spawn( lua_State *l )
         lua_pushboolean(l, 1);
         lua_pushinteger(l, node_id);
 
-        GALA_DEBUG("Return...");
         node.Start(Schedule::GetInstance());
         return 2;
         // Op on Self State
