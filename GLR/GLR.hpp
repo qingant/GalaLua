@@ -18,10 +18,13 @@ namespace GLR
     	Runtime(const std::string &, int);
     private:
         static Runtime *_Instance;
+        typedef void (*GLR_INITIALIZER)(lua_State*);
+    public:
+        static GLR_INITIALIZER _Initializer;
     public:
     	~Runtime();
         static Runtime &GetInstance();
-        static void Initialize(const std::string &host, int port);
+        static void Initialize(const std::string &host, int port, GLR_INITIALIZER func = NULL);
         Bus & GetBus() const { return *_Bus; }
         Schedule & GetSchedule() const { return *_Schedule; }
         Process  & GetProcess(int pid) const;

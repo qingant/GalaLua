@@ -8,6 +8,7 @@
 using namespace GLR;
 
 GLR::Runtime *GLR::Runtime::_Instance = NULL;
+GLR::Runtime::GLR_INITIALIZER GLR::Runtime::_Initializer = NULL;
 GLR::Runtime::Runtime(const std::string &host, int port)
     :_Host(host), _NodeId(port)
 {
@@ -43,8 +44,9 @@ void GLR::Runtime::Initialize()
     time(&_Stamp);
 }
 
-void GLR::Runtime::Initialize( const std::string &host, int port )
+void GLR::Runtime::Initialize( const std::string &host, int port, GLR::Runtime::GLR_INITIALIZER func)
 {
+    _Initializer = func;
     _Instance = new Runtime(host, port);
     _Instance->Initialize();
 }

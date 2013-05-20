@@ -332,7 +332,7 @@ void Process::InitNode( void )
     StackDump();
     lua_setglobal(_Stack, "glr");
 
-
+    GLR::Runtime::_Initializer(_Stack);    //user defined initialize hook
 
     _Status._State = ProcessStatus::CREATED;
     // hook
