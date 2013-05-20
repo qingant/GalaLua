@@ -137,8 +137,8 @@ int Process::Spawn( lua_State *l )
         lua_pushstring(node._Stack, module);
         if (lua_pcall(node._Stack, 1,1,0) != 0)
         {
-            const char *msg = luaL_checklstring(node._Stack, -1, NULL);
-            THROW_EXCEPTION_EX(msg);
+        const char *msg = luaL_checklstring(node._Stack, -1, NULL);
+        THROW_EXCEPTION_EX(msg);
         }
 
 
@@ -331,8 +331,11 @@ void Process::InitNode( void )
 
     StackDump();
     lua_setglobal(_Stack, "glr");
+    if (GLR::Runtime::_Initializer != NULL)
+    {
+        GLR::Runtime::_Initializer(_Stack);    //user defined initialize hook
+    }
 
-    GLR::Runtime::_Initializer(_Stack);    //user defined initialize hook
 
     _Status._State = ProcessStatus::CREATED;
     // hook
