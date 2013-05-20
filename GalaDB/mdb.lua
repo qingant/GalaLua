@@ -51,27 +51,31 @@ mdb = {}
 local element = {}
 local path_sep = "/"
 local indent_one = "    "
-local num_pages = 1024*1024
-function mdb.init(path)
+local num_pages = 1024
+function mdb.create_env(path)
     local e=lightningmdb.env_create()
     e:set_mapsize(num_pages*4096)
     assert(e:open(path,0,420))
     return e
 end
 
-function mdb:new(e)
+function mdb:new()
 --    local e = lightningmdb.env_create()
 --    e:set_mapsize(num_pages*4096)
 --    e:open(path,0,420)
     -- local t = e:txn_begin(nil,0)
     -- local db = t:dbi_open(nil,lightningmdb.MDB_DUPSORT)
-    assert(e,"must pass env")
-    local o = {env = e, txn = nil, dbi = nil}
+    local o = {}
     setmetatable(o, self)
     self.__index = self
     return o
 end
 
+function mdb:init(e)
+    assert(e,"must pass env")
+    self.env = e
+    return self
+end
 
 
 function mdb:close( ... )
@@ -138,7 +142,6 @@ mdb.beginRDTrans = mdb.beginTrans
 function mdb:_with(action, ...)
     local err, value = pcall(action, self, ...)
     if self.txn ~= nil then
-        print("ABORT!")
         self:abort()
     end
     if not err then
@@ -322,7 +325,7 @@ function element:_get_dup(op)
     repeat
     
         op(dict, k, v)
-    
+        
         k,v = cur:get(self.key, flag)
     until k == nil
     cur:close()
@@ -394,7 +397,7 @@ function element:_remove()
     else
         self._db.txn:del(self._db.dbi, self.key, string.format("r:%s", self.real_key))
     end
-    if string.contains(self.key, "/") then
+    if not self.is_root then
         self:_remove_parent_refer()
     end
 end
@@ -433,7 +436,6 @@ function element:get_refers()
                          end)
 end
 
-
 function element:get_child(name)
     if name ~= nil then
         local key = string.format("%s%s%s", self.key, path_sep,  name)
@@ -456,7 +458,7 @@ function element:get_child(name)
                                      local e_type
                                      if self.e_type == "ref" or meta == "s:" then
                                          e_type = "ref"    -- ref
-                                         real_key = string.format("%s%s%s", self.key, path_sep, name)
+                                         real_key = string.format("%s%s%s", self.real_key or self.key, path_sep, name)
                                      else
                                          e_type = "regular" -- regular 
                                      end
@@ -607,7 +609,7 @@ if ... == "__main__" then
     local path = "./temp/bar"
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
     local root1 = "Domain"
-    local db = mdb:new(mdb.init(path))
+    local db = mdb:new():init(mdb.create_env(path))
     function test(db)
         
         local e = db:get_root(root1)
@@ -709,6 +711,8 @@ if ... == "__main__" then
         local r = db:get_root(another)
         local e = r:_xpath("Branch2/Head")
         print "More on xpath:"
+        print(e.key)
+        assert(e.real_key == "/Define/Branch2/Head", e.real_key)
         e:show()
     end
     function test_more_more_xpath( db )
@@ -756,15 +760,17 @@ if ... == "__main__" then
     end
     function test_remove_root_child( db )
         local domain_root = db:get_root(root1)
+        domain_root:add_node("Bank1"):add_node("Test"):add_value("ok")
         print(domain_root:to_xml())
         domain_root:_xpath("Bank"):remove()
+
         print(domain_root:to_xml())
     end
     function test_exist( db )
         local e = db:get_root(root1)
         local branch = e:_xpath("Bank/Branch")
-        print(domain_root:exist("Host1"))
-        print(domain_root:exist("Host2"))
+        print(e:exist("Host1"))
+        print(e:exist("Host2"))
     end
     local limit = 1
     for i=1,limit do
@@ -773,7 +779,6 @@ if ... == "__main__" then
         db:with(test1)
         db:withReadOnly(test_xpath)
         db:withReadOnly(test_value)
-        db:withReadOnly(test_exist)
         db:with(test_xml)
         db:with(test_symlink)
         db:with(test_more_sym)
@@ -783,6 +788,7 @@ if ... == "__main__" then
         db:with(test5)
         db:with(test_remove_root_child)
         collectgarbage("collect")
-    end
 
+        db:withReadOnly(test_exist)        
+    end
 end
