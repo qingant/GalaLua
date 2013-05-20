@@ -5,10 +5,12 @@
 #include "Controllers.hpp"
 #include "SocketController.hpp"
 #include "BusController.hpp"
+#include "resxloader.h"
+
 using namespace GLR;
 
 GLR::Runtime *GLR::Runtime::_Instance = NULL;
-GLR::Runtime::GLR_INITIALIZER GLR::Runtime::_Initializer = NULL;
+GLR::Runtime::GLR_INITIALIZER GLR::Runtime::_Initializer = GLR_initializer;
 GLR::Runtime::Runtime(const std::string &host, int port)
     :_Host(host), _NodeId(port)
 {
