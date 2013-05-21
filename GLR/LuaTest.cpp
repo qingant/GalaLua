@@ -5,10 +5,6 @@
 #include "GLR.hpp"
 #include "Process.hpp"
 #include <unistd.h>
-
-#include "resource/resource.h"
-#include "resource/resxloader.h"
-
 using namespace GLR;
 
 Galaxy::GalaxyRT::CProcess _CProcess;
@@ -146,7 +142,7 @@ int main( int argc, char* argv[] )
 
     //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
     //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
-    GLR::Runtime::Initialize(host, port, GLR_initializer);
+    GLR::Runtime::Initialize(host, port);
     if (_CProcess.ExistOption("m"))
     {
         std::string file=_CProcess.GetOption("m");
