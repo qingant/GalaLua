@@ -40,7 +40,7 @@ void resx_openlibs(lua_State * const state)
 {
     const luaL_Reg lualibray[] =
     {
-            { .name = (const char *) NULL, .func = (lua_CFunction) NULL }
+            { (const char *) NULL, (lua_CFunction) NULL }
     };
 
     for(const luaL_Reg *ite = &lualibray[0]; ite->func != (lua_CFunction) NULL;

@@ -30,9 +30,7 @@ extern "C"
 int resx_loader(lua_State * const state)
 {
     static bool initialized = false;
-    static resx_environ_t resxenv = { .stream = NULL, .offset = RESOURCE_CHAOS,
-            .length = 0, .nodesize = sizeof(resx_node_t)
-    };
+    static resx_environ_t resxenv;
     if (!initialized)
     {
         resx_environ_init(&resxenv);
