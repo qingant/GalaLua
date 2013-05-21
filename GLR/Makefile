@@ -1,5 +1,5 @@
 all:res lib glr glr_s mkresx
-lib:libGLR.so
+lib:libGLR.so libGLR.a
 include ../mk.rules
 ROOT_DIR = ../..
 .PHONY:res
@@ -8,7 +8,13 @@ libGLR.so:$(GLR_OBJ)
 	@echo $(PLATFORM)
 	rm -f $@
 	$(G++) $? $(LNKFLAG) $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lluajit -o $@
-	mv $@ $(HOME)/lib/	
+	mv $@ $(HOME)/lib/
+
+libGLR.a: $(GLR_OBJ)
+	@echo $(PLATFORM)
+	rm -f $@
+	ar rcs $@ $(GLR_OBJ)
+	mv $@ $(HOME)/lib/
 
 res:
 	echo "" > resource.h
