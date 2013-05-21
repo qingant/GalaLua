@@ -145,3 +145,42 @@ function str_pack(str)
     return str
 end
 
+function new_table_by_des(des)
+   function create_entry(tbl,des)
+      if not des or (type(des) ~= "table") then
+         error("the param tbl not is table")
+      end
+      if not des or (type(des) ~= "table") then
+         error("the param tbl not is table")
+      end
+      if des["type"] ~="string" then
+         tbl[des["name"]] = 0
+      else
+         tbl[des["name"]] = ""
+      end
+   end
+   function create_table(tbl,des)
+      if not tbl or (type(tbl) ~= "table") then
+         error("the param tbl not is table")
+      end
+      if not des["type"] then
+         for k,v in pairs(des) do	    
+            create_table(tbl,v)
+	 end
+      elseif des["type"] == "struct" then
+         tbl[des["name"]] = {}
+         create_table(tbl[des["name"]],des["items"])
+      elseif des["type"] == "structarray" then
+         error("no support struct array")
+      else
+         create_entry(tbl,des)
+      end
+   end
+   if not des or (type(des) ~= "table") then
+      error("the param des not is table")
+   end
+   local t = {}
+   create_table(t,des)
+   return t
+end
+
