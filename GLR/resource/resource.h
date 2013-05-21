@@ -65,6 +65,10 @@ extern "C"
 #define RESOURCE_DEFAULT_NAME   "resource.resx"
 #endif
 
+#ifndef INT32_MIN
+#define INT32_MIN      (-2147483647-1)
+#endif
+
 #ifndef RESOURCE_CHAOS
 #define RESOURCE_CHAOS      (INT32_MIN)
 #endif

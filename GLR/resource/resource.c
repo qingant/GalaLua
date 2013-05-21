@@ -261,8 +261,8 @@ int32_t resx_environ_read(const resx_environ_t * const resxenvp,
         const char *pathname)
 {
     const char *retval;
-    char name[NAME_MAX + 1] = {[sizeof(name) - 1] = '\0'};
-    char buf[PATH_MAX + 1] = {[sizeof(buf) - 1] = '\0'};
+    char name[NAME_MAX + 1]; name[NAME_MAX] = '\0';
+    char buf[PATH_MAX + 1]; buf[PATH_MAX] = '\0';
 
     int32_t next = 0;
     resx_node_t resxnode;

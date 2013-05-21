@@ -14,12 +14,13 @@
 #include <inttypes.h>
 #include <sys/types.h>
 
-#include "lua.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+#include "lua.h"
 
 extern void resx_openlibs(lua_State * const state);
 

@@ -11,12 +11,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-
-#include "resource.h"
-
 #ifndef LUA_OK
 #define LUA_OK  0
 #endif
@@ -25,6 +19,13 @@
 extern "C"
 {
 #endif
+
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+
+#include "resource.h"
+#include "resxloader.h"
 
 int resx_loader(lua_State * const state)
 {

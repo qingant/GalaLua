@@ -1,9 +1,9 @@
-all:res lib glr mkresx
+all:res lib glr glr_s mkresx
 lib:libGLR.so
 include ../mk.rules
 ROOT_DIR = ../..
 .PHONY:res
-GLR_OBJ = LuaNode.o Schedule.o GLR.o Bus.o Controllers.o SocketController.o BusController.o bswap.o cmodulepack.o resource.o resxloader.o
+GLR_OBJ = LuaNode.o Schedule.o GLR.o Bus.o Controllers.o SocketController.o BusController.o
 libGLR.so:$(GLR_OBJ)
 	@echo $(PLATFORM)
 	rm -f $@
@@ -14,20 +14,20 @@ res:
 	echo "" > resource.h
 	xxd -i glr.lua >> resource.h
 ttt:ttt.o
-	$(G++) $?  $(SYTMLIB) $(STUBLIB)  -lluajit -o $@
-glr:LuaTest.o
+	$(G++) $?  $(SYTMLIB) $(STUBLIB) -lluajit -o $@
+
+glr:LuaTest.o resource/resxloader.c resource/resource.c resource/bswap.c resource/cmodulepack.c
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) $?  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -o $@
+	$(G++) -I./resource $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -o $@ 
 	mv $@ $(HOME)/bin/
 
-glr_s:luaTest.o $(GLR_OBJ)
+glr_s:LuaTest.o $(GLR_OBJ) resource/bswap.c resource/cmodulepack.c resource/resource.c resource/resxloader.c
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++)  ../Stub/libGalaxyStub.a ../Runtime/libGalaxyRT.a  $(SYTMLIB) -lluajit  -o $@ $?
+	$(G++) -I./resource $(COMMINC) $(HOME)/lib/libGalaxyStub.a $(HOME)/lib/libGalaxyRT.a $(SYTMLIB) -lluajit -o $@ $^
 	mv $@ $(HOME)/bin/
 
-mkresx： mkresx.c resource.c bswap.c
-	$(GCC) -o $@ -std=gnu99 -Wall $^
-	mv $@ $(HOME)/bin/
-
+mkresx: resource/mkresx.c resource/resource.c resource/bswap.c
+	$(GCC) -o resource/mkresx -std=gnu99 -Wall -I./resource $^
+	mv resource/mkresx $(HOME)/bin

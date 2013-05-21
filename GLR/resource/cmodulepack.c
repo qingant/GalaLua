@@ -23,10 +23,6 @@
 
 #define LUA_LIB
 
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-
 #ifndef RESXLOADER
 #define RESXLOADER  "resxloader"
 #endif
@@ -35,6 +31,10 @@
 extern "C"
 {
 #endif
+
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
 
 void resx_openlibs(lua_State * const state)
 {
