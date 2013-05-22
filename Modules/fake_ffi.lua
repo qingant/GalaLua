@@ -142,7 +142,7 @@ function decode(tbldata,tbldes)
 end
 
 function str_pack(str)
-    return str
+    return string.gsub(str,"%d","")
 end
 
 function new_table_by_des(des)
