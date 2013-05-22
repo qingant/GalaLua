@@ -25,13 +25,13 @@ ttt:ttt.o
 glr:LuaTest.o resource/resxloader.c resource/resource.c resource/bswap.c resource/cmodulepack.c
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) -I./resource $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -o $@ 
+	$(G++) -I./resource $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@ 
 	mv $@ $(HOME)/bin/
 
 glr_s:LuaTest.o $(GLR_OBJ) resource/bswap.c resource/cmodulepack.c resource/resource.c resource/resxloader.c
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) -I./resource $(COMMINC) $(HOME)/lib/libGalaxyStub.a $(HOME)/lib/libGalaxyRT.a $(SYTMLIB) -lluajit -o $@ $^
+	$(G++) -I./resource $(COMMINC) $^ $(HOME)/lib/libGalaxyStub.a $(HOME)/lib/libGalaxyRT.a $(SYTMLIB) -lc -lm -ldl -lpthread -lrt -lluajit -o $@
 	mv $@ $(HOME)/bin/
 
 mkresx: resource/mkresx.c resource/resource.c resource/bswap.c
