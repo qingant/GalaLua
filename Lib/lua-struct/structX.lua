@@ -2,7 +2,7 @@
 module("structX",package.seeall)
 
 local struct = require("struct")
-
+local pprint=require "pprint"
 local fmt = ""
 local value = {}
 local i = 1
@@ -126,7 +126,8 @@ function entry_func(tblk,tbl)
    if name == nil or type == nil then
       error("then tbl bad format")
    end
-   table.insert(value,tblk[name])
+   --table.insert(value,tblk[name])
+   value[#value+1]=tblk[name]
 end
 
 
@@ -162,7 +163,9 @@ function packX(tblk,endian,tbl)
       else
          error("the endian must be little or big")
       end
+      pprint.pprint(tbl)
       build_format_by_des(tbl)
+      pprint.pprint(tbl)
       table_func(tblk,tbl)
       return struct.pack(fmt,unpack(value))
    else
@@ -230,8 +233,10 @@ function unpackX(src,endian,des)
       build_format_by_des(des)
       local rt = {}
       local tbl = {struct.unpack(fmt,src)}
+      i=1
       build_table(tbl,des,rt)
       tbl[#tbl] = nil
+      value={}
       return rt
    else
       error("the des must be table")
