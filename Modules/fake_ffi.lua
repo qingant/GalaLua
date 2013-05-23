@@ -39,8 +39,8 @@ function ffi.sizeof(tbldes)
        if type(tbl) == "table" then
            if not tbl["type"] then
                for k,v in pairs(tbl) do
-	           num = num +foreach_table(v)
-	       end
+	               num = num +foreach_table(v)
+	           end
            elseif tbl["type"] == "struct" then
                num = num + foreach_table(tbl["items"])
            elseif tbl["type"] == "arraystruct" then
@@ -142,7 +142,7 @@ function decode(tbldata,tbldes)
 end
 
 function str_pack(str)
-    return string.gsub(str,"%d","")
+    return string.gsub(str,"%z","")
 end
 
 function new_table_by_des(des)
