@@ -1,4 +1,8 @@
-all:router.so amq.so  logger.so  _dir.so cp
+AR          = ar
+ARFLAGS     = rcu
+RANLIB      = ranlib
+
+all:router.so amq.so  logger.so  _dir.so _dir.a cp
 
 include ../mk.rules
 amq:amq.so
@@ -17,5 +21,8 @@ logger.so:LuaLogger.o
 _dir.so:LuaDir.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@
+_dir.a: LuaDir.o
+	@echo $(PLATFORM)
+	$(AR) $(ARFLAGS) $@ $^
 cp:
-	cp -rf *.so $(HOME)/lib/lua
+	cp -rf *.so *.a $(HOME)/lib/lua
