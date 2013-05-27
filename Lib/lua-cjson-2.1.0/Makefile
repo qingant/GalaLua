@@ -23,6 +23,10 @@ LUA_CMODULE_DIR =   $(PREFIX)/lib/lua/$(LUA_VERSION)
 LUA_MODULE_DIR =    $(PREFIX)/share/lua/$(LUA_VERSION)
 LUA_BIN_DIR =       $(PREFIX)/bin
 
+AR          = ar
+ARFLAGS     = rcu
+RANLIB      = ranlib
+
 ##### Platform overrides #####
 ##
 ## Tweak one of the platform sections below to suit your situation.
@@ -91,12 +95,16 @@ OBJS =              lua_cjson.o strbuf.o $(FPCONV_OBJS)
 .txt.html:
 	$(ASCIIDOC) -n -a toc $<
 
-all: $(TARGET)
+all: $(TARGET) cjson.a
 
 doc: manual.html performance.html
 
 $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) $(CJSON_LDFLAGS) -o $@ $(OBJS)
+
+cjson.a: $(OBJS)
+	$(AR) $(ARFLAGS) $@ $(OBJS)
+	cp $@ $(HOME)/lib/lua/
 
 install: $(TARGET)
 	mkdir -p $(DESTDIR)/$(LUA_CMODULE_DIR)

@@ -36,10 +36,21 @@ extern "C"
 #include "lualib.h"
 #include "lauxlib.h"
 
+extern int luaopen_cjson(lua_State *);
+extern int luaopen_struct (lua_State *);
+extern int luaopen_iconv(lua_State *);
+extern int luaopen_minizip(lua_State *);
+extern int luaopen__dir(lua_State *);
+
 void resx_openlibs(lua_State * const state)
 {
     const luaL_Reg lualibray[] =
     {
+            { "cjson", luaopen_cjson },
+            { "struct", luaopen_struct },
+            { "iconv", luaopen_iconv },
+            { "minizip", luaopen_minizip },
+            { "_dir", luaopen__dir },
             { (const char *) NULL, (lua_CFunction) NULL }
     };
 

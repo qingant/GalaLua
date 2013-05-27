@@ -22,16 +22,16 @@ res:
 ttt:ttt.o
 	$(G++) $?  $(SYTMLIB) $(STUBLIB) -lluajit -o $@
 
-glr:LuaTest.o resource/resxloader.c resource/resource.c resource/bswap.c resource/cmodulepack.c
+glr:LuaTest.o # resource/resource.c resource/bswap.c resource/resxloader.c resource/cmodulepack.c 
 	@echo $(PLATFORM)
 	rm -f $@
 	$(G++) -I./resource $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@ 
 	mv $@ $(HOME)/bin/
 
-glr_s:LuaTest.o $(GLR_OBJ) resource/bswap.c resource/cmodulepack.c resource/resource.c resource/resxloader.c
+glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/resxloader.c resource/cmodulepack.c 
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) -I./resource $(COMMINC) $^ $(HOME)/lib/libGalaxyStub.a $(HOME)/lib/libGalaxyRT.a $(SYTMLIB) -lc -lm -ldl -lpthread -lrt -lluajit -o $@
+	$(G++) -I./resource $(COMMINC) $^ $(HOME)/lib/lua/cjson.a $(HOME)/lib/lua/struct.a $(HOME)/lib/lua/iconv.a $(HOME)/lib/lua/minizip.a $(HOME)/lib/lua/_dir.a $(HOME)/lib/libGalaxyStub.a $(HOME)/lib/libGalaxyRT.a $(SYTMLIB) -lc -lm -ldl -lpthread -lrt -lluajit -lzip -o $@
 	mv $@ $(HOME)/bin/
 
 mkresx: resource/mkresx.c resource/resource.c resource/bswap.c

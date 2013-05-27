@@ -7,7 +7,12 @@
 # 	rm -rf *.o
 # 	rm -rf *.so
 # 
-all:libzip minizip
+
+AR          = ar
+ARFLAGS     = rcu
+RANLIB      = ranlib
+
+all:libzip minizip minizip.a
 
 libzip:
 	cd libzip-0.11.1 && ./configure && make -C lib && cp -af lib/.libs/libzip.so* $(HOME)/lib/
@@ -17,6 +22,13 @@ minizip:
 	cp zloader.lua $(HOME)/lib/lua
 	cp print_r.lua $(HOME)/lib/lua	
 	cp -rf minizip.so $(HOME)/lib/lua
+
+%.o: %.c
+	gcc -std=gnu99 -c $^ -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/
+
+minizip.a: lua_minizip.o
+	$(AR) $(ARFLAGS) $@ $^
+	cp -rf minizip.a $(HOME)/lib/lua
 
 clean:
 	rm -rf *.so
