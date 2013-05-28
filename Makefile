@@ -1,4 +1,4 @@
-DES = pre stub rt amq cfg luajit glr lobj lib pyo #app sup 
+DES = pre stub rt amq cfg luajit lobj lib glr #pyo #app sup 
 all:$(DES)
 .PHONY:$(DES)
 
