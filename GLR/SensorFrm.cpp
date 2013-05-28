@@ -154,17 +154,17 @@ int main( int argc, char* argv[] )
     //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
     //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
     GLR::Runtime::Initialize(host, port, GLR_initializer);
-    GLR::Runtime::GetInstance().Entry("cli", "main");
+//    GLR::Runtime::GetInstance().Entry("cli", "main");
 
-//    if (_CProcess.ExistOption("m"))
-//    {
-//        std::string file=_CProcess.GetOption("m");
-//        GLR::Runtime::GetInstance().Entry(file,entry);
-//    }
-//    else
-//    {
-//        GLR::Runtime::GetInstance().EntryEx(_CProcess.Arguments[1]);
-//    }
+    if (_CProcess.ExistOption("m"))
+    {
+        std::string file=_CProcess.GetOption("m");
+        GLR::Runtime::GetInstance().Entry(file,entry);
+    }
+    else
+    {
+        GLR::Runtime::GetInstance().EntryEx(_CProcess.Arguments[1]);
+    }
 
     //_CProcess.SetArgument("What the hell? Do not work?");
     while (true)

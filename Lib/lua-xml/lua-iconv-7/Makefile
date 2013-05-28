@@ -26,26 +26,21 @@
 #CC = gcc
 #RM = rm
 
-AR          = ar
-ARFLAGS     = rcu
-RANLIB      = ranlib
+PREFIX = $(HOME)
 
 # Gives a nice speedup, but also spoils debugging on x86. Comment out this
 # line when debugging.
 OMIT_FRAME_PTR = -fomit-frame-pointer
 
-LUABIN = lua
-LUAPKG = lua5.2
-CFLAGS = $(shell pkg-config $(LUAPKG) --cflags) -fPIC -O3 -Wall $(OMIT_FRAME_PTR))
-LFLAGS = -shared
+AR          = ar
+ARFLAGS     = rcu
+RANLIB      = ranlib
 
-INSTALL_PATH = `$(LUABIN) -e' \
-    for dir in package.cpath:gmatch("(/[^?;]+)?") do \
-        io.write(dir) \
-        os.exit(0) \
-    end \
-    os.exit(1) \
-'`
+LUABIN = luajit
+LUAPKG = luajit
+CFLAGS = -I$(PREFIX)/include/luajit-2.0 -fPIC -O3 -Wall $(OMIT_FRAME_PTR)
+LFLAGS = -shared
+LIBS   = -L$(PREFIX)/lib -lluajit
 
 ## If your system doesn't have pkg-config or if you do not want to get the
 ## install path from Lua, comment out the previous lines and uncomment and
@@ -61,20 +56,19 @@ all: iconv.so iconv.a
 iconv.lo: luaiconv.c
 	$(CC) -o iconv.lo -c $(CFLAGS) luaiconv.c
 
-iconv.a : luaiconv.c
-	$(CC） -o luaiconv.o -c -std=gnu99 luaiconv.c
-	$(AR) $(ARFLAGS) $@ luaiconv.o
-
 iconv.so: iconv.lo
 	$(CC) -o iconv.so $(LFLAGS) $(LIBS) iconv.lo
 
+iconv.a: iconv.lo
+	$(AR) $(ARFLAGS) $@ $^
+
 install: iconv.so iconv.a
 	make test
-	install -D -s iconv.so $(DESTDIR)/$(INSTALL_PATH)/iconv.so
-	install -D -s iconv.a $(DESTDIR)/$(INSTALL_PATH)/iconv.a
+	cp iconv.so $(PREFIX)/lib/lua/iconv.so
+	cp iconv.a $(PREFIX)/lib/lua/iconv.a
 
 clean:
-	$(RM) iconv.so iconv.lo iconv.a iconv.o
+	$(RM) iconv.so iconv.lo iconv.a
 
 test: iconv.so test_iconv.lua
-	lua test_iconv.lua
+	luajit test_iconv.lua
