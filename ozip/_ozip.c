@@ -740,6 +740,7 @@ File zf_archive_open_file(zFile zfile, const char* pathname,
         return NULL;
     }
 
+    file_obj->zip = zf;
     return file_obj;
 }
 
@@ -787,6 +788,8 @@ int zf_file_read(oentry* file, char* buffer, uLong len) {
     	file->stream.avail_out = (uInt)rest_comp+ file->stream.avail_in;
     }
 
+    OZIP_DEBUG(" === rest_uncomp = %ld  and rest_comp = %ld\n", rest_uncomp, rest_comp);
+
     while (file->stream.avail_out>0)
     {
         if ((file->stream.avail_in==0) && (rest_comp>0))
@@ -800,7 +803,7 @@ int zf_file_read(oentry* file, char* buffer, uLong len) {
             {
             	return OZIP_EOF;
             }
-            if (ZSEEK(file->zip->z_filefunc,file->zip->filestream, file->pos_in_zipfile + file->pos_in_zipfile, OZIP_SEEK_SET)!=0)
+            if (ZSEEK(file->zip->z_filefunc,file->zip->filestream, file->pos_in_zipfile + file->zip->zip_start_pos, OZIP_SEEK_SET)!=0)
             {
             	return OZIP_ERRNO;
             }

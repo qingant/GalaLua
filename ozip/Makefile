@@ -1,5 +1,5 @@
 CC=cc
-CFLAGS=-O -g -Wall #-D_DEBUG_ 
+CFLAGS=-O -g -Wall -D_DEBUG_ 
 
 LIB_ZIP_OBJS = 
 LIB_STRZIP_OBJS = _ozip.o io_str.o util.o memfile.o -lz

@@ -71,7 +71,9 @@ int main(int argc, char **argv) {
 	zf_file_stat(entry, &stat);
 	buf = (char*)malloc(stat.size+1);
 	memset(buf,'\0', stat.size+1);
-	iRead = zf_file_read(zf, buf, stat.size);
+	printf("comp size =%ld uncomp size = %ld\n", entry->head.comp_size, entry->head.uncomp_size);
+
+	iRead = zf_file_read(entry, buf, stat.size);
 	if (iRead != stat.size) {
 		printf(" Error README.txt size != %lu read from README.txt %d \n", stat.size, iRead);
 	}
