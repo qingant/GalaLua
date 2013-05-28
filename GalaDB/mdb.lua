@@ -150,7 +150,9 @@ function mdb:_with(action, ...)
     return value
 end
 function mdb:with(action, ...)
-    self:beginWRTrans()
+    if self.txn == nil then
+        self:beginWRTrans()
+    end
     return self:_with(action, ...)
 end
 function mdb:withReadOnly(action, ...)
