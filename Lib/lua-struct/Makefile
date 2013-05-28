@@ -1,4 +1,4 @@
-CC=gcc -ansi -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
+CC=gcc -ansi -Wall -O2 -fPIC -I../../lua-5.1.5/src/ -L $(HOME)/lua5.1.5/lib -llua -lm
 OBJ=struct.o
 
 AR          = ar
