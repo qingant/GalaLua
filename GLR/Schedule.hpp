@@ -3,7 +3,11 @@
 #include <vector>
 
 #include <string>
+#ifdef _AIX
+#include <unordered_map>
+#else
 #include <tr1/unordered_map>
+#endif
 #include "Runtime/Queue.hpp"
 #include "Runtime/Thread.hpp"
 
@@ -58,7 +62,7 @@ namespace GLR
         void PutTask(Process &node);
     public:
         ~Schedule(void);
-    private:                              
+    private:
         std::vector<std::pair<Processor*, Galaxy::GalaxyRT::CThread*> >  _Cores;
         LN_SCHE_QUEUE_TYPE      _ScheQueue;
 

@@ -5,7 +5,11 @@
 #include <map>
 
 #include <exception>
+#ifdef _AIX
+#include <unordered_map>
+#else
 #include <tr1/unordered_map>
+#endif
 #include "Runtime/Queue.hpp"
 
 #pragma once
@@ -35,9 +39,9 @@ namespace GLR
     typedef struct{
         char   Host[20];              // Host
         uint32_t   Port;              // Port
-        uint32_t   Gpid;           
+        uint32_t   Gpid;
     }GLR_ADDR;
-    struct GLR_BUS_HEAD 
+    struct GLR_BUS_HEAD
     {
         MSG_HEAD Head;
         GLR_ADDR Source;
@@ -55,7 +59,7 @@ namespace GLR
         int _DeviceId;
     public:
         int DeviceId() const { return _DeviceId; }
-    protected:  
+    protected:
         void DeviceId(int val) { _DeviceId = val; }
     };
 
@@ -70,11 +74,11 @@ namespace GLR
         //************************************
         // Method:    GetInstance
         // FullName:  GLR::Bus::GetInstance
-        // Access:    public static 
+        // Access:    public static
         // Returns:   Bus &
         // Qualifier: This method is **NOT** thread-safe
         //************************************
-        static Bus &GetInstance(); 
+        static Bus &GetInstance();
         void RegisterDevice(IController*);
         void Interrupt(int device, lua_State*);
         void IntSuspend(int pid);

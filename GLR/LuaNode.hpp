@@ -3,7 +3,11 @@
 #include <vector>
 #include <string>
 #include <exception>
+#ifdef _AIX
+#include <unordered_map>
+#else
 #include <tr1/unordered_map>
+#endif
 #include "Runtime/Queue.hpp"
 #include "Runtime/Utils.hpp"
 #include "GLR.hpp"
@@ -15,7 +19,7 @@ namespace GLR
     typedef std::string LN_MSG_TYPE;
     typedef int32_t     LN_ID_TYPE;
     typedef Galaxy::GalaxyRT::_TypeDef_FIFO<std::string>::CFIFOQueue LN_CHL_TYPE;
-    
+
     class Schedule;
     class Globals
     {
@@ -36,7 +40,7 @@ namespace GLR
     private:
         VARMAP _VarMap;
     };
-    class Process 
+    class Process
     {
     public:
         friend class Bus;
@@ -53,7 +57,7 @@ namespace GLR
                 RECV_WAIT,    // On glr.recv call while no msg available
                 RECV_RETURN,
                 INT_WAIT,     // On Interrupt, wait for wake up
-                INT_RESP,     
+                INT_RESP,
                 GLR_CALL,     // trap in glr system call
                 KILLED,
             };
@@ -94,7 +98,7 @@ namespace GLR
         static Globals GlobalVars;
     public:
         // Built In Ops
-        static int Spawn(lua_State *l); 
+        static int Spawn(lua_State *l);
         static int SendMsgToNode(lua_State *l);
         static int Recieve(lua_State *l);
         static int Debug(lua_State *l);
@@ -147,7 +151,7 @@ namespace GLR
         Galaxy::GalaxyRT::CPthreadMutex              _Lock;
         Galaxy::GalaxyRT::CPthreadMutex              _IntLock;   //Interrupt Lock
         //std::condition_variable _Cond;
-        int32_t                 _Id; 
+        int32_t                 _Id;
         void Id(int32_t val) { _Id = val; }
         std::string   _Path;
     public:

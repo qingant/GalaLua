@@ -3,7 +3,11 @@
 #include <vector>
 #include <string>
 #include <exception>
+#ifdef _AIX
+#include <unordered_map>
+#else
 #include <tr1/unordered_map>
+#endif
 #include "Runtime/Queue.hpp"
 #include "Bus.hpp"
 #include "Schedule.hpp"
