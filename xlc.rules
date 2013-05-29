@@ -3,7 +3,7 @@ G++			= xlc++_r
 GCC			= cc_r
 COMMINC		=  -I./include -I../Stub   -I. -I.. -I../Common -I../Config/include -I/usr/local/include/libxml2/  -I../Runtime  -I../lua-5.1.5/src/
 LNKFLAG 	= -qmkshrobj -q64
-COMPWARN    = -qhalt=i -qwarn64 #-qinfo=all
+COMPWARN    = #-qhalt=i -qwarn64 -qinfo=all
 CMPFLAG 	= -c -g -q64 -qcpluscmt -D_UNIX95_ -D_DEBUG_ -D__IBMCPP_TR1__ $(COMPWARN) $(COMMINC)  -D_ALL_SOURCE #-qinclude=config.h -D_BSD=44
 PLIBDIR		= -lGalaxyStub  -L$(HOME)/lib/
 STUBLIB		= -lGalaxyStub
