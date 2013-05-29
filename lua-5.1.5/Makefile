@@ -66,11 +66,13 @@ install: dummy
 	cd src && $(INSTALL_DATA) $(TO_INC) $(INSTALL_INC)
 	cd src && $(INSTALL_DATA) $(TO_LIB) $(INSTALL_LIB)
 	cd doc && $(INSTALL_DATA) $(TO_MAN) $(INSTALL_MAN)
+	ln -s $(INSTALL_BIN)/lua $(HOME)/bin/lua
 uninstall:
 	rm -rf $(INSTALL_TOP)/bin/lua*
 	rm -rf $(INSTALL_TOP)/include/lua*
 	rm -rf $(INSTALL_TOP)/lib/liblua*
 	rm -rf $(INSTALL_TOP)/man/man1/lua*
+	rm -rf $(HOME)/bin/lua
 ranlib:
 	cd src && cd $(INSTALL_LIB) && $(RANLIB) $(TO_LIB)
 
