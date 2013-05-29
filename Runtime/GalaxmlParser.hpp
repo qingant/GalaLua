@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iconv.h>
 #include "cstub.h"
 #include "Exception.hpp"
 #include "File.hpp"
