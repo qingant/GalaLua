@@ -16,14 +16,14 @@ CXXFLAGS    = -std=gnu++98 -g -Wall
 AR          = ar
 ARFLAGS     = rcs
 
-all: mkresx.out test.out test_lua.out test_lua2.out
+all: mkresx.out test.out test_lua.out test_lua2.out test_lua3.out
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(INPATH) -fPIC $^
 
 mkresx.out: mkresx.o resource.o bswap.o
 	$(CC) -o $@ $^ $(CFLAGS) $(INPATH)
-	mv $@ $(HOME)/bin/mkresx
+	cp $@ $(HOME)/bin/mkresx
 
 test.out: test.o resource.o bswap.o
 	$(CC) -o $@ $^ $(CFLAGS) $(INPATH) $(LDPATH)
@@ -33,6 +33,9 @@ test_lua.out: test_lua.o resource.o bswap.o
 
 test_lua2.out: test_lua2.o resource.o bswap.o
 	$(CC) -o $@ $^ $(CFLAGS) $(INPATH) $(LDPATH) $(LUA_STATIC) $(LDLIBS)
+
+test_lua3.out: test_lua2.o resource.o bswap.o cmodulepack.o
+	$(CC) -o $@ $^ $(CFLAGS) $(INPATH) $(LDPATH) $(LUA_STATIC) $(LDLIBS) $(PREFIX)/lib/lua/cjson.a $(PREFIX)/lib/lua/struct.a $(PREFIX)/lib/lua/iconv.a $(PREFIX)/lib/lua/minizip.a $(PREFIX)/lib/lua/_dir.a
 
 .PHONY: install test test_lua test_lua2 clean
 
@@ -59,6 +62,11 @@ test_lua2:
 	./mkresx.out -o resxlua2.rs main.lua auxiliary.lua
 	cat resxlua2.rs >> test_lua2.out
 	./test_lua2.out test2.lua
+
+test_lua3:
+	./mkresx.out -o resxlua3.rs main.lua auxiliary.lua
+	cat resxlua3.rs >> test_lua3.out
+	./test_lua3.out test2.lua
 
 clean:
 	rm -f *.o *.so *.out *.rs

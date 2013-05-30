@@ -13,7 +13,7 @@ json:
 dba:
 	cd luadbi.0.5 && make sqlite3 && mv *.so $(HOME)/lib/lua/ && make clean
 struct:
-	cd lua-struct && make && mv struct.{a,so} $(HOME)/lib/lua/ && make clean
+	cd lua-struct && make && mv struct.a struct.so $(HOME)/lib/lua/ && make clean
 libzip:
 	cd lua-zip && make && make clean
 luazip:

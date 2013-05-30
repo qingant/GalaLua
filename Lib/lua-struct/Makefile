@@ -8,12 +8,13 @@ endif
 OBJ=struct.o
 
 AR          = ar
-ARFLAGS     = rcu
+ARFLAGS     = -rcu
 RANLIB      = ranlib
 
 default: $(OBJ)
 	$(CC) -shared -o struct.so  $(OBJ)
 	$(AR) $(ARFLAGS) struct.a $(OBJ)
+	$(RANLIB) struct.a
 
 clean:
 	rm -f $(OBJ)

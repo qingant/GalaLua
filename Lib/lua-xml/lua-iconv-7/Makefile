@@ -33,7 +33,7 @@ PREFIX = $(HOME)
 OMIT_FRAME_PTR = -fomit-frame-pointer
 
 AR          = ar
-ARFLAGS     = rcu
+ARFLAGS     = -rcu
 RANLIB      = ranlib
 
 LUABIN = luajit
@@ -61,6 +61,7 @@ iconv.so: iconv.lo
 
 iconv.a: iconv.lo
 	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $@
 
 install: iconv.so iconv.a
 	make test

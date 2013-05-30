@@ -24,7 +24,7 @@ LUA_MODULE_DIR =    $(PREFIX)/share/lua/$(LUA_VERSION)
 LUA_BIN_DIR =       $(PREFIX)/bin
 
 AR          = ar
-ARFLAGS     = rcu
+ARFLAGS     = -rcu
 RANLIB      = ranlib
 
 ##### Platform overrides #####
@@ -104,6 +104,7 @@ $(TARGET): $(OBJS)
 
 cjson.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(RANLIB) $@
 	cp $@ $(HOME)/lib/lua/
 
 install: $(TARGET)

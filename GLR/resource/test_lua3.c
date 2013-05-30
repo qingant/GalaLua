@@ -1,15 +1,35 @@
 /*
- * resxloader.c
+ * test_lua3.c
  *
- *  Created on: May 20, 2013
+ *  Created on: May 6, 2013
  *      Author: esuomyekcim
  */
+
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <inttypes.h>
+#include <sys/types.h>
 
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#if defined(linux) || defined(__linux) || defined(__linux__)
+#include <sysexits.h>
+#endif
+
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+
+#include "resource.h"
+
+#ifndef RESXLOADER
+#define RESXLOADER  "resxloader"
+#endif
 
 #ifndef LUA_OK
 #define LUA_OK  0
@@ -20,17 +40,20 @@ extern "C"
 {
 #endif
 
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
+#ifndef SUFFIX_NAME
+#define SUFFIX_NAME ".lua"
+#endif
 
-#include "resource.h"
-#include "resxloader.h"
+#ifndef SUFFIX_LEN
+#define SUFFIX_LEN  8
+#endif
 
-int resx_loader(lua_State * const state)
+static int resx_loader(lua_State * const state)
 {
     static bool initialized = false;
-    static resx_environ_t resxenv;
+    static resx_environ_t resxenv = { .stream = NULL, .offset = RESOURCE_CHAOS,
+            .length = 0, .nodesize = sizeof(resx_node_t)
+    };
     if (!initialized)
     {
         resx_environ_init(&resxenv);
@@ -53,7 +76,25 @@ int resx_loader(lua_State * const state)
         initialized = true;
     }
     const char * const pathname = luaL_checkstring(state, 1);
+//    fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s.\n",
+//                    __FILE__, __FUNCTION__, __LINE__, pathname);
+//    const size_t length = strlen(pathname);
+//    char * const name = (char * const) malloc(length + SUFFIX_LEN);
+//    if (name == NULL)
+//    {
+//        return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+//                "malloc.\n", __FILE__, __FUNCTION__, __LINE__);
+//    }
+//    memcpy(name, pathname, length);
+//    for (char *tmp = name; (tmp = strchr(tmp, '.')) != NULL; *tmp = '/')
+//    {
+//        // null sentence
+//    }
+//    strncpy(name + length, SUFFIX_NAME, SUFFIX_LEN);
+//    fprintf(stdout, "File %s, Function %s, Line %d, name = %s.\n",
+//                    __FILE__, __FUNCTION__, __LINE__, name);
     int32_t retval = resx_environ_read(&resxenv, pathname);
+//    free(name);
     if (retval > 0)
     {
         char * const buff = (char *) malloc(retval + 1);
@@ -110,13 +151,46 @@ int resx_loader(lua_State * const state)
     return 1;
 }
 
-int resx_require(const char * const pathname, lua_State * const state)
+//static void table_pairs(lua_State * const state)
+//{
+//    const size_t length = lua_objlen(state, -1) + 1;
+//    fprintf(stdout, "table begin: length = %zu\n", length - 1);
+//    for (size_t idx = 1; idx < length; ++idx)
+//    {
+//        lua_rawgeti(state, 1, idx);
+//        fprintf(stdout, "idx = %d, value = %s\n", idx, lua_tostring(state, -1));
+//        lua_pop(state, 1);
+//    }
+//    fprintf(stdout, "ipairs\n");
+//    /* table is in the stack at index 't' */
+//    lua_pushnil(state);  /* first key */
+//    while (lua_next(state, -2) != 0) {
+//      /* uses 'key' (at index -2) and 'value' (at index -1) */
+//      printf("%s - %s",
+//              lua_typename(state, lua_type(state, -2)),
+//             lua_typename(state, lua_type(state, -1)));
+//      if (lua_type(state, -2) == LUA_TSTRING)
+//      {
+//          printf(", name = %s, length = %zu\n", lua_tostring(state, -2), lua_objlen(state, -2));
+//      }
+//      else
+//      {
+//          printf("\n");
+//      }
+//      /* removes 'value'; keeps 'key' for next iteration */
+//      lua_pop(state, 1);
+//    }
+//    lua_pop(state, 1);
+//    fprintf(stdout, "table end\n");
+//}
+
+static int resx_require(const char * const pathname, lua_State * const state)
 {
     const int initialdepth = lua_gettop(state);
+    //    fprintf(stdout, "Line %d, gettop = %d\n", __LINE__, initialdepth);
 
     lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME); /* 'package' */
     lua_getfield(state, -1, "loaded"); /* package.loaded */
-//    lua_getfield(state, LUA_REGISTRYINDEX, "_LOADED"); /* package.loaded */
     lua_getfield(state, -1, pathname); /* package.loaded[pathname] */
     if (lua_toboolean(state, -1))
     { /* is it there ? */
@@ -131,7 +205,6 @@ int resx_require(const char * const pathname, lua_State * const state)
     {
         lua_pop(state, 1); /* pop package.loaded[pathname] */
         lua_getfield(state, -2, "loaders"); /* package.loaders */
-//        lua_getfield(state, LUA_ENVIRONINDEX, "loaders"); /* package.loaders */
         if (!lua_istable(state, -1))
         {
             return luaL_error(state, "package.loaders must be a table");
@@ -182,49 +255,106 @@ int resx_require(const char * const pathname, lua_State * const state)
         }
     }
     const int currentdepth = lua_gettop(state);
+//    fprintf(stdout, "Line %d, gettop = %d\n", __LINE__, currentdepth);
     lua_pop(state, currentdepth - initialdepth);
+//    fprintf(stdout, "Line %d, gettop = %d\n", __LINE__, lua_gettop(state));
     return 0;
 }
 
-void resx_setloader(lua_State * const state, int (*func)(lua_State *))
-{
-    lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME);
-    lua_getfield(state, -1, "loaders");
-    if (!lua_istable(state, -1))
-    {
-        luaL_error(state, "package.loaders must be a table");
-    }
-    lua_pushinteger(state, lua_objlen(state, -1) + 1);
-    lua_pushcfunction(state, func);
-    lua_settable(state, -3);
-    lua_pop(state, 2);
-}
-
-int resx_main_execute(lua_State * const state, const char *name)
-{
-    resx_require(name, state);
-    const int initialdepth = lua_gettop(state);
-    lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME);
-    lua_getfield(state, -1, "loaded");
-    lua_remove(state, -2);
-    lua_getfield(state, -1, name);
-    lua_remove(state, -2);
-    lua_getfield(state, -1, "main");
-    lua_remove(state, -2);
-    if (lua_pcall(state, 0, LUA_MULTRET, 0) != 0)
-    {
-        return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
-                __FILE__, __FUNCTION__, __LINE__);
-    }
-    return lua_gettop(state) - initialdepth;
-}
-
-void GLR_initializer(lua_State * state)
-{
-    resx_setloader(state, resx_loader);
-    resx_openlibs(state);
-}
+extern void resx_openlibs(lua_State * const state);
 
 #ifdef __cplusplus
 }
 #endif
+
+int main(int argc, char *argv[])
+{
+    lua_State * const state = luaL_newstate();
+    luaL_openlibs(state);
+    resx_openlibs(state);
+
+    lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME);
+    lua_getfield(state, -1, "loaders");
+    /**
+     * @todo 此处需要注意判断loaders是否为nil
+     */
+    if (!lua_istable(state, -1))
+    {
+        return luaL_error(state, "package.loaders must be a table");
+    }
+    lua_pushinteger(state, lua_objlen(state, -1) + 1);
+    lua_pushcfunction(state, resx_loader);
+    lua_settable(state, -3);
+    lua_pop(state, 2);
+
+    if (argc == 2)
+    {
+        switch(luaL_loadfile(state, argv[1]))
+        {
+            case LUA_ERRSYNTAX:
+            {
+                return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                        "syntax error during pre-compilation.\n", __FILE__,
+                        __FUNCTION__, __LINE__);
+            }
+            case LUA_ERRMEM:
+            {
+                return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                        "memory allocation error.\n", __FILE__, __FUNCTION__,
+                        __LINE__);
+            }
+            case LUA_ERRFILE:
+            {
+                return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                        "LUA_ERRFILE.\n", __FILE__, __FUNCTION__, __LINE__);
+            }
+        }
+
+        switch(lua_pcall(state, 0, LUA_MULTRET, 0))
+        {
+            case LUA_ERRRUN:
+            {
+                return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                        "a runtime error.\n", __FILE__, __FUNCTION__,
+                        __LINE__);
+            }
+            case LUA_ERRMEM:
+            {
+                return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                        "memory allocation error.\n", __FILE__, __FUNCTION__,
+                        __LINE__);
+            }
+            case LUA_ERRERR:
+            {
+                return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                        " error while running the error handler function.\n",
+                        __FILE__, __FUNCTION__, __LINE__);
+            }
+        }
+    }
+    else if (argc == 3)
+    {
+        const char * const pkgname = "auxiliary";
+        fprintf(stdout, "File %s, Function %s, Line %d.\n", __FILE__,
+                __FUNCTION__, __LINE__);
+        resx_require(pkgname, state);
+        lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME);
+        lua_getfield(state, -1, "loaded");
+        lua_getfield(state, -1, pkgname);
+        lua_getfield(state, -1, "main");
+        if (lua_pcall(state, 0, LUA_MULTRET, 0) != 0)
+        {
+            return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
+                    __FILE__, __FUNCTION__, __LINE__);
+        }
+        lua_getfield(state, -1, "helloworld");
+        if (lua_pcall(state, 0, LUA_MULTRET, 0) != 0)
+        {
+            return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
+                    __FILE__, __FUNCTION__, __LINE__);
+        }
+    }
+
+    lua_close(state);
+    exit(EXIT_SUCCESS);
+}

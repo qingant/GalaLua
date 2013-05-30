@@ -9,7 +9,7 @@
 # 
 
 AR          = ar
-ARFLAGS     = rcu
+ARFLAGS     = -rcu
 RANLIB      = ranlib
 
 all:libzip minizip minizip.a
@@ -28,6 +28,7 @@ minizip:
 
 minizip.a: lua_minizip.o
 	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $@
 	cp -rf minizip.a $(HOME)/lib/lua
 
 clean:
