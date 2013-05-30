@@ -11,7 +11,6 @@ std::vector<Process*> Process::NodeMap(10240);
 //std::vector<Process*>(10240);
 Galaxy::GalaxyRT::CRWLock Process::Lock;
 int32_t Process::NodeId;
-extern Galaxy::GalaxyRT::CProcess _CProcess;
 
 
 Process::Process(void)
@@ -219,19 +218,16 @@ Process & Process::GetNodeById( LN_ID_TYPE id)
 
 int GLR::Process::GetOption(lua_State *l)
 {
-    //if (!_CProcess.ExistOption(str))
-    //{
-    //    lua_pushnil(l);
-    //}
-    //else
-    //{
-    //    std::string opt=_CProcess.GetOption(str);
-    //    lua_pushstring(l,opt.c_str());
-    //}
-    lua_newtable(l);
-    for (size_t i = 0; i != _CProcess.Arguments.size(); ++i)
+    Galaxy::GalaxyRT::CProcess *_pCProcess=GLR::Runtime::_pCProcess;
+    if (_pCProcess==NULL)
     {
-        lua_pushstring(l, _CProcess.Arguments[i].c_str());
+        THROW_EXCEPTION_EX("_pCProcess is NULL");
+        return 0;
+    }
+    lua_newtable(l);
+    for (size_t i = 0; i != _pCProcess->Arguments.size(); ++i)
+    {
+        lua_pushstring(l, _pCProcess->Arguments[i].c_str());
         lua_rawseti(l, -2, i);
     }
 
@@ -239,8 +235,15 @@ int GLR::Process::GetOption(lua_State *l)
 }
 int GLR::Process::SetOptions(lua_State *l)
 {
+    Galaxy::GalaxyRT::CProcess *_pCProcess=GLR::Runtime::_pCProcess;
+    if (_pCProcess==NULL)
+    {
+        THROW_EXCEPTION_EX("_pCProcess is NULL");
+        return 0;
+    }
+
     const char *str=luaL_checkstring(l,1);
-    int i=_CProcess.SetArgument(str);
+    int i=_pCProcess->SetArgument(str);
     lua_pushnumber(l,i);
     return 1;
 }
@@ -755,7 +758,6 @@ int GLR::Process::GetGlobal( lua_State *l )
     const Globals::UserData &ud = GlobalVars.Get(id);
     void *p = lua_newuserdata(l, sizeof(ud.Content));
     memcpy(p, &ud.Content, sizeof(ud.Content));
-
     luaL_getmetatable(l,ud.Name.c_str());
     lua_pushvalue(l,-1);
 

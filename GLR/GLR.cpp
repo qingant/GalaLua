@@ -10,6 +10,8 @@ using namespace GLR;
 
 GLR::Runtime *GLR::Runtime::_Instance = NULL;
 GLR::Runtime::GLR_INITIALIZER GLR::Runtime::_Initializer = NULL;
+Galaxy::GalaxyRT::CProcess  *GLR::Runtime::_pCProcess= NULL;
+
 GLR::Runtime::Runtime(const std::string &host, int port)
     :_Host(host), _NodeId(port)
 {

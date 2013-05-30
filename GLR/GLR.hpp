@@ -11,6 +11,7 @@
 #include "Runtime/Queue.hpp"
 #include "Bus.hpp"
 #include "Schedule.hpp"
+#include "Process.hpp"
 #pragma once
 
 namespace GLR
@@ -25,6 +26,7 @@ namespace GLR
         typedef void (*GLR_INITIALIZER)(lua_State*);
     public:
         static GLR_INITIALIZER _Initializer;
+        static Galaxy::GalaxyRT::CProcess *_pCProcess;
     public:
     	~Runtime();
         static Runtime &GetInstance();

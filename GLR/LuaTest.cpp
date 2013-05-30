@@ -7,7 +7,6 @@
 #include <unistd.h>
 using namespace GLR;
 
-Galaxy::GalaxyRT::CProcess _CProcess;
 
 void daemonize(void)  
 {  
@@ -82,6 +81,8 @@ int main( int argc, char* argv[] )
     //    printf("Resume Error : %s\n", e.what());
     //}
 
+    Galaxy::GalaxyRT::CProcess _CProcess;
+    GLR::Runtime::_pCProcess=&_CProcess;
 
     _CProcess.Initialize(argc,argv,NULL,"m:?e:d:?h:?p:?c:?D");
 
