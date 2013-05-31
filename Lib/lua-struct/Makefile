@@ -1,18 +1,20 @@
 PLATFORM=$(shell uname)
-
+LDFLG   = none
 ifeq (${PLATFORM},Linux)
+    LDFLG = -shared
 	CC=gcc -ansi -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
 else ifeq (${PLATFORM},AIX)
-	CC=gcc -ansi -Wall -O2 -fPIC -I../../lua-5.1.5/src/ -L $(HOME)/lua5.1.5/lib -llua -lm
+    LDFLG = -qmkshrobj
+	CC=xlc_r -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lluajit -lm
 endif
 OBJ=struct.o
 
-AR          = ar
+AR          = ar -X64
 ARFLAGS     = -rcu
 RANLIB      = ranlib
 
 default: $(OBJ)
-	$(CC) -shared -o struct.so  $(OBJ)
+	$(CC) $(LDFLG) -o struct.so  $(OBJ)
 	$(AR) $(ARFLAGS) struct.a $(OBJ)
 	$(RANLIB) struct.a
 
