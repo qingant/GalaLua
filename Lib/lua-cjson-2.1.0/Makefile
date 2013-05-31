@@ -20,11 +20,11 @@ PLATFORM      =  $(shell uname)
 ifeq ($(PLATFORM),AIX)
 CC  = xlc_r
 CFLAGS =            -q64 -DNDEBUG
-CJSON_LDFLAGS =     -qmkshrobj -q64 -L$(HOME)/lua5.1.5/lib -llua -lm
+CJSON_LDFLAGS =     -qmkshrobj -q64 -L$(HOME)/lib -lluajit -lm
 else
 CC  = gcc
 CFLAGS =            -O3 -Wall -pedantic -DNDEBUG
-CJSON_LDFLAGS =     -shared -L$(HOME)/lua5.1.5/lib -llua
+CJSON_LDFLAGS =     -shared -L$(HOME)/lib -lluajit
 endif
 LUA_INCLUDE_DIR =   $(PREFIX)/src/
 LUA_CMODULE_DIR =   $(PREFIX)/lib/lua/$(LUA_VERSION)
