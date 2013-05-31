@@ -13,17 +13,25 @@
 ##### Build defaults #####
 LUA_VERSION =       5.1
 TARGET =            cjson.so
-PREFIX =            ../../LuaJIT-2.0.0/
+PREFIX =            ../../lua-5.1.5
 #CFLAGS =            -g -Wall -pedantic -fno-inline
-CFLAGS =            -O3 -Wall -pedantic -DNDEBUG
 CJSON_CFLAGS =      -fpic
-CJSON_LDFLAGS =     -shared
+PLATFORM      =  $(shell uname)
+ifeq ($(PLATFORM),AIX)
+CC  = xlc_r
+CFLAGS =            -q64 -DNDEBUG
+CJSON_LDFLAGS =     -qmkshrobj -q64 -L$(HOME)/lua5.1.5/lib -llua -lm
+else
+CC  = gcc
+CFLAGS =            -O3 -Wall -pedantic -DNDEBUG
+CJSON_LDFLAGS =     -shared -L$(HOME)/lua5.1.5/lib -llua
+endif
 LUA_INCLUDE_DIR =   $(PREFIX)/src/
 LUA_CMODULE_DIR =   $(PREFIX)/lib/lua/$(LUA_VERSION)
 LUA_MODULE_DIR =    $(PREFIX)/share/lua/$(LUA_VERSION)
 LUA_BIN_DIR =       $(PREFIX)/bin
 
-AR          = ar
+AR          = ar -X64
 ARFLAGS     = -rcu
 RANLIB      = ranlib
 
