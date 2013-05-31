@@ -31,7 +31,7 @@ glr:LuaTest.o # resource/resource.c resource/bswap.c resource/resxloader.c resou
 glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/resxloader.c resource/cmodulepack.c
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) -I./resource $(COMMINC) $^ $(HOME)/lib/lua/cjson.a $(HOME)/lib/lua/struct.a $(HOME)/lib/lua/iconv.a $(HOME)/lib/lua/minizip.a $(HOME)/lib/lua/_dir.a $(HOME)/lib/libGalaxyStub.a $(HOME)/lib/libGalaxyRT.a $(SYTMLIB) $(HOME)/lua5.1.5/lib/liblua.a -lc -lm -ldl -lpthread -lrt -lzip -o $@
+	$(G++) -I./resource $(COMMINC) $^ $(HOME)/lib/lua/cjson.a $(HOME)/lib/lua/struct.a $(HOME)/lib/lua/iconv.a $(HOME)/lib/lua/minizip.a $(HOME)/lib/lua/_dir.a $(HOME)/lib/libGalaxyStub.a $(HOME)/lib/libGalaxyRT.a $(SYTMLIB) $(HOME)/lib/libluajit.a -lc -lm -ldl -lpthread -lrt -lzip -o $@
 	mv $@ $(HOME)/bin/
 
 mkresx: resource/mkresx.c resource/resource.c resource/bswap.c
