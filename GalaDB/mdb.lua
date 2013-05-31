@@ -9,14 +9,15 @@ module(...,package.seeall)
 
 local lmdb = require "lightningmdb"
 local pprint = require "pprint"
-require "str_utils"
-require "tab_utils"
+assert(require("str_utils"), "Cannot Import str_utils")
+assert(require("tab_utils"),"Cannot Import tab_utils")
 local logging = require("logging")
 --[[
     Node:
     a:key`value  attribute key -> value
     c:key        children  path/key -> Node
     v:value      list item  [value ...]
+    l:key        vector type node
     s:name`link  symbolink to link
     r:ref        node who refered to this node
 ]]
@@ -52,6 +53,8 @@ local element = {}
 local path_sep = "/"
 local indent_one = "    "
 local num_pages = 1024
+local vector_index_key = "__VectorIndexGenerator"
+local vector_item_tag = "__VectorItemTag"
 function mdb.create_env(path)
     local e=lightningmdb.env_create()
     e:set_mapsize(num_pages*4096)
@@ -140,6 +143,7 @@ end
 mdb.beginRDTrans = mdb.beginTrans
 
 function mdb:_with(action, ...)
+    --print(...)
     local err, value = pcall(action, self, ...)
     if self.txn ~= nil then
         self:abort()
@@ -245,6 +249,7 @@ function element:_xpath_attr_selector(elist, attr_key, attr_value)
     end
     return rt
 end
+
 function element:_xpath_any_selector(  )
     return self:get_child()
 end
@@ -280,7 +285,7 @@ function element:_xpath_selector( tokens, idx )
     print("XPATH", tok, idx)
     local sel
     if string.sub(tok, 1, 2) == "**" then
-        assert(idx==#tokens, "** selector can only used at last")
+        -- assert(idx==#tokens, "** selector can only used at last")
         local all = self:_xpath_all_selector()
         if string.sub(tok,3,3) == "@" then
             local k,v = unpack(string.split(string.sub(tok,4),"="))
@@ -408,7 +413,22 @@ end
 function element:remove(_xpath)
     self:_xpath(_xpath):_remove()
 end
-function element:get_attrib()
+function element:remove_value(v)
+    assert(self.e_type == "regular", "Cannot Remove Value from ref element")
+    local key = string.format("v:%s", v)
+    self._db.txn:del(self._db.dbi, self.key, key)
+end
+
+function element:remove_attrib( k )
+    local v = self:get_attrib(k)
+    if v then
+        self._db.txn:del(self._db.dbi, self.key, string.format("a:%s`%s", k, v))
+    end
+end
+function element:get_attrib(k)
+    if k then
+        return self:get_attrib()[k]
+    end
 
     return self:_get_dup(function (dict, k, v)
                              if k and v  and k == self.key and string.sub(v, 1, 2) == "a:" then
@@ -488,10 +508,13 @@ end
 function element:add_attrib(k, v)
     local attr = string.format("a:%s`%s", k, v)
     print("Attr",self.key, attr)
-
     self._db.txn:put(self._db.dbi, self.key, attr,lightningmdb.MDB_NODUPDATA)
 end
 
+function element:set_attrib( k, v )
+    self:remove_attrib(k)
+    self:add_attrib(k, v)
+end
 function element:add_value(v)
     local value = string.format("v:%s", v)
     self._db.txn:put(self._db.dbi, self.key, value,lightningmdb.MDB_NODUPDATA)
@@ -500,9 +523,40 @@ end
 function element:add_pair(k, v)
     self:add_node(k):add_value(v)
 end
+function element:_raw_get( k )
+    return self._db.txn:get(self._db.dbi, k)
+end
+function element:add_vector_node(k, n)  
 
+    local o = self:add_node(k)
+    o:add_attrib(vector_index_key, "1")
+    if n then
+        o:add_attrib(vector_item_tag, n)
+    end
+    o._is_vector = true
+--    o:_raw_put("t:node")
+    return o
+end
+
+function element:is_vector( ... )
+
+    if self._is_vector == nil then
+        if self:get_attrib()[vector_index_key] ~= nil then
+            self._is_vector = true
+        else
+            self._is_vector = false
+        end
+    end
+    return self._is_vector
+end
+function element:add_vector_item()
+    assert(self:is_vector(), "Element is not Vector Node")
+    local serial = self:get_attrib()[vector_index_key]
+    self:set_attrib(vector_index_key, tostring(tonumber(serial) + 1))
+    return self:add_node(serial)
+end
 function element:add_node(k)
-
+    assert(k, "Key Cannot be nil")
     local ch = string.format("c:%s", k)
     --pprint.pprint(self._db)
     print("AddNode",self.key, ch)
@@ -535,6 +589,53 @@ end
 function element:add_ref( link )
     local _, name = xpath_split(link.key)
     return self:_add_ref(name, link)
+end
+
+
+function element:add_table(t)
+    if table.isArray(t) then
+        assert(self:is_vector(), "Cannot Add List to NON-Vector Node")
+        for i,v in ipairs(t) do
+            local item = self:add_vector_item()
+            if type(v) ~= "table" then
+                item:add_value(tostring(v))
+            else
+                item:add_table(v)
+            end
+        end
+    else
+        for k,v in pairs(t) do
+            assert(not self:is_vector(), "Cannot Add K-V to Vector Node")
+            local item = self:add_node(k)
+            if type(v) ~= "table" then
+                item:add_value(tostring(v))
+            else
+                item:add_table(v)
+            end
+        end
+    end
+    return self
+end
+function element:to_table()
+    local result = {}
+    if self:is_vector() then
+        for k,v in pairs(self:get_child()) do
+            result[#result + 1] = v:to_table()
+
+        end
+    elseif self:is_leaf() then
+        local vs = self:get_value()
+        if #vs == 1 then
+            result = vs[1]
+        else
+            result = vs
+        end
+    else
+        for k,v in pairs(self:get_child()) do
+            result[k] = v:to_table()
+        end
+    end
+    return result
 end
 
 function element:show(indent)
@@ -598,7 +699,7 @@ end
 
 function element:exist( nodename )
     local node = self:_xpath(nodename)
-    pprint.pprint(node, 'node')
+    -- pprint.pprint(node, 'node')
     if node ~= nil then
         return true
     else
@@ -774,6 +875,25 @@ if ... == "__main__" then
         print(e:exist("Host1"))
         print(e:exist("Host2"))
     end
+    function test_vector( db )
+        local e = db:get_root(root1)
+        local v = e:add_vector_node("TestVector", "Item")
+        local i1 = v:add_vector_item()
+        local i2 = v:add_vector_item()
+        i1:add_value("good")
+        i2:add_value("bad")
+        print(e:to_xml())
+
+    end
+    function test_table( db, t )
+        local e = db:get_root(root1)
+        local tt = e:add_node("TestTable")
+
+        tt:add_table(t)
+        pprint.pprint(t, "Table")
+        pprint.pprint(tt:to_table(), "Reversed")
+
+    end
     local limit = 1
     for i=1,limit do
         db:with(test)
@@ -791,6 +911,9 @@ if ... == "__main__" then
         db:with(test_remove_root_child)
         collectgarbage("collect")
 
-        db:withReadOnly(test_exist)        
+        db:withReadOnly(test_exist)    
+        db:with(test_vector)
+        db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
+
     end
 end
