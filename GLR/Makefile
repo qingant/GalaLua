@@ -13,7 +13,7 @@ libGLR.so:$(GLR_OBJ)
 libGLR.a: $(GLR_OBJ)
 	@echo $(PLATFORM)
 	rm -f $@
-	ar rcs $@ $(GLR_OBJ)
+	ar -X64 rcs $@ $(GLR_OBJ)
 	mv $@ $(HOME)/lib/
 
 res:
@@ -22,16 +22,16 @@ res:
 ttt:ttt.o
 	$(G++) $?  $(SYTMLIB) $(STUBLIB) -lluajit -o $@
 
-glr:LuaTest.o # resource/resource.c resource/bswap.c resource/resxloader.c resource/cmodulepack.c 
+glr:LuaTest.o # resource/resource.c resource/bswap.c resource/resxloader.c resource/cmodulepack.c
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) -I./resource $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@ 
+	$(G++) -I./resource $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@
 	mv $@ $(HOME)/bin/
 
-glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/resxloader.c resource/cmodulepack.c 
+glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/resxloader.c resource/cmodulepack.c
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) -I./resource $(COMMINC) $^ $(HOME)/lib/lua/cjson.a $(HOME)/lib/lua/struct.a $(HOME)/lib/lua/iconv.a $(HOME)/lib/lua/minizip.a $(HOME)/lib/lua/_dir.a $(HOME)/lib/libGalaxyStub.a $(HOME)/lib/libGalaxyRT.a $(SYTMLIB) $(HOME)/lib/libluajit.a -lc -lm -ldl -lpthread -lrt -lzip -o $@
+	$(G++) -I./resource $(COMMINC) $^ $(HOME)/lib/lua/cjson.a $(HOME)/lib/lua/struct.a $(HOME)/lib/lua/iconv.a $(HOME)/lib/lua/minizip.a $(HOME)/lib/lua/_dir.a $(HOME)/lib/libGalaxyStub.a $(HOME)/lib/libGalaxyRT.a $(SYTMLIB) $(HOME)/lua5.1.5/lib/liblua.a -lc -lm -ldl -lpthread -lrt -lzip -o $@
 	mv $@ $(HOME)/bin/
 
 mkresx: resource/mkresx.c resource/resource.c resource/bswap.c
