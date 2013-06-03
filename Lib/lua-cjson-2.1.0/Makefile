@@ -19,6 +19,7 @@ CJSON_CFLAGS =      -fpic
 PLATFORM      =  $(shell uname)
 ifeq ($(PLATFORM),AIX)
 CC  = xlc_r
+ARFLAG  = -X64
 CFLAGS =            -q64 -DNDEBUG
 CJSON_LDFLAGS =     -qmkshrobj -q64 -L$(HOME)/lib -lluajit -lm
 else
@@ -31,7 +32,7 @@ LUA_CMODULE_DIR =   $(PREFIX)/lib/lua/$(LUA_VERSION)
 LUA_MODULE_DIR =    $(PREFIX)/share/lua/$(LUA_VERSION)
 LUA_BIN_DIR =       $(PREFIX)/bin
 
-AR          = ar -X64
+AR          = ar $(ARFLAG)
 ARFLAGS     = -rcu
 RANLIB      = ranlib
 

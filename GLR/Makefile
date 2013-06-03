@@ -13,7 +13,7 @@ libGLR.so:$(GLR_OBJ)
 libGLR.a: $(GLR_OBJ)
 	@echo $(PLATFORM)
 	rm -f $@
-	ar -X64 rcs $@ $(GLR_OBJ)
+	ar $(ARFLAG) rcs $@ $(GLR_OBJ)
 	mv $@ $(HOME)/lib/
 
 res:

@@ -9,7 +9,12 @@ PLAT= none
 
 CC= gcc
 CFLAGS= -O2 -Wall $(MYCFLAGS)
+PLATFORM      =  $(shell uname)
+ifeq ($(PLATFORM),AIX)
 AR= ar -X64 rcs
+else
+AR= ar rcs
+endif
 RANLIB= ranlib
 RM= rm -f
 LIBS= -lm $(MYLIBS)
