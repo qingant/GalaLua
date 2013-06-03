@@ -1,4 +1,4 @@
-DES = pre stub rt amq cfg luajit lobj lib glr #pyo #app sup
+DES = pre stub rt amq cfg luajit lobj lib glr mod #pyo #app sup 
 all:$(DES)
 .PHONY:$(DES)
 
@@ -20,3 +20,5 @@ lobj:
 # 	make -C PyObject/
 lib:
 	make -C Lib/
+mod:
+	make -C Modules/
