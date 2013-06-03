@@ -47,9 +47,10 @@ void GLR::Runtime::Initialize()
     time(&_Stamp);
 }
 
-void GLR::Runtime::Initialize( const std::string &host, int port, GLR::Runtime::GLR_INITIALIZER func)
+void GLR::Runtime::Initialize( const std::string &host, int port, GLR::Runtime::GLR_INITIALIZER func, Galaxy::GalaxyRT::CProcess *_p)
 {
     _Initializer = func;
+    _pCProcess = _p;
     _Instance = new Runtime(host, port);
     _Instance->Initialize();
 }

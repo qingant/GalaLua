@@ -9,6 +9,7 @@
 #include <tr1/unordered_map>
 #endif
 #include "Runtime/Queue.hpp"
+#include "Runtime/Process.hpp"
 #include "Bus.hpp"
 #include "Schedule.hpp"
 #include "Process.hpp"
@@ -30,7 +31,7 @@ namespace GLR
     public:
     	~Runtime();
         static Runtime &GetInstance();
-        static void Initialize(const std::string &host, int port, GLR_INITIALIZER func = NULL);
+        static void Initialize(const std::string &host, int port, GLR_INITIALIZER func = NULL, Galaxy::GalaxyRT::CProcess *_p = NULL);
         Bus & GetBus() const { return *_Bus; }
         Schedule & GetSchedule() const { return *_Schedule; }
         Process  & GetProcess(int pid) const;

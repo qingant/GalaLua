@@ -221,7 +221,8 @@ int GLR::Process::GetOption(lua_State *l)
     Galaxy::GalaxyRT::CProcess *_pCProcess=GLR::Runtime::_pCProcess;
     if (_pCProcess==NULL)
     {
-        THROW_EXCEPTION_EX("_pCProcess is NULL");
+
+        luaL_error(l, "_pCProcess is NULL");
         return 0;
     }
     lua_newtable(l);
@@ -238,7 +239,7 @@ int GLR::Process::SetOptions(lua_State *l)
     Galaxy::GalaxyRT::CProcess *_pCProcess=GLR::Runtime::_pCProcess;
     if (_pCProcess==NULL)
     {
-        THROW_EXCEPTION_EX("_pCProcess is NULL");
+        luaL_error(l, "pCProcess is null");
         return 0;
     }
 
@@ -802,6 +803,7 @@ void GLR::Process::Entry( const std::string &module, const std::string &entry, .
     if (lua_pcall(_Stack, 1, 1, 0) != 0)
     {
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        StackDump();
         THROW_EXCEPTION_EX(msg);
     }
     char tmp[1024] = {};
