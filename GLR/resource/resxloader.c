@@ -11,6 +11,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <limits.h>
+#ifdef __linux__
+#include <linux/limits.h>
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX    4096
+#endif
+
 #ifndef LUA_OK
 #define LUA_OK  0
 #endif
@@ -53,7 +62,22 @@ int resx_loader(lua_State * const state)
         initialized = true;
     }
     const char * const pathname = luaL_checkstring(state, 1);
-    int32_t retval = resx_environ_read(&resxenv, pathname);
+//    fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s.\n",
+//            __FILE__, __FUNCTION__, __LINE__, pathname);
+    char buf[PATH_MAX + 1];
+    if (strlcpy(&buf[0], pathname, sizeof(buf)) >= sizeof(buf))
+    {
+        return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                "Truncation, '%s'.\n", __FILE__, __FUNCTION__, __LINE__, &buf[0]);
+    }
+    if (strlcat(&buf[0], ".lua", sizeof(buf)) >= sizeof(buf))
+    {
+        return luaL_error(state, "Error: File %s, Function %s, Line %d, "
+                "Truncation, '%s'.\n", __FILE__, __FUNCTION__, __LINE__, &buf[0]);
+    }
+//    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
+//            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
+    int32_t retval = resx_environ_read(&resxenv, &buf[0]);
     if (retval > 0)
     {
         char * const buff = (char *) malloc(retval + 1);
