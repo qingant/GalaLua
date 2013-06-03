@@ -62,14 +62,20 @@ int resx_loader(lua_State * const state)
         initialized = true;
     }
     const char * const pathname = luaL_checkstring(state, 1);
-//    fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s.\n",
-//            __FILE__, __FUNCTION__, __LINE__, pathname);
     char buf[PATH_MAX + 1];
     if (strlcpy(&buf[0], pathname, sizeof(buf)) >= sizeof(buf))
     {
         return luaL_error(state, "Error: File %s, Function %s, Line %d, "
                 "Truncation, '%s'.\n", __FILE__, __FUNCTION__, __LINE__, &buf[0]);
     }
+//    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
+//            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
+    for (char *tmp = strchr(&buf[0], '.'); tmp != NULL; tmp = strchr(&buf[0], '.'))
+    {
+        *tmp = '/';
+    }
+//    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
+//            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
     if (strlcat(&buf[0], ".lua", sizeof(buf)) >= sizeof(buf))
     {
         return luaL_error(state, "Error: File %s, Function %s, Line %d, "
