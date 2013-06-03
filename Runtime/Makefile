@@ -16,7 +16,7 @@ libGalaxyRT.so:$(OBJS)
 libGalaxyRT.a: $(OBJS)
 	@echo $(PLATFORM)
 	rm -f $@
-	ar -X64 rcs $@ $(OBJS)
+	ar $(ARFLAG) rcs $@ $(OBJS)
 	mv $@ $(HOME)/lib/
 
 CMPFLAG_:=$(SUBCMPFLAG)
