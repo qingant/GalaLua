@@ -143,7 +143,7 @@ int main( int argc, char* argv[] )
 
     //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
     //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
-    GLR::Runtime::Initialize(host, port);
+    GLR::Runtime::Initialize(host, port, NULL, &_CProcess);
     if (_CProcess.ExistOption("m"))
     {
         std::string file=_CProcess.GetOption("m");
