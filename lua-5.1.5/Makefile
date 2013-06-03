@@ -67,7 +67,7 @@ install: dummy
 	cd src && $(INSTALL_DATA) $(TO_LIB) $(INSTALL_LIB)
 	cd doc && $(INSTALL_DATA) $(TO_MAN) $(INSTALL_MAN)
 	ln -f -s $(INSTALL_BIN)/lua $(HOME)/bin/lua
-	mv $(INSTALL_LIB)/liblua.a $(HOME)/lib/
+	mv $(INSTALL_LIB)/libluajit.a $(HOME)/lib/
 uninstall:
 	rm -rf $(INSTALL_TOP)/bin/lua*
 	rm -rf $(INSTALL_TOP)/include/lua*
