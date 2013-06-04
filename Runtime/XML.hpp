@@ -88,9 +88,11 @@ namespace Galaxy
       class CXMLLoder : public CXMLBuffer
       {
       private:
+         void LoadFromStr(const char *,int len);
          void Load(const char *);
       public:
          CXMLLoder(const char *);
+         CXMLLoder(const char *,int);
          virtual ~CXMLLoder();
       };
 
@@ -332,6 +334,7 @@ namespace Galaxy
          const CXMLDocument *_Document;
       public:
          CXMLReader(const char *_PathofXML);
+         CXMLReader(const char *,int);
          virtual ~CXMLReader();
          const CXMLDocument *Document() const;
       };

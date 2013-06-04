@@ -474,6 +474,11 @@ namespace Galaxy
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+	CXMLLoder::CXMLLoder(const char *xmlStr,int len)
+	{
+		LoadFromStr(xmlStr,len);
+	}
+
 	CXMLLoder::CXMLLoder(const char *_PathOfFile)
 	{
 		Load(_PathOfFile);
@@ -482,6 +487,26 @@ namespace Galaxy
 	CXMLLoder::~CXMLLoder()
 	{
 
+	}
+
+	void CXMLLoder::LoadFromStr(const char *xmlStr,int len)
+	{
+		if(xmlStr == NULL)
+		{
+			THROW_EXCEPTION_EX("xmlStr NULL!");
+			return;
+		}
+        if (len<=0)
+        {
+			THROW_EXCEPTION_EX("len should be greater than 0!");
+			return;
+        }
+
+		unsigned int iLen = len;
+
+		Allocate(iLen);
+
+        CRT_memcpy(_Get(),xmlStr,Size());
 	}
 
 	void CXMLLoder::Load(const char *_PathOfFile)
@@ -1927,7 +1952,7 @@ namespace Galaxy
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 	CXMLReader::CXMLReader(const char *_PathofXML)
- :_Document(NULL)
+     :_Document(NULL)
 	{
 		CXMLLoder	_XFLE(_PathofXML);
 		CXMLParser	_Parser(_XFLE);
@@ -1939,6 +1964,18 @@ namespace Galaxy
 		}
 	}
 
+	CXMLReader::CXMLReader(const char *xmlStr,int len)
+     :_Document(NULL)
+	{
+		CXMLLoder	_XFLE(xmlStr,len);
+		CXMLParser	_Parser(_XFLE);
+		_Document = _Parser.Parse();
+		if(_Document==NULL)
+		{
+			THROW_EXCEPTION_EX("_Document is NULL");
+			return;
+		}
+	}
 	CXMLReader::~CXMLReader()
 	{
 		if(_Document!=NULL)
