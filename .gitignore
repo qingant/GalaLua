@@ -2,6 +2,7 @@
 *.[oa]
 *.so
 *~
+~*
 *#
 /TODO
 build/
