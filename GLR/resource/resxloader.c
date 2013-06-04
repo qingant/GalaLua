@@ -61,13 +61,19 @@ int resx_loader(lua_State * const state)
 #endif
         initialized = true;
     }
-    const char * const pathname = luaL_checkstring(state, 1);
-    char buf[PATH_MAX + 1];
-    if (strlcpy(&buf[0], pathname, sizeof(buf)) >= sizeof(buf))
+    size_t length;
+    const char * const pathname = luaL_checklstring(state, 1, &length);
+#ifndef SUFFIX_LEN
+#define SUFFIX_LEN  8
+#endif
+    length += SUFFIX_LEN;
+    char * const buf = (char *) malloc(length);
+    if (buf == NULL)
     {
         return luaL_error(state, "Error: File %s, Function %s, Line %d, "
-                "Truncation, '%s'.\n", __FILE__, __FUNCTION__, __LINE__, &buf[0]);
+                "malloc failed.\n", __FILE__, __FUNCTION__, __LINE__);
     }
+    strncpy(buf, pathname, length);
 //    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
 //            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
     for (char *tmp = strchr(&buf[0], '.'); tmp != NULL; tmp = strchr(&buf[0], '.'))
@@ -76,14 +82,12 @@ int resx_loader(lua_State * const state)
     }
 //    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
 //            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
-    if (strlcat(&buf[0], ".lua", sizeof(buf)) >= sizeof(buf))
-    {
-        return luaL_error(state, "Error: File %s, Function %s, Line %d, "
-                "Truncation, '%s'.\n", __FILE__, __FUNCTION__, __LINE__, &buf[0]);
-    }
+    strncat(buf, ".lua", SUFFIX_LEN);
+    buf[length -1] = '\0';
 //    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
 //            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
     int32_t retval = resx_environ_read(&resxenv, &buf[0]);
+    free(buf);
     if (retval > 0)
     {
         char * const buff = (char *) malloc(retval + 1);

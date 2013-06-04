@@ -41,6 +41,7 @@ extern int luaopen_struct (lua_State *);
 extern int luaopen_iconv(lua_State *);
 extern int luaopen_minizip(lua_State *);
 extern int luaopen__dir(lua_State *);
+extern int luaopen_lxp (lua_State *);
 
 void resx_openlibs(lua_State * const state)
 {
@@ -51,6 +52,7 @@ void resx_openlibs(lua_State * const state)
             { "iconv", luaopen_iconv },
             { "minizip", luaopen_minizip },
             { "_dir", luaopen__dir },
+            { "lxp", luaopen_lxp },
             { (const char *) NULL, (lua_CFunction) NULL }
     };
     fprintf(stderr, "File %s, Function %s, Line %d, gettop() = %d.\n",
