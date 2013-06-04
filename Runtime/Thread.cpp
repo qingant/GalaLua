@@ -6,22 +6,22 @@ namespace Galaxy
 {
     namespace GalaxyRT
     {
-    
+
 
 /*CRunnable*/
         CRunnable::~CRunnable()
         {
-    
+
         }
 
         void CRunnable::Initialize()
         {
-    
+
         }
- 
+
         void CRunnable::Finalize()
         {
-    
+
         }
 
 
@@ -36,33 +36,43 @@ namespace Galaxy
         {
             _StackSize += (((_StackSize % 1024)==0) ? 0 : 1024);
             _StackEntry = new CHAR[(_StackSize+1024)];
-    
+            posix_memalign((void **)&_StackEntry,16,_StackSize);
             if(ISNULL(_StackEntry))
             {
                 //THROW_NULLEXCEPTION(_StackEntry);
                 THROW_EXCEPTION_EX("");
 
             }
-    
+
             if (CRT_pthread_attr_init(&_Attr) != 0)
             {
                 THROW_EXCEPTION_EX("");
             }
-    
+
             if(CRT_pthread_attr_setdetachstate(&_Attr,_DetachState)!=0)
             {
                 THROW_EXCEPTION_EX("");
             }
-
+#ifndef _AIX
             if(pthread_attr_setinheritsched(&_Attr,_InheritSched)!=0)
             {
                 THROW_EXCEPTION_EX("");
             }
-    
+
             if(pthread_attr_setstack(&_Attr,_StackEntry,_StackSize)!=0)
             {
                 THROW_EXCEPTION_EX("");
             }
+#else
+            if(pthread_attr_setstackaddr(&_Attr,_StackEntry) !=0)
+            {
+                THROW_EXCEPTION_EX("");
+            }
+            if(pthread_attr_setstacksize(&_Attr,_StackSize) != 0)
+            {
+                THROW_EXCEPTION_EX("");
+            }
+#endif
         }
 
         CThreadAttr::~CThreadAttr()
@@ -71,22 +81,22 @@ namespace Galaxy
             {
                 THROW_EXCEPTION_EX("");
             }
-    
+
             if(_StackEntry!=NULL)
             {
                 delete [] _StackEntry;
-                _StackEntry = NULL;   
-            }  
+                _StackEntry = NULL;
+            }
         }
 
         const pthread_attr_t &CThreadAttr::Get() const
         {
-            return _Attr;   
+            return _Attr;
         }
 
         pthread_attr_t &CThreadAttr::Get()
         {
-            return _Attr;   
+            return _Attr;
         }
 
 
@@ -95,51 +105,51 @@ namespace Galaxy
         CThread::CThread(CRunnable &_TheRun,INT _TheIndex,DETACH_STATE _DetachState,UINT _StackSize)
             :_Run(_TheRun),_Index(_TheIndex),_ThreadId(0),_Attr(_DetachState,_StackSize)
         {
-    
+
         }
 
         CThread::CThread(CRunnable &_TheRun,INT _TheIndex,DETACH_STATE _DetachState,INT _InheritSched,UINT _StackSize)
             :_Run(_TheRun),_Index(_TheIndex),_ThreadId(0),_Attr(_DetachState,_InheritSched,_StackSize)
         {
-    
+
         }
 
         CThread::~CThread()
         {
- 
+
         }
 
         pthread_t CThread::ThreadId() const
         {
             if(_ThreadId==0)
             {
-                THROW_EXCEPTION_EX("Thread Not Start");    
+                THROW_EXCEPTION_EX("Thread Not Start");
             }
-            return _ThreadId;   
+            return _ThreadId;
         }
 
         INT CThread::Index() const
         {
-            return  _Index;  
+            return  _Index;
         }
 
         void CThread::TestCancel() const
         {
-            CRT_pthread_testcancel();    
+            CRT_pthread_testcancel();
         }
 
         void CThread::Join() const
         {
-            PVOID   _Ptr=NULL;   
+            PVOID   _Ptr=NULL;
             CThread *_Self = (CThread *)this;
             if(_Self->_ThreadId!=0)
-            { 
+            {
                 if(CRT_pthread_join(_Self->_ThreadId,&_Ptr) != 0)
                 {
-                    THROW_EXCEPTION_EX(""); 
+                    THROW_EXCEPTION_EX("");
                 }
-        
-                _Self->_ThreadId = 0;  
+
+                _Self->_ThreadId = 0;
             }
         }
 
@@ -147,35 +157,35 @@ namespace Galaxy
         {
             if(CRT_pthread_detach(ThreadId()) != 0)
             {
-                THROW_EXCEPTION_EX(""); 
+                THROW_EXCEPTION_EX("");
             }
         }
 
         void CThread::Exit() const
         {
-            pthread_exit(NULL);    
+            pthread_exit(NULL);
         }
 
         void CThread::Cancel() const
         {
             CThread *_Self = (CThread *)this;
             if(_Self->_ThreadId!=0)
-            { 
+            {
                 if(CRT_pthread_cancel(_Self->_ThreadId) != 0)
                 {
-                    THROW_EXCEPTION_EX(""); 
+                    THROW_EXCEPTION_EX("");
                 }
-        
-                //_Self->_ThreadId = 0;  
-            } 
+
+                //_Self->_ThreadId = 0;
+            }
         }
 
         void CThread::Kill(INT _Signal) const
         {
             if(pthread_kill(ThreadId(),_Signal)!=0)
             {
-                THROW_EXCEPTION_EX("");    
-            }    
+                THROW_EXCEPTION_EX("");
+            }
         }
 
         bool CThread::Test() const
@@ -185,16 +195,16 @@ namespace Galaxy
             {
                 if (pthread_kill(_Self->_ThreadId,0)==0)
                 {
-                    return true;   
+                    return true;
                 }
                 else
                 {
                     _Self->_ThreadId = 0;
-              
+
                 }
             }
-    
-            return false; 
+
+            return false;
         }
 
         typedef PVOID (*THREADSTARTROTINE)(PVOID);
@@ -218,32 +228,32 @@ namespace Galaxy
                 INT _Old=0;
                 if(CRT_pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,&_Old)!=0)
                 {
-                    THROW_EXCEPTION_EX("");   
+                    THROW_EXCEPTION_EX("");
                 }
                 if(pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,&_Old)!=0)
                 {
-                    THROW_EXCEPTION_EX("");    
-                } 
+                    THROW_EXCEPTION_EX("");
+                }
             }
-    
+
             PVOID _ret = NULL;
 
             pthread_cleanup_push((THREADCLEANOTINE)CThread::__T_Cleanup,(PVOID)&_TheThread);
 
             _ret =  _TheThread._Run.Run(_TheThread);
-    
+
             pthread_cleanup_pop(0);
 
-    
+
             _TheThread._ThreadId = 0;   //置线程退出
             _TheThread.Exit();
-            return _ret;  
+            return _ret;
         }
 
         void CThread::__T_Cleanup(CThread &_TheThread)
         {
             _TheThread._Run.Clean(_TheThread);
-            _TheThread._ThreadId = 0;   //置线程退出    
+            _TheThread._ThreadId = 0;   //置线程退出
         }
 
 /*CThreadPooler*/
@@ -255,9 +265,9 @@ namespace Galaxy
                 CThread *_Thd = new CThread(_TheRun,i,((_IsJoinable)?JOINABLE:DETACH),_InheritSched,_StackSize);
                 if(ISNULL(_Thd))
                 {
-                    THROW_EXCEPTION_EX("new CThread failure!");   
+                    THROW_EXCEPTION_EX("new CThread failure!");
                 }
-        
+
                 _Threads.push_back(_Thd);
             }
         }
@@ -273,7 +283,7 @@ namespace Galaxy
                 }
             }
 
-            _Threads.clear();  
+            _Threads.clear();
         }
 
         void CThreadPooler::Start()
@@ -310,7 +320,7 @@ namespace Galaxy
                     }
                 }
                 _Joinable = false;
-            } 
+            }
         }
 
     }
