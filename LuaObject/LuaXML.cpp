@@ -50,6 +50,29 @@ public:
         return 0;
     }
 
+    static int Key(lua_State *L)
+    {
+        CXMLElement *p=CheckCXMLElement(L,1);
+
+        std::string key;
+        CALL_CPP_FUNCTION(L,key=p->Key());
+
+        lua_pushlstring(L,&key[0],key.size());
+
+        return 1;
+    }
+
+    static int Value(lua_State *L)
+    {
+        CXMLElement *p=CheckCXMLElement(L,1);
+
+        std::string val;
+        CALL_CPP_FUNCTION(L,val=p->Value());
+
+        lua_pushlstring(L,&val[0],val.size());
+
+        return 1;
+    }
     /*
      * arg1:lua XMLElement object
      * return:None
@@ -183,6 +206,8 @@ public:
             {"add_property",CXMLElement4Lua::AddProperty},
             {"sub_elements",CXMLElement4Lua::SubElements},
             {"properties",CXMLElement4Lua::Properties},
+            {"key",CXMLElement4Lua::Key},
+            {"value",CXMLElement4Lua::Value},
             {NULL,NULL}
         };
 
