@@ -1,21 +1,25 @@
+
 OS=$(shell uname)
+include ../mk.rules
 
 OBJECTS=linenoise.o
-
+BUILDOBJ = none
 ifeq ($(LIBLINENOISE),)
   OBJECTS+=linenoiselib.o
 else
   OPT_LIB=$(LIBLINENOISE)
 endif
-
+ifeq ($(OS),Darwin)
+BUILDOBJ = linenoise.dylib
+else
+BUILDOBJ = linenoise.so
+endif
+all:$(BUILDOBJ)
 ifeq ($(OS),Darwin)
 linenoise.dylib: $(OBJECTS)
 	gcc -o $@ -bundle -undefined dynamic_lookup $^ $(OPT_LIB)
 else
-CFLAGS=-fPIC -I/opt/agree/gdk/include/luajit-2.0
 linenoise.so: $(OBJECTS)
-	gcc -o $@ -shared $^ $(OPT_LIB)
+	$(GCC) -o $@ $(LNKFLAG) $(SYTMLIB) $^ $(OPT_LIB) $(LIBDIR) -lluajit
 endif
 
-clean:
-	rm -f *.o *.so *.dylib

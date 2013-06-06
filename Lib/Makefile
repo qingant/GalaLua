@@ -3,22 +3,32 @@ DES =  json struct libzip lfs  luaxml  #cp sqlite dba
 all:$(DES)
 .PHONY:$(DES)
 
+OS=$(shell uname)
+ifeq ($(OS),AIX)
+MAKE = make
+else
+MAKE = gmake
+endif
 cp:
 	#cp -rf *.lua $(HOME)/lib/lua/
 	cp -rf luadbi.0.5/dbaccess.lua $(HOME)/lib/lua/
 sqlite:
-	cd sqlite-src-3070900/sqlite-src-3070900 && ./configure --prefix=$(SQLITE_HOME) --disable-tcl --enable-shared --enable-threadsafe --enable-cross-thread-connections && make && make install && make clean
+	cd sqlite-src-3070900/sqlite-src-3070900 && ./configure --prefix=$(SQLITE_HOME) --disable-tcl --enable-shared --enable-threadsafe --enable-cross-thread-connections && $(MAKE) && $(MAKE) install && $(MAKE) clean
 json:
-	cd lua-cjson-2.1.0 && make && mv cjson.so $(HOME)/lib/lua/ && make clean
+	cd lua-cjson-2.1.0 && $(MAKE) && mv cjson.so $(HOME)/lib/lua/ && $(MAKE) clean
 dba:
-	cd luadbi.0.5 && make sqlite3 && mv *.so $(HOME)/lib/lua/ && make clean
+	cd luadbi.0.5 && $(MAKE) sqlite3 && mv *.so $(HOME)/lib/lua/ && $(MAKE) clean
 struct:
-	cd lua-struct && make && mv struct.a struct.so $(HOME)/lib/lua/ && make clean
+	cd lua-struct && $(MAKE) && mv struct.a struct.so $(HOME)/lib/lua/ && $(MAKE) clean
 libzip:
-	cd lua-zip && make && make clean
+	cd lua-zip && $(MAKE) && $(MAKE) clean
 luazip:
-	cd lua-zip && make
+	cd lua-zip && $(MAKE)
 lfs:
-	cd luafilesystem && make && make install
+	cd luafilesystem && $(MAKE) && $(MAKE) install
 luaxml:
-	make -C lua-xml
+	$(MAKE) -C lua-xml
+encryption:
+	cd lua-encryption && $(MAKE) all
+linenoise:
+	cd lua-linenoise && $(MAKE) all
