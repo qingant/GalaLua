@@ -143,7 +143,7 @@ namespace Galaxy
                     tmp[0] = item[1];
                     
                     const char *next = argv[argc+1];
-                    if (next[0] != '-')
+                    if (((argc+1)<Argc) && (next[0] != '-'))
                     {
                         argc++;
                         Options.insert(std::make_pair(tmp, std::string(next)));
