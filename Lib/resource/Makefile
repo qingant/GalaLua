@@ -1,40 +1,31 @@
-CC          = gcc
-CFLAGS      = -std=gnu99 -g -Wall
-INPATH      = -I. -I/usr/include/lua5.1
-LDPATH      = -L.
-LDLIBS      = 
-LDFLAGS     = -fPIC -shared
-
-CXX         = g++
-CXXFLAGS    = -std=gnu++98 -g -Wall
-
+include ../mk.rules
 AR          = ar
 ARFLAGS     = rcs
 
 all: mkresx.out libresource.so libresxloader.so test.out test_lua.out test_lua2.out
 
-%.o: %.c
-	$(CC) -c -fPIC $(CFLAGS) $(INPATH) $^
-	
 mkresx.out: mkresx.o resource.o bswap.o
-	$(CC) -o $@ $^ $(CFLAGS) $(INPATH)
+	$(GCC) -o $@ $^ $(SYTMLIB)
+	mv $@ $(HOME)/bin
 
 libresource.so: resource.o bswap.o
-	$(CC) -o $@ $^ $(CFLAGS) $(INPATH) $(LDPATH) $(LDLIBS) $(LDFLAGS)
+	$(GCC) -o $@ $^ $(LNKFLAG) $(SYTMLIB)
+	mv $@ $(HOME)/lib
 
 libresxloader.so: resxloader.o
-	$(CC) -o $@ $^ $(CFLAGS) $(INPATH) $(LDPATH) $(LDLIBS) $(LDFLAGS) -lresource
+	$(GCC) -o $@ $^ $(LNKFLAG) $(SYTMLIB) $(LIBDIR) -lresource -lluajit
+	mv $@ $(HOME)/lib
 
 test.out: test.o resource.o bswap.o
-	$(CC) -o $@ $^ $(CFLAGS) $(INPATH) $(LDPATH)
+	$(GCC) -o $@ $^ $(SYTMLIB)
 
-test_lua.out: test_lua.o resource.o
-	$(CC) -o $@ $^ $(CFLAGS) $(INPATH) $(LDPATH) /usr/lib/i386-linux-gnu/liblua5.1.a -ldl -lm
+test_lua.out: test_lua.o
+	$(GCC) -o $@ $^ $(SYTMLIB) $(LIBDIR) -lresource -lluajit
 
-test_lua2.out: test_lua2.o resource.o
-	$(CC) -o $@ $^ $(CFLAGS) $(INPATH) $(LDPATH) /usr/lib/i386-linux-gnu/liblua5.1.a -ldl -lm
+test_lua2.out: test_lua2.o
+	$(GCC) -o $@ $^ $(SYTMLIB) $(LIBDIR) -lresource -lluajit
 
-.PHONY: test test_lua test_lua2 clean
+.PHONY: test test_lua test_lua2 #clean
 
 test:
 	echo "hello hello" > hello.txt
@@ -55,11 +46,11 @@ test_lua:
 	./mkresx.out -o resx.rs test_lua
 	cat resx.rs >> test_lua.out
 	./test_lua.out
-	
+
 test_lua2:
 	./mkresx.out -o resx.rs hello_lua
 	cat resx.rs >> test_lua2.out
 	./test_lua2.out test_lua
 
-clean:
-	rm -f *.o *.so *.out *.rs
+#clean:
+#	rm -f *.o *.so *.out *.rs
