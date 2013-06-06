@@ -25,7 +25,7 @@ libzip:
 luazip:
 	cd lua-zip && $(MAKE)
 lfs:
-	cd luafilesystem && $(MAKE) && $(MAKE) install
+	cd luafilesystem && $(MAKE) lib && $(MAKE) install
 luaxml:
 	$(MAKE) -C lua-xml
 encryption:
