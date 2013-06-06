@@ -1,7 +1,7 @@
 # -*- Makefile -*-
 G++			= xlc++_r
 GCC			= xlc_r
-COMMINC		=  -I./include -I../Stub   -I. -I.. -I../Common -I../Config/include -I/usr/local/include/libxml2/  -I../Runtime  -I../lua-5.1.5/src/
+COMMINC		=  -I. -I../lua-5.1.5/src/
 LNKFLAG 	= -qmkshrobj -q64
 ARFLAG      = -X64
 COMPWARN    = #-qhalt=i -qwarn64 -qinfo=all
