@@ -364,6 +364,40 @@ namespace Galaxy
 		return Get()[index];
 	}
 
+//CXMLString 
+    CXMLString::CXMLString(std::string &str)
+        :_XMLStr(str)
+    {
+    }
+
+    CXMLString::~CXMLString()
+    {
+    }
+
+    unsigned int CXMLString::Size()
+    {
+        return _XMLStr.size();
+    }
+    
+    long CXMLString::Seek(long offset, int fromwhere)
+    {
+    }
+
+    int CXMLString::Read(void *buf ,size_t count)
+    {
+
+    }
+    int CXMLString::Write(const void *buf ,size_t count)
+    {
+        _XMLStr.append((const char *)buf,count);
+        return count;
+    }
+    int CXMLString::Fill(char val,size_t count)
+    {
+        _XMLStr.append(count,val);
+        return count;
+    }
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -1999,6 +2033,20 @@ namespace Galaxy
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
+
+	CXMLWriter::CXMLWriter(const CXMLDocument *_Document,std::string &XMLStr)
+	{
+		if(_Document==NULL)
+		{
+			THROW_EXCEPTION_EX("_Document is NULL");
+			return;
+		}
+
+		CXMLString	_Str(XMLStr);
+		WriteDocument(&_Str,_Document);
+
+    }
+
 	CXMLWriter::CXMLWriter(const CXMLDocument *_Document,const char *_PathofXML)
 	{
 		if(_Document==NULL)
@@ -2015,7 +2063,7 @@ namespace Galaxy
 
 		CXMLFile	_File(_PathofXML,true);
 
-		WriteDocument(_File,_Document);
+		WriteDocument(&_File,_Document);
 	}
 
 	CXMLWriter::~CXMLWriter()
@@ -2023,7 +2071,8 @@ namespace Galaxy
 
 	}
 
-	void CXMLWriter::WriteDocument(CXMLFile &_File,const CXMLDocument *_Document)
+	//void CXMLWriter::WriteDocument(CXMLFile &_File,const CXMLDocument *_Document)
+	void CXMLWriter::WriteDocument(CXMLMedia *_File,const CXMLDocument *_Document)
 	{
 
 		WriteDeclaration(_File,_Document->Declarations());
@@ -2031,7 +2080,8 @@ namespace Galaxy
 
 	}
 
-	void CXMLWriter::WriteDeclaration(CXMLFile &_File,const CXMLDeclaration *_Declaration)
+//	void CXMLWriter::WriteDeclaration(CXMLFile &_File,const CXMLDeclaration *_Declaration)
+	void CXMLWriter::WriteDeclaration(CXMLMedia *_File,const CXMLDeclaration *_Declaration)
 	{
 		if(_Declaration==NULL)
 		{
@@ -2041,23 +2091,24 @@ namespace Galaxy
 
 		if(_Declaration->Items()->Count()>0)
 		{
-			_File.Write("<?xml",5);
+			_File->Write("<?xml",5);
 			for(size_t i=0;i<_Declaration->Items()->Count();i++)
 			{
 				const CXMLValue *_Val = (*_Declaration->Items())[i];
-				_File.Fill(' ',1);
-				_File.Write((char *)_Val->Key().c_str(),_Val->Key().length());
-				_File.Fill('=',1);
-				_File.Fill('"',1);
-				_File.Write((char *)_Val->Value().c_str(),_Val->Value().length());
-				_File.Fill('"',1);
+				_File->Fill(' ',1);
+				_File->Write((char *)_Val->Key().c_str(),_Val->Key().length());
+				_File->Fill('=',1);
+				_File->Fill('"',1);
+				_File->Write((char *)_Val->Value().c_str(),_Val->Value().length());
+				_File->Fill('"',1);
 			}
 
-			_File.Write("?>\n",3);
+			_File->Write("?>\n",3);
 		}
 	}
 
-	void CXMLWriter::WriteElement(CXMLFile &_File,const CXMLElement *_Element,unsigned int iTabs)
+	//void CXMLWriter::WriteElement(CXMLFile &_File,const CXMLElement *_Element,unsigned int iTabs)
+	void CXMLWriter::WriteElement(CXMLMedia *_File,const CXMLElement *_Element,unsigned int iTabs)
 	{
 		unsigned int i;
 		if(_Element==NULL)
@@ -2066,9 +2117,9 @@ namespace Galaxy
 			return;
 		}
 
-		_File.Fill('\t',iTabs);
-		_File.Write("<",1);
-		_File.Write((char *)_Element->Key().c_str(),_Element->Key().length());
+		_File->Fill('\t',iTabs);
+		_File->Write("<",1);
+		_File->Write((char *)_Element->Key().c_str(),_Element->Key().length());
 
 		//ÊôÐÔ
 		if(_Element->Properties().Count()>0)
@@ -2076,28 +2127,28 @@ namespace Galaxy
 			for(i=0;i<_Element->Properties().Count();i++)
 			{
 				const CXMLValue *_Val = _Element->Properties()[i];
-				_File.Fill(' ',1);
-				_File.Write((char *)_Val->Key().c_str(),_Val->Key().length());
-				_File.Fill('=',1);
-				_File.Fill('"',1);
-				_File.Write((char *)_Val->Value().c_str(),_Val->Value().length());
-				_File.Fill('"',1);
+				_File->Fill(' ',1);
+				_File->Write((char *)_Val->Key().c_str(),_Val->Key().length());
+				_File->Fill('=',1);
+				_File->Fill('"',1);
+				_File->Write((char *)_Val->Value().c_str(),_Val->Value().length());
+				_File->Fill('"',1);
 			}
 		}
 
 		if((_Element->SubElements().Count()==0) && _Element->Value().empty())
 		{
-			_File.Write(" />\n",4);
+			_File->Write(" />\n",4);
 			return;
 		}
 		else
 		{
-			_File.Write(">",1);
+			_File->Write(">",1);
 		}
 
 		if(_Element->SubElements().Count()>0)
 		{
-			_File.Fill('\n',1);
+			_File->Fill('\n',1);
 
 			for(i=0;i<_Element->SubElements().Count();i++)
 			{
@@ -2105,17 +2156,17 @@ namespace Galaxy
 				WriteElement(_File,_E,iTabs+1);
 			}
 
-			_File.Fill('\t',iTabs);
-			_File.Write("</",2);
-			_File.Write((char *)_Element->Key().c_str(),_Element->Key().length());
-			_File.Write(">\n",2);
+			_File->Fill('\t',iTabs);
+			_File->Write("</",2);
+			_File->Write((char *)_Element->Key().c_str(),_Element->Key().length());
+			_File->Write(">\n",2);
 		}
 		else
 		{
-			_File.Write((char *)_Element->Value().c_str(),_Element->Value().length());
-			_File.Write("</",2);
-			_File.Write((char *)_Element->Key().c_str(),_Element->Key().length());
-			_File.Write(">\n",2);
+			_File->Write((char *)_Element->Value().c_str(),_Element->Value().length());
+			_File->Write("</",2);
+			_File->Write((char *)_Element->Key().c_str(),_Element->Key().length());
+			_File->Write(">\n",2);
 		}
 	}
 

@@ -332,7 +332,7 @@ class CXMLWriter4Lua
 public:
     /*
      * arg1:root element (must be created calling cxml_element)
-     * arg2:path of xml file
+     * arg2:path of xml file (if nil then return the xml string)
      * arg3:xml encoding (optional,default:UTF-8)
      * arg4:xml version  (optional,default:1.0)
      */
@@ -340,18 +340,15 @@ public:
     {
         CXMLElement **root_element=(CXMLElement **)luaL_checkudata(L,1,CXMLElement4Lua::_tname);
 
-        const char *path=luaL_checkstring(L,2);
+        const char *path=luaL_optstring(L,2,NULL);
         const char *encode=luaL_optstring(L,3,"UTF-8");
         const char *version=luaL_optstring(L,4,"1.0");
-        if(path==NULL)
-        {
-            return luaL_error(L,"string expected!  %s  %d",__func__,__LINE__);
-        }
 
-        CXMLWriter **p=(CXMLWriter  **)lua_newuserdata(L,sizeof(CXMLWriter *));
+//        CXMLWriter **p=(CXMLWriter  **)lua_newuserdata(L,sizeof(CXMLWriter *));
 
         CXMLDeclaration *_dec=new CXMLDeclaration ;
-
+        
+        std::string XMLStr;
         try
         {
             CXMLValue *enc=new CXMLValue(std::string("encoding"),std::string(encode));
@@ -359,12 +356,19 @@ public:
             _dec->Append(enc);
             _dec->Append(ver);
             CXMLDocument doc(_dec,*root_element);
-            *p=new CXMLWriter(&doc,path);
-
-            luaL_getmetatable(L,_tname);
-            lua_setmetatable(L,-2);
-
-            return 1;
+            if (path==NULL)
+            {
+                //*p=new CXMLWriter(&doc,XMLStr);
+                CXMLWriter  w(&doc,XMLStr);
+                lua_pushlstring(L,&XMLStr[0],XMLStr.size());
+                return 1;
+            }
+            else
+            {
+                //*p=new CXMLWriter(&doc,path);
+                CXMLWriter w(&doc,path);
+                return 0;
+            }
         }
         catch(std::exception &e)
         {
@@ -398,28 +402,29 @@ private:
 public:
     static const char *_tname;
 public:
+    // XXX:CXMLWriter is only a function now
     static void CXMLWriter_register(lua_State *L)
     {
-        int ret=0;
+//        int ret=0;
 //        struct luaL_Reg f[]={
 //            {"cxml_writer",CXMLWriter4Lua::init},
 //            {NULL,NULL}
 //        };
-        struct luaL_Reg m[]={
-            {"__gc",CXMLWriter4Lua::finalizer},
-            {"finalizer",CXMLWriter4Lua::finalizer},
-            {NULL,NULL}
-        };
+//        struct luaL_Reg m[]={
+//            {"__gc",CXMLWriter4Lua::finalizer},
+//            {"finalizer",CXMLWriter4Lua::finalizer},
+//            {NULL,NULL}
+//        };
 
-        ret=luaL_newmetatable(L,CXMLWriter4Lua::_tname);
-        if (ret==0)
-        {
-            luaL_error(L,"%s  existed!  %s  %d",CXMLWriter4Lua::_tname,__func__,__LINE__);
-        }
-        luaL_register(L,NULL,m);
-
-        lua_pushvalue(L,-1);
-        lua_setfield(L,-2,"__index");
+//        ret=luaL_newmetatable(L,CXMLWriter4Lua::_tname);
+//        if (ret==0)
+//        {
+//            luaL_error(L,"%s  existed!  %s  %d",CXMLWriter4Lua::_tname,__func__,__LINE__);
+//        }
+//        luaL_register(L,NULL,m);
+//
+//        lua_pushvalue(L,-1);
+//        lua_setfield(L,-2,"__index");
     }
 };
 const char *CXMLWriter4Lua::_tname="CXMLWriter";
