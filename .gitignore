@@ -7,6 +7,5 @@ db/*.sqlite3
 *~
 *.a
 *.so
-.#.*
 /TODO
 build/
