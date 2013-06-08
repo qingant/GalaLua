@@ -9,13 +9,13 @@ else ifeq (${PLATFORM},AIX)
 endif
 OBJ=struct.o
 
-AR          = ar -X64
-ARFLAGS     = -rcu
+AR          = ar
+ARFLAGS     = -rcu $(ARFLAG)
 RANLIB      = ranlib
 
 default: $(OBJ)
 	$(CC) $(LDFLG) -o struct.so  $(OBJ)
-	$(AR) $(ARFLAGS) struct.a $(OBJ)
+	$(AR) $(ARFLAGS)   struct.a $(OBJ)
 	$(RANLIB) struct.a
 
 clean:
