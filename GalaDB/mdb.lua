@@ -56,6 +56,7 @@ local num_pages = 1024
 local vector_index_key = "__VectorIndexGenerator"
 local vector_item_tag = "__VectorItemTag"
 function mdb.create_env(path)
+
     local e=lightningmdb.env_create()
     e:set_mapsize(num_pages*4096)
     assert(e:open(path,0,420))
@@ -182,7 +183,7 @@ function element:get_root()
 end
 function element:is_leaf()
     if self._is_leaf == nil  then
-        self._is_leaf = (#self:get_value() ~= 0)
+        self._is_leaf = (#self:get_child() == 0)
     end
     return self._is_leaf
 end
@@ -305,15 +306,42 @@ function element:_xpath_selector( tokens, idx )
             sel = all
         end
     else
-        sel = {self:get_child(tok)}
+        -- optimize for plain _xpath selector
+        local _xp = tokens[idx]
+        while idx <= #tokens  do
+            local tok =  tokens[idx+1]
+            if string.sub(tok,1,1) ~= "*" then
+                _xp = _xp .. "/" .. tok
+                idx = idx+1
+            else
+                break
+            end
+        end
+        sel = {self:_xpath(_xp)}
     end
     print("Return", #tokens, idx+1)
-    return self:_xpath_collect(sel, tokens, idx+1)
+    if idx < #tokens then
+        return self:_xpath_collect(sel, tokens, idx+1)
+    else
+        return sel
+    end
 end
 function element:xpath( path )
     -- is root /path/to/*@xxx=yy
     local o = self:_xpath_selector(string.split(path, "/"),1)
     return o
+end
+function element:xpath_set( xpath, value )
+
+    local o = self:xpath(xpath, 1)
+    local num = 0
+    for i,v in ipairs(o) do
+        if o:is_leaf() then
+            num = num +1
+            o:add_value(key, value)
+        end
+    end
+    return num
 end
 function element:_get_dup(op)
     local cur = self._db.txn:cursor_open(self._db.dbi)
@@ -414,10 +442,17 @@ function element:remove(_xpath)
     self:_xpath(_xpath):_remove()
 end
 function element:remove_value(v)
-    assert(self.e_type == "regular", "Cannot Remove Value from ref element")
-    local key = string.format("v:%s", v)
-    self._db.txn:del(self._db.dbi, self.key, key)
+    if v then
+        assert(self.e_type == "regular", "Cannot Remove Value from ref element")
+        local key = string.format("v:%s", v)
+        self._db.txn:del(self._db.dbi, self.key, key)
+    else -- remove all
+        for i,v in ipairs(self:get_value()) do
+            self:remove_value(v)
+        end
+    end
 end
+
 
 function element:remove_attrib( k )
     local v = self:get_attrib(k)
@@ -519,7 +554,10 @@ function element:add_value(v)
     local value = string.format("v:%s", v)
     self._db.txn:put(self._db.dbi, self.key, value,lightningmdb.MDB_NODUPDATA)
 end
-
+-- function element:set_value(v)
+--    self:remove_value(v)
+--    self:add_value(v)
+-- end
 function element:add_pair(k, v)
     self:add_node(k):add_value(v)
 end
@@ -557,6 +595,7 @@ function element:add_vector_item()
 end
 function element:add_node(k)
     assert(k, "Key Cannot be nil")
+    -- assert(not self.is_leaf())
     local ch = string.format("c:%s", k)
     --pprint.pprint(self._db)
     print("AddNode",self.key, ch)
@@ -660,30 +699,81 @@ function element:show(indent)
         v:show(indent .. "    ")
     end
 end
+function element:tag(  )
+    if self._tag == nil then
+        local ts = string.split(self.real_key or self.key, "/")
+        self._tag = ts[#ts]
+    end
+    return self._tag
+end
+
+function merge_to_xml( els ) -- static method
+
+    local path = {}
+    for i,v in pairs(els) do
+        print(i,v)
+        local key = v.real_key or v.key
+
+        local cache = path
+        local tokens = string.split(key, "/")
+        for i,t in ipairs(tokens) do
+            if i == #tokens then
+                cache[t] = v
+            else
+                cache[t] = path[t] or {}
+                cache = cache[t]
+            end
+        end
+    end
 
 
+    function _to_xml( t, str )
+        local str = str or ""
 
+        for k,v in pairs(t) do
+            if v.key then
+                str = str .. v:to_xml()
+            else
+                str = str .. string.format("<%s>", k)
+                str = _to_xml(v, str)
+                str = str .. string.format("</%s>", k)
+            end
+        end
+
+        return str
+    end
+    return _to_xml(path)
+end
 
 function element:to_xml(str)
     -- not that pretty  but it does work well ...
     if str == nil then
         str = ""
     end
-    local tmp = split(self.real_key or self.key, "/")
-    local root = tmp[#tmp]
+    --local tmp = split(self.real_key or self.key, "/")
+    local root = self:tag() 
     local values = self:get_value()
     local attrs = self:get_attrib()
     if #values == 0 then
         str = str .. string.format("<%s ", root)
         for k,v in pairs(attrs) do
-            str = str .. string.format("%s=\"%s\" ", k, v)
+            if string.sub(k, 1, 2) ~= "__" then  -- hiden attribute
+                str = str .. string.format("%s=\"%s\" ", k, v)
+            end
         end
         str = str .. ">"
-
-
         local childs = self:get_child()
-        for k,v in pairs(childs) do
-            str = v:to_xml(str)
+        if self:is_vector() then
+            local item_key = self:get_attrib()[vector_item_tag]
+            for k,v in pairs(childs) do
+                --v.tag = item_key
+                str = v:to_xml(str)
+            end
+        else
+            
+            for k,v in pairs(childs) do
+                str = v:to_xml(str)
+            end
         end
         str = str .. string.format("</%s>", root)
         
@@ -894,6 +984,11 @@ if ... == "__main__" then
         pprint.pprint(tt:to_table(), "Reversed")
 
     end
+    function test_merge( db )
+        local domain_root = db:get_root(root1)
+        print("merge_to_xml")
+        print(merge_to_xml(domain_root:xpath("Bank/**")))
+    end
     local limit = 1
     for i=1,limit do
         db:with(test)
@@ -914,6 +1009,7 @@ if ... == "__main__" then
         db:withReadOnly(test_exist)    
         db:with(test_vector)
         db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
+        db:withReadOnly(test_merge)
 
     end
 end
