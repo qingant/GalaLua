@@ -1,5 +1,5 @@
 SQLITE_HOME = $(HOME)/
-DES =  json struct libzip lfs  luaxml  #cp sqlite dba
+DES =  json struct libzip lfs  #luaxml  #cp sqlite dba
 all:$(DES)
 .PHONY:$(DES)
 
