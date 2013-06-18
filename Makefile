@@ -1,4 +1,4 @@
-DES = pre stub rt amq cfg lua lobj lib glr mod #pyo #app sup 
+DES = pre stub rt amq cfg lua lobj lib glr mod db #pyo #app sup 
 all:$(DES)
 .PHONY:$(DES)
 PLATFORM      =  $(shell uname)
@@ -30,3 +30,5 @@ lib:
 	make -C Lib/
 mod:
 	make -C Modules/
+db:
+	make -C GalaDB
