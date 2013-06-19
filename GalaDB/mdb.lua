@@ -59,6 +59,7 @@ function mdb.create_env(path)
 
     local e=lightningmdb.env_create()
     e:set_mapsize(num_pages*4096)
+    print('ppppppppppppppppppppppppppppppppp', path)
     assert(e:open(path,0,420))
     return e
 end
@@ -219,11 +220,17 @@ function element:_xpath(path)
         while true do
             local _relative_path = string.match(_path, "/[^/]*/(.*)")
             local parent, name = xpath_split(_relative_path)
+            print('pppppppppppppp', parent, name)
             if _relative_path == "" then
                 error(string.format("`%s` -> `%s` not found!", self.key, path))
             end
-
-            return self._root:_xpath(parent):get_child(name)
+            local p = self._root:_xpath(parent)
+            if p then
+                return p:get_child(name)
+            else
+                return nil
+                -- return self._root:_xpath(parent):get_child(name)
+            end
         end
     end
 
@@ -834,7 +841,7 @@ if ... == "__main__" then
     end
     function test_xpath(db)
         local e = db:get_root(root1)
-        local branch = e:_xpath("Bank/Branch")
+        local branch = e:_xpath("Bank/Branch2")
         print("Show Branch", branch)
         branch:show()
 
