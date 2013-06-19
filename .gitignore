@@ -17,6 +17,8 @@ db/*.sqlite3
 *~
 *.a
 *.so
+.project
+.cproject
 /TODO
 build/
 >>>>>>> 5e459b4bca7d7ab734db10a080a0da370c1dd965
