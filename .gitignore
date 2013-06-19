@@ -7,5 +7,7 @@ db/*.sqlite3
 *~
 *.a
 *.so
+.project
+.cproject
 /TODO
 build/
