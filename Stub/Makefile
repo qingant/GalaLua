@@ -11,5 +11,5 @@ libGalaxyStub.so:cstub.c
 
 libGalaxyStub.a: cstub.c
 	$(GCC) -o cstub.o $(CMPFLAG) $(COMMINC) -c -g -D_UNIX95_  $^
-	ar -X64 rcs $@ cstub.o
+	ar $(ARFLAG) rcs $@ cstub.o
 	mv $@ $(HOME)/lib

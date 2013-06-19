@@ -1,4 +1,4 @@
-all:res lib glr glr_s mkresx
+all:res lib glr #glr_s mkresx
 lib:libGLR.so libGLR.a
 include ../mk.rules
 ROOT_DIR = ../..

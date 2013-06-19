@@ -38,7 +38,7 @@ T= $(MYNAME).so
 OBJS= $(MYLIB).o
 TEST= test.lua
 
-all:	test
+all:	$T
 
 test:	$T
 	$(LUABIN)/lua $(TEST)
@@ -49,6 +49,7 @@ so:	$T
 
 $T:	$(OBJS)
 	$(CC) -o $@ -shared $(OBJS) $(CFLAGS) $(LDFLAGS)
+	cp -rf $T $(HOME)/lib/lua
 
 clean:
 	rm -f $(OBJS) $T core core.* a.out

@@ -1,6 +1,12 @@
-DES = pre stub rt amq cfg luajit lobj lib glr mod #pyo #app sup 
+DES = pre stub rt amq cfg lua lobj lib glr mod db #pyo #app sup 
 all:$(DES)
 .PHONY:$(DES)
+PLATFORM      =  $(shell uname)
+ifeq ($(PLATFORM), Linux)
+lua:luajit
+else
+lua:lua51
+endif
 
 pre:
 	mkdir -p $(HOME)/{lib/lua,bin}
@@ -10,8 +16,10 @@ rt:
 	make -C Runtime/
 amq:
 	make -C AMQ/
-luajit:
+lua51:
 	make -C lua-5.1.5/  && make -C lua-5.1.5/ install
+luajit:
+	make -C LuaJIT-2.0.0/ && make -C LuaJIT-2.0.0/ install
 glr:luajit
 	make -C GLR/
 lobj:
@@ -22,3 +30,5 @@ lib:
 	make -C Lib/
 mod:
 	make -C Modules/
+db:
+	make -C GalaDB
