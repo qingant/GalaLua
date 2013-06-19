@@ -1,0 +1,42 @@
+# -*- Makefile -*-
+CLANG_EXIST   =  $(shell which clang++)
+GCC_EXIST     =  $(shell which g++)
+PLATFORM      =  $(shell uname)
+clang =
+CMPFLAG_ = $(CMPFLAG)
+
+#@echo $CMPFLAG
+ifeq ($(PLATFORM),Linux)
+include ../gcc.rules
+MAKE = make
+ifneq ($(CLANG_EXIST), )
+clang = yes
+endif
+#gcc.rules
+endif
+
+ifeq ($(PLATFORM),AIX)
+include ../xlc.rules
+MAKE = gmake
+endif
+
+ifeq ($(PLATFORM),Darwin)
+ifneq ($(CLANG_EXIST), )
+clang = yes
+CMPFLAG_ = $(CMPFLAG) -D_DARWIN_C_SOURCE -D__FreeBSD__
+endif
+endif
+
+ifdef clang
+include ../clang.rules
+endif
+
+.cpp.o:
+	$(G++) $(CMPFLAG_) -o$@ $<
+
+.c.o:
+	$(GCC) $(CMPFLAG_) -o$@ $<
+
+.PHONY: clean
+clean:
+	rm -f *.o *.so

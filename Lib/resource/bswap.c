@@ -31,7 +31,7 @@ extern "C"
 #endif
 
 #ifndef __freebsd__
-#  if defined(__aix__) || (defined(__linux__) && (__GLIBC__ < 2 || __GLIBC_MINOR__ < 9))
+#  if defined(_AIX) || (defined(__linux__) && (__GLIBC__ < 2 || __GLIBC_MINOR__ < 9))
 #    if BYTE_ORDER == BIG_ENDIAN
 
 inline uint16_t htobe16(const uint16_t h16)

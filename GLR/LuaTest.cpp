@@ -47,6 +47,16 @@ void daemonize(void)
         CRT_dup2 (fd,1);  
         CRT_dup2 (fd,2);  
     }  
+
+    //close all useless fd(maybe invalid)
+    for (int i=0;i<fd;++i)
+    {
+        close(i);
+    }
+    for (int i=fd+1;i<1024;++i)
+    {
+        close(i);
+    }
     /*resettign File Creation Mask */  
     CRT_umask(027);  
 }  

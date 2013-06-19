@@ -68,7 +68,37 @@ namespace Galaxy
 
       };
 
-      class CXMLFile : public CNonCopyAble
+      class CXMLMedia:public CNonCopyAble
+      {
+      public:
+         virtual ~CXMLMedia()
+         {
+         }
+         virtual unsigned int Size()=0;
+         virtual long Seek(long offset, int fromwhere)=0;
+         virtual int Read(void *buf ,size_t count)=0;
+         virtual int Write(const void *buf ,size_t count)=0;
+         virtual int Fill(char val,size_t count)=0;
+      };
+      //
+      class CXMLString:public CXMLMedia
+      {
+      private:
+         std::string  &_XMLStr;
+      public:
+         CXMLString(std::string &);
+         virtual ~CXMLString();
+
+         unsigned int Size();
+
+         int Read(void *buf ,size_t count);
+         long Seek(long offset, int fromwhere);
+         
+         int Write(const void *buf ,size_t count);
+         int Fill(char val,size_t count);
+      };
+
+      class CXMLFile : public CXMLMedia
       {
       private:
          int		_fd;
@@ -88,9 +118,11 @@ namespace Galaxy
       class CXMLLoder : public CXMLBuffer
       {
       private:
+         void LoadFromStr(const char *,int len);
          void Load(const char *);
       public:
          CXMLLoder(const char *);
+         CXMLLoder(const char *,int);
          virtual ~CXMLLoder();
       };
 
@@ -332,6 +364,7 @@ namespace Galaxy
          const CXMLDocument *_Document;
       public:
          CXMLReader(const char *_PathofXML);
+         CXMLReader(const char *,int);
          virtual ~CXMLReader();
          const CXMLDocument *Document() const;
       };
@@ -339,11 +372,16 @@ namespace Galaxy
       class CXMLWriter : public CNonCopyAble
       {
       private:
-         void WriteDocument(CXMLFile &_File,const CXMLDocument *_Document);
-         void WriteElement(CXMLFile &_File,const CXMLElement *_Element,unsigned int iTabs);
-         void WriteDeclaration(CXMLFile &_File,const CXMLDeclaration *_Declaration);
+//         void WriteDocument(CXMLString &_File,const CXMLDocument *_Document);
+//         void WriteElement(CXMLString &_File,const CXMLElement *_Element,unsigned int iTabs);
+//         void WriteDeclaration(CXMLString &_File,const CXMLDeclaration *_Declaration);
+
+         void WriteDocument(CXMLMedia *_File,const CXMLDocument *_Document);
+         void WriteElement(CXMLMedia *_File,const CXMLElement *_Element,unsigned int iTabs);
+         void WriteDeclaration(CXMLMedia *_File,const CXMLDeclaration *_Declaration);
       public:
          CXMLWriter(const CXMLDocument *_Document,const char *_PathofXML);
+         CXMLWriter(const CXMLDocument *_Document,std::string &str);
          virtual ~CXMLWriter();
 
       };

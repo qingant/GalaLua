@@ -31,6 +31,7 @@ liblmdb.a:	mdb.o midl.o
 
 liblmdb.so:	mdb.o midl.o
 	$(CC) $(LDFLAGS) -pthread -shared -o $@ mdb.o midl.o $(SOLIBS)
+	cp -rf liblmdb.so $(HOME)/lib/lua/
 
 mdb_stat: mdb_stat.o liblmdb.a
 mdb_copy: mdb_copy.o liblmdb.a

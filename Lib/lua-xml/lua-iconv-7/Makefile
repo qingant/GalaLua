@@ -64,7 +64,6 @@ iconv.a: iconv.lo
 	$(RANLIB) $@
 
 install: iconv.so iconv.a
-	make test
 	cp iconv.so $(PREFIX)/lib/lua/iconv.so
 	cp iconv.a $(PREFIX)/lib/lua/iconv.a
 
