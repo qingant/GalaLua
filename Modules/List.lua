@@ -2,7 +2,7 @@
 -- date
 -- lua5.1
 
-module("list",package.seeall)
+module("List",package.seeall)
 
 local io = require("io")
 local table_insert = table.insert

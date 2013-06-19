@@ -2,10 +2,10 @@ package.path = package.path .. ";" .. "."
 
 print(package.path)
 
-local list = require("list")
+local list = require("List")
 require "pprint"
 
-pprint.pprint(list, "list")
+pprint.pprint(list, "List")
 print(type(list))
 
 lst = list.list:new()
