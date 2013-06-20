@@ -308,7 +308,7 @@ function element:_xpath_selector( tokens, idx )
     else
         -- optimize for plain _xpath selector
         local _xp = tokens[idx]
-        while idx <= #tokens  do
+        while idx < #tokens  do
             local tok =  tokens[idx+1]
             if string.sub(tok,1,1) ~= "*" then
                 _xp = _xp .. "/" .. tok
@@ -564,12 +564,12 @@ end
 function element:_raw_get( k )
     return self._db.txn:get(self._db.dbi, k)
 end
-function element:add_vector_node(k, n)  
+function element:add_vector_node(k, itag)  
 
     local o = self:add_node(k)
     o:add_attrib(vector_index_key, "1")
     if n then
-        o:add_attrib(vector_item_tag, n)
+        o:add_attrib(vector_item_tag, itag)
     end
     o._is_vector = true
 --    o:_raw_put("t:node")
