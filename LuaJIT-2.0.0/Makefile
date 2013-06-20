@@ -21,10 +21,11 @@ ABIVER=  5.1
 
 ##############################################################################
 #
+#
 # Change the installation path as needed. This automatically adjusts
 # the paths in src/luaconf.h, too. Note: PREFIX must be an absolute path!
 #
-export PREFIX= /usr/local
+export PREFIX= ${HOME}
 ##############################################################################
 
 DPREFIX= $(DESTDIR)$(PREFIX)
@@ -46,7 +47,11 @@ INSTALL_TNAME= luajit-$(VERSION)
 INSTALL_TSYMNAME= luajit
 INSTALL_ANAME= libluajit-$(ABIVER).a
 INSTALL_SONAME= libluajit-$(ABIVER).so.$(MAJVER).$(MINVER).$(RELVER)
-INSTALL_SOSHORT= libluajit-$(ABIVER).so
+#INSTALL_SOSHORT= libluajit-$(ABIVER).so
+
+INSTALL_SOSHORT1= libluajit.so
+INSTALL_SOSHORT2= libluajit-$(ABIVER).so
+
 INSTALL_DYLIBNAME= libluajit-$(ABIVER).$(MAJVER).$(MINVER).$(RELVER).dylib
 INSTALL_DYLIBSHORT1= libluajit-$(ABIVER).dylib
 INSTALL_DYLIBSHORT2= libluajit-$(ABIVER).$(MAJVER).dylib
@@ -54,8 +59,10 @@ INSTALL_PCNAME= luajit.pc
 
 INSTALL_STATIC= $(INSTALL_LIB)/$(INSTALL_ANAME)
 INSTALL_DYN= $(INSTALL_LIB)/$(INSTALL_SONAME)
-INSTALL_SHORT1= $(INSTALL_LIB)/$(INSTALL_SOSHORT)
-INSTALL_SHORT2= $(INSTALL_LIB)/$(INSTALL_SOSHORT)
+#INSTALL_SHORT1= $(INSTALL_LIB)/$(INSTALL_SOSHORT)
+#INSTALL_SHORT2= $(INSTALL_LIB)/$(INSTALL_SOSHORT)
+INSTALL_SHORT1= $(INSTALL_LIB)/$(INSTALL_SOSHORT1)
+INSTALL_SHORT2= $(INSTALL_LIB)/$(INSTALL_SOSHORT2)
 INSTALL_T= $(INSTALL_BIN)/$(INSTALL_TNAME)
 INSTALL_TSYM= $(INSTALL_BIN)/$(INSTALL_TSYMNAME)
 INSTALL_PC= $(INSTALL_PKGCONFIG)/$(INSTALL_PCNAME)
@@ -72,7 +79,7 @@ SYMLINK= ln -sf
 INSTALL_X= install -m 0755
 INSTALL_F= install -m 0644
 UNINSTALL= $(RM)
-LDCONFIG= ldconfig -n
+LDCONFIG= /sbin/ldconfig -n
 SED_PC= sed -e "s|^prefix=.*|prefix=$(PREFIX)|"
 
 FILE_T= luajit

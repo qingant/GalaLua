@@ -4,7 +4,7 @@ OPT = -O2 -g
 CFLAGS	= -pthread $(OPT) $(W) $(XCFLAGS)
 LDLIBS	=
 SOLIBS	=
-prefix	= /usr/local
+prefix	:= $(HOME)
 
 IHDRS	= lmdb.h
 ILIBS	= liblmdb.a liblmdb.so
@@ -17,7 +17,7 @@ install: $(ILIBS) $(IPROGS) $(IHDRS)
 	cp $(IPROGS) $(DESTDIR)$(prefix)/bin
 	cp $(ILIBS) $(DESTDIR)$(prefix)/lib
 	cp $(IHDRS) $(DESTDIR)$(prefix)/include
-	cp $(IDOCS) $(DESTDIR)$(prefix)/man/man1
+	#cp $(IDOCS) $(DESTDIR)$(prefix)/man/man1
 
 clean:
 	rm -rf $(PROGS) *.[ao] *.so *~ testdb
