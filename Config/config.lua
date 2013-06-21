@@ -109,7 +109,7 @@ function _Config:schemaGen( ... )
 
             elseif meta == "array" then
                 local aStruct
-                for k,v in pairs(sNode:get_child()) do
+                for k,v in pairs(sNode:get_child()) do   -- get only one child node
                     aStruct = v
                 end
                 local vNode = cNode:add_vector_node(sNode:tag(), aStruct:tag())
@@ -118,7 +118,14 @@ function _Config:schemaGen( ... )
                     local item = vNode:add_vector_item()
                     doSchema(aStruct, item)
                 end
+            elseif meta == "union" then
+                local uSelector = sNode:get_child("_SCROLLTYPE") 
+                doSchema(uSelector, cNode:add_node("_SCROLLTYPE"))
+                for k,v in pairs(sNode:get_child("_UNIONSELECTOR"):get_child()) do
+                    doSchema(v, cNode:add_node(v:tag()))
+                end
             end
+
         end
 
         doSchema(sStructure, contents)
