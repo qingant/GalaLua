@@ -12,7 +12,7 @@ local pprint=require "pprint"
 local L = require 'linenoise'
 local cjson=require "cjson"
 local _Config=require "config"
-local _Config=_Config.config()
+local _Config=_Config._Config
 local mdb=(require "mdb").mdb
 
 local prompt, history = '> ', 'history.txt'
@@ -21,6 +21,9 @@ local path = "/tmp/test_config"
 
 local ROOT="Configure"
 local ROOT2="Contents"
+
+local SCHEMA_ROOT="Schema"
+local SCHEMA_ROOT2="_TYPEDEFINE"
 
 DEBUG=nil
 local function Print(...)
@@ -116,6 +119,17 @@ local function remove_suffix_slash(path)
     return path
 end
 
+function get_enum_type(enum_type)
+   local ret={}
+   local root=db:get_root(SCHEMA_ROOT):get_child(SCHEMA_ROOT2)
+   local types=root:xpath(string.format("%s/*",enum_type))
+   local _,base
+   for i,v in pairs(types) do
+       _,base=xpath_split(v.key)
+       ret[#ret+1]=base
+   end
+   return ret
+end
 --path must be a valid configure xpath
 --can have a suffix / (only one)
 local function get_type(path)
@@ -125,10 +139,21 @@ local function get_type(path)
                                 local attr=l:get_attrib()
                                 Pprint(attr) 
                                 local value_type=attr.type
-                                if attr.type=="int" then
+                                if not attr.type then
+                                    local t=l:get_child("_SCROLLTYPE")
+                                    if t then   --is enum type
+                                        attr=t:get_attrib()
+                                        local subtype=get_enum_type(attr.type)
+                                        return {type="define",realtype=attr.type,subtype=subtype}
+                                    else   --unknown type
+                                        return {}
+                                    end
+                                elseif attr.type=="int" then
                                     return {type=attr.type,min=tonumber(attr.min),max=(tonumber(attr.max) or 0)}
-                                elseif attr.type=="string" then
+                                elseif attr.type=="string" or attr.type=="ip" or attr.type=="path" then
                                     return {type=attr.type,maxLen=tonumber(attr.maxLen)}
+                                elseif attr.type=="bool" then
+                                    return {type=attr.type}
                                 elseif attr.type=="bool" then
                                     return {type=attr.type}
                                 end
@@ -256,6 +281,32 @@ function operations.put(config,path,value)
         end
     end
 
+    function isvalid_path(attr,value)
+        function mapping(i)
+            return i
+        end
+        if type(value)=="string" and #value<=attr.maxLen then
+            return mapping(value)
+        end
+
+    end
+    
+    function isvalid_ip(attr,value)
+        function mapping(i)
+            return i
+        end
+        if type(value)=="string" and #value<=attr.maxLen then
+            local a,b,c,d=string.match(value,"^(%d?%d?%d)%.(%d?%d?%d)%.(%d?%d?%d)%.(%d?%d?%d)$") 
+            if a then
+                if tonumber(a)<255 and tonumber(b)<255 and 
+                   tonumber(c) and tonumber(d) then
+                        return mapping(value)
+                end
+            end
+        end
+
+    end
+
     --return its mapping value if argument value is expected,return nil otherwise
     function isvalid_int(attr,value)
         function mapping(i)
@@ -282,11 +333,22 @@ function operations.put(config,path,value)
             return mapping(value)
         end
     end
+
+    function isvalid_define(attr,value)
+        for i,v in pairs(attr.subtype) do
+            if v==value then
+                return true
+            end
+        end
+    end
+
     function isvalid_default(attr,value)
         return true
     end
 
-    isvalid_funcs={string=isvalid_string,int=isvalid_int,bool=isvalid_bool}
+    isvalid_funcs={string=isvalid_string,int=isvalid_int,
+                   bool=isvalid_bool,define=isvalid_define,
+                   ip=isvalid_ip,path=isvalid_path}
 
     function check_and_get_input(attr,value)
         Pprint(attr,"check_and_get_input")
@@ -294,15 +356,25 @@ function operations.put(config,path,value)
 
         if not isvalid(attr,value) then
             local prompt={}
-            if attr.type=="int" then
+            local _type=attr.type
+            if _type=="int" then
                 prompt[#prompt+1]="value must be integer"
                 prompt[#prompt+1]=string.format("valid range is from %s to %s",attr.min,attr.max)
-            elseif attr.type=="string" then
-                prompt[#prompt+1]="value must be string"
+            elseif _type=="string" or _type=="ip" or _type=="path" then
+                prompt[#prompt+1]="value must be ".._type
                 prompt[#prompt+1]=string.format("must less than %s  characters",attr.maxLen)
-            elseif attr.type=="bool" then
+            elseif _type=="bool" then
                 prompt[#prompt+1]="value must be bool"
+            elseif _type=="define"  then   --self define type such as enum type
+                local s=""
+                for i,v in pairs(attr.subtype) do
+                    s=s.." "..v
+                end
+                prompt[#prompt+1]="value must be one of "..s
+            else
+                prompt[#prompt+1]="unknown type,all input treated as string"
             end
+
             for i,v in pairs(prompt) do
                 io.write(v,"\n")
             end
@@ -322,7 +394,7 @@ function operations.put(config,path,value)
         return 
     end
     local attr=get_type(path)
-
+    Pprint(attr,"346")
     local v=check_and_get_input(attr,value)    
     Print(v)
     config:put(path,v)
