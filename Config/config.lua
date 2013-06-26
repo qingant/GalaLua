@@ -210,7 +210,7 @@ end
 
 
 if ... == "__main__" then
-    local path = "/tmp/test_config"
+    local path = os.getenv("HOME") .. "/tmp/conf" --"/tmp/test_config"
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
     local db = mdb:new():init(mdb.create_env(path))
     local imp = _Importer:new{_db = db}
@@ -226,4 +226,18 @@ if ... == "__main__" then
     -- print(config:get("Monitor/Base/AMQToken"))
     config:export("exp.xml")
     --config:put("MonitorList/4/SVC/")
+
+    -- config:put("MonitorList/1/Base/AMQToken", "test")
+    -- local tk = config:get("MonitorList/1/Base/AMQToken")
+    -- print(tk)
+    -- config:put("MonitorList/1/Base/AMQToken", "testABC")
+    -- print(config:get("MonitorList/1/Base/AMQToken"))
+    -- -- put svc/lsr config
+    -- config:put("MonitorList/1/Base/AMQToken", "AMQToken.chl")
+    -- config:put("MonitorList/1/SVC/Threads", "8")
+    -- config:put("MonitorList/1/SVC/MaxProcess", "256")
+    -- config:put("MonitorList/1/AppLoger/Dir", "~/log/")
+    -- config:put("MonitorList/1/AppLoger/DirFormat", "0")
+    -- config:put("MonitorList/1/AppLoger/NameFormat", "1")
+
 end
