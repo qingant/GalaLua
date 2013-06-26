@@ -59,7 +59,7 @@ function mdb.create_env(path)
 
     local e=lightningmdb.env_create()
     e:set_mapsize(num_pages*4096)
-    print('ppppppppppppppppppppppppppppppppp', path)
+    print('ppppppppppppppppppppppppppppp', path)
     assert(e:open(path,0,420))
     return e
 end
@@ -191,7 +191,7 @@ end
 function element:walk(op, ...)
     op(self,...)
     for k,v in pairs(self:get_child()) do
-        print(k,v)
+
         v:walk(op, ...)
     end
 end
@@ -220,7 +220,7 @@ function element:_xpath(path)
         while true do
             local _relative_path = string.match(_path, "/[^/]*/(.*)")
             local parent, name = xpath_split(_relative_path)
-            print('pppppppppppppp', parent, name)
+
             if _relative_path == "" then
                 error(string.format("`%s` -> `%s` not found!", self.key, path))
             end
@@ -249,7 +249,7 @@ function element:_xpath_attr_selector(elist, attr_key, attr_value)
         end
     else
         for k,v in pairs(elist) do
-            print("ATTR",k,v, v:get_attrib()[attr_key])
+
             if v:get_attrib()[attr_key] ~= nil then
                 rt[#rt+1] = v
             end
@@ -278,7 +278,7 @@ function element:_xpath_collect( all, tokens, idx )
     for k,v in pairs(all) do
         if v then
             --pprint.pprint(v)
-            print("Xpath Collect", k,v)
+
             local r = v:_xpath_selector(tokens, idx)
             if r then
                 table.update(result, r)
@@ -290,14 +290,14 @@ end
 function element:_xpath_selector( tokens, idx )
     assert(self, "`self` is nil")
     local tok = tokens[idx]
-    print("XPATH", tok, idx)
+
     local sel
     if string.sub(tok, 1, 2) == "**" then
         -- assert(idx==#tokens, "** selector can only used at last")
         local all = self:_xpath_all_selector()
         if string.sub(tok,3,3) == "@" then
             local k,v = unpack(string.split(string.sub(tok,4),"="))
-            print("@",k,v)
+
             sel =  self:_xpath_attr_selector(all,k,v)
             
         else
@@ -309,7 +309,7 @@ function element:_xpath_selector( tokens, idx )
             local k,v = string.split(string.sub(tok,3),"=")
             sel = self:_xpath_attr_selector(all, k, v)
         else
-            print("here")
+
             sel = all
         end
     else
@@ -326,7 +326,7 @@ function element:_xpath_selector( tokens, idx )
         end
         sel = {self:_xpath(_xp)}
     end
-    print("Return", #tokens, idx+1)
+
     if idx < #tokens then
         return self:_xpath_collect(sel, tokens, idx+1)
     else
@@ -383,7 +383,7 @@ function element:get_parent()
         if self._db.txn:get(self._db.dbi, parent) then
             -- print(xpath_split(self.key))
             -- print("eeeeeeeeee")
-            print("Return")
+
             return element:new{_db = self._db, 
                                key = parent,
                                e_type = "regular",
@@ -417,7 +417,7 @@ function element:_remove_parent_refer()
         else
             this_key = string.format("c:%s", this)
         end
-        print("REMove parent",parent.key, this_key)
+
         parent._db.txn:del(parent._db.dbi, parent.key, this_key)
     else
         error("symbolink readonly")
@@ -549,7 +549,7 @@ end
 
 function element:add_attrib(k, v)
     local attr = string.format("a:%s`%s", k, v)
-    print("Attr",self.key, attr)
+
     self._db.txn:put(self._db.dbi, self.key, attr,lightningmdb.MDB_NODUPDATA)
 end
 
@@ -605,13 +605,13 @@ function element:add_node(k)
     -- assert(not self.is_leaf())
     local ch = string.format("c:%s", k)
     --pprint.pprint(self._db)
-    print("AddNode",self.key, ch)
+
     --if self:get_child(k) == nil then
     self._db.txn:put(self._db.dbi, self.key, ch,lightningmdb.MDB_NODUPDATA)
     --end
 
     local key = string.format("%s%s%s", self.key, path_sep,  k)
-    print("Child",self.key, key)
+
 
     o = element:new{_db = self._db, key = key, e_type = "regular", _root = self._root}
 --    o:_raw_put("t:node")
