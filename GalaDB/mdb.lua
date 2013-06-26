@@ -762,10 +762,10 @@ function element:to_xml(str)
     local values = self:get_value()
     local attrs = self:get_attrib()
     if #values == 0 then
-        str = str .. string.format("<%s ", root)
+        str = str .. string.format("<%s", root)
         for k,v in pairs(attrs) do
             if string.sub(k, 1, 2) ~= "__" then  -- hiden attribute
-                str = str .. string.format("%s=\"%s\" ", k, v)
+                str = str .. string.format(" %s=\"%s\"", k, v)
             end
         end
         str = str .. ">"
@@ -773,7 +773,7 @@ function element:to_xml(str)
         if self:is_vector() then
             local item_key = self:get_attrib()[vector_item_tag]
             for k,v in pairs(childs) do
-                --v.tag = item_key
+                --v._tag = item_key
                 str = v:to_xml(str)
             end
         else
