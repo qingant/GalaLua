@@ -575,7 +575,7 @@ function element:add_vector_node(k, itag)
 
     local o = self:add_node(k)
     o:add_attrib(vector_index_key, "1")
-    if n then
+    if itag then
         o:add_attrib(vector_item_tag, itag)
     end
     o._is_vector = true
@@ -773,7 +773,7 @@ function element:to_xml(str)
         if self:is_vector() then
             local item_key = self:get_attrib()[vector_item_tag]
             for k,v in pairs(childs) do
-                --v._tag = item_key
+                v._tag = item_key
                 str = v:to_xml(str)
             end
         else
