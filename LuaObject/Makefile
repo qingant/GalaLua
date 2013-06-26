@@ -1,6 +1,3 @@
-AR          = ar
-ARFLAGS     = rcu
-RANLIB      = ranlib
 
 all:router.so amq.so  logger.so  _dir.so _dir.a xml.so cp
 
@@ -24,9 +21,12 @@ _dir.so:LuaDir.o
 _dir.a: LuaDir.o
 	@echo $(PLATFORM)
 	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $(RANLIBFLAGS) $@
 xml.so:LuaXML.o
 	@echo $(PLATFORM)
 	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@
 
 cp:
-	cp -rf *.so *.a $(HOME)/lib/lua
+	cp -rf *.so $(HOME)/lib/lua
+	cp *.a $(HOME)/share/static
+
