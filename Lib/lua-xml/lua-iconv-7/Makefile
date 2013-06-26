@@ -23,7 +23,24 @@
 # If you use this package in a product, an acknowledgment in the product
 # documentation would be greatly appreciated (but it is not required).
 
-#CC = gcc
+PLATFORM=$(shell uname)
+LDFLG   = none
+ifeq (${PLATFORM},Linux)
+	LDFLG = -shared
+	CC=gcc -ansi -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
+	AR          = ar
+	ARFLAGS     = -rcu
+	RANLIB      = ranlib
+	RANLIBFLAGS =
+else ifeq (${PLATFORM},AIX)
+	LDFLG = -qmkshrobj
+	CC=xlc_r -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lluajit -lm
+	AR          = ar
+	ARFLAGS     = -X64 -rcu
+	RANLIB      = ranlib
+	RANLIBFLAGS = -X64
+endif
+
 #RM = rm
 
 PREFIX = $(HOME)
@@ -31,10 +48,6 @@ PREFIX = $(HOME)
 # Gives a nice speedup, but also spoils debugging on x86. Comment out this
 # line when debugging.
 OMIT_FRAME_PTR = -fomit-frame-pointer
-
-AR          = ar
-ARFLAGS     = -rcu
-RANLIB      = ranlib
 
 LUABIN = luajit
 LUAPKG = luajit
@@ -61,11 +74,11 @@ iconv.so: iconv.lo
 
 iconv.a: iconv.lo
 	$(AR) $(ARFLAGS) $@ $^
-	$(RANLIB) $@
+	$(RANLIB) $(RANLIBFLAGS) $@
 
 install: iconv.so iconv.a
-	cp iconv.so $(PREFIX)/lib/lua/iconv.so
-	cp iconv.a $(PREFIX)/lib/lua/iconv.a
+	cp iconv.so $(PREFIX)/lib/lua
+	cp iconv.a $(HOME)/share/static/lua
 
 clean:
 	$(RM) iconv.so iconv.lo iconv.a

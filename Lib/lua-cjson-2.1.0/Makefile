@@ -11,30 +11,34 @@
 ##                          multi-threaded application. Requries _pthreads_.
 
 ##### Build defaults #####
+ifeq ($(PLATFORM),AIX)
+	CC  = xlc_r
+	CFLAGS =            -q64 -DNDEBUG
+	CJSON_LDFLAGS =     -qmkshrobj -q64 -L$(HOME)/lib -lluajit -lm 
+	AR          = ar
+	ARFLAGS     = -X64 -rc
+	RANLIB      = ranlib
+	RANLIBFLAGS = -X64
+else
+	CC          = gcc 
+	CFLAGS      = -O3 -Wall -pedantic -DNDEBUG
+	CJSON_LDFLAGS = -shared -L$(HOME)/lib -lluajit
+	AR          = ar
+	ARFLAGS     = -rcu
+	RANLIB      = ranlib
+	RANLIBFLAGS = 
+endif
+
 LUA_VERSION =       5.1
 TARGET =            cjson.so
 PREFIX =            ../../lua-5.1.5
 #CFLAGS =            -g -Wall -pedantic -fno-inline
-CJSON_CFLAGS =      -fpic
+CJSON_CFLAGS =      -fPIC
 PLATFORM      =  $(shell uname)
-ifeq ($(PLATFORM),AIX)
-CC  = xlc_r
-ARFLAG  = -X64
-CFLAGS =            -q64 -DNDEBUG
-CJSON_LDFLAGS =     -qmkshrobj -q64 -L$(HOME)/lib -lluajit -lm
-else
-CC  = gcc
-CFLAGS =            -O3 -Wall -pedantic -DNDEBUG
-CJSON_LDFLAGS =     -shared -L$(HOME)/lib -lluajit
-endif
 LUA_INCLUDE_DIR =   $(PREFIX)/src/
 LUA_CMODULE_DIR =   $(PREFIX)/lib/lua/$(LUA_VERSION)
 LUA_MODULE_DIR =    $(PREFIX)/share/lua/$(LUA_VERSION)
 LUA_BIN_DIR =       $(PREFIX)/bin
-
-AR          = ar $(ARFLAG)
-ARFLAGS     = -rcu
-RANLIB      = ranlib
 
 ##### Platform overrides #####
 ##
@@ -113,8 +117,8 @@ $(TARGET): $(OBJS)
 
 cjson.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
-	$(RANLIB) $@
-	cp $@ $(HOME)/lib/lua/
+	$(RANLIB) $(RANLIBFLAGS) $@
+	cp $@ $(HOME)/share/static/lua
 
 install: $(TARGET)
 	mkdir -p $(DESTDIR)/$(LUA_CMODULE_DIR)
@@ -134,4 +138,4 @@ install-extra:
 	cd tests; chmod $(DATAPERM) $(TEST_FILES); chmod $(EXECPERM) *.lua *.pl
 
 clean:
-	rm -f *.o $(TARGET)
+	rm -f *.o $(TARGET) *.a
