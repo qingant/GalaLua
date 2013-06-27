@@ -1,6 +1,7 @@
 all:res lib glr mkresx #glr_s
 lib:libGLR.so libGLR.a
 include ../mk.rules
+STATIC_LIB_PATH = $(HOME)/share/static
 ROOT_DIR = ../..
 .PHONY:res
 GLR_OBJ = LuaNode.o Schedule.o GLR.o Bus.o Controllers.o SocketController.o BusController.o
@@ -14,8 +15,9 @@ libGLR.so:$(GLR_OBJ)
 libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/resxloader.o resource/cmodulepack.o
 	@echo $(PLATFORM)
 	rm -f $@
-	ar $(ARFLAG) rcs $@ $(GLR_OBJ)
-	mv $@ $(HOME)/lib/
+	$(AR) $(ARFLAGS) $@ $(GLR_OBJ)
+	$(RANLIB) $(RANLIBFLAGS) $@
+	mv $@ $(HOME)/share/static
 
 res:
 	echo "" > resource.h
@@ -32,10 +34,10 @@ glr:LuaTest.o # resource/resource.c resource/bswap.c resource/resxloader.c # res
 glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/resxloader.c resource/cmodulepack.c
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) -I./resource $(COMMINC) $^ $(HOME)/lib/lua/cjson.a $(HOME)/lib/lua/struct.a $(HOME)/lib/lua/iconv.a $(HOME)/lib/lua/minizip.a $(HOME)/lib/lua/_dir.a  $(HOME)/lib/lua/lxp.a $(HOME)/lib/libGalaxyStub.a $(HOME)/lib/libGalaxyRT.a $(SYTMLIB) $(HOME)/lib/libluajit.a -lc -lm -ldl -lpthread -lrt -lzip -lexpat -o $@
+	$(G++) -I./resource $(COMMINC) $^ $(STATIC_LIB_PATH)/lua/cjson.a $(STATIC_LIB_PATH)/lua/struct.a $(STATIC_LIB_PATH)/lua/iconv.a $(STATIC_LIB_PATH)/lua/minizip.a $(STATIC_LIB_PATH)/lua/_dir.a  $(STATIC_LIB_PATH)/lua/lxp.a $(STATIC_LIB_PATH)/libGalaxyStub.a $(STATIC_LIB_PATH)/libGalaxyRT.a $(SYTMLIB) $(STATIC_LIB_PATH)/libluajit.a -lc -lm -ldl -lpthread -lrt -lzip -lexpat -o $@
 	mv $@ $(HOME)/bin/
 
 mkresx: resource/mkresx.c resource/resource.c resource/bswap.c
-	$(GCC) -o resource/mkresx -std=gnu99 -Wall -I./resource $^
+	$(GCC) -o resource/mkresx -I./resource $^
 	mv resource/mkresx $(HOME)/bin
 

@@ -61,13 +61,13 @@ test:	dummy
 	src/lua test/hello.lua
 
 install: dummy
-	cd src && $(MKDIR) $(INSTALL_BIN) $(INSTALL_INC) $(INSTALL_LIB) $(INSTALL_MAN) $(INSTALL_LMOD) $(INSTALL_CMOD)
+	cd src && $(MKDIR) $(INSTALL_BIN) $(INSTALL_INC) $(INSTALL_LIB) $(INSTALL_MAN) $(INSTALL_LMOD) $(INSTALL_CMOD) 
 	cd src && $(INSTALL_EXEC) $(TO_BIN) $(INSTALL_BIN)
 	cd src && $(INSTALL_DATA) $(TO_INC) $(INSTALL_INC)
 	cd src && $(INSTALL_DATA) $(TO_LIB) $(INSTALL_LIB)
 	cd doc && $(INSTALL_DATA) $(TO_MAN) $(INSTALL_MAN)
 	ln -f -s $(INSTALL_BIN)/lua $(HOME)/bin/lua
-	mv $(INSTALL_LIB)/libluajit.a $(HOME)/lib/
+	mv $(INSTALL_LIB)/libluajit.a $(HOME)/share/static
 uninstall:
 	rm -rf $(INSTALL_TOP)/bin/lua*
 	rm -rf $(INSTALL_TOP)/include/lua*
@@ -75,6 +75,7 @@ uninstall:
 	rm -rf $(INSTALL_TOP)/man/man1/lua*
 	rm -rf $(HOME)/bin/lua
 	rm -rf $(HOME)/lib/libluajit.*
+	rm -rf $(STATIC_LIB_PATH)/libluajit.*
 ranlib:
 	cd src && cd $(INSTALL_LIB) && $(RANLIB) $(TO_LIB)
 

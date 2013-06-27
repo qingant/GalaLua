@@ -1,9 +1,11 @@
+include ../../mk.rules
 OS=$(shell uname)
 ifeq ($(OS),AIX)
 MAKE = make
 else
 MAKE = gmake
 endif
+
 all: etree luaiconv luaxpath luaexpat
 
 etree:
