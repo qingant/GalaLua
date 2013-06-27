@@ -36,6 +36,42 @@ extern "C"
 #include "resource.h"
 #include "resxloader.h"
 
+void resx_openlibs(lua_State * const state)
+{
+/*
+    fprintf(stderr, "File %s, Function %s, Line %d, gettop() = %d.\n",
+            __FILE__, __FUNCTION__, __LINE__, lua_gettop(state));
+*/
+    lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME); /* 'package' */
+    lua_getfield(state, -1, "loaded"); /* package.loaded */
+
+    for(const luaL_Reg *ite = &lualibray[0]; ite->func != (lua_CFunction) NULL;
+            ++ite)
+    {
+/*        fprintf(stderr, "File %s, Function %s, Line %d, %s.\n",
+                __FILE__, __FUNCTION__, __LINE__, ite->name);
+*/
+        lua_getfield(state, -1, ite->name); /* package.loaded[pathname] */
+        lua_pushcfunction(state, ite->func);
+        lua_pushstring(state, ite->name);
+        lua_call(state, 1, 1);
+        if (!lua_toboolean(state, -2))
+        {
+            lua_setfield(state, -3, ite->name);
+            lua_pop(state, 1);
+        }
+        else
+        {
+            lua_pop(state, 2);
+        }
+    }
+    lua_pop(state, 2);
+/*
+    fprintf(stderr, "File %s, Function %s, Line %d, gettop() = %d.\n",
+            __FILE__, __FUNCTION__, __LINE__, lua_gettop(state));
+*/
+}
+
 int resx_loader(lua_State * const state)
 {
     static bool initialized = false;
@@ -262,3 +298,4 @@ void GLR_initializer(lua_State * state)
 #ifdef __cplusplus
 }
 #endif
+

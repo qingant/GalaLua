@@ -12,12 +12,14 @@ libGLR.so:$(GLR_OBJ)
 	mv $@ $(HOME)/lib/
 
 #libGLR.a: $(GLR_OBJ)
-libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/resxloader.o resource/cmodulepack.o
+libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/resxloader.o
 	@echo $(PLATFORM)
 	rm -f $@
 	$(AR) $(ARFLAGS) $@ $(GLR_OBJ)
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static
+	mkdir -p $(HOME)/include/resource
+	cp resource/resxloader.h $(HOME)/include/resource
 
 res:
 	echo "" > resource.h
@@ -25,7 +27,7 @@ res:
 ttt:ttt.o
 	$(G++) $?  $(SYTMLIB) $(STUBLIB) -lluajit -o $@
 
-glr:LuaTest.o # resource/resource.c resource/bswap.c resource/resxloader.c # resource/cmodulepack.c
+glr:LuaTest.o
 	@echo $(PLATFORM)
 	rm -f $@
 	$(G++) -I./resource $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@
