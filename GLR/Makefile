@@ -15,7 +15,7 @@ libGLR.so:$(GLR_OBJ)
 libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/resxloader.o
 	@echo $(PLATFORM)
 	rm -f $@
-	$(AR) $(ARFLAGS) $@ $(GLR_OBJ)
+	$(AR) $(ARFLAGS) $@ SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/resxloader.o
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static
 	mkdir -p $(HOME)/include/resource
