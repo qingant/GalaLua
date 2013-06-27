@@ -10,3 +10,8 @@ LIBDIR		=-L$(HOME)/lib
 STUBLIB		= -lGalaxyStub
 SYTMLIB 	= -lc -lm -ldl -lpthread  -L$(HOME)/lib/ -Wl,-rpath $(HOME)/lib/  -lrt #-ltcmalloc_minimal
 
+AR          = ar
+ARFLAGS     = -rcu
+RANLIB      = ranlib
+RANLIBFLAGS = 
+
