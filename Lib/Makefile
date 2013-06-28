@@ -40,7 +40,7 @@ resource:
 	cd resource && $(MAKE) all
 
 static:
-	cd lua-cjson-2.1.0 && $(MAKE) static $(MAKE) clean
+	cd lua-cjson-2.1.0 && $(MAKE) static && $(MAKE) clean
 	cd lua-struct && $(MAKE) static && $(MAKE) clean
 	cd lua-zip && $(MAKE) static
 	$(MAKE) -C lua-xml

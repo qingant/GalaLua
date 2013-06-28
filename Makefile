@@ -13,7 +13,7 @@ pre:
 	mkdir -p $(HOME)/lib/lua
 	mkdir -p $(HOME)/share/static/lua
 stub:
-	make -C Stub/
+	make -C Stub/ all
 rt:
 	make -C Runtime/
 amq:

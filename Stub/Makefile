@@ -12,7 +12,7 @@ libGalaxyStub.so: cstub.c
 .PHONY: static
 
 static: libGalaxyStub.a
-
+	
 libGalaxyStub.a: cstub.c
 	$(GCC) -o cstub.o $(CMPFLAG) $(COMMINC) -c -g -D_UNIX95_  $^
 	$(AR) $(ARFLAGS) $@ cstub.o

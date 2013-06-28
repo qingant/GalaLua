@@ -117,7 +117,6 @@ $(TARGET): $(OBJS)
 
 static: cjson.a
 
-
 cjson.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 	$(RANLIB) $(RANLIBFLAGS) $@

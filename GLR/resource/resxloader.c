@@ -45,7 +45,8 @@ void resx_openlibs(lua_State * const state)
     lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME); /* 'package' */
     lua_getfield(state, -1, "loaded"); /* package.loaded */
 
-    for(const luaL_Reg *ite = &lualibray[0]; ite->func != (lua_CFunction) NULL;
+    const luaL_Reg *ite = NULL;
+    for(ite = &lualibray[0]; ite->func != (lua_CFunction) NULL;
             ++ite)
     {
 /*        fprintf(stderr, "File %s, Function %s, Line %d, %s.\n",
@@ -112,7 +113,8 @@ int resx_loader(lua_State * const state)
     strncpy(buf, pathname, length);
 //    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
 //            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
-    for (char *tmp = strchr(&buf[0], '.'); tmp != NULL; tmp = strchr(&buf[0], '.'))
+    char *tmp = NULL;
+    for (tmp = strchr(&buf[0], '.'); tmp != NULL; tmp = strchr(&buf[0], '.'))
     {
         *tmp = '/';
     }
@@ -208,7 +210,8 @@ int resx_require(const char * const pathname, lua_State * const state)
         }
         const size_t siz = lua_objlen(state, -1) + 1;
         lua_pushstring(state, "");  /* error message accumulator */
-        for (size_t idx = 1; idx < siz; ++idx)
+        size_t idx;
+        for (idx = 1; idx < siz; ++idx)
         {
             lua_rawgeti(state, -2, idx); /* package.loaders[idx] */
             if (lua_isnil(state, -1))

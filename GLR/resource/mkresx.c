@@ -67,7 +67,8 @@ static int32_t fstream_sendfile(FILE * const fout, FILE * const fin,
         return -1;
     }
     int32_t totWritten = 0;
-    for (int32_t numRead, numWritten; !feof(fin); totWritten += numWritten)
+    int32_t numRead, numWritten;
+    for (; !feof(fin); totWritten += numWritten)
     {
         if ((numRead = resx_fstream_read(buf, (size_t) 1U, siz, fin)) < siz)
         {
@@ -380,7 +381,8 @@ static int make_resx_node(FILE * const stream, const int argc,
     location_t parent = {.nodep = NULL, .offset = RESOURCE_CHAOS};
 
     int32_t retval;
-    for (resx_node_t *nodep; argind < argc; ++argind)
+    resx_node_t *nodep = NULL;
+    for (; argind < argc; ++argind)
     {
 //        fprintf(stdout, "--------------------------------\n");
 //        fprintf(stdout, "File %s, Function %s, Line %d: argv[%d] = {%s}\n",

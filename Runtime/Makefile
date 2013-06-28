@@ -15,7 +15,7 @@ libGalaxyRT.so:$(OBJS)
 
 .PHONY: static
 
-static: libGalaxyStub.a
+static: libGalaxyRT.a
 
 
 libGalaxyRT.a: $(OBJS)

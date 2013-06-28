@@ -1,5 +1,5 @@
 
-all:router.so amq.so  logger.so  _dir.so _dir.a xml.so cp
+all:router.so amq.so logger.so _dir.so xml.so cp
 
 include ../mk.rules
 amq:amq.so
@@ -26,12 +26,15 @@ cp:
 	cp -rf *.so $(HOME)/lib/lua
 
 .PHONY: static
+	
 
 static: _dir.a
+	
 
 _dir.a: LuaDir.o
-    @echo $(PLATFORM)
-    $(AR) $(ARFLAGS) $@ $^
-    $(RANLIB) $(RANLIBFLAGS) $@
+	echo $(PLATFORM)
+	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $(RANLIBFLAGS) $@
 	cp -rf *.a $(HOME)/share/static
+
 
