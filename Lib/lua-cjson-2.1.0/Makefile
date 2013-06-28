@@ -98,7 +98,7 @@ ASCIIDOC =          asciidoc
 BUILD_CFLAGS =      -I$(LUA_INCLUDE_DIR) $(CJSON_CFLAGS)
 OBJS =              lua_cjson.o strbuf.o $(FPCONV_OBJS)
 
-.PHONY: all clean install install-extra doc
+.PHONY: all clean install install-extra doc static
 
 .SUFFIXES: .html .txt
 
@@ -108,12 +108,15 @@ OBJS =              lua_cjson.o strbuf.o $(FPCONV_OBJS)
 .txt.html:
 	$(ASCIIDOC) -n -a toc $<
 
-all: $(TARGET) cjson.a
+all: $(TARGET)
 
 doc: manual.html performance.html
 
 $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) $(CJSON_LDFLAGS) -o $@ $(OBJS)
+
+static: cjson.a
+
 
 cjson.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)

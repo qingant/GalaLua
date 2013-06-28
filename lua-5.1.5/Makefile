@@ -75,7 +75,7 @@ uninstall:
 	rm -rf $(INSTALL_TOP)/man/man1/lua*
 	rm -rf $(HOME)/bin/lua
 	rm -rf $(HOME)/lib/libluajit.*
-	rm -rf $(STATIC_LIB_PATH)/libluajit.*
+	rm -rf $(HOME)/share/static/libluajit.*
 ranlib:
 	cd src && cd $(INSTALL_LIB) && $(RANLIB) $(TO_LIB)
 

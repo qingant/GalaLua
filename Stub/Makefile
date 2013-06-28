@@ -1,6 +1,6 @@
 include ../mk.rules
 
-all: libGalaxyStub.so libGalaxyStub.a
+all: libGalaxyStub.so
 
 libGalaxyStub.so: cstub.c
 	$(GCC) $(CMPFLAG) -o cstub.o $<
@@ -8,6 +8,10 @@ libGalaxyStub.so: cstub.c
 	mv $@ $(HOME)/lib/
 	mkdir -p $(HOME)/include/Stub/
 	cp *.h $(HOME)/include/Stub/
+
+.PHONY: static
+
+static: libGalaxyStub.a
 
 libGalaxyStub.a: cstub.c
 	$(GCC) -o cstub.o $(CMPFLAG) $(COMMINC) -c -g -D_UNIX95_  $^

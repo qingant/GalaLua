@@ -26,7 +26,7 @@ else ifeq (${PLATFORM},AIX)
 	RANLIBFLAGS = -X64
 endif
 
-all:libzip minizip minizip.a
+all:libzip minizip
 
 libzip:
 	cd libzip-0.11.1 && ./configure && make -C lib && cp -af lib/.libs/libzip.so* $(HOME)/lib/
@@ -39,6 +39,10 @@ minizip:
 
 %.o: %.c
 	gcc -std=gnu99 -c $^ -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/
+
+.PHONY: static
+	
+static: minizip.a
 
 minizip.a: lua_minizip.o
 	$(AR) $(ARFLAGS) $@ $^

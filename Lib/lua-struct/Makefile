@@ -21,9 +21,16 @@ OBJ=struct.o
 
 default: $(OBJ)
 	$(CC) $(LDFLG) -o struct.so  $(OBJ)
+
+.PHONY: static
+
+static: struct.a
+
+struct.a: $(OBJ)
 	$(AR) $(ARFLAGS) struct.a $(OBJ)
 	$(RANLIB) $(RANLIBFLAGS) struct.a
 	cp struct.a $(HOME)/share/static/lua
+
 clean:
 	rm -f $(OBJ)
 	rm -f struct.so struct.a

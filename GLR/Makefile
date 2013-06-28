@@ -1,15 +1,18 @@
-all:res lib glr mkresx #glr_s
-lib:libGLR.so libGLR.a
+all:res lib glr #mkresx glr_s
+lib:libGLR.so #libGLR.a
 include ../mk.rules
 STATIC_LIB_PATH = $(HOME)/share/static
 ROOT_DIR = ../..
-.PHONY:res
+.PHONY:res static
 GLR_OBJ = LuaNode.o Schedule.o GLR.o Bus.o Controllers.o SocketController.o BusController.o
 libGLR.so:$(GLR_OBJ)
 	@echo $(PLATFORM)
 	rm -f $@
 	$(G++) $? $(LNKFLAG) $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lluajit -o $@
 	mv $@ $(HOME)/lib/
+
+static: libGLR.a mkresx
+
 
 #libGLR.a: $(GLR_OBJ)
 libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/resxloader.o

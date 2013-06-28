@@ -18,15 +18,20 @@ logger.so:LuaLogger.o
 _dir.so:LuaDir.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@
-_dir.a: LuaDir.o
-	@echo $(PLATFORM)
-	$(AR) $(ARFLAGS) $@ $^
-	$(RANLIB) $(RANLIBFLAGS) $@
 xml.so:LuaXML.o
 	@echo $(PLATFORM)
 	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@
 
 cp:
 	cp -rf *.so $(HOME)/lib/lua
-	cp *.a $(HOME)/share/static
+
+.PHONY: static
+
+static: _dir.a
+
+_dir.a: LuaDir.o
+    @echo $(PLATFORM)
+    $(AR) $(ARFLAGS) $@ $^
+    $(RANLIB) $(RANLIBFLAGS) $@
+	cp -rf *.a $(HOME)/share/static
 
