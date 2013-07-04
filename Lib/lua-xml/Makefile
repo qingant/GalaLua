@@ -13,7 +13,7 @@ etree:
 	$(MAKE) -C etree-0.1.1 install
 
 luaiconv:
-	$(MAKE) -C lua-iconv-7
+	$(MAKE) -C lua-iconv-7 all
 	$(MAKE) -C lua-iconv-7 install
 
 luaxpath:
