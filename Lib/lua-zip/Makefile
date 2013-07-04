@@ -48,6 +48,7 @@ minizip.a: lua_minizip.o
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
 	cp -rf minizip.a $(HOME)/share/static/lua
+	rm -f minizip.a
 
 clean:
 	rm -rf *.so

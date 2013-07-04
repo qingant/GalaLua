@@ -152,6 +152,10 @@ amalg:
 clean:
 	$(MAKE) -C src clean
 
-.PHONY: all install amalg clean
+.PHONY: all install amalg clean static
+
+static: $(FILE_A)
+	$(INSTALL_F) $(FILE_A) $(INSTALL_STATIC)
+	make clean
 
 ##############################################################################
