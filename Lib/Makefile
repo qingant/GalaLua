@@ -31,7 +31,7 @@ luazip:
 lfs:
 	cd luafilesystem && $(MAKE) lib && $(MAKE) install
 luaxml:
-	$(MAKE) -C lua-xml
+	$(MAKE) -C lua-xml all
 encryption:
 	cd lua-encryption && $(MAKE) all
 linenoise:
