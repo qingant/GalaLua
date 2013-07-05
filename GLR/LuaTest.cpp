@@ -5,7 +5,11 @@
 #include "GLR.hpp"
 #include "Process.hpp"
 #include <unistd.h>
+
+#include "Gar.cpp"
+
 using namespace GLR;
+
 
 
 void daemonize(void)  
@@ -154,7 +158,15 @@ int main( int argc, char* argv[] )
     //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
     //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
     GLR::Runtime::Initialize(host, port, NULL, &_CProcess);
-    if (_CProcess.ExistOption("m"))
+    if (_CProcess.ExistOption("g"))
+    {
+        GALA_DEBUG("RUNNING Gar package\n");
+        std::string file=_CProcess.GetOption("g");
+        Gar gar(file);
+        std::string garMain=gar.getGarMain();
+        GLR::Runtime::GetInstance().EntryEx(garMain,GLR::Runtime::L_STRING);
+    }
+    else if (_CProcess.ExistOption("m"))
     {
         std::string file=_CProcess.GetOption("m");
         GLR::Runtime::GetInstance().Entry(file,entry);

@@ -517,6 +517,24 @@ void Process::Start( Schedule &sche)
     sche.PutTask(*this);   
 }
 
+void Process::LoadString(const std::string &path )
+{
+
+    if (luaL_loadstring(_Stack, path.c_str()) !=0)
+    {
+        StackDump();
+        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        THROW_EXCEPTION_EX(msg);
+    }
+    else
+    {
+        _Path = "";
+        lua_pushstring(_Stack, "__main__");
+        _Status._NArg = 1; // one argument
+        printf("Load string Succeed\n");
+    }
+
+}
 void Process::LoadFile( const std::string &path )
 {
 

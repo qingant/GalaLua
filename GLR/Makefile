@@ -33,7 +33,7 @@ ttt:ttt.o
 glr:LuaTest.o
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) -I./resource $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@
+	$(G++) -I./resource $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -lzip -o $@
 	mv $@ $(HOME)/bin/
 
 glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/resxloader.c resource/cmodulepack.c
@@ -45,4 +45,5 @@ glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/res
 mkresx: resource/mkresx.c resource/resource.c resource/bswap.c
 	$(GCC) -o resource/mkresx -I./resource $^
 	mv resource/mkresx $(HOME)/bin
-
+LuaTest.o:LuaTest.cpp Gar.cpp
+	$(G++) $(CMPFLAG_) -I../Lib/lua-zip/libzip-0.11.1/lib -o$@ $<

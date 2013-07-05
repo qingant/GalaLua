@@ -59,11 +59,18 @@ Process  & GLR::Runtime::GetProcess( int pid ) const
     return Process::GetNodeById(pid);
 }
 
-void GLR::Runtime::EntryEx( const std::string &path )
+void GLR::Runtime::EntryEx( const std::string &path ,GLR::Runtime::LoadEntryFrom  type)
 {
     LN_ID_TYPE main_node_id = Process::CreateNode();
     Process &main_node = Process::GetNodeById(main_node_id);
-    main_node.LoadFile(path);
+    if (type==GLR::Runtime::L_FILE)
+    {
+        main_node.LoadFile(path);
+    }
+    else if (type==GLR::Runtime::L_STRING)
+    {
+        main_node.LoadString(path);
+    }
     main_node.Start(*_Schedule);
 
 }
