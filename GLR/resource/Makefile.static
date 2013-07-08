@@ -7,7 +7,7 @@ USER_LUA_SCRIPT    =
 
 LUA_PACKAGE_C_LIBS = $(PREFIX)/share/static/lua/cjson.a $(PREFIX)/share/static/lua/struct.a $(PREFIX)/share/static/lua/iconv.a $(PREFIX)/share/static/lua/minizip.a $(PREFIX)/share/static/lua/_dir.a $(PREFIX)/share/static/lua/lxp.a
 
-GDK_AR_LIBS = $(PREFIX)/share/static/libGLR.a $(PREFIX)/share/static/libGalaxyStub.a $(PREFIX)/share/static/libGalaxyRT.a $(PREFIX)/share/static/libluajit.a
+GDK_AR_LIBS = $(PREFIX)/share/static/libGLR.a $(PREFIX)/share/static/libGalaxyStub.a $(PREFIX)/share/static/libGalaxyRT.a $(PREFIX)/share/static/libluajit.a $(PREFIX)/share/static/libexpat.a
 
 ifeq ($(OS), Linux)
 	CC          = gcc
