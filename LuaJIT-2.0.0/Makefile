@@ -154,8 +154,9 @@ clean:
 
 .PHONY: all install amalg clean static
 
-static: $(FILE_A)
-	$(INSTALL_F) $(FILE_A) $(INSTALL_STATIC)
+static: 
+	$(MAKE) -C src static
+	$(INSTALL_F) src/$(FILE_A) $(INSTALL_STATIC)
 	make clean
 
 ##############################################################################

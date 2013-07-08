@@ -1,4 +1,4 @@
-include ../../mk.rules
+include ../mk.rules
 OS=$(shell uname)
 ifeq ($(OS),AIX)
 	MAKE = gmake
