@@ -11,8 +11,7 @@ libGLR.so:$(GLR_OBJ)
 	$(G++) $? $(LNKFLAG) $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lluajit -o $@
 	mv $@ $(HOME)/lib/
 
-static: libGLR.a mkresx
-
+static: res libGLR.a mkresx
 
 #libGLR.a: $(GLR_OBJ)
 libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/resxloader.o
