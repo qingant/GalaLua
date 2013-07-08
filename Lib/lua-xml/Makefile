@@ -21,7 +21,7 @@ luaxpath:
 	$(MAKE) -C luaxpath install
 
 libexpat:
-	make -C expat-2.1.0 distclean
+	rm -f expat-2.1.0/Makefile
 	cd expat-2.1.0 && ./configure --prefix=$(HOME) --libdir=$(HOME)/lib --includedir=$(HOME)/include/luajit-2.0
 	cd expat-2.1.0 && cp expat_config.h lib/expat_external.h lib/expat.h $(HOME)/include
 	make -C expat-2.1.0
