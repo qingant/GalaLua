@@ -34,7 +34,7 @@ lib: src/$(LIBNAME) src/lxp.a
 src/$(LIBNAME) : $(OBJS)
 	export MACOSX_DEPLOYMENT_TARGET="10.3";
 	$(CC) -o src/lxplib.o -c -fPIC $(CFLAGS) src/lxplib.c
-	$(CC) -o src/$(LIBNAME) $(LIB_OPTION) $(OBJS) -lexpat
+	$(CC) -o src/$(LIBNAME) $(LIB_OPTION) $(OBJS) -L$(HOME)/lib -lexpat
 
 src/lxp.a: src/lxplib.c
 	$(CC) -o src/lxplib.o -c $(CFLAGS) src/lxplib.c
@@ -51,6 +51,8 @@ install:
 	mkdir -p $(LUA_DIR)/$T
 	cp src/$T/lom.lua $(LUA_DIR)/$T
 	cp src/lxp.a $(HOME)/share/static/lua
+
+.PHONY: clean
 
 clean:
 	rm -f src/$(LIBNAME) $(OBJS) src/lxp.a

@@ -157,6 +157,8 @@ clean:
 static: 
 	$(MAKE) -C src static
 	$(INSTALL_F) src/$(FILE_A) $(INSTALL_STATIC)
+	mkdir -p $(HOME)/include/luajit-2.0
+	cp src/lauxlib.h  src/luaconf.h  src/lua.h  src/lualib.h $(HOME)/include/luajit-2.0
 	make clean
 
 ##############################################################################
