@@ -1,24 +1,23 @@
-<<<<<<< HEAD
-# 忽略某些文件
 *.[oa]
-*.so
+*.so*
+*.la
+*.lo
+*.log
+*.pc
 *~
 ~*
 *#
 /TODO
+.libs/
+.deps/
 build/
-=======
 .DS_Store
 log/*.log
 tmp/**/*
 config/database.yml
 db/*.sqlite3
-*.o
 *~
-*.a
-*.so
 .project
 .cproject
 /TODO
 build/
->>>>>>> 5e459b4bca7d7ab734db10a080a0da370c1dd965

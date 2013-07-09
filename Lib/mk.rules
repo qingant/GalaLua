@@ -8,7 +8,6 @@ CMPFLAG_ = $(CMPFLAG)
 #@echo $CMPFLAG
 ifeq ($(PLATFORM),Linux)
 include ../gcc.rules
-MAKE = make
 ifneq ($(CLANG_EXIST), )
 clang = yes
 endif
@@ -17,7 +16,6 @@ endif
 
 ifeq ($(PLATFORM),AIX)
 include ../xlc.rules
-MAKE = gmake
 endif
 
 ifeq ($(PLATFORM),Darwin)
@@ -37,6 +35,3 @@ endif
 .c.o:
 	$(GCC) $(CMPFLAG_) -o$@ $<
 
-.PHONY: clean
-clean:
-	rm -f *.o *.so
