@@ -75,6 +75,15 @@ void GLR::Runtime::EntryEx( const std::string &path ,GLR::Runtime::LoadEntryFrom
 
 }
 
+void Runtime::Entry( const std::string &gar,const std::string &module, const std::string &entry )
+{
+    LN_ID_TYPE main_node_id = Process::CreateNode();
+    Process &main_node = Process::GetNodeById(main_node_id);
+
+    main_node.EntryGar(gar,module,entry);
+    main_node.Start(*_Schedule);
+}
+
 void Runtime::Entry( const std::string &path, const std::string &entry )
 {
     LN_ID_TYPE main_node_id = Process::CreateNode();

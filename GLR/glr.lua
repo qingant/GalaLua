@@ -7,6 +7,12 @@ local type = type
 local pairs = pairs
 local ipairs = ipairs
 local string = string
+
+local assert=assert
+local require= require
+local table=table
+local package=package
+local loadstring=loadstring
 setfenv(1, M)
 local self_host, self_port = _glr.node_addr()
 
@@ -200,6 +206,40 @@ function get_option(key)
 	return arg_tab[key]
 end
 
+function run_gar(gar)
+    local cjson=require "cjson"
+    local zip=require "minizip"
+
+    function read_manifest(zipfd)
+        local manifest="MANIFEST"
+        local f=zipfd:open(manifest)
+        local size=zipfd:stat(manifest).size
+        if size>0 then
+            return cjson.decode(f:read(size))
+        else
+            return {}
+        end
+    end
+
+    -- gar loader
+    function loader(modulename)
+        local gar=gar
+        local zipfd=zip.open(gar)
+        local file=read_manifest(zipfd)[modulename]
+        if file then
+            local fstream=zipfd:open(file)
+            local str=fstream:read(zipfd:stat(file).size)
+            fstream:close()
+            return assert(loadstring(str))
+        end
+        zipfd:close()
+        return "error"
+    end
+
+    table.insert(package.loaders,2,loader)
+
+end
 
 
 return M
+
