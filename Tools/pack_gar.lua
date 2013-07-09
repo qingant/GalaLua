@@ -2,9 +2,12 @@ module(...,package.seeall)
 
 local zip=require "minizip"
 local pprint=require "pprint"
-local dir=require "_dir"
+local path=require "path"
 local string=require "string"
 local cjson=require "cjson"
+
+local Manifest="MANIFEST"
+local ModuleCache="module.cache"
 
 function string.startwith(str,prefix)
     assert(prefix,"can't be nil")
@@ -22,40 +25,6 @@ function string.endwith(str,suffix)
     end
 end
 
-local path={}
---[[
---just return @path2 if @path2 is an absolute path, join two path otherwise.
---@path1:
---@path2: 
---]]
-function path.join(path1,path2)
-    assert((path1 and path2),"not valid path")
-    if path2:sub(1,1)=="/" then
-        return path2
-    else
-        return string.format("%s/%s",path1,path2)
-    end
-end
-
---[[
--- split path into basename and dirname
--- @path:
---]]
-function path.split(path)
-    assert(path or path~="","invalid path")
-    local _basename="/"
-    local _dirname="/"
-    if path~="/" then
-        _dirname,_basename=string.match(path,"(.*)/([^/]+)") 
-        if ((not _basename) or (not _dirname)) then
-            _basename=path
-            _dirname="."
-        end
-    end
---    print("dir",_dirname)
---    print("base",_basename)
-    return _dirname,_basename
-end
 
 local main_lua=[[
 module(...,package.seeall)
@@ -111,6 +80,17 @@ end
 
 ]]
 
+--read module search cache file
+function read_cache(zipfd)
+    local f=zipfd:open(ModuleCache)
+    local size=zipfd:stat(ModuleCache).size
+    if size>0 then
+        return cjson.decode(f:read(size))
+    else
+        return {}
+    end
+end
+
 --add main.lua to zip
 function add_main(zipfd,file)
     if file then
@@ -148,14 +128,34 @@ function read_file(gar,file)
 
     return ret
 end
+--search module in zipfd
+--@mod:module
+function search_module(zipfd,mod)
+    local max_id=zipfd:get_num_files()
+    if max_id then
+        for i=1,max_id do
+            local file=zipfd:get_name(i)
+            local module_name=file:match("/*([^/]+)%.lua$") 
+            if module_name==mod then
+                return file
+            end
+        end
+    end
+end
+
+function add_manifest(zipfd)
+    local t={version=0.1}
+    local manifest=cjson.encode(t)
+    add_string(zipfd,manifest,Manifest)
+end
 
 --[[
--- generate manifest and add to zip package @zipfd.
+-- generate module cache file and add to zip package @zipfd.
 --
 -- @zipfd: an opened zip package
 -- @struct:
 --]]
-function add_manifest(zipfd)
+function add_cache(zipfd)
     function get_modules()
         local module_list={}
         local max_id=zipfd:get_num_files()
@@ -163,7 +163,7 @@ function add_manifest(zipfd)
             for i=1,max_id do
                 local file=zipfd:get_name(i)
                 local module_name=file:match("/*([^/]+)%.lua$") 
-                print("get_modules:",file,module_name)
+--                print("get_modules:",file,module_name)
                 if module_name then
                     module_list[module_name]=file   -- sub ".lua"
                 end
@@ -173,9 +173,8 @@ function add_manifest(zipfd)
     end
     local module_list=get_modules()
 
-    --TODO:add more information into mainfest
-    local manifest=cjson.encode(module_list)
-    add_string(zipfd,manifest,"MANIFEST")
+    local cache=cjson.encode(module_list)
+    add_string(zipfd,cache,ModuleCache)
 end
 
 --add string @str to @zipfd as @zipfile,
@@ -225,7 +224,7 @@ end
 --@not_recurse: run add2zip recursively if false
 function add2zip(zipfd,file,zipfile,not_recurse)
     local zipfile=zipfile or file
-    local ft=dir.dir_type(file)
+    local ft=path.dir_type(file)
     if (ft=="reg") then
         add_file(zipfd,file,zipfile)
     elseif (ft=="dir") then
@@ -233,7 +232,7 @@ function add2zip(zipfd,file,zipfile,not_recurse)
         
         --Zip sub-directory recursively 
         if not not_recurse then
-            for i,f in pairs(dir.dir(file)) do
+            for i,f in pairs(path.dir(file)) do
                 if f~="." and f~=".." then
                     add2zip(zipfd,path.join(file,f),path.join(zipfile,f))
                 end
@@ -266,16 +265,102 @@ function create_zip(_out,_in)
         add2zip(zipfd,in_path,as_path)
     end
     add_manifest(zipfd)
-    add_main(zipfd)
+    add_cache(zipfd)
+--    add_main(zipfd)
 
     zipfd:close()
 end
 
 
+-- {{ for command console
+
+local cmds={}
+
+--FIXME: not support assign output path 
+function cmds.pack(...)
+    local gar=...
+    local path={}
+    for i=2,select("#",...) do
+        path[select(i,...)]=""
+    end
+    if not (gar and next(path))  then
+        io.write("gar pack xxx.gar path1 [path2]...\n")
+        return 
+    end
+    
+    print(gar)
+    pprint.pprint(path)
+
+    create_zip(gar,path)
+end
+
+--FIXME:better show format
+function cmds.show(gar)
+    if not gar then
+        io.write("gar show xxx.gar\n")
+        return 
+    end
+    local module_list=cjson.decode(read_file(gar,ModuleCache)[ModuleCache])
+    io.write("modules :   \n")
+    for m,f in pairs(module_list) do
+        local fmt=string.format("%s -- %s\n",m,f)
+        io.write(fmt)
+--        io.write(m,":",f,"\n")
+    end
+end
+
+function cmds.help()
+    io.write("gar :\n")
+    io.write("available commands:\n")
+    for i in pairs(cmds) do
+        io.write("\t",i,"\n")
+    end
+end
+
+local mt={__index=function (t,key) io.write(key,":command not founded!\n") return cmds.help  end }
+setmetatable(cmds,mt)
+
+function helper(argv)
+    pprint.pprint(argv)
+
+    table.remove(argv,1)
+    local cmd=argv[1] 
+    table.remove(argv,1)
+
+    cmds[cmd](unpack(argv))
+end
+
+function info()
+    return "gar operation tool"
+end
+
+--command completion
+local _completion=require "completion"
+function gar_completion(s,prefix)
+    return _completion.path_completion(s,prefix,".*%.gar$")
+end
+
+function dir_completion(s,prefix)
+    if s=="" then
+        return gar_completion(s,prefix)
+    end
+    local pre,arg=string.match(s,"(.*%s+)(.*)$")
+    if arg then
+        return _completion.path_completion(arg,prefix..pre)
+    end
+end
+
+completion={}
+completion.pack=dir_completion
+completion.show=gar_completion
+
+-- }} for command console
+
 if ...=="__main__" then
-    create_zip("test.gar",{["/home/dev/git/aim"]="aim"})
     print("=================================")
---    pprint.pprint(read_file("test1.gar","MANIFEST"))
+    
+    local zipfd=zip.open("test.gar")
+    pprint.pprint(search_module(zipfd,"lsr"))
 end
 
 
