@@ -42,13 +42,16 @@ minizip:
 
 .PHONY: static
 	
-static: minizip.a
+static: minizip.a libzip.a
 
 minizip.a: lua_minizip.o
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
 	cp -rf minizip.a $(HOME)/share/static/lua
 	rm -f minizip.a
+
+libzip.a:
+	cd libzip-0.11.1 && ./configure && make -C lib && cp -af lib/.libs/libzip.a $(HOME)/share/static
 
 clean:
 	rm -rf *.so

@@ -41,4 +41,5 @@ static: pre
 	make -C Runtime static
 	make -C GLR static
 	make -C Lib static
+	make -C LuaObject static
 

@@ -11,7 +11,7 @@ libGLR.so:$(GLR_OBJ)
 	$(G++) $? $(LNKFLAG) $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lluajit -o $@
 	mv $@ $(HOME)/lib/
 
-static: res libGLR.a mkresx
+static: res libGLR.a mkresx agent
 
 #libGLR.a: $(GLR_OBJ)
 libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/resxloader.o
@@ -44,4 +44,8 @@ glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/res
 mkresx: resource/mkresx.c resource/resource.c resource/bswap.c
 	$(GCC) -o resource/mkresx -I./resource $^
 	mv resource/mkresx $(HOME)/bin
+
+agent:
+	cp resource/Makefile.static $(HOME)/share
+	cp resource/makeagent.lua $(HOME)/bin
 

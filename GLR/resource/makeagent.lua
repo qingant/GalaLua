@@ -37,7 +37,7 @@ local function analysis(pathname)
     return retval
 end
 
-local function make(args)
+local function makeagent(args)
     local scripts = ""
     local archives = ""
     if args[1] then
@@ -57,5 +57,5 @@ local function make(args)
     end
 end
 
-make(arg)
+makeagent(arg)
 
