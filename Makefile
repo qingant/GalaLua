@@ -35,9 +35,11 @@ mod:
 db:
 	make -C GalaDB
 
-static:
+static: pre
+	make -C LuaJIT-2.0.0/ && make -C LuaJIT-2.0.0/ static
 	make -C Stub static
 	make -C Runtime static
 	make -C GLR static
 	make -C Lib static
+	make -C LuaObject static
 

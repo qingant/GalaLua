@@ -35,6 +35,3 @@ endif
 .c.o:
 	$(GCC) $(CMPFLAG_) -o$@ $<
 
-.PHONY: clean
-clean:
-	rm -f *.o *.so *.a

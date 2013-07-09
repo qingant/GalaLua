@@ -25,7 +25,7 @@ ABIVER=  5.1
 # Change the installation path as needed. This automatically adjusts
 # the paths in src/luaconf.h, too. Note: PREFIX must be an absolute path!
 #
-export PREFIX= ${HOME}
+export PREFIX= $(HOME)
 ##############################################################################
 
 DPREFIX= $(DESTDIR)$(PREFIX)
@@ -152,6 +152,13 @@ amalg:
 clean:
 	$(MAKE) -C src clean
 
-.PHONY: all install amalg clean
+.PHONY: all install amalg clean static
+
+static: 
+	$(MAKE) -C src static
+	$(INSTALL_F) src/$(FILE_A) $(INSTALL_STATIC)
+	mkdir -p $(HOME)/include/luajit-2.0
+	cp src/lauxlib.h  src/luaconf.h  src/lua.h  src/lualib.h $(HOME)/include/luajit-2.0
+	make clean
 
 ##############################################################################

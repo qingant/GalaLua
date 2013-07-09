@@ -35,6 +35,6 @@ _dir.a: LuaDir.o
 	echo $(PLATFORM)
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
-	cp -rf *.a $(HOME)/share/static
+	mv _dir.a $(HOME)/share/static/lua
 
 
