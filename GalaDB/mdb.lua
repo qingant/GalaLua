@@ -146,7 +146,7 @@ mdb.beginRDTrans = mdb.beginTrans
 
 function mdb:_with(action, ...)
     --print(...)
-    local err, value = pcall(action, self, ...)
+    local err, value = xpcall(action, debug.traceback, self, ...)
     if self.txn ~= nil then
         self:abort()
     end
@@ -768,12 +768,16 @@ function element:to_xml(str)
                 str = str .. string.format(" %s=\"%s\"", k, v)
             end
         end
+        if self._count then
+          str = str .. string.format(" %s=\"%s\"", "__count", self._count)
+        end
         str = str .. ">"
         local childs = self:get_child()
         if self:is_vector() then
             local item_key = self:get_attrib()[vector_item_tag]
             for k,v in pairs(childs) do
                 v._tag = item_key
+                v._count = k
                 str = v:to_xml(str)
             end
         else
