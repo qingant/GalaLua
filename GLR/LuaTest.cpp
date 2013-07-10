@@ -6,7 +6,6 @@
 #include "Process.hpp"
 #include <unistd.h>
 
-//#include "Gar.cpp"
 
 using namespace GLR;
 
@@ -162,18 +161,13 @@ int main( int argc, char* argv[] )
     {
         GALA_DEBUG("RUNNING Gar package\n");
         std::string file=_CProcess.GetOption("g");
-#if 0
-        Gar gar(file);
-        std::string garMain=gar.getGarMain();
-        GLR::Runtime::GetInstance().EntryEx(garMain,GLR::Runtime::L_STRING);
-#else
+
         std::string module;
         if (_CProcess.ExistOption("m"))
         {
             module=_CProcess.GetOption("m");
         }
         GLR::Runtime::GetInstance().Entry(file,module,entry);
-#endif
     }
     else if (_CProcess.ExistOption("m"))
     {
