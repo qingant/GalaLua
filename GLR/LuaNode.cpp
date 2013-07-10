@@ -130,7 +130,7 @@ int Process::Spawn( lua_State *l )
         //lua_getglobal(node._Stack, "loadstring");
         //lua_pushlstring(node._Stack, module, len);
 
-        node.Entry(module, method);
+        node.Entry(module, method);  
         /*
         lua_getglobal(node._Stack, "require");
         lua_pushstring(node._Stack, module);
@@ -424,7 +424,8 @@ void Process::Resume()
     {
         StackDump();
         printf("Resume Return (%d)\n", rt);
-        THROW_EXCEPTION_EX("Error Occur While Node Running");
+        const char *msg = luaL_checkstring(_Stack, -1);
+        THROW_EXCEPTION_EX(msg);
 
     }
 
@@ -813,7 +814,11 @@ void GLR::Process::Entry( const std::string &module, const std::string &entry, .
 {
     lua_getglobal(_Stack, "require");
     lua_pushstring(_Stack, module.c_str());
-    if (lua_pcall(_Stack, 1, 1, 0) != 0)
+    //lua_pushcfunction(_Stack, GLR::Process::StackTrace);
+    lua_getglobal(_Stack, "debug");
+    lua_getfield(_Stack, lua_gettop(_Stack), "traceback");
+    //StackDump();
+    if (lua_pcall(_Stack, 1, 1, -1) != 0)
     {
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
         StackDump();
@@ -856,3 +861,5 @@ int GLR::Process::Exit( lua_State *l )
     //TODO: 使用其他信号，优雅可控的退出程序
     return kill(getpid(), SIGKILL);
 }
+
+
