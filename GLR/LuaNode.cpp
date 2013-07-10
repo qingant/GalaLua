@@ -130,7 +130,7 @@ int Process::Spawn( lua_State *l )
         //lua_getglobal(node._Stack, "loadstring");
         //lua_pushlstring(node._Stack, module, len);
 
-        node.Entry(module, method);
+        node.Entry(module, method);  
         /*
         lua_getglobal(node._Stack, "require");
         lua_pushstring(node._Stack, module);
@@ -424,7 +424,8 @@ void Process::Resume()
     {
         StackDump();
         printf("Resume Return (%d)\n", rt);
-        THROW_EXCEPTION_EX("Error Occur While Node Running");
+        const char *msg = luaL_checkstring(_Stack, -1);
+        THROW_EXCEPTION_EX(msg);
 
     }
 
@@ -517,6 +518,24 @@ void Process::Start( Schedule &sche)
     sche.PutTask(*this);   
 }
 
+void Process::LoadString(const std::string &path )
+{
+
+    if (luaL_loadstring(_Stack, path.c_str()) !=0)
+    {
+        StackDump();
+        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        THROW_EXCEPTION_EX(msg);
+    }
+    else
+    {
+        _Path = "";
+        lua_pushstring(_Stack, "__main__");
+        _Status._NArg = 1; // one argument
+        printf("Load string Succeed\n");
+    }
+
+}
 void Process::LoadFile( const std::string &path )
 {
 
@@ -808,12 +827,49 @@ int GLR::Process::Kill( lua_State *l )
     Destory(gpid);
     return 0;
 }
+void GLR::Process::EntryGar(const std::string &Gar,const std::string &module, const std::string &entry, ... )
+{
+    lua_getglobal(_Stack, "glr");
+    lua_getfield(_Stack,-1,"run_gar");
+    lua_pushstring(_Stack, Gar.c_str());
+    if (lua_pcall(_Stack, 1, 1, 0) != 0)
+    {
+        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        StackDump();
+        THROW_EXCEPTION_EX(msg);
+    }
 
+    lua_getglobal(_Stack, "require");
+    lua_pushstring(_Stack, module.c_str());
+    if (lua_pcall(_Stack, 1, 1, 0) != 0)
+    {
+        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        StackDump();
+        THROW_EXCEPTION_EX(msg);
+    }
+
+    char tmp[1024] = {};
+    std::string::const_iterator it = entry.begin(), it1 = entry.begin();
+    do 
+    {
+        it = std::find(it1, entry.end(), '.');
+        memset(tmp,0 , sizeof(tmp));
+        std::copy(it1, it, tmp);
+        it1 = it + 1;
+        lua_getfield(_Stack, -1, tmp);
+        StackDump();
+    }while (it != entry.end());
+
+}
 void GLR::Process::Entry( const std::string &module, const std::string &entry, ... )
 {
     lua_getglobal(_Stack, "require");
     lua_pushstring(_Stack, module.c_str());
-    if (lua_pcall(_Stack, 1, 1, 0) != 0)
+    //lua_pushcfunction(_Stack, GLR::Process::StackTrace);
+    lua_getglobal(_Stack, "debug");
+    lua_getfield(_Stack, lua_gettop(_Stack), "traceback");
+    //StackDump();
+    if (lua_pcall(_Stack, 1, 1, -1) != 0)
     {
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
         StackDump();
@@ -856,3 +912,5 @@ int GLR::Process::Exit( lua_State *l )
     //TODO: 使用其他信号，优雅可控的退出程序
     return kill(getpid(), SIGKILL);
 }
+
+

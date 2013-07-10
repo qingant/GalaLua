@@ -56,6 +56,7 @@ function _Config:put( xpath, value )
     self._db:with(function ( db )
                   local root = db:get_root("Configure"):get_child("Contents")
                   local node = root:xpath(path)[1]
+
                   for k,v in pairs(node:get_value()) do
                     node:remove_value(v)
                   end
@@ -63,7 +64,19 @@ function _Config:put( xpath, value )
                   db:commit()              
     end)
 end
+function _Config:import( path )
 
+end
+function _Config:export( path )
+    self._db:withReadOnly(function ( db )
+        local root = db:get_root("Configure")
+        local contents = root:get_child("Contents")
+        contents:show()
+        local f = io.open(path, "w")
+        f:write(contents:to_xml())
+        f:flush()
+    end)
+end
 function _Config:schemaGen( ... )
     self._db:with(function ( db )
         local root = db:get_root("Configure")
@@ -103,7 +116,12 @@ function _Config:schemaGen( ... )
 
             elseif meta == "struct" then
                 for k, v in pairs(sNode:get_child()) do
-                    local c = cNode:add_node(v:tag())
+                    local c
+                    if v:get_attrib()["meta"] == "array" then
+                        c = cNode:add_vector_node(v:tag(), "Item")
+                    else
+                       c = cNode:add_node(v:tag())
+                   end
                     doSchema(v, c)
                 end
 
@@ -112,10 +130,12 @@ function _Config:schemaGen( ... )
                 for k,v in pairs(sNode:get_child()) do   -- get only one child node
                     aStruct = v
                 end
-                local vNode = cNode:add_vector_node(sNode:tag(), aStruct:tag())
+                -- assert(aStruct:tag()~="LSR", sNode:to_xml())
+                -- local vNode = cNode:add_vector_node(sNode:tag(), "Item")
+                                                    --, aStruct:tag())
                 local limit = tostring(sNode:get_attrib()["count"])
                 for i=0,limit-1 do
-                    local item = vNode:add_vector_item()
+                    local item = cNode:add_vector_item()
                     doSchema(aStruct, item)
                 end
             elseif meta == "union" then
@@ -199,16 +219,25 @@ if ... == "__main__" then
     imp:showResult()
     local config = _Config:new():init(path)
     config:schemaGen()
-    config:put("MonitorList/1/Base/AMQToken", "test")
-    local tk = config:get("MonitorList/1/Base/AMQToken")
-    print(tk)
-    config:put("MonitorList/1/Base/AMQToken", "testABC")
-    print(config:get("MonitorList/1/Base/AMQToken"))
-    -- put svc/lsr config
-    config:put("MonitorList/1/Base/AMQToken", "AMQToken.chl")
-    config:put("MonitorList/1/SVC/Threads", "8")
-    config:put("MonitorList/1/SVC/MaxProcess", "256")
-    config:put("MonitorList/1/AppLoger/Dir", "~/log/")
-    config:put("MonitorList/1/AppLoger/DirFormat", "0")
-    config:put("MonitorList/1/AppLoger/NameFormat", "1")
+    -- config:put("Monitor/Base/AMQToken", "test")
+    -- local tk = config:get("Monitor/Base/AMQToken")
+    -- print(tk)
+    -- config:put("Monitor/Base/AMQToken", "testABC")
+    -- print(config:get("Monitor/Base/AMQToken"))
+    config:export("exp.xml")
+    --config:put("MonitorList/4/SVC/")
+
+    -- config:put("MonitorList/1/Base/AMQToken", "test")
+    -- local tk = config:get("MonitorList/1/Base/AMQToken")
+    -- print(tk)
+    -- config:put("MonitorList/1/Base/AMQToken", "testABC")
+    -- print(config:get("MonitorList/1/Base/AMQToken"))
+    -- -- put svc/lsr config
+    -- config:put("MonitorList/1/Base/AMQToken", "AMQToken.chl")
+    -- config:put("MonitorList/1/SVC/Threads", "8")
+    -- config:put("MonitorList/1/SVC/MaxProcess", "256")
+    -- config:put("MonitorList/1/AppLoger/Dir", "~/log/")
+    -- config:put("MonitorList/1/AppLoger/DirFormat", "0")
+    -- config:put("MonitorList/1/AppLoger/NameFormat", "1")
+
 end

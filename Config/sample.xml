@@ -54,7 +54,7 @@
         </_PLATFORM>
     </_DESCRIPTION>
     <_STRUCTURE>
-        <MonitorList name="" meta="array" count="1" macro="MONITOR_MAX" UIType="array" title="监控配置列表">
+       
             <Monitor name="" meta="struct" UIType="arraystruct" title="具体监控配置" AliasPath="Base/Alias">
                 <LuaEnvList name="" meta="array" count="8" UIType="arraystruct" title="lua环境列表">
                     <LuaEnv name="" meta="struct" UIType="struct" title="lua环境配置">
@@ -273,7 +273,7 @@
                     </LSR>
                 </LSRList>
             </Monitor>
-        </MonitorList>
+
     </_STRUCTURE>
 </Configure>
 
