@@ -19,7 +19,7 @@ cp:
 sqlite:
 	cd sqlite-src-3070900/sqlite-src-3070900 && ./configure --prefix=$(SQLITE_HOME) --disable-tcl --enable-shared --enable-threadsafe --enable-cross-thread-connections && $(MAKE) && $(MAKE) install && $(MAKE) clean
 json:
-	cd lua-cjson-2.1.0 && $(MAKE) && mv cjson.so $(HOME)/lib/lua/ && $(MAKE) clean
+	cd lua-cjson-2.1.0 && $(MAKE) all && mv cjson.so $(HOME)/lib/lua/ && $(MAKE) clean
 dba:
 	cd luadbi.0.5 && $(MAKE) sqlite3 && mv *.so $(HOME)/lib/lua/ && $(MAKE) clean
 struct:

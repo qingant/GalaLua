@@ -50,8 +50,8 @@ local function makeagent(args)
     end
     retval = {"make -f", MAKEFILE_STATIC_PATH, scripts, archives}
     local make = table.concat(retval, " ")
-    print("make = ", make)
-    if os.execute(make) == 0 and args[2] == "install" then
+    local clean = "make -f " .. MAKEFILE_STATIC_PATH .. " clean"
+    if os.execute(clean) == 0 and os.execute(make) == 0 and args[2] == "install" then
         retval = {"make -f", MAKEFILE_STATIC_PATH, args[2]}
         os.execute(table.concat(retval, " "))
     end

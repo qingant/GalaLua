@@ -9,7 +9,7 @@ libGalaxyStub.so: cstub.c
 	mkdir -p $(HOME)/include/Stub/
 	cp *.h $(HOME)/include/Stub/
 
-.PHONY: static
+.PHONY: static clean
 
 static: libGalaxyStub.a
 	
@@ -18,4 +18,7 @@ libGalaxyStub.a: cstub.c
 	$(AR) $(ARFLAGS) $@ cstub.o
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static
+
+clean:
+	-rm -f *.o libGalaxyStub.so libGalaxyStub.a
 
