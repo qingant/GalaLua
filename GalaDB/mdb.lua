@@ -55,11 +55,25 @@ local indent_one = "    "
 local num_pages = 1024
 local vector_index_key = "__VectorIndexGenerator"
 local vector_item_tag = "__VectorItemTag"
+
 function mdb.create_env(path)
+    local path_id="@"..path
+    local e,err_msg=glr.get_global(path_id) 
+    if not e then
+        e=mdb._create_env(path)
+        glr.global(path_id,e)
+    end
+    return e
+end
+
+function mdb._create_env(path)
 
     local e=lightningmdb.env_create()
     e:set_mapsize(num_pages*4096)
+<<<<<<< HEAD
     print('ppppppppppppppppppppppppppppp', path)
+=======
+>>>>>>> origin/master
     assert(e:open(path,0,420))
     return e
 end
@@ -813,7 +827,20 @@ if ... == "__main__" then
     local path = "./temp/bar"
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
     local root1 = "Domain"
-    local db = mdb:new():init(mdb.create_env(path))
+    local test={}
+    for i=1,5000000 do
+        test[#test+1]= mdb:new():init(mdb.create_env(path))
+    end
+    local ID="AAA"
+    local e=mdb.create_env(path)
+    glr.global(ID,e)
+
+    local ee=glr.get_global(ID)
+    pprint.pprint(getmetatable(ee))
+
+
+    print("DONE")
+--[==[
     function test(db)
         
         local e = db:get_root(root1)
@@ -1023,4 +1050,5 @@ if ... == "__main__" then
         db:withReadOnly(test_merge)
 
     end
+]==]
 end

@@ -757,19 +757,32 @@ int GLR::Process::GetGlobal( lua_State *l )
 {
     const char *id = luaL_checkstring(l, 1);
     const Globals::UserData &ud = GlobalVars.Get(id);
-    void *p = lua_newuserdata(l, sizeof(ud.Content));
-    memcpy(p, &ud.Content, sizeof(ud.Content));
-    luaL_getmetatable(l,ud.Name.c_str());
-    lua_pushvalue(l,-1);
 
-    //clear __gc
-    lua_pushnil(l);
-    lua_setfield(l,-2,"__gc");
+    if (ud.Content==NULL)
+    {
+        lua_pushnil(l);
+        std::string err(id);
+        err+=" not found";
+        lua_pushstring(l,err.c_str());
+        return 2;
+    }
+    else
+    {
+        void *p = lua_newuserdata(l, sizeof(ud.Content));
+        memcpy(p, &ud.Content, sizeof(ud.Content));
+        luaL_getmetatable(l,ud.Name.c_str());
 
-    lua_setmetatable(l, -3);
-    lua_settop(l,-2);
+        lua_pushvalue(l,-1);
 
-    return 1;
+        //clear __gc
+        lua_pushnil(l);
+        lua_setfield(l,-2,"__gc");
+
+        lua_setmetatable(l, -3);
+        lua_settop(l,-2);
+
+        return 1;
+    }
 }
 
 int GLR::Process::GetNodeAddr( lua_State *l )
