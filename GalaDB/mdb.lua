@@ -194,7 +194,7 @@ function element:get_root()
 end
 function element:is_leaf()
     if self._is_leaf == nil  then
-        self._is_leaf = (#self:get_child() == 0)
+        self._is_leaf = (#self:get_value() ~= 0)
     end
     return self._is_leaf
 end
@@ -674,7 +674,11 @@ function element:add_table(t)
 end
 function element:to_table()
     local result = {}
+    print("ToTable", self:is_vector(), self:is_leaf())
+    self:show()
+
     if self:is_vector() then
+
         for k,v in pairs(self:get_child()) do
             result[#result + 1] = v:to_table()
 
@@ -688,9 +692,11 @@ function element:to_table()
         end
     else
         for k,v in pairs(self:get_child()) do
+            print(k,v)
             result[k] = v:to_table()
         end
     end
+    print(result)
     return result
 end
 
@@ -824,19 +830,22 @@ if ... == "__main__" then
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
     local root1 = "Domain"
     local test={}
-    for i=1,5000000 do
-        test[#test+1]= mdb:new():init(mdb.create_env(path))
-    end
-    local ID="AAA"
-    local e=mdb.create_env(path)
-    glr.global(ID,e)
+    local db = mdb:new():init(mdb.create_env(path))
 
-    local ee=glr.get_global(ID)
-    pprint.pprint(getmetatable(ee))
+
+    -- for i=1,5000000 do
+    --     test[#test+1]= mdb:new():init(mdb.create_env(path))
+    -- end
+    -- local ID="AAA"
+    -- local e=mdb.create_env(path)
+    -- glr.global(ID,e)
+
+    -- local ee=glr.get_global(ID)
+    -- pprint.pprint(getmetatable(ee))
 
 
     print("DONE")
---[==[
+
     function test(db)
         
         local e = db:get_root(root1)
@@ -868,7 +877,7 @@ if ... == "__main__" then
     end
     function test_xpath(db)
         local e = db:get_root(root1)
-        local branch = e:_xpath("Bank/Branch2")
+        local branch = e:_xpath("Bank/Branch")
         print("Show Branch", branch)
         branch:show()
 
@@ -1046,5 +1055,5 @@ if ... == "__main__" then
         db:withReadOnly(test_merge)
 
     end
-]==]
+
 end
