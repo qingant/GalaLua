@@ -70,10 +70,6 @@ function mdb._create_env(path)
 
     local e=lightningmdb.env_create()
     e:set_mapsize(num_pages*4096)
-<<<<<<< HEAD
-    print('ppppppppppppppppppppppppppppp', path)
-=======
->>>>>>> origin/master
     assert(e:open(path,0,420))
     return e
 end
