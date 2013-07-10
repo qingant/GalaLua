@@ -1,4 +1,4 @@
-all:libGalaxyRT.so libGalaxyRT.a
+all:libGalaxyRT.so
 include ../mk.rules
 OBJS = Object.o Exception.o Handle.o Socket.o Sync.o Pipe.o Utils.o Event.o Logger.o Buffer.o Thread.o File.o IPC.o Process.o Dll.o Options.o  XML.o PQueue.o Timer.o GalaxmlParser.o  Zlib.o Router.o
 
@@ -13,10 +13,16 @@ libGalaxyRT.so:$(OBJS)
 	mkdir -p $(HOME)/include/Runtime/
 	cp *.hpp $(HOME)/include/Runtime/
 
+.PHONY: static
+
+static: libGalaxyRT.a
+
+
 libGalaxyRT.a: $(OBJS)
 	@echo $(PLATFORM)
 	rm -f $@
-	ar $(ARFLAG) rcs $@ $(OBJS)
-	mv $@ $(HOME)/lib/
+	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(RANLIB) $(RANLIBFLAGS) $@
+	mv $@ $(HOME)/share/static
 
 CMPFLAG_:=$(SUBCMPFLAG)

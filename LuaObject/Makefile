@@ -1,8 +1,5 @@
-AR          = ar
-ARFLAGS     = rcu
-RANLIB      = ranlib
 
-all:router.so amq.so  logger.so  _dir.so _dir.a xml.so cp
+all:router.so amq.so logger.so _dir.so xml.so cp
 
 include ../mk.rules
 amq:amq.so
@@ -21,12 +18,23 @@ logger.so:LuaLogger.o
 _dir.so:LuaDir.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@
-_dir.a: LuaDir.o
-	@echo $(PLATFORM)
-	$(AR) $(ARFLAGS) $@ $^
 xml.so:LuaXML.o
 	@echo $(PLATFORM)
 	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@
 
 cp:
-	cp -rf *.so *.a $(HOME)/lib/lua
+	cp -rf *.so $(HOME)/lib/lua
+
+.PHONY: static
+	
+
+static: _dir.a
+	
+
+_dir.a: LuaDir.o
+	echo $(PLATFORM)
+	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $(RANLIBFLAGS) $@
+	mv _dir.a $(HOME)/share/static/lua
+
+

@@ -37,4 +37,4 @@ endif
 
 .PHONY: clean
 clean:
-	rm -f *.o *.so
+	rm -f *.o *.so *.a

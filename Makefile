@@ -1,6 +1,6 @@
 DES = pre stub rt amq cfg lua lobj lib glr mod db #pyo #app sup 
 all:$(DES)
-.PHONY:$(DES)
+.PHONY:$(DES) static
 PLATFORM      =  $(shell uname)
 ifeq ($(PLATFORM), Linux)
 lua:luajit
@@ -9,9 +9,11 @@ lua:lua51
 endif
 
 pre:
-	mkdir -p $(HOME)/{lib/lua,bin}
+	mkdir -p $(HOME)/bin
+	mkdir -p $(HOME)/lib/lua
+	mkdir -p $(HOME)/share/static/lua
 stub:
-	make -C Stub/
+	make -C Stub/ all
 rt:
 	make -C Runtime/
 amq:
@@ -32,3 +34,12 @@ mod:
 	make -C Modules/
 db:
 	make -C GalaDB
+
+static: pre
+	make -C LuaJIT-2.0.0/ && make -C LuaJIT-2.0.0/ static
+	make -C Stub static
+	make -C Runtime static
+	make -C GLR static
+	make -C Lib static
+	make -C LuaObject static
+

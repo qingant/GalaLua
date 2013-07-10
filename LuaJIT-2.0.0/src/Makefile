@@ -675,3 +675,9 @@ $(LUAJIT_T): $(TARGET_O) $(LUAJIT_O) $(TARGET_DEP)
 	$(E) "OK        Successfully built LuaJIT"
 
 ##############################################################################
+
+.PHONY: static
+
+static: $(LUAJIT_A)
+
+
