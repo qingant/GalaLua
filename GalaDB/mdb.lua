@@ -55,6 +55,7 @@ local indent_one = "    "
 local num_pages = 1024
 local vector_index_key = "__VectorIndexGenerator"
 local vector_item_tag = "__VectorItemTag"
+local to_table_attrib_key = "@attr"
 
 function mdb.create_env(path)
     local path_id="@"..path
@@ -673,16 +674,18 @@ function element:add_table(t)
     return self
 end
 function element:to_table()
-    local result = {}
-    print("ToTable", self:is_vector(), self:is_leaf())
-    self:show()
-
+    local result = {}   
+	
     if self:is_vector() then
 
         for k,v in pairs(self:get_child()) do
             result[#result + 1] = v:to_table()
-
         end
+		result[to_table_attrib_key] = {}
+		local attrib = result[to_table_attrib_key]
+		for k,v in pairs(self:get_attrib()) do
+			attrib[k] = v
+		end
     elseif self:is_leaf() then
         local vs = self:get_value()
         if #vs == 1 then
@@ -692,11 +695,15 @@ function element:to_table()
         end
     else
         for k,v in pairs(self:get_child()) do
-            print(k,v)
             result[k] = v:to_table()
         end
+		result[to_table_attrib_key] = {}
+		local attrib = result[to_table_attrib_key]
+		for k,v in pairs(self:get_attrib()) do
+			attrib[k] = v
+		end
+
     end
-    print(result)
     return result
 end
 
@@ -1025,6 +1032,9 @@ if ... == "__main__" then
         tt:add_table(t)
         pprint.pprint(t, "Table")
         pprint.pprint(tt:to_table(), "Reversed")
+
+		pprint.pprint(db:get_root("Domain"):to_table(), "Domain")
+
 
     end
     function test_merge( db )
