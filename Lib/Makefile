@@ -1,4 +1,6 @@
 
+MakeMe:all
+
 include ../mk.rules
 
 OS=$(shell uname)
@@ -9,7 +11,7 @@ else
 endif
 
 SQLITE_HOME = $(HOME)/
-DES = json struct libzip lfs #luaxml cp sqlite dba
+DES = json struct libzip lfs linenoise #luaxml cp sqlite dba
 all:$(DES)
 .PHONY:$(DES) static
 
