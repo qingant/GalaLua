@@ -13,7 +13,7 @@ libGalaxyRT.so:$(OBJS)
 	mkdir -p $(HOME)/include/Runtime/
 	cp *.hpp $(HOME)/include/Runtime/
 
-.PHONY: static
+.PHONY: static clean
 
 static: libGalaxyRT.a
 
@@ -24,5 +24,8 @@ libGalaxyRT.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static
+
+clean:
+	-rm -f $(OBJS) libGalaxyRT.so libGalaxyRT.a
 
 CMPFLAG_:=$(SUBCMPFLAG)

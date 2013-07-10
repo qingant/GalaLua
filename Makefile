@@ -19,7 +19,7 @@ rt:
 amq:
 	make -C AMQ
 lua51:
-	make -C lua-5.1.5  && make -C lua-5.1.5 install
+	make -C lua-5.1.5 && make -C lua-5.1.5 install
 luajit:
 	make -C LuaJIT-2.0.0 && make -C LuaJIT-2.0.0 install
 glr:luajit
@@ -45,4 +45,11 @@ static: pre
 
 clean:
 	make -C Stub clean
-
+	make -C Runtime clean
+	make -C AMQ clean
+	make -C lua-5.1.5 clean
+	make -C LuaJIT-2.0.0 clean
+	make -C GLR clean
+	make -C LuaObject clean
+	make -C Lib clean	
+	make -C GalaDB clean

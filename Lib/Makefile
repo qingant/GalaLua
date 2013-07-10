@@ -9,9 +9,9 @@ else
 endif
 
 SQLITE_HOME = $(HOME)/
-DES = json struct libzip lfs #luaxml cp sqlite dba
+DES = json struct libzip lfs luaxml #cp sqlite dba
 all:$(DES)
-.PHONY:$(DES) static
+.PHONY:$(DES) static clean
 
 cp:
 	#cp -rf *.lua $(HOME)/lib/lua/
@@ -45,3 +45,9 @@ static:
 	cd lua-zip && $(MAKE) static
 	$(MAKE) -C lua-xml all
 
+clean:
+	$(MAKE) -C lua-cjson-2.1.0 clean
+	$(MAKE) -C lua-struct clean
+	$(MAKE) -C lua-zip clean
+	$(MAKE) -C luafilesystem clean
+	$(MAKE) -C lua-xml clean

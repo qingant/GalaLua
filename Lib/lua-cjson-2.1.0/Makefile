@@ -140,4 +140,4 @@ install-extra:
 	cd tests; chmod $(DATAPERM) $(TEST_FILES); chmod $(EXECPERM) *.lua *.pl
 
 clean:
-	rm -f *.o $(TARGET) *.a
+	-rm -f *.o *.a $(TARGET) $(OBJS)

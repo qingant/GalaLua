@@ -32,7 +32,7 @@ libzip:
 	cd libzip-0.11.1 && ./configure && make -C lib && cp -af lib/.libs/libzip.so* $(HOME)/lib/
 
 minizip:
-	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c  -o minizip.so -lluajit -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib 
+	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c -o minizip.so -lluajit -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib 
 #	cp zloader.lua $(HOME)/lib/lua
 	cp print_r.lua $(HOME)/lib/lua	
 	cp -rf minizip.so $(HOME)/lib/lua
@@ -54,7 +54,6 @@ libzip.a:
 	cd libzip-0.11.1 && ./configure && make -C lib && cp -af lib/.libs/libzip.a $(HOME)/share/static
 
 clean:
-	rm -rf *.so
-	rm -rf *.o
-	rm -rf *.a
+	-rm -f *.o *.a *.so
+	@if [ -f libzip-0.11.1/Makefile ]; then make -C libzip-0.11.1 distclean; fi
 

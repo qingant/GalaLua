@@ -25,7 +25,7 @@ xml.so:LuaXML.o
 cp:
 	cp -rf *.so $(HOME)/lib/lua
 
-.PHONY: static
+.PHONY: static clean
 	
 
 static: _dir.a
@@ -37,4 +37,5 @@ _dir.a: LuaDir.o
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv _dir.a $(HOME)/share/static/lua
 
-
+clean:
+	-rm -f *.o *.a *.so

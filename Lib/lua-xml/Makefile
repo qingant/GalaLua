@@ -6,7 +6,7 @@ else
 	MAKE = make
 endif
 
-all: etree luaiconv luaxpath luaexpat
+all: etree luaiconv luaxpath libexpat luaexpat
 
 etree:
 	$(MAKE) -C etree-0.1.1
@@ -33,8 +33,9 @@ luaexpat: libexpat
 	$(MAKE) -C luaexpat-1.1 install
 
 .PHONY: clean
-	$(MAKE) -C etree-0.1.1 clean
+
+clean:
 	$(MAKE) -C lua-iconv-7 clean
-	$(MAKE) -C luaxpath clean
-	$(MAKE) -C luaexpat clean
+	$(MAKE) -C luaexpat-1.1 clean
+	@if [ -f expat-2.1.0/Makefile ]; then $(MAKE) -C expat-2.1.0 distclean; fi
 
