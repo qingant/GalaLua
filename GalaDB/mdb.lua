@@ -1042,11 +1042,29 @@ if ... == "__main__" then
         print("merge_to_xml")
         print(merge_to_xml(domain_root:xpath("Bank/**")))
     end
+
+    function test_xquery_xpath(db)
+        local e = db:get_root(root1)
+        local node1 = e:add_node("sys")
+        node11 = node1:add_node("event")
+        node11:add_pair("report","111")
+        node11:add_pair("request","222")
+        local node2 = e:add_node("afa")
+        node21 = node2:add_node("event")
+        node21:add_pair("report","333")
+        node21:add_pair("request","444")
+        e:show()
+        nodes = e:xpath("**/report")
+        pprint.pprint(nodes,'Nodes')
+        db:commit()
+    end
+
     local limit = 1
     for i=1,limit do
         db:with(test)
 
         db:with(test1)
+        db:with(test_xquery_xpath)
         db:withReadOnly(test_xpath)
         db:withReadOnly(test_value)
         db:with(test_xml)
