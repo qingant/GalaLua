@@ -37,7 +37,7 @@ function _Config:init( path )
     return self
 end
 function _Config:prepairPath( xpath )
-    local path = string.gsub(xpath, "/[^/]*%[0*([0-9])%]/", "/%1/")
+    local path = string.gsub(xpath, "/([^/]*)%[0*([0-9])%]/", "/%1/%2/")
     return path
 end
 function _Config:get( xpath )
@@ -50,29 +50,67 @@ function _Config:get( xpath )
                                  return vs[1]
                                  end)
 end
-function _Config:put( xpath, value )
+-- private
+function _Config:_put( xpath, value )
     local path = self:prepairPath(xpath)
-
+    local db = self._db
+    local root = db:get_root("Configure"):get_child("Contents")
+    print("P",path, value)
+    local node = root:xpath(path)[1]
+    assert(node, "The path " .. path .. "not in schema")
+    for k,v in pairs(node:get_value()) do
+        node:remove_value(v)
+    end
+    node:add_value(value)    
+end
+function _Config:put( xpath, value )
     self._db:with(function ( db )
-                  local root = db:get_root("Configure"):get_child("Contents")
-                  local node = root:xpath(path)[1]
-
-                  for k,v in pairs(node:get_value()) do
-                    node:remove_value(v)
-                  end
-                  node:add_value(value)    
+                  self:_put(xpath, value)
                   db:commit()              
-    end)
+           end)
 end
 function _Config:import( path )
+    self._db:with(function ( db )
+        local contents = db:get_root("Configure"):get_child("Contents")
+        local t=io.open(path,"r"):read("*a")
+        print(t)
+        local reader = xml.cxml_reader(t,#t)
+        local xRoot = reader:document()
 
+        function _import( xRoot, path )
+            if xRoot:isLeaf() then
+                path = path .. xRoot:key()
+                local value = xRoot:value() ~= "" and xRoot:value() or "default"
+                self:_put(path, value)
+                return
+            elseif xRoot:properties()["__count"] ~= nil then
+                path = path .. xRoot:properties()["__count"] .. "/"
+            else 
+                if path == nil then
+                    path = ""
+                else
+                    path = path .. xRoot:key() .. "/"
+                end
+            end
+            for k,v in pairs(xRoot:sub_elements()) do
+
+                _import(v, path )
+            end
+
+            return
+        end
+        _import(xRoot)
+        db:commit()
+    end)
 end
 function _Config:export( path )
     self._db:withReadOnly(function ( db )
         local root = db:get_root("Configure")
         local contents = root:get_child("Contents")
-        contents:show()
+        -- contents:show()
         local f = io.open(path, "w")
+
+        f:write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
         f:write(contents:to_xml())
         f:flush()
     end)
@@ -219,12 +257,16 @@ if ... == "__main__" then
     imp:showResult()
     local config = _Config:new():init(path)
     config:schemaGen()
-    -- config:put("Monitor/Base/AMQToken", "test")
-    -- local tk = config:get("Monitor/Base/AMQToken")
-    -- print(tk)
+    config:put("Base/AMQToken", "test")
+    local tk = config:get("Base/AMQToken")
+    print(tk)
     -- config:put("Monitor/Base/AMQToken", "testABC")
     -- print(config:get("Monitor/Base/AMQToken"))
     config:export("exp.xml")
+    config:import("exp.xml")
+    config:export("exp.xml")
+
+
     --config:put("MonitorList/4/SVC/")
 
     -- config:put("MonitorList/1/Base/AMQToken", "test")

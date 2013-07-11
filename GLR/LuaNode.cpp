@@ -865,11 +865,8 @@ void GLR::Process::Entry( const std::string &module, const std::string &entry, .
 {
     lua_getglobal(_Stack, "require");
     lua_pushstring(_Stack, module.c_str());
-    //lua_pushcfunction(_Stack, GLR::Process::StackTrace);
-    lua_getglobal(_Stack, "debug");
-    lua_getfield(_Stack, lua_gettop(_Stack), "traceback");
-    //StackDump();
-    if (lua_pcall(_Stack, 1, 1, -1) != 0)
+
+    if (lua_pcall(_Stack, 1, 1, 0) != 0)
     {
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
         StackDump();
