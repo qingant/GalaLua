@@ -13,7 +13,7 @@ endif
 SQLITE_HOME = $(HOME)/
 DES = json struct libzip lfs linenoise #luaxml cp sqlite dba
 all:$(DES)
-.PHONY:$(DES) static
+.PHONY:$(DES) static clean
 
 cp:
 	#cp -rf *.lua $(HOME)/lib/lua/
@@ -21,7 +21,7 @@ cp:
 sqlite:
 	cd sqlite-src-3070900/sqlite-src-3070900 && ./configure --prefix=$(SQLITE_HOME) --disable-tcl --enable-shared --enable-threadsafe --enable-cross-thread-connections && $(MAKE) && $(MAKE) install && $(MAKE) clean
 json:
-	cd lua-cjson-2.1.0 && $(MAKE) && mv cjson.so $(HOME)/lib/lua/ && $(MAKE) clean
+	cd lua-cjson-2.1.0 && $(MAKE) all && mv cjson.so $(HOME)/lib/lua/ && $(MAKE) clean
 dba:
 	cd luadbi.0.5 && $(MAKE) sqlite3 && mv *.so $(HOME)/lib/lua/ && $(MAKE) clean
 struct:
@@ -47,3 +47,9 @@ static:
 	cd lua-zip && $(MAKE) static
 	$(MAKE) -C lua-xml all
 
+clean:
+	$(MAKE) -C lua-cjson-2.1.0 clean
+	$(MAKE) -C lua-struct clean
+	$(MAKE) -C lua-zip clean
+	$(MAKE) -C luafilesystem clean
+	$(MAKE) -C lua-xml clean

@@ -20,7 +20,7 @@ install: $(ILIBS) #$(IPROGS) $(IHDRS)
 	#cp $(IDOCS) $(DESTDIR)$(prefix)/man/man1
 
 clean:
-	rm -rf $(PROGS) *.[ao] *.so *~ testdb
+	-rm -rf $(PROGS) *.[ao] *.so *~ testdb
 
 test:	all
 	mkdir testdb

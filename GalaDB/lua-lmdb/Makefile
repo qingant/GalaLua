@@ -49,9 +49,10 @@ so:	$T
 
 $T:	$(OBJS)
 	$(CC) -o $@ -shared $(OBJS) $(CFLAGS) $(LDFLAGS)
+	cp -rf $T $(HOME)/lib/lua
 
 clean:
-	rm -f $(OBJS) $T core core.* a.out
+	-rm -f $(OBJS) $T core core.* a.out
 
 doc:
 	@echo "$(MYNAME) library:"

@@ -2,8 +2,8 @@
 PREFIX      = /opt/agree/gdk
 OS          = $(shell uname)
 
-USER_AR_LIBS       = 
-USER_LUA_SCRIPT    = 
+USER_AR_LIBS    = 
+USER_LUA_SCRIPT = 
 
 LUA_PACKAGE_C_LIBS = $(PREFIX)/share/static/lua/cjson.a $(PREFIX)/share/static/lua/struct.a $(PREFIX)/share/static/lua/iconv.a $(PREFIX)/share/static/lua/minizip.a $(PREFIX)/share/static/lua/_dir.a $(PREFIX)/share/static/lua/lxp.a
 
@@ -11,14 +11,14 @@ GDK_AR_LIBS = $(PREFIX)/share/static/libGLR.a $(PREFIX)/share/static/libGalaxySt
 
 ifeq ($(OS), Linux)
 	CC          = gcc
-	CFLAGS      = -std=gnu99 -g -Wall
+	CFLAGS      = -g -Wall
 	INPATH      = -I. -I$(PREFIX)/include -I$(PREFIX)/include/resource -I/usr/include/libxml2 -I$(PREFIX)/include/lua-5.1.5
-	LDPATH      = -L.
+	LDPATH      = -L. -L$(PREFIX)/lib
 	LDFLAGS     =
 	SOLIBS      = -lc -lm -ldl -lpthread -lrt -lzip -lexpat
 
 	CXX         = g++
-	CXXFLAGS    = -std=gnu++98 -Wall -Wextra -Woverloaded-virtual
+	CXXFLAGS    = -Wall -Wextra -Woverloaded-virtual
 endif
 
 ifeq ($(OS), AIX)
@@ -44,11 +44,14 @@ glr_sl: glr_s $(USER_LUA_SCRIPT)
 	cat luascript.resx >> $@
 	rm -f luascript.resx
 
-.PHONY: install uninstall
+.PHONY: install uninstall clean
 
 install: glr_sl
 	cp glr_sl $(PREFIX)/bin
 
-uninstall: glr_sl
-	rm -f $(PREFIX)/bin/glr_sl
+uninstall:
+	-rm -f $(PREFIX)/bin/glr_sl
+
+clean:
+	-rm -f $(PREFIX)/bin/glr_s $(PREFIX)/bin/glr_sl
 

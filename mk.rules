@@ -30,11 +30,13 @@ include ../clang.rules
 endif
 
 .cpp.o:
-	$(G++) $(CMPFLAG_) -o$@ $<
+	$(G++) $(CMPFLAG_) -o $@ $<
 
 .c.o:
-	$(GCC) $(CMPFLAG_) -o$@ $<
+	$(GCC) $(CMPFLAG_) -o $@ $<
 
-.PHONY: clean
-clean:
-	rm -f *.o *.so *.a
+# .PHONY: clean
+
+# clean:
+#	rm -f *.o *.so *.a
+

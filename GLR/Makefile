@@ -3,7 +3,7 @@ lib:libGLR.so #libGLR.a
 include ../mk.rules
 STATIC_LIB_PATH = $(HOME)/share/static
 ROOT_DIR = ../..
-.PHONY:res static
+.PHONY:res static clean
 GLR_OBJ = LuaNode.o Schedule.o GLR.o Bus.o Controllers.o SocketController.o BusController.o
 libGLR.so:$(GLR_OBJ)
 	@echo $(PLATFORM)
@@ -48,4 +48,7 @@ mkresx: resource/mkresx.c resource/resource.c resource/bswap.c
 agent:
 	cp resource/Makefile.static $(HOME)/share
 	cp resource/makeagent.lua $(HOME)/bin
+
+clean:
+	-rm -f $(GLR_OBJ) glr glr_s resource.h *.o *.a resource/*.o resource/mkresx
 
