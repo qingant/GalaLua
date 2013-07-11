@@ -285,6 +285,7 @@ function element:_xpath_collect( all, tokens, idx )
     if #tokens < idx then
         return all
     end
+
     local result = {}
     for k,v in pairs(all) do
         if v then
@@ -292,7 +293,9 @@ function element:_xpath_collect( all, tokens, idx )
 
             local r = v:_xpath_selector(tokens, idx)
             if r then
-                table.update(result, r)
+                for i,v in ipairs(r) do
+                  result[#result + 1] = v
+                end
             end
         end
     end
@@ -335,6 +338,7 @@ function element:_xpath_selector( tokens, idx )
                 break
             end
         end
+
         sel = {self:_xpath(_xp)}
     end
 
