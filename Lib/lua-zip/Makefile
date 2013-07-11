@@ -55,5 +55,6 @@ libzip.a:
 
 clean:
 	-rm -f *.o *.a *.so
+	-rm -rf libzip-0.11.1/autom4te.cache
 	@if [ -f libzip-0.11.1/Makefile ]; then make -C libzip-0.11.1 distclean; fi
 
