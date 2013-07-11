@@ -1081,6 +1081,7 @@ if ... == "__main__" then
         db:with(test_vector)
         db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
         db:withReadOnly(test_merge)
+        db:withReadOnly(test_xquery_xpath)
 
     end
 
