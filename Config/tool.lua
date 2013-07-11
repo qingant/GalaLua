@@ -12,12 +12,12 @@ local pprint=require "pprint"
 local L = require 'linenoise'
 local cjson=require "cjson"
 local _Config=require "config"
-local _Config=_Config._Config
+local _Config=_Config.Config
 local mdb=(require "mdb").mdb
 
 local prompt, history = '> ', 'history.txt'
 
-local path = "/tmp/test_config"
+local path = os.getenv("HOME").."/tmp/conf"
 
 local ROOT="Configure"
 local ROOT2="Contents"
@@ -139,16 +139,7 @@ local function get_type(path)
                                 local attr=l:get_attrib()
                                 Pprint(attr) 
                                 local value_type=attr.type
-                                if not attr.type then
-                                    local t=l:get_child("_SCROLLTYPE")
-                                    if t then   --is enum type
-                                        attr=t:get_attrib()
-                                        local subtype=get_enum_type(attr.type)
-                                        return {type="define",realtype=attr.type,subtype=subtype}
-                                    else   --unknown type
-                                        return {}
-                                    end
-                                elseif attr.type=="int" then
+                                if attr.type=="int" then
                                     return {type=attr.type,min=tonumber(attr.min),max=(tonumber(attr.max) or 0)}
                                 elseif attr.type=="string" or attr.type=="ip" or attr.type=="path" then
                                     return {type=attr.type,maxLen=tonumber(attr.maxLen)}
@@ -156,6 +147,11 @@ local function get_type(path)
                                     return {type=attr.type}
                                 elseif attr.type=="bool" then
                                     return {type=attr.type}
+                                elseif attr.type then
+                                    local subtype=get_enum_type(attr.type)
+                                    return {type="define",realtype=attr.type,subtype=subtype}
+                                else
+                                    return {}
                                 end
                            end
                           )
