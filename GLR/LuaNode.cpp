@@ -838,27 +838,7 @@ void GLR::Process::EntryGar(const std::string &Gar,const std::string &module, co
         StackDump();
         THROW_EXCEPTION_EX(msg);
     }
-
-    lua_getglobal(_Stack, "require");
-    lua_pushstring(_Stack, module.c_str());
-    if (lua_pcall(_Stack, 1, 1, 0) != 0)
-    {
-        const char *msg = luaL_checklstring(_Stack, -1, NULL);
-        StackDump();
-        THROW_EXCEPTION_EX(msg);
-    }
-
-    char tmp[1024] = {};
-    std::string::const_iterator it = entry.begin(), it1 = entry.begin();
-    do 
-    {
-        it = std::find(it1, entry.end(), '.');
-        memset(tmp,0 , sizeof(tmp));
-        std::copy(it1, it, tmp);
-        it1 = it + 1;
-        lua_getfield(_Stack, -1, tmp);
-        StackDump();
-    }while (it != entry.end());
+    Entry(module,entry);
 
 }
 void GLR::Process::Entry( const std::string &module, const std::string &entry, ... )
