@@ -7,10 +7,9 @@ local os=require "os"
 
 local string=require "string"
 local pprint=require "pprint"
+local config=require "config"
 
-local GDK="/opt/agree/gdk"
-local configure="cfg/"
-
+local GDK=os.getenv("GDK_HOME") or "/opt/agree/gdk"
 
 
 local function execute(cmd)
@@ -34,6 +33,15 @@ function install(uid,gid,dest,...)
     execute(string.format("%s && %s ",cmd1,cmd2))
 end
 
+--[[
+--Usernames must start with a lower case letter or an underscore, followed by 
+--lower case letters, digits, underscores, or dashes. They can end with 
+--a dollar sign. In regular expression terms: "[a-z_][a-z0-9_-]*[$]?". 
+--Usernames may only be up to 32 characters long.
+]]
+local function is_valid_username(name)
+    return name:match("^[%l_][%l%d_%-]*[%$]?$")
+end
 
 local function useradd(user)
     local cmd=string.format("useradd -m %s -p 123 && chage -d 0 %s",user,user)
@@ -67,35 +75,46 @@ local function parse_etc_passwd()
     return passwd
 end
 
-local function shell_env_file(home)
-    function env(home)
-        local gdk=string.format("export GDK_HOME=%s",GDK)
-        local path=string.format("export PATH=$PATH:$GDK_HOME/bin")
-        local ld=string.format("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GDK_HOME/lib")
-        
-        local rc=string.format("%s/.bashrc",home)
-
-        local f=io.open(rc,"a")
-        f:write(gdk,"\n",path,"\n",ld,"\n")
-        f:close()
-    end
-
-    assert(home,"not pass home")
-    env(home)
-end
-
-local function user(name)
+local function get_user(name)
     return parse_etc_passwd()[name] 
 end
 
+local function shell_env_file(home)
+    assert(home,"not pass home")
+    local gdk=string.format("export GDK_HOME=%s",GDK)
+    local path=string.format("export PATH=$PATH:$GDK_HOME/bin")
+    local ld=string.format("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GDK_HOME/lib")
+
+    local rc=string.format("%s/.bashrc",home)
+
+    local f=io.open(rc,"a")
+    f:write(gdk,"\n",path,"\n",ld,"\n")
+    f:close()
+end
+
+
 --user must existed
-function instance(user)
-    local u=assert(parse_etc_passwd()[user],"user error")
+function instance(user,gdk_home)
+    local u=assert(get_user(user),"user error")
     
-    local Instance={user=u}
+    local Instance={user=u,gdk_home=gdk_home}
+    
+    --TODO:Can not work
+    function Instance:import_configure(from,to)
+        if true then
+            return 
+        end
 
-    function Instance:import_configure()
+        local path=to or user.home.."/cfg/config"
+        local config_path=from or self.gdk_home.."/share/config.xml"
 
+        os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
+        local db = mdb:new():init(mdb.create_env(path))
+        local imp = config._Importer:new{_db = db}
+        imp:importFromXML(config_path, "Schema")
+--        imp:showResult()
+        local conf= config._Config:new():init(path)
+        conf:schemaGen()
     end
 
     function Instance:export_configure()
@@ -106,6 +125,31 @@ function instance(user)
     end
     return Instance
 end
+--[[
+function instance_manager()
+    local manager={instancerc=GDK.."/share/instancerc",instances=nil}
+    
+    function manager:init(instancerc)
+        if instancerc then
+            self.instancerc=instancerc
+        end
+        local ins=assert(io.read(assert(io.open(self.instancerc)),"*a"))
+        self.instances=cjson.decode(ins)
+    end
+
+    --@id:now is user name
+    function manager:get_instance(id)
+        return self.instances[id]
+    end
+
+    function manager:add_instance(instance)
+        local id=instance.user.name
+        self.instances[id]=instance
+    end
+
+    return manager
+end
+]]
 
 function create_instance()
     io.write("create instance....\n") 
@@ -114,13 +158,9 @@ function create_instance()
         io.write("input user name:") 
         name=io.read()
 
-        --Usernames must start with a lower case letter or an underscore, followed by 
-        --lower case letters, digits, underscores, or dashes. They can end with 
-        --a dollar sign. In regular expression terms: "[a-z_][a-z0-9_-]*[$]?". 
-        --Usernames may only be up to 32 characters long.
-    until (name:match("^[%l_][%l%d_%-]*[%$]?$"))
-    local u=user(name)
-    if not u  then
+    until (is_valid_username(name))
+    
+    if not get_user(name) then
         io.write("user ",name," is not existed,create it? (y/n) [y]") 
         local ensure=io.read()
         if ensure=="" or ensure=="y" then
@@ -130,10 +170,10 @@ function create_instance()
             return nil
         end
     end
-    u=user(name)
     io.write("instance installing ....\n") 
-    import_configure()
-    shell_env_file(u.home)
+    local _instance=instance(name,GDK)
+--    _instance:import_configure()
+    _instance:shell_env()
     io.write("Done!\n") 
 end
 
