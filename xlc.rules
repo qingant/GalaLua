@@ -1,7 +1,7 @@
 # -*- Makefile -*-
 G++			= xlc++_r
 GCC			= xlc_r
-COMMINC		=  -I. -I../lua-5.1.5/src/ -I../Stub -I/usr/local/include/libxml2/ -I..
+COMMINC		=  -I. -I../lua-5.1.5/src/ -I../Stub -I/usr/local/include/libxml2/ -I.. -I../Runtime
 LNKFLAG 	= -qmkshrobj -q64
 COMPWARN    = #-qhalt=i -qwarn64 -qinfo=all
 CMPFLAG 	= -c -g -q64 -qcpluscmt -D_UNIX95_ -D_DEBUG_ -D_THREAD_SAFE -D__IBMCPP_TR1__ $(COMPWARN) $(COMMINC)  -D_ALL_SOURCE #-qinclude=config.h -D_BSD=44
