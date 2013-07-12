@@ -4,9 +4,9 @@
  *  Created on: May 21, 2013
  *      Author: esuomyekcim
  */
+ 
 
-// LuaTest.cpp : �������̨Ӧ�ó������ڵ㡣
-//
+
 
 #include "stdafx.h"
 #include "GLR.hpp"
@@ -18,50 +18,60 @@
 
 using namespace GLR;
 
-Galaxy::GalaxyRT::CProcess _CProcess;
 
-void daemonize(void)
-{
-    pid_t pid, sid;
-    int fd;
 
-    /* Fork off the parent process */
-    pid = CRT_fork();
-    if (pid < 0)
-    {
-        exit(1);
+void daemonize(void)  
+{  
+    pid_t pid, sid;  
+    int fd;   
+
+    /* Fork off the parent process */  
+    pid = CRT_fork();  
+    if (pid < 0)    
+    {     
+        exit(1);  
+    }     
+
+    if (pid > 0)    
+    {     
+        exit(0); /*Killing the Parent Process*/  
+    }     
+
+    /* At this point we are executing as the child process */  
+
+    /* Create a new SID for the child process */  
+    sid = setsid();  
+    if (sid < 0)    
+    {  
+        exit(1);  
     }
 
-    if (pid > 0)
-    {
-        exit(0); /*Killing the Parent Process*/
-    }
+    /* Change the current working directory. */  
+    if ((chdir("/")) < 0)  
+    {  
+        exit(1);  
+    }  
 
-    /* At this point we are executing as the child process */
+    fd = CRT_open("/dev/null",O_RDWR, 0);  
+    if (fd != -1)  
+    {  
+        CRT_dup2 (fd,0);  
+        CRT_dup2 (fd,1);  
+        CRT_dup2 (fd,2);  
+    }  
 
-    /* Create a new SID for the child process */
-    sid = setsid();
-    if (sid < 0)
+    //close all useless fd(maybe invalid)
+    for (int i=0;i<fd;++i)
     {
-        exit(1);
+        close(i);
     }
-
-    /* Change the current working directory. */
-    if ((chdir("/")) < 0)
+    for (int i=fd+1;i<1024;++i)
     {
-        exit(1);
+        close(i);
     }
-
-    fd = CRT_open("/dev/null",O_RDWR, 0);
-    if (fd != -1)
-    {
-        CRT_dup2 (fd,0);
-        CRT_dup2 (fd,1);
-        CRT_dup2 (fd,2);
-    }
-    /*resettign File Creation Mask */
-    CRT_umask(027);
-}
+    /*resettign File Creation Mask */  
+    CRT_umask(027);  
+}  
 
 int main( int argc, char* argv[] )
 {
@@ -93,6 +103,8 @@ int main( int argc, char* argv[] )
     //    printf("Resume Error : %s\n", e.what());
     //}
 
+    Galaxy::GalaxyRT::CProcess _CProcess;
+    GLR::Runtime::_pCProcess=&_CProcess;
 
     _CProcess.Initialize(argc,argv,NULL,"m:?e:d:?h:?p:?c:?D");
 
@@ -153,12 +165,20 @@ int main( int argc, char* argv[] )
 
     //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
     //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
-//    GLR::Runtime::Initialize(host, port, GLR_initializer);
     GLR::Runtime::Initialize(host, port, GLR_initializer, &_CProcess);
+    if (_CProcess.ExistOption("g"))
+    {
+        GALA_DEBUG("RUNNING Gar package\n");
+        std::string file=_CProcess.GetOption("g");
 
-//    GLR::Runtime::GetInstance().Entry("cli", "main");
-
-    if (_CProcess.ExistOption("m"))
+        std::string module;
+        if (_CProcess.ExistOption("m"))
+        {
+            module=_CProcess.GetOption("m");
+        }
+        GLR::Runtime::GetInstance().Entry(file,module,entry);
+    }
+    else if (_CProcess.ExistOption("m"))
     {
         std::string file=_CProcess.GetOption("m");
         GLR::Runtime::GetInstance().Entry(file,entry);
@@ -167,7 +187,6 @@ int main( int argc, char* argv[] )
     {
         GLR::Runtime::GetInstance().EntryEx(_CProcess.Arguments[1]);
     }
-
     //_CProcess.SetArgument("What the hell? Do not work?");
     while (true)
     {
