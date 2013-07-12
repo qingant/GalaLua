@@ -276,7 +276,7 @@ function element:_xpath_all_selector(  )
     local all = {}
     self:walk(function ( e )
               if e.key ~= self.key then
-                  all[e.key] = e
+                  all[#all + 1] = e
               end
     end)
     return all
