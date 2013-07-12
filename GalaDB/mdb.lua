@@ -202,7 +202,7 @@ end
 function element:walk(op, ...)
     op(self,...)
     for k,v in pairs(self:get_child()) do
-
+        print("WALK",k, v.key, v.real_key)
         v:walk(op, ...)
     end
 end
@@ -226,6 +226,7 @@ function element:_xpath(path)
         return element:new{_db = self._db,
                            key = _path,
                            e_type = self.e_type,
+                           real_key = self.real_key ~= nil and string.format("%s%s%s", self.real_key,path_sep, path) or nil,
                            _root = self._root}
     else
         while true do
@@ -276,6 +277,7 @@ function element:_xpath_all_selector(  )
     local all = {}
     self:walk(function ( e )
               if e.key ~= self.key then
+
                   all[#all + 1] = e
               end
     end)
@@ -338,8 +340,8 @@ function element:_xpath_selector( tokens, idx )
                 break
             end
         end
-
         sel = {self:_xpath(_xp)}
+
     end
 
     if idx < #tokens then
@@ -1077,6 +1079,7 @@ if ... == "__main__" then
         host:_add_ref("oper", node3)
         host:_add_ref("status", node4)
         nodes = e:xpath("**/report")
+        pprint.pprint(e:xpath("**"), "All Nodes")
         pprint.pprint(nodes,'Nodes')
         db:commit()
     end
