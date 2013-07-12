@@ -55,11 +55,22 @@ local indent_one = "    "
 local num_pages = 1024
 local vector_index_key = "__VectorIndexGenerator"
 local vector_item_tag = "__VectorItemTag"
+local to_table_attrib_key = "@attr"
+
 function mdb.create_env(path)
+    local path_id="@"..path
+    local e,err_msg=glr.get_global(path_id) 
+    if not e then
+        e=mdb._create_env(path)
+        glr.global(path_id,e)
+    end
+    return e
+end
+
+function mdb._create_env(path)
 
     local e=lightningmdb.env_create()
     e:set_mapsize(num_pages*4096)
-    print('ppppppppppppppppppppppppppppppppp', path)
     assert(e:open(path,0,420))
     return e
 end
@@ -146,7 +157,7 @@ mdb.beginRDTrans = mdb.beginTrans
 
 function mdb:_with(action, ...)
     --print(...)
-    local err, value = pcall(action, self, ...)
+    local err, value = xpcall(action, debug.traceback, self, ...)
     if self.txn ~= nil then
         self:abort()
     end
@@ -184,14 +195,14 @@ function element:get_root()
 end
 function element:is_leaf()
     if self._is_leaf == nil  then
-        self._is_leaf = (#self:get_child() == 0)
+        self._is_leaf = (#self:get_value() ~= 0)
     end
     return self._is_leaf
 end
 function element:walk(op, ...)
     op(self,...)
     for k,v in pairs(self:get_child()) do
-        print(k,v)
+        print("WALK",k, v.key, v.real_key)
         v:walk(op, ...)
     end
 end
@@ -215,12 +226,13 @@ function element:_xpath(path)
         return element:new{_db = self._db,
                            key = _path,
                            e_type = self.e_type,
+                           real_key = self.real_key ~= nil and string.format("%s%s%s", self.real_key,path_sep, path) or nil,
                            _root = self._root}
     else
         while true do
             local _relative_path = string.match(_path, "/[^/]*/(.*)")
             local parent, name = xpath_split(_relative_path)
-            print('pppppppppppppp', parent, name)
+
             if _relative_path == "" then
                 error(string.format("`%s` -> `%s` not found!", self.key, path))
             end
@@ -249,7 +261,7 @@ function element:_xpath_attr_selector(elist, attr_key, attr_value)
         end
     else
         for k,v in pairs(elist) do
-            print("ATTR",k,v, v:get_attrib()[attr_key])
+
             if v:get_attrib()[attr_key] ~= nil then
                 rt[#rt+1] = v
             end
@@ -265,7 +277,8 @@ function element:_xpath_all_selector(  )
     local all = {}
     self:walk(function ( e )
               if e.key ~= self.key then
-                  all[e.key] = e
+
+                  all[#all + 1] = e
               end
     end)
     return all
@@ -274,14 +287,17 @@ function element:_xpath_collect( all, tokens, idx )
     if #tokens < idx then
         return all
     end
+
     local result = {}
     for k,v in pairs(all) do
         if v then
             --pprint.pprint(v)
-            print("Xpath Collect", k,v)
+
             local r = v:_xpath_selector(tokens, idx)
             if r then
-                table.update(result, r)
+                for i,v in pairs(r) do
+                  result[#result + 1] = v
+                end
             end
         end
     end
@@ -290,14 +306,14 @@ end
 function element:_xpath_selector( tokens, idx )
     assert(self, "`self` is nil")
     local tok = tokens[idx]
-    print("XPATH", tok, idx)
+
     local sel
     if string.sub(tok, 1, 2) == "**" then
         -- assert(idx==#tokens, "** selector can only used at last")
         local all = self:_xpath_all_selector()
         if string.sub(tok,3,3) == "@" then
             local k,v = unpack(string.split(string.sub(tok,4),"="))
-            print("@",k,v)
+
             sel =  self:_xpath_attr_selector(all,k,v)
             
         else
@@ -309,13 +325,13 @@ function element:_xpath_selector( tokens, idx )
             local k,v = string.split(string.sub(tok,3),"=")
             sel = self:_xpath_attr_selector(all, k, v)
         else
-            print("here")
+
             sel = all
         end
     else
         -- optimize for plain _xpath selector
         local _xp = tokens[idx]
-        while idx <= #tokens  do
+        while idx < #tokens  do
             local tok =  tokens[idx+1]
             if string.sub(tok,1,1) ~= "*" then
                 _xp = _xp .. "/" .. tok
@@ -325,8 +341,9 @@ function element:_xpath_selector( tokens, idx )
             end
         end
         sel = {self:_xpath(_xp)}
+
     end
-    print("Return", #tokens, idx+1)
+
     if idx < #tokens then
         return self:_xpath_collect(sel, tokens, idx+1)
     else
@@ -383,7 +400,7 @@ function element:get_parent()
         if self._db.txn:get(self._db.dbi, parent) then
             -- print(xpath_split(self.key))
             -- print("eeeeeeeeee")
-            print("Return")
+
             return element:new{_db = self._db, 
                                key = parent,
                                e_type = "regular",
@@ -417,7 +434,7 @@ function element:_remove_parent_refer()
         else
             this_key = string.format("c:%s", this)
         end
-        print("REMove parent",parent.key, this_key)
+
         parent._db.txn:del(parent._db.dbi, parent.key, this_key)
     else
         error("symbolink readonly")
@@ -549,7 +566,7 @@ end
 
 function element:add_attrib(k, v)
     local attr = string.format("a:%s`%s", k, v)
-    print("Attr",self.key, attr)
+
     self._db.txn:put(self._db.dbi, self.key, attr,lightningmdb.MDB_NODUPDATA)
 end
 
@@ -571,12 +588,12 @@ end
 function element:_raw_get( k )
     return self._db.txn:get(self._db.dbi, k)
 end
-function element:add_vector_node(k, n)  
+function element:add_vector_node(k, itag)  
 
     local o = self:add_node(k)
     o:add_attrib(vector_index_key, "1")
-    if n then
-        o:add_attrib(vector_item_tag, n)
+    if itag then
+        o:add_attrib(vector_item_tag, itag)
     end
     o._is_vector = true
 --    o:_raw_put("t:node")
@@ -605,13 +622,13 @@ function element:add_node(k)
     -- assert(not self.is_leaf())
     local ch = string.format("c:%s", k)
     --pprint.pprint(self._db)
-    print("AddNode",self.key, ch)
+
     --if self:get_child(k) == nil then
     self._db.txn:put(self._db.dbi, self.key, ch,lightningmdb.MDB_NODUPDATA)
     --end
 
     local key = string.format("%s%s%s", self.key, path_sep,  k)
-    print("Child",self.key, key)
+
 
     o = element:new{_db = self._db, key = key, e_type = "regular", _root = self._root}
 --    o:_raw_put("t:node")
@@ -663,12 +680,18 @@ function element:add_table(t)
     return self
 end
 function element:to_table()
-    local result = {}
+    local result = {}   
+	
     if self:is_vector() then
+
         for k,v in pairs(self:get_child()) do
             result[#result + 1] = v:to_table()
-
         end
+		result[to_table_attrib_key] = {}
+		local attrib = result[to_table_attrib_key]
+		for k,v in pairs(self:get_attrib()) do
+			attrib[k] = v
+		end
     elseif self:is_leaf() then
         local vs = self:get_value()
         if #vs == 1 then
@@ -680,6 +703,12 @@ function element:to_table()
         for k,v in pairs(self:get_child()) do
             result[k] = v:to_table()
         end
+		result[to_table_attrib_key] = {}
+		local attrib = result[to_table_attrib_key]
+		for k,v in pairs(self:get_attrib()) do
+			attrib[k] = v
+		end
+
     end
     return result
 end
@@ -762,18 +791,22 @@ function element:to_xml(str)
     local values = self:get_value()
     local attrs = self:get_attrib()
     if #values == 0 then
-        str = str .. string.format("<%s ", root)
+        str = str .. string.format("<%s", root)
         for k,v in pairs(attrs) do
             if string.sub(k, 1, 2) ~= "__" then  -- hiden attribute
-                str = str .. string.format("%s=\"%s\" ", k, v)
+                str = str .. string.format(" %s=\"%s\"", k, v)
             end
+        end
+        if self._count then
+          str = str .. string.format(" %s=\"%s\"", "__count", self._count)
         end
         str = str .. ">"
         local childs = self:get_child()
         if self:is_vector() then
             local item_key = self:get_attrib()[vector_item_tag]
             for k,v in pairs(childs) do
-                --v.tag = item_key
+                v._tag = item_key
+                v._count = k
                 str = v:to_xml(str)
             end
         else
@@ -809,7 +842,23 @@ if ... == "__main__" then
     local path = "./temp/bar"
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
     local root1 = "Domain"
+    local test={}
     local db = mdb:new():init(mdb.create_env(path))
+
+
+    -- for i=1,5000000 do
+    --     test[#test+1]= mdb:new():init(mdb.create_env(path))
+    -- end
+    -- local ID="AAA"
+    -- local e=mdb.create_env(path)
+    -- glr.global(ID,e)
+
+    -- local ee=glr.get_global(ID)
+    -- pprint.pprint(getmetatable(ee))
+
+
+    print("DONE")
+
     function test(db)
         
         local e = db:get_root(root1)
@@ -841,7 +890,7 @@ if ... == "__main__" then
     end
     function test_xpath(db)
         local e = db:get_root(root1)
-        local branch = e:_xpath("Bank/Branch2")
+        local branch = e:_xpath("Bank/Branch")
         print("Show Branch", branch)
         branch:show()
 
@@ -990,17 +1039,57 @@ if ... == "__main__" then
         pprint.pprint(t, "Table")
         pprint.pprint(tt:to_table(), "Reversed")
 
+		pprint.pprint(db:get_root("Domain"):to_table(), "Domain")
+
+
     end
     function test_merge( db )
         local domain_root = db:get_root(root1)
         print("merge_to_xml")
         print(merge_to_xml(domain_root:xpath("Bank/**")))
     end
+
+    function test_xquery_xpath(db)
+        local e = db:get_root(root1)
+        local ref_node = e:add_node("sys")
+        local node1 = ref_node:add_node("mem")
+        node11 = node1:add_node("event")
+        node11:add_pair("report","111")
+        node11:add_pair("request","222")
+        local node2 = e:add_node("cpu")
+        node21 = node2:add_node("event")
+        node21:add_pair("report","333")
+        node21:add_pair("request","444")
+
+        ref_node = e:add_node("afa")
+        node3 = ref_node:add_node("oper")
+        node11 = node3:add_node("event")
+        node11:add_pair("report","111")
+        node11:add_pair("request","222")
+        node4 = e:add_node("status")
+        node21 = node4:add_node("event")
+        node21:add_pair("report","333")
+        node21:add_pair("request","444")
+        
+        local head = e:add_node("headbank")
+        local host = head:add_node("host1")
+        host:_add_ref("mem", node1)
+        host:_add_ref("cpu", node2)
+        local host = head:add_node("host2")
+        host:_add_ref("oper", node3)
+        host:_add_ref("status", node4)
+        nodes = e:xpath("**/report")
+        pprint.pprint(e:xpath("**"), "All Nodes")
+        pprint.pprint(nodes,'Nodes')
+        db:commit()
+    end
+
     local limit = 1
     for i=1,limit do
         db:with(test)
 
         db:with(test1)
+        db:with(test_xquery_xpath)
         db:withReadOnly(test_xpath)
         db:withReadOnly(test_value)
         db:with(test_xml)
@@ -1017,6 +1106,8 @@ if ... == "__main__" then
         db:with(test_vector)
         db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
         db:withReadOnly(test_merge)
+        db:withReadOnly(test_xquery_xpath)
 
     end
+
 end

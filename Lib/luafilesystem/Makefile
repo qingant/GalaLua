@@ -18,3 +18,7 @@ install:
 	#mkdir -p $(LUA_LIBDIR)
 	cp src/lfs.so $(HOME)/lib/lua
 
+.PHONY: clean
+
+clean:
+	-rm -f $(OBJS) src/*.so

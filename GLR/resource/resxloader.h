@@ -21,8 +21,26 @@ extern "C"
 #endif
 
 #include "lua.h"
+/* 声明lua的c模块的入口函数 */
+extern int luaopen_cjson(lua_State *);
+extern int luaopen_struct (lua_State *);
+extern int luaopen_iconv(lua_State *);
+extern int luaopen_minizip(lua_State *);
+extern int luaopen__dir(lua_State *);
+extern int luaopen_lxp (lua_State *);
 
-extern void resx_openlibs(lua_State * const state);
+/* 将lua的c模块的入口函数和模块名加入到lualibrary数组中 */
+const luaL_Reg lualibray[] = {
+    { "cjson", luaopen_cjson },
+    { "struct", luaopen_struct },
+    { "iconv", luaopen_iconv },
+    { "minizip", luaopen_minizip },
+    { "_dir", luaopen__dir },
+    { "lxp", luaopen_lxp },
+    { (const char *) NULL, (lua_CFunction) NULL }
+};
+
+void resx_openlibs(lua_State * const state);
 
 int resx_loader(lua_State * const state);
 

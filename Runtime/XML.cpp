@@ -5,6 +5,7 @@
 //#include "stdafx.h"
 #include "XML.hpp"
 #include "Exception.hpp"
+#include <ctype.h>
 
 namespace Galaxy
 {
@@ -649,10 +650,31 @@ namespace Galaxy
 
 		return IsSpaceChar(*p);
 	}
+    /*
+     * Tag Name must start with letters or '_'
+     */
+	bool CXMLParserStream::IsAllowedKeyStartChar(char ch)
+	{
+//		return (((ch >='a') && (ch <='z')) || ((ch >='A') && (ch <='Z'))|| (ch=='_'));
+		return ((isalpha(ch)) || (ch =='_') );
+	}
 
+	bool CXMLParserStream::IsAllowedKeyStartChar()
+	{
+		const char *p = Current();
+		if(p==NULL)
+		{
+			THROW_EXCEPTION_EX("Invalid pointer!");
+			return false;
+		}
+
+		return IsAllowedKeyStartChar(*p);
+	}
+    
 	bool CXMLParserStream::IsAllowedKeyChar(char ch)
 	{
-		return (((ch >='a') && (ch <='z')) || ((ch >='A') && (ch <='Z')));
+//		return (((ch >='a') && (ch <='z')) || ((ch >='A') && (ch <='Z')));
+		return ( (IsAllowedKeyStartChar(ch)) || isdigit(ch) || (ch =='-') || (ch =='.') );
 	}
 
 	bool CXMLParserStream::IsAllowedKeyChar()
@@ -666,7 +688,7 @@ namespace Galaxy
 
 		return IsAllowedKeyChar(*p);
 	}
-
+#if 0
 	bool CXMLParserStream::IsAllowedKeySymbol(char ch)
 	{
 		return ((ch =='_') || (ch =='-') || (ch == '.'));
@@ -700,7 +722,7 @@ namespace Galaxy
 
 		return IsDigitalChar(*p);
 	}
-
+#endif //0
 
 	unsigned int CXMLParserStream::Offset()
 	{
@@ -1684,7 +1706,7 @@ namespace Galaxy
 
 		_KeyBegin = _Stream.Offset();
 
-		if(!_Stream.IsAllowedKeyChar())
+		if(!_Stream.IsAllowedKeyStartChar())
 		{
 			THROW_EXCEPTION_EX("XML Key Syntex error!");
 			return false;
@@ -1693,7 +1715,8 @@ namespace Galaxy
 		for(i=_Stream.Offset(),ch = _Stream.FirstNoSpaceChar();(i<_Stream.Limit()) && (ch!=0);ch=_Stream.Step(1))
 		{
 			//ch = _Stream.GetChar(0);
-			if((!_Stream.IsAllowedKeyChar(ch)) || (!_Stream.IsAllowedKeySymbol(ch))|| (!_Stream.IsDigitalChar(ch)))
+			//if(!((_Stream.IsAllowedKeyChar(ch)) || (_Stream.IsAllowedKeySymbol(ch))|| (_Stream.IsDigitalChar(ch))))
+			if(!_Stream.IsAllowedKeyChar(ch)) 
 			{
 				if(_Stream.IsSpaceChar(ch))
 				{
@@ -1809,7 +1832,7 @@ namespace Galaxy
 						}
 
 					}
-					else if(_Stream.IsAllowedKeyChar(_Stream.GetChar(1)))
+					else if(_Stream.IsAllowedKeyStartChar(_Stream.GetChar(1)))
 					{
 						//Children
 						CNursery	_Nursery;
@@ -1901,7 +1924,7 @@ namespace Galaxy
 			return true;
 		}
 
-		if(!_Stream.IsAllowedKeyChar(ch))
+		if(!_Stream.IsAllowedKeyStartChar(ch))
 		{
 			THROW_EXCEPTION_EX("Invalid Key char");
 			return false;
@@ -1920,7 +1943,8 @@ namespace Galaxy
 				_KeyLen = _Stream.Offset() - _KeyBegin;
 				break;
 			}
-			else if((!_Stream.IsAllowedKeyChar(ch)) && (!_Stream.IsDigitalChar(ch)))
+			//else if((!_Stream.IsAllowedKeyChar(ch)) && (!_Stream.IsDigitalChar(ch)))
+			else if(!_Stream.IsAllowedKeyChar(ch))
 			{
 				THROW_EXCEPTION_EX("Invalid Key char");
 				return false;

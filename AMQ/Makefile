@@ -40,3 +40,8 @@ test_block:Sample/test_block.o
 	$(G++) $? -lGalaxyQueue $(STUBLIB) $(SYTMLIB)  -o $@
 	mv $@ $(HOME)/bin/
 	rm -f $?
+
+.PHONY: clean
+
+clean:
+	-rm -f $(OBJS) libGalaxyQueue.so Sample/*.o Test* test_block

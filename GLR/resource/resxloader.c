@@ -36,14 +36,57 @@ extern "C"
 #include "resource.h"
 #include "resxloader.h"
 
+void resx_openlibs(lua_State * const state)
+{
+
+    fprintf(stderr, "File %s, Function %s, Line %d, gettop() = %d.\n",
+            __FILE__, __FUNCTION__, __LINE__, lua_gettop(state));
+
+    lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME); /* 'package' */
+    lua_getfield(state, -1, "loaded"); /* package.loaded */
+
+    const luaL_Reg *ite = NULL;
+    for(ite = &lualibray[0]; ite->func != (lua_CFunction) NULL;
+            ++ite)
+    {
+        fprintf(stderr, "File %s, Function %s, Line %d, %s.\n",
+                __FILE__, __FUNCTION__, __LINE__, ite->name);
+
+        lua_getfield(state, -1, ite->name); /* package.loaded[pathname] */
+        lua_pushcfunction(state, ite->func);
+        lua_pushstring(state, ite->name);
+        if (lua_pcall(state, 1, 1, 0) != LUA_OK)
+        {
+            return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
+                    __FILE__, __FUNCTION__, __LINE__);
+        }
+        if (!lua_toboolean(state, -2))
+        {
+            lua_setfield(state, -3, ite->name);
+            lua_pop(state, 1);
+        }
+        else
+        {
+            lua_pop(state, 2);
+        }
+    }
+    lua_pop(state, 2);
+
+    fprintf(stderr, "File %s, Function %s, Line %d, gettop() = %d.\n",
+            __FILE__, __FUNCTION__, __LINE__, lua_gettop(state));
+
+}
+
 int resx_loader(lua_State * const state)
 {
+//    fprintf(stderr, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
     static bool initialized = false;
     static resx_environ_t resxenv;
     if (!initialized)
     {
         resx_environ_init(&resxenv);
 #if defined(linux) || defined(__linux) || defined(__linux__)
+//        fprintf(stdout, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
         if (resx_environ_open(&resxenv) != 0)
         {
             return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
@@ -76,7 +119,8 @@ int resx_loader(lua_State * const state)
     strncpy(buf, pathname, length);
 //    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
 //            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
-    for (char *tmp = strchr(&buf[0], '.'); tmp != NULL; tmp = strchr(&buf[0], '.'))
+    char *tmp = NULL;
+    for (tmp = strchr(&buf[0], '.'); tmp != NULL; tmp = strchr(&buf[0], '.'))
     {
         *tmp = '/';
     }
@@ -87,6 +131,8 @@ int resx_loader(lua_State * const state)
 //    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
 //            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
     int32_t retval = resx_environ_read(&resxenv, &buf[0]);
+//    fprintf(stdout, "File %s, Function %s, Line %d, retval = %d.\n",
+//             __FILE__, __FUNCTION__, __LINE__, retval);
     free(buf);
     if (retval > 0)
     {
@@ -103,6 +149,8 @@ int resx_loader(lua_State * const state)
                     __FILE__, __FUNCTION__, __LINE__);
         }
         cursor[retval] = '\0';
+//        fprintf(stdout, "File %s, Function %s, Line %d, {%s}\n", __FILE__, __FUNCTION__, 
+//                __LINE__, cursor);
         retval = luaL_loadbuffer(state, cursor, retval, pathname);
         free(buff);
         cursor = NULL;
@@ -137,9 +185,15 @@ int resx_loader(lua_State * const state)
     }
     else if (retval == -2)
     {
+        /*
         return luaL_error(state, "Error: File %s, Function %s, Line %d, "
                 "No resource '%s'.\n", __FILE__, __FUNCTION__, __LINE__,
                 pathname);
+        */
+        fprintf(stderr, "Error: File %s, Function %s, Line %d, "
+                "No resource '%s'.\n", __FILE__, __FUNCTION__, __LINE__, 
+                pathname);
+        lua_pushnil(state);
     }
     return 1;
 }
@@ -147,6 +201,9 @@ int resx_loader(lua_State * const state)
 int resx_require(const char * const pathname, lua_State * const state)
 {
     const int initialdepth = lua_gettop(state);
+
+    fprintf(stdout, "File %s, Function %s, Line %d, pathname = %s, initial depth = %d\n",
+            __FILE__, __FUNCTION__, __LINE__, pathname, initialdepth);
 
     lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME); /* 'package' */
     lua_getfield(state, -1, "loaded"); /* package.loaded */
@@ -172,7 +229,8 @@ int resx_require(const char * const pathname, lua_State * const state)
         }
         const size_t siz = lua_objlen(state, -1) + 1;
         lua_pushstring(state, "");  /* error message accumulator */
-        for (size_t idx = 1; idx < siz; ++idx)
+        size_t idx;
+        for (idx = 1; idx < siz; ++idx)
         {
             lua_rawgeti(state, -2, idx); /* package.loaders[idx] */
             if (lua_isnil(state, -1))
@@ -190,7 +248,11 @@ int resx_require(const char * const pathname, lua_State * const state)
                 lua_pushlightuserdata(state, NULL);
                 lua_setfield(state, -4, pathname); /* package.loaded[pathname] = nil */
                 lua_pushstring(state, pathname);
-                lua_call(state, 1, 1);
+                if (lua_pcall(state, 1, 1, 0) != LUA_OK)
+                {
+                    return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
+                            __FILE__, __FUNCTION__, __LINE__);
+                }
                 if (!lua_isnil(state, -1))
                 { /* package.loaded[pathname] = returned value */
                     lua_setfield(state, -3, pathname);
@@ -216,12 +278,15 @@ int resx_require(const char * const pathname, lua_State * const state)
         }
     }
     const int currentdepth = lua_gettop(state);
+    fprintf(stdout, "File %s, Function %s, Line %d, current depth = %d\n", 
+            __FILE__, __FUNCTION__, __LINE__, currentdepth);
     lua_pop(state, currentdepth - initialdepth);
     return 0;
 }
 
 void resx_setloader(lua_State * const state, int (*func)(lua_State *))
 {
+    fprintf(stderr, "File %s, Function %s, Line %d, gettop() = %d.\n", __FILE__, __FUNCTION__, __LINE__, lua_gettop(state));
     lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME);
     lua_getfield(state, -1, "loaders");
     if (!lua_istable(state, -1))
@@ -232,10 +297,12 @@ void resx_setloader(lua_State * const state, int (*func)(lua_State *))
     lua_pushcfunction(state, func);
     lua_settable(state, -3);
     lua_pop(state, 2);
+    fprintf(stderr, "File %s, Function %s, Line %d, gettop() = %d.\n", __FILE__, __FUNCTION__, __LINE__, lua_gettop(state));
 }
 
 int resx_main_execute(lua_State * const state, const char *name)
 {
+    fprintf(stderr, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
     resx_require(name, state);
     const int initialdepth = lua_gettop(state);
     lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME);
@@ -250,15 +317,19 @@ int resx_main_execute(lua_State * const state, const char *name)
         return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
                 __FILE__, __FUNCTION__, __LINE__);
     }
+    fprintf(stderr, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
     return lua_gettop(state) - initialdepth;
 }
 
 void GLR_initializer(lua_State * state)
 {
+    fprintf(stderr, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
     resx_setloader(state, resx_loader);
     resx_openlibs(state);
+    fprintf(stderr, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
 }
 
 #ifdef __cplusplus
 }
 #endif
+

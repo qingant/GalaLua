@@ -130,7 +130,7 @@ int Process::Spawn( lua_State *l )
         //lua_getglobal(node._Stack, "loadstring");
         //lua_pushlstring(node._Stack, module, len);
 
-        node.Entry(module, method);
+        node.Entry(module, method);  
         /*
         lua_getglobal(node._Stack, "require");
         lua_pushstring(node._Stack, module);
@@ -424,7 +424,8 @@ void Process::Resume()
     {
         StackDump();
         printf("Resume Return (%d)\n", rt);
-        THROW_EXCEPTION_EX("Error Occur While Node Running");
+        const char *msg = luaL_checkstring(_Stack, -1);
+        THROW_EXCEPTION_EX(msg);
 
     }
 
@@ -517,6 +518,24 @@ void Process::Start( Schedule &sche)
     sche.PutTask(*this);   
 }
 
+void Process::LoadString(const std::string &path )
+{
+
+    if (luaL_loadstring(_Stack, path.c_str()) !=0)
+    {
+        StackDump();
+        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        THROW_EXCEPTION_EX(msg);
+    }
+    else
+    {
+        _Path = "";
+        lua_pushstring(_Stack, "__main__");
+        _Status._NArg = 1; // one argument
+        printf("Load string Succeed\n");
+    }
+
+}
 void Process::LoadFile( const std::string &path )
 {
 
@@ -757,19 +776,32 @@ int GLR::Process::GetGlobal( lua_State *l )
 {
     const char *id = luaL_checkstring(l, 1);
     const Globals::UserData &ud = GlobalVars.Get(id);
-    void *p = lua_newuserdata(l, sizeof(ud.Content));
-    memcpy(p, &ud.Content, sizeof(ud.Content));
-    luaL_getmetatable(l,ud.Name.c_str());
-    lua_pushvalue(l,-1);
 
-    //clear __gc
-    lua_pushnil(l);
-    lua_setfield(l,-2,"__gc");
+    if (ud.Content==NULL)
+    {
+        lua_pushnil(l);
+        std::string err(id);
+        err+=" not found";
+        lua_pushstring(l,err.c_str());
+        return 2;
+    }
+    else
+    {
+        void *p = lua_newuserdata(l, sizeof(ud.Content));
+        memcpy(p, &ud.Content, sizeof(ud.Content));
+        luaL_getmetatable(l,ud.Name.c_str());
 
-    lua_setmetatable(l, -3);
-    lua_settop(l,-2);
+        lua_pushvalue(l,-1);
 
-    return 1;
+        //clear __gc
+        lua_pushnil(l);
+        lua_setfield(l,-2,"__gc");
+
+        lua_setmetatable(l, -3);
+        lua_settop(l,-2);
+
+        return 1;
+    }
 }
 
 int GLR::Process::GetNodeAddr( lua_State *l )
@@ -795,11 +827,25 @@ int GLR::Process::Kill( lua_State *l )
     Destory(gpid);
     return 0;
 }
+void GLR::Process::EntryGar(const std::string &Gar,const std::string &module, const std::string &entry, ... )
+{
+    lua_getglobal(_Stack, "glr");
+    lua_getfield(_Stack,-1,"run_gar");
+    lua_pushstring(_Stack, Gar.c_str());
+    if (lua_pcall(_Stack, 1, 1, 0) != 0)
+    {
+        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        StackDump();
+        THROW_EXCEPTION_EX(msg);
+    }
+    Entry(module,entry);
 
+}
 void GLR::Process::Entry( const std::string &module, const std::string &entry, ... )
 {
     lua_getglobal(_Stack, "require");
     lua_pushstring(_Stack, module.c_str());
+
     if (lua_pcall(_Stack, 1, 1, 0) != 0)
     {
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
@@ -843,3 +889,5 @@ int GLR::Process::Exit( lua_State *l )
     //TODO: 使用其他信号，优雅可控的退出程序
     return kill(getpid(), SIGKILL);
 }
+
+

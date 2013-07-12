@@ -148,14 +148,17 @@ namespace Galaxy
          bool IsSpaceChar();
          bool IsSpaceChar(char ch);
 
+         bool IsAllowedKeyStartChar(char ch);
+         bool IsAllowedKeyStartChar();
+
          bool IsAllowedKeyChar(char ch);
          bool IsAllowedKeyChar();
 
-         bool IsDigitalChar(char ch);
-         bool IsDigitalChar();
-
-         bool IsAllowedKeySymbol(char ch);
-         bool IsAllowedKeySymbol();
+//         bool IsDigitalChar(char ch);
+//         bool IsDigitalChar();
+//
+//         bool IsAllowedKeySymbol(char ch);
+//         bool IsAllowedKeySymbol();
 
       public:
 

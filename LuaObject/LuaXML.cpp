@@ -181,6 +181,29 @@ public:
         }
     }
 
+    /*
+     * return true if it's leaf element.
+     */
+    static int isLeaf(lua_State *L)
+    {
+        CXMLElement *p=CheckCXMLElement(L,1);
+
+        try
+        {
+            const  CXMLElements &_elms=p->SubElements();
+            lua_pushboolean(L,!_elms.Count());
+            return 1;
+        }
+        catch(std::exception &e)
+        {
+            return luaL_error(L,"%s",e.what());
+        }
+        catch(...)
+        {
+            return luaL_error(L,"Unknown exception %s  %d",__func__,__LINE__);
+        }
+    }
+
 private:
     static CXMLElement *CheckCXMLElement(lua_State *L,int n)
     {
@@ -208,6 +231,7 @@ public:
             {"properties",CXMLElement4Lua::Properties},
             {"key",CXMLElement4Lua::Key},
             {"value",CXMLElement4Lua::Value},
+            {"isleaf",CXMLElement4Lua::isLeaf},
             {NULL,NULL}
         };
 
