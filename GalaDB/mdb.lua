@@ -293,7 +293,7 @@ function element:_xpath_collect( all, tokens, idx )
 
             local r = v:_xpath_selector(tokens, idx)
             if r then
-                for i,v in ipairs(r) do
+                for i,v in pairs(r) do
                   result[#result + 1] = v
                 end
             end
