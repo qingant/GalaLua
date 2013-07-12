@@ -129,8 +129,15 @@ int Process::Spawn( lua_State *l )
         // node.DoString(std::string(module, len));
         //lua_getglobal(node._Stack, "loadstring");
         //lua_pushlstring(node._Stack, module, len);
+        if (GLR::Runtime::_GarFile.empty())
+        {
+            node.Entry(module, method);  
+        }
+        else
+        {
+            node.EntryGar(GLR::Runtime::_GarFile,module, method);  
+        }
 
-        node.Entry(module, method);  
         /*
         lua_getglobal(node._Stack, "require");
         lua_pushstring(node._Stack, module);

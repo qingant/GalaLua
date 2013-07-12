@@ -9,6 +9,8 @@
 using namespace GLR;
 
 GLR::Runtime *GLR::Runtime::_Instance = NULL;
+std::string GLR::Runtime::_GarFile="";
+
 GLR::Runtime::GLR_INITIALIZER GLR::Runtime::_Initializer = NULL;
 Galaxy::GalaxyRT::CProcess  *GLR::Runtime::_pCProcess= NULL;
 
@@ -79,7 +81,7 @@ void Runtime::Entry( const std::string &gar,const std::string &module, const std
 {
     LN_ID_TYPE main_node_id = Process::CreateNode();
     Process &main_node = Process::GetNodeById(main_node_id);
-
+    _GarFile=gar;
     main_node.EntryGar(gar,module,entry);
     main_node.Start(*_Schedule);
 }
