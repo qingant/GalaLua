@@ -43,9 +43,7 @@ void Process::SendMsg( const LN_MSG_TYPE &msg )
     if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
     {
         Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock);
-        GALA_DEBUG("Push Direct!To %d %d", Id(), msg.size());
         GLR_BUS_HEAD *head = (GLR_BUS_HEAD*)&msg[0];
-        GALA_DEBUG("Reintepret");
         lua_pushinteger(_Stack, head->Head.Type);
         lua_newtable(_Stack);
         lua_pushstring(_Stack, head->Source.Host);
@@ -208,7 +206,7 @@ int Process::Spawn( lua_State *l )
 
 Process & Process::GetNodeById( LN_ID_TYPE id)
 {
-    if (id >= NodeMap.size())
+    if ((size_t)id >= NodeMap.size())
     {
         THROW_EXCEPTION_EX("Process Not Exist");
     }
@@ -465,7 +463,6 @@ int Process::Recieve( lua_State *l )
     try
     {
         LN_MSG_TYPE msg = self.RecvMsg();
-        GALA_DEBUG("Get %d Size(%d)", self_id, msg.size());
 
         GLR_BUS_HEAD *head = (GLR_BUS_HEAD*)&msg[0];
         lua_pushinteger(self._Stack, head->Head.Type);
@@ -666,7 +663,7 @@ void Process::Destory( LN_ID_TYPE pid)
 
 }
 
-void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::MSG_TYPE type)
+void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::MSG_TYPE /*type*/)
 {
     Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
@@ -721,7 +718,6 @@ int Process::AllProcesses( lua_State *l )
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
     lua_pushboolean(l, 1);
     lua_newtable(l);
-    int i = 0;
     for (size_t i = 0; i != NodeMap.size(); ++i)
     {
         Process *p = NodeMap[i];
@@ -881,7 +877,6 @@ int GLR::Process::MessageAvailable( lua_State *l )
     lua_getglobal(l, "__id__");
     //lua_pushlstring("id");
     LN_ID_TYPE self_id = luaL_checkinteger(l, -1);
-    LN_ID_TYPE id = luaL_checkinteger(l, 1);
     Process &self = GetNodeById(self_id);
     lua_pushboolean(l, self._Channel.Empty()?0:1);
     return 1;
@@ -893,7 +888,7 @@ int GLR::Process::GLRStamp( lua_State *l )
     return 1;
 }
 
-int GLR::Process::Exit( lua_State *l )
+int GLR::Process::Exit( lua_State */*l*/ )
 {
     //TODO: 判断调用方进程号，只有主进程（0号）方可exit
     //TODO: 使用其他信号，优雅可控的退出程序

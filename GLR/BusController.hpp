@@ -95,9 +95,6 @@ namespace GLR
                 assert(buf.size()<1024*1024);
                 Buffer.resize(sizeof(GLR_BUS_HEAD)+buf.size(), 0);
                 *((uint32_t*)&Buffer[0]) = htonl(buf.size()+sizeof(GLR_BUS_HEAD) -4);
-                GLR_BUS_HEAD *pHead = (GLR_BUS_HEAD *)Buffer.c_str();
-                
-                //GALA_DEBUG("--------------- %d   %d", *((uint32_t*)&Buffer[0]), buf.size()+sizeof(GLR_MSG) -1);
                 memcpy(&Buffer[sizeof(GLR_BUS_HEAD)], buf.c_str(), buf.size());
 
             }
