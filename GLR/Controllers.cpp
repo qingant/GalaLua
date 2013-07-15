@@ -8,7 +8,7 @@ void Clock::Request( lua_State *l )
     int type = luaL_checkinteger(l, 2);
     lua_getglobal(l,"__id__");
     int pid = luaL_checkinteger(l,-1);
-    Process &nd = Runtime::GetInstance().GetProcess(pid);
+    //Process &nd = Runtime::GetInstance().GetProcess(pid);
     if (type == GET_TIME)
     {
         //lua_pushinteger(l, _Timer.GetTimeStamp());

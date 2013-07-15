@@ -34,9 +34,9 @@ namespace GLR
         LinkStack(Galaxy::GalaxyRT::CSocket*);
         virtual ~LinkStack();
     public:
-        virtual void PutRecvTask(int pid, size_t len){THROW_EXCEPTION_EX("Operation Not Supported");}
-        virtual void PutSendTask(int pid, const std::string &){THROW_EXCEPTION_EX("Operation Not Supported");}
-        virtual void PutAcceptTask(int pid){THROW_EXCEPTION_EX("Operation Not Supported");}
+        virtual void PutRecvTask(int /*pid*/, size_t /*len*/){THROW_EXCEPTION_EX("Operation Not Supported");}
+        virtual void PutSendTask(int , const std::string &){THROW_EXCEPTION_EX("Operation Not Supported");}
+        virtual void PutAcceptTask(int ){THROW_EXCEPTION_EX("Operation Not Supported");}
 
     public:
         virtual void OnErr(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&) = 0;
