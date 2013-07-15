@@ -6,7 +6,7 @@ local MAKEFILE_STATIC_PATH = "/opt/agree/gdk/share/Makefile.static"
 local function basename(pathname)
     local retval = string.reverse(pathname)
     retval = string.find(retval, "/")
-    return string.sub(pathname, retval)
+    return string.sub(pathname, -retval + 1)
 end
 
 local function suffix(pathname)
@@ -25,11 +25,12 @@ local function analysis(pathname)
     for var in handle:lines() do
         var = string.gsub(var, "^%s*(.-)%s*$", "%1")
         if string.len(var) > 0 then
-            if suffix(var) == ARCHIVE_SUFFIX_NAME then
+            local suffixname = suffix(var)
+            if suffixname == ARCHIVE_SUFFIX_NAME then
                 retval["archives"][#retval["archives"] + 1] = var
-            elseif suffix(var) == LUA_PCK_SUFFIX_NAME then
+            elseif suffixname == LUA_PCK_SUFFIX_NAME then
                 retval["scripts"][#retval["scripts"] + 1] = var
-            elseif not suffix(var) then
+            elseif not suffixname then
                 retval["scripts"][#retval["scripts"] + 1] = var
             end
         end

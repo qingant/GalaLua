@@ -129,8 +129,15 @@ int Process::Spawn( lua_State *l )
         // node.DoString(std::string(module, len));
         //lua_getglobal(node._Stack, "loadstring");
         //lua_pushlstring(node._Stack, module, len);
+        if (GLR::Runtime::_GarFile.empty())
+        {
+            node.Entry(module, method);  
+        }
+        else
+        {
+            node.EntryGar(GLR::Runtime::_GarFile,module, method);  
+        }
 
-        node.Entry(module, method);  
         /*
         lua_getglobal(node._Stack, "require");
         lua_pushstring(node._Stack, module);
@@ -422,9 +429,12 @@ void Process::Resume()
     //lua_newthread()
     else
     {
-        StackDump();
-        printf("Resume Return (%d)\n", rt);
+        GALA_DEBUG("Resume Return (%d)\n", rt);
+        lua_getglobal(_Stack, "debug");
+        lua_getfield(_Stack, -1, "traceback");
+        lua_pcall(_Stack, 0, 1, 0);      // this call should never fail
         const char *msg = luaL_checkstring(_Stack, -1);
+        GALA_DEBUG(msg);
         THROW_EXCEPTION_EX(msg);
 
     }
