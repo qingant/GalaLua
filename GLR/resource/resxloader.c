@@ -96,7 +96,7 @@ int resx_loader(lua_State * const state)
         const char * const resxname = luaL_checkstring(state, 2);
         fprintf(stdout, "File %s, Function %s, Line %d, resxname = %s.\n",
                 __FILE__, __FUNCTION__, __LINE__, resxname);
-        if (resx_environ_open(&resxenv, resxname) != 0)
+        if (resx_environ_open(&resxenv) != 0)
         {
             return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
                     __FILE__, __FUNCTION__, __LINE__);

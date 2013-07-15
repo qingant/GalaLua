@@ -126,9 +126,14 @@ int resx_environ_open(resx_environ_t * const resxenvp)
     return 0;
 }
 #else
-int resx_environ_open(resx_environ_t * const resxenvp, const char *pathname)
+int resx_environ_open(resx_environ_t * const resxenvp)
 {
-    if ((resxenvp->stream = fopen(pathname, "rb")) == NULL)
+    char pathname[4096 + 1];
+    pathname[sizeof(pathname) - 1] = '\0';
+    const pid_t pid = getpid();
+    snprintf(&pathname[0], sizeof(pathname) - 1, "/proc/%" PRIuMAX "/object/a.out",
+            (uintmax_t) pid);
+    if ((resxenvp->stream = fopen(&pathname[0], "rb")) == NULL)
     {
         fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
                 __FILE__, __FUNCTION__, __LINE__, strerror(errno));
