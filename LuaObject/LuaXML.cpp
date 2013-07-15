@@ -13,12 +13,12 @@ public:
     static int init(lua_State *L)
     {
         const char *key=luaL_optstring(L,1,NULL);
-        const char *val=NULL;
+        const char *val=luaL_optstring(L,2,NULL);
+
         CXMLElement **p=(CXMLElement  **)lua_newuserdata(L,sizeof(CXMLElement *));
 
         if(key!=NULL)
         {
-            val=luaL_optstring(L,2,NULL);
             if(val!=NULL)
             {
                 CALL_CPP_FUNCTION(L,*p=new CXMLElement(std::string(key),std::string(val)));
