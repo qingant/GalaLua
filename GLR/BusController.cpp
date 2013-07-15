@@ -403,25 +403,26 @@ void GLR::BusController::DoNodeReg( lua_State *l )
     }
     else
     {
-        Galaxy::GalaxyRT::CTCPSocketClient *c = new Galaxy::GalaxyRT::CTCPSocketClient(host, port);  // should be guard
-        MessageLinkStack *ms = new MessageLinkStack(c, _Router); // as above
+        std::auto_ptr<Galaxy::GalaxyRT::CTCPSocketClient> c(new Galaxy::GalaxyRT::CTCPSocketClient(host, port));  
+        std::auto_ptr<MessageLinkStack> ms(new MessageLinkStack(c.release(), _Router)); // as above
         try
         {
             ms->RegisterTo(host, port);
         }
         catch (Galaxy::GalaxyRT::CException& e)
         {
-            delete ms;
             std::string errmsg = "Cannot Register";
             Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
             return;
         }
         ms->_Gpid = des_pid;
-        _LinkMap[c->GetFD()] = ms;
+        _LinkMap[c->GetFD()] = ms.get();
         _Router.insert(std::make_pair(std::string(id), c->GetFD()));
         _Poller.Register(c->GetFD(), Galaxy::GalaxyRT::EV_IN);
+        
         GALA_ERROR("Return %d", pid);
         Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 1, LUA_TNUMBER, c->GetFD());
+        ms.release();
     }
 }
 
