@@ -422,9 +422,12 @@ void Process::Resume()
     //lua_newthread()
     else
     {
-        StackDump();
-        printf("Resume Return (%d)\n", rt);
+        GALA_DEBUG("Resume Return (%d)\n", rt);
+        lua_getglobal(_Stack, "debug");
+        lua_getfield(_Stack, -1, "traceback");
+        lua_pcall(_Stack, 0, 1, 0);      // this call should never fail
         const char *msg = luaL_checkstring(_Stack, -1);
+        GALA_DEBUG(msg);
         THROW_EXCEPTION_EX(msg);
 
     }
