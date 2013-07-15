@@ -11,22 +11,23 @@
 ##                          multi-threaded application. Requries _pthreads_.
 
 ##### Build defaults #####
+PLATFORM      =  $(shell uname)
 ifeq ($(PLATFORM),AIX)
 	CC  = xlc_r
 	CFLAGS =            -q64 -DNDEBUG
-	CJSON_LDFLAGS =     -qmkshrobj -q64 -L$(HOME)/lib -lluajit -lm 
+	CJSON_LDFLAGS =     -qmkshrobj -q64 -L$(HOME)/lib -lluajit -lm
 	AR          = ar
 	ARFLAGS     = -X64 -rc
 	RANLIB      = ranlib
 	RANLIBFLAGS = -X64
 else
-	CC          = gcc 
+	CC          = gcc
 	CFLAGS      = -O3 -Wall -pedantic -DNDEBUG
 	CJSON_LDFLAGS = -shared -L$(HOME)/lib -lluajit
 	AR          = ar
 	ARFLAGS     = -rcu
 	RANLIB      = ranlib
-	RANLIBFLAGS = 
+	RANLIBFLAGS =
 endif
 
 LUA_VERSION =       5.1

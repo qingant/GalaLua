@@ -1,11 +1,13 @@
-DES = pre stub rt amq cfg lua lobj lib glr mod db #pyo #app sup 
+DES = pre stub rt amq cfg lua lobj lib glr mod db #pyo #app sup
 all:$(DES)
 .PHONY:$(DES) static clean
 PLATFORM      =  $(shell uname)
 ifeq ($(PLATFORM), Linux)
 lua:luajit
+MAKE = make
 else
 lua:lua51
+MAKE = gmake
 endif
 
 pre:
@@ -13,43 +15,46 @@ pre:
 	mkdir -p $(HOME)/lib/lua
 	mkdir -p $(HOME)/share/static/lua
 stub:
-	make -C Stub all
+	$(MAKE) -C Stub all
 rt:
-	make -C Runtime
+	$(MAKE) -C Runtime
 amq:
-	make -C AMQ
+	$(MAKE) -C AMQ
 lua51:
-	make -C lua-5.1.5 && make -C lua-5.1.5 install
+	$(MAKE) -C lua-5.1.5 && $(MAKE) -C lua-5.1.5 install
 luajit:
-	make -C LuaJIT-2.0.0 && make -C LuaJIT-2.0.0 install
+	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 install
 glr:luajit
-	make -C GLR
+	$(MAKE) -C GLR
 lobj:
-	make -C LuaObject
+	$(MAKE) -C LuaObject
 # pyo:
-# 	make -C PyObject
+# 	$(MAKE) -C PyObject
 lib:
-	make -C Lib all
+	$(MAKE) -C Lib all
 mod:
-	make -C Modules
+	$(MAKE) -C Modules
 db:
-	make -C GalaDB
+	$(MAKE) -C GalaDB
 
 static: pre
-	make -C LuaJIT-2.0.0 && make -C LuaJIT-2.0.0 static
-	make -C Stub static
-	make -C Runtime static
-	make -C GLR static
-	make -C Lib static
-	make -C LuaObject static
+	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 static
+	$(MAKE) -C Stub static
+	$(MAKE) -C Runtime static
+	$(MAKE) -C GLR static
+	$(MAKE) -C Lib static
+	$(MAKE) -C LuaObject static
 
 clean:
-	make -C Stub clean
-	make -C Runtime clean
-	make -C AMQ clean
-	make -C lua-5.1.5 clean
-	make -C LuaJIT-2.0.0 clean
-	make -C GLR clean
-	make -C LuaObject clean
-	make -C Lib clean	
-	make -C GalaDB clean
+	$(MAKE) -C Stub clean
+	$(MAKE) -C Runtime clean
+	$(MAKE) -C AMQ clean
+ifeq ($(PLATFORM), Linux)
+	$(MAKE) -C LuaJIT-2.0.0 clean
+else
+	$(MAKE) -C lua-5.1.5 clean
+endif
+	$(MAKE) -C GLR clean
+	$(MAKE) -C LuaObject clean
+	$(MAKE) -C Lib clean
+	$(MAKE) -C GalaDB clean
