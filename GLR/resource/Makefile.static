@@ -42,7 +42,7 @@ glr_sl: glr_s $(USER_LUA_SCRIPT)
 	cp glr_s ./$@
 	$(PREFIX)/bin/mkresx -o luascript.resx $(USER_LUA_SCRIPT)
 	cat luascript.resx >> $@
-	rm -f luascript.resx
+	-rm -f luascript.resx
 
 .PHONY: install uninstall clean
 

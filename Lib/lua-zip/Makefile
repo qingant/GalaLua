@@ -1,12 +1,10 @@
-#all:zip.so
-#zip.so:
-# 
-# 	mv $@ $(HOME)/lib/lua/
-# 
-#clean:
-# 	rm -rf *.o
-# 	rm -rf *.so
-# 
+OBJ=lua_minizip.o
+
+#all:libzip.a minizip.a
+
+AR          = ar
+ARFLAGS     = -rcu $(ARFLAG)
+RANLIB      = ranlib
 
 PLATFORM=$(shell uname)
 LDFLG   = none
@@ -26,25 +24,21 @@ else ifeq (${PLATFORM},AIX)
 	RANLIBFLAGS = -X64
 endif
 
-all:libzip minizip
-
 libzip:
 	cd libzip-0.11.1 && ./configure && make -C lib && cp -af lib/.libs/libzip.so* $(HOME)/lib/
 
-minizip:
-	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c -o minizip.so -lluajit -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib 
-#	cp zloader.lua $(HOME)/lib/lua
-	cp print_r.lua $(HOME)/lib/lua	
-	cp -rf minizip.so $(HOME)/lib/lua
+#
+#minizip:
+#	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c  -o minizip.so -lluajit -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib 
+#	cp -rf minizip.so $(HOME)/lib/lua
+
 
 %.o: %.c
-	gcc -std=gnu99 -c $^ -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/
-
-.PHONY: static
+	$(CC) -std=c99 -c $^ -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/
 	
 static: minizip.a libzip.a
 
-minizip.a: lua_minizip.o
+minizip.a:$(OBJ)
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
 	cp -rf minizip.a $(HOME)/share/static/lua
