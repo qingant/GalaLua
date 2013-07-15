@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS=dist-xz foreign
 
 ACLOCAL_AMFLAGS=	-I m4
 
-SUBDIRS=lib src man regress
+SUBDIRS=lib src regress
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libzip.pc
