@@ -13,7 +13,7 @@ endif
 all:lightningmdb.so
 
 lightningmdb.so:lightningmdb.o ../lmdb/mdb.o ../lmdb/midl.o
-	$(GCC) $(LNKFLAG) -L$(HOME)/lib -lm -o $@ $?
+	$(GCC) $(LNKFLAG) -L$(HOME)/lib -lluajit -lm -o $@ $?
 	mv $@  $(HOME)/lib/lua
 
 clean:
