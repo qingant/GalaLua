@@ -20,6 +20,6 @@ linenoise.dylib: $(OBJECTS)
 	gcc -o $@ -bundle -undefined dynamic_lookup $^ $(OPT_LIB)
 else
 linenoise.so: $(OBJECTS)
-	$(GCC) -o $@ $(LNKFLAG) $(SYTMLIB) $^ $(OPT_LIB) $(LIBDIR) -lluajit
+	$(GCC) -o $@ $(LNKFLAG) $(SYTMLIB) $^ $(OPT_LIB) $(LIBDIR)
 endif
 

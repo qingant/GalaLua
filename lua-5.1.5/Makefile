@@ -67,7 +67,7 @@ install: dummy
 	cd src && $(INSTALL_DATA) $(TO_LIB) $(INSTALL_LIB)
 	cd doc && $(INSTALL_DATA) $(TO_MAN) $(INSTALL_MAN)
 	ln -f -s $(INSTALL_BIN)/lua $(HOME)/bin/lua
-	mv $(INSTALL_LIB)/libluajit.a $(HOME)/share/static
+	cp -rf $(INSTALL_LIB)/libluajit.a $(HOME)/share/static
 	mkdir -p $(HOME)/include/luajit
 	cp -rf $(INSTALL_INC)/* $(HOME)/include/luajit/
 uninstall:

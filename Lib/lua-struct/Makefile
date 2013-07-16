@@ -7,10 +7,10 @@ ifeq (${PLATFORM},Linux)
 	AR          = ar
 	ARFLAGS     = -rcu
 	RANLIB      = ranlib
-	RANLIBFLAGS = 
+	RANLIBFLAGS =
 else ifeq (${PLATFORM},AIX)
-    LDFLG = -qmkshrobj
-	CC=xlc_r -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lluajit -lm
+    LDFLG = -qmkshrobj -q64 -bM:SRE -bnoentry -brtl -brtllib -berok
+	CC=xlc_r -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lm
 	AR          = ar
 	ARFLAGS     = -X64 -rcu
 	RANLIB      = ranlib

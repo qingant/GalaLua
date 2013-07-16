@@ -13,17 +13,17 @@ libresource.so: resource.o bswap.o
 	mv $@ $(HOME)/lib
 
 libresxloader.so: resxloader.o
-	$(GCC) -o $@ $^ $(LNKFLAG) $(SYTMLIB) $(LIBDIR) -lresource -lluajit
+	$(GCC) -o $@ $^ $(LNKFLAG) $(SYTMLIB) $(LIBDIR) -lresource
 	mv $@ $(HOME)/lib
 
 test.out: test.o resource.o bswap.o
 	$(GCC) -o $@ $^ $(SYTMLIB)
 
 test_lua.out: test_lua.o
-	$(GCC) -o $@ $^ $(SYTMLIB) $(LIBDIR) -lresource -lluajit
+	$(GCC) -o $@ $^ $(SYTMLIB) $(LIBDIR) -lresource
 
 test_lua2.out: test_lua2.o
-	$(GCC) -o $@ $^ $(SYTMLIB) $(LIBDIR) -lresource -lluajit
+	$(GCC) -o $@ $^ $(SYTMLIB) $(LIBDIR) -lresource
 
 .PHONY: test test_lua test_lua2 #clean
 

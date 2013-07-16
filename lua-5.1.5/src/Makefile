@@ -7,13 +7,16 @@
 # Your platform. See PLATS for possible values.
 PLAT= none
 
-CC= gcc
 CFLAGS= -O2 -Wall $(MYCFLAGS)
 PLATFORM      =  $(shell uname)
 ifeq ($(PLATFORM),AIX)
 AR= ar -X64 rcs
+CC= xlc_r
+LDFLAGS += -q64 -qmkshrobj -q64 -brtl -brtllib -berok -lm
 else
 AR= ar rcs
+CC= gcc
+LDFLAGS += -shared
 endif
 RANLIB= ranlib
 RM= rm -f
@@ -26,7 +29,8 @@ MYLIBS=
 
 PLATS= aix ansi bsd freebsd generic linux macosx mingw posix solaris
 
-LUA_A=	libluajit.a
+LUA_A  =	libluajit.a
+LUA_SO = libluajit.so
 CORE_O=	lapi.o lcode.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o \
 	lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o  \
 	lundump.o lvm.o lzio.o
@@ -40,7 +44,7 @@ LUAC_T=	luac
 LUAC_O=	luac.o print.o
 
 ALL_O= $(CORE_O) $(LIB_O) $(LUA_O) $(LUAC_O)
-ALL_T= $(LUA_A) $(LUA_T) $(LUAC_T)
+ALL_T= $(LUA_A) $(LUA_SO) $(LUA_T) $(LUAC_T)
 ALL_A= $(LUA_A)
 
 default: $(PLAT)
@@ -54,6 +58,10 @@ a:	$(ALL_A)
 $(LUA_A): $(CORE_O) $(LIB_O)
 	$(AR) $@ $(CORE_O) $(LIB_O)	# DLL needs all object files
 	$(RANLIB) $@
+
+$(LUA_SO):$(CORE_O) $(LIB_O)
+	$(CC) $(LDFLAGS) -o $@ $?
+	mv $@ $(HOME)/lib
 
 $(LUA_T): $(LUA_O) $(LUA_A)
 	$(CC) -o $@ $(MYLDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)

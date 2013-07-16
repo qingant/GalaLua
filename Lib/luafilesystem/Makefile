@@ -12,7 +12,7 @@ OBJS= src/$T.o
 lib: src/lfs.so
 
 src/lfs.so: $(OBJS)
-	MACOSX_DEPLOYMENT_TARGET="10.3"; export MACOSX_DEPLOYMENT_TARGET; $(GCC) $(LNKFLAG) $(LIBDIR) $(SYTMLIB) -lluajit -o src/lfs.so $(OBJS)
+	MACOSX_DEPLOYMENT_TARGET="10.3"; export MACOSX_DEPLOYMENT_TARGET; $(GCC) $(LNKFLAG) $(LIBDIR) $(SYTMLIB) -o src/lfs.so $(OBJS)
 
 install:
 	#mkdir -p $(LUA_LIBDIR)

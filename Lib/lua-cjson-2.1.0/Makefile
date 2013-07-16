@@ -15,7 +15,7 @@ PLATFORM      =  $(shell uname)
 ifeq ($(PLATFORM),AIX)
 	CC  = xlc_r
 	CFLAGS =            -q64 -DNDEBUG
-	CJSON_LDFLAGS =     -qmkshrobj -q64 -L$(HOME)/lib -lluajit -lm
+	CJSON_LDFLAGS =     -qmkshrobj -q64 -bM:SRE -bnoentry -L$(HOME)/lib -brtl -brtllib -berok -lm
 	AR          = ar
 	ARFLAGS     = -X64 -rc
 	RANLIB      = ranlib
@@ -23,7 +23,7 @@ ifeq ($(PLATFORM),AIX)
 else
 	CC          = gcc
 	CFLAGS      = -O3 -Wall -pedantic -DNDEBUG
-	CJSON_LDFLAGS = -shared -L$(HOME)/lib -lluajit
+	CJSON_LDFLAGS = -shared -L$(HOME)/lib
 	AR          = ar
 	ARFLAGS     = -rcu
 	RANLIB      = ranlib
