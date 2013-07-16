@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="uft8"?>
+<Manifest>
+       <Version>1.0</Version>
+       <Name>sys</Name>   <!-- gar package name -->
+       <Author>wzhq</Author>
+       <Summary>gar package</Summary>
+       <Revision/>
+       <Compatibility>2.0</Compatibility>
+       <Date>2013/6/20 16:45:03</Date>  
+       <Catagory>Resource</Catagory>  <!-- Excutable/Resource -->
+       <Path>?.lua;aim/Service/?.lua</Path>  <!--lua module search dir in this gar package-->
+       <Root>aim</Root>    <!--root dir in this gar package-->
+</Manifest>
+
