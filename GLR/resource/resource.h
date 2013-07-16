@@ -114,7 +114,7 @@ void resx_node_init(resx_node_t * const resxnodep);
 #if defined(linux) || defined(__linux) || defined(__linux__)
 int resx_environ_open(resx_environ_t * const resxenvp);
 #else
-int resx_environ_open(resx_environ_t * const resxenvp, const char *pathname);
+int resx_environ_open(resx_environ_t * const resxenvp);
 #endif
 
 void resx_environ_close(resx_environ_t * const resxenvp);
