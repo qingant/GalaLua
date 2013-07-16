@@ -206,53 +206,7 @@ function get_option(key)
 	return arg_tab[key]
 end
 
-function run_gar(gar)
-    local cjson=require "cjson"
-    local zip=require "minizip"
-
-    function read_module_cache(zipfd)
-        local manifest="module.cache"
-        local f=zipfd:open(manifest)
-        local size=zipfd:stat(manifest).size
-        if size>0 then
-            return cjson.decode(f:read(size))
-        else
-            return {}
-        end
-    end
-    --search module in zipfd
-    --@mod:module
-    function search_module(zipfd,mod)
-        local max_id=zipfd:get_num_files()
-        if max_id then
-            for i=1,max_id do
-                local file=zipfd:get_name(i)
-                local module_name=file:match("/*([^/]+)%.lua$") 
-                if module_name==mod then
-                    return file
-                end
-            end
-        end
-    end
-
-    -- gar loader
-    function loader(modulename)
-        local gar=gar
-        local zipfd=zip.open(gar)
-        local file=read_module_cache(zipfd)[modulename] or search_module(zipfd,modulename)
-        if file then
-            local fstream=zipfd:open(file)
-            local str=fstream:read(zipfd:stat(file).size)
-            fstream:close()
-            return assert(loadstring(str))
-        end
-        zipfd:close()
-        return nil
-    end
-
-    table.insert(package.loaders,2,loader)
-
-end
+local gar=require "gar_loader"
+run_gar=gar.run_gar
 
 return M
-
