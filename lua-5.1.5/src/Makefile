@@ -84,7 +84,7 @@ none:
 	@echo "Please choose a platform:"
 	@echo "   $(PLATS)"
 
-aix:
+AIX:
 	$(MAKE) all CC="xlc_r" CFLAGS="-q64 -O2 -DLUA_USE_POSIX -DLUA_USE_DLOPEN" MYLIBS="-ldl" MYLDFLAGS="-q64 -brtl -bexpall"
 
 ansi:
@@ -99,7 +99,7 @@ freebsd:
 generic:
 	$(MAKE) all MYCFLAGS=
 
-linux:
+Linux:
 	$(MAKE) all MYCFLAGS=-DLUA_USE_LINUX MYLIBS="-Wl,-E -ldl -lreadline -lhistory -lncurses"
 
 macosx:

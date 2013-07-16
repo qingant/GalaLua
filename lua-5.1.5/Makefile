@@ -40,7 +40,7 @@ RANLIB= ranlib
 # == END OF USER SETTINGS. NO NEED TO CHANGE ANYTHING BELOW THIS LINE =========
 
 # Convenience platforms targets.
-PLATS= aix ansi bsd freebsd generic linux macosx mingw posix solaris
+PLATS= AIX ansi bsd freebsd generic Linux macosx mingw posix solaris
 
 # What to install.
 TO_BIN= lua luac
@@ -52,7 +52,7 @@ TO_MAN= lua.1 luac.1
 V= 5.1
 R= 5.1.5
 
-all:	$(PLAT)
+all:	$(PLATFORM)
 
 $(PLATS) clean:
 	cd src && $(MAKE) $@
@@ -61,7 +61,7 @@ test:	dummy
 	src/lua test/hello.lua
 
 install: dummy
-	cd src && $(MKDIR) $(INSTALL_BIN) $(INSTALL_INC) $(INSTALL_LIB) $(INSTALL_MAN) $(INSTALL_LMOD) $(INSTALL_CMOD) 
+	cd src && $(MKDIR) $(INSTALL_BIN) $(INSTALL_INC) $(INSTALL_LIB) $(INSTALL_MAN) $(INSTALL_LMOD) $(INSTALL_CMOD)
 	cd src && $(INSTALL_EXEC) $(TO_BIN) $(INSTALL_BIN)
 	cd src && $(INSTALL_DATA) $(TO_INC) $(INSTALL_INC)
 	cd src && $(INSTALL_DATA) $(TO_LIB) $(INSTALL_LIB)

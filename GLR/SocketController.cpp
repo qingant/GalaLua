@@ -168,7 +168,6 @@ void GLR::SocketController::DoServe( lua_State *l )
     lua_getglobal(l,"__id__");
     int pid = luaL_checkinteger(l,-1);
     int domain = luaL_checkinteger(l, 3);
-    Process &nd = Runtime::GetInstance().GetProcess(pid);
     if (domain == AF_UNIX)
     {
         const char *path = luaL_checkstring(l, 4);
@@ -193,7 +192,6 @@ void GLR::SocketController::DoConn( lua_State *l )
 {
     lua_getglobal(l,"__id__");
     int pid = luaL_checkinteger(l,-1);
-    Process &nd = Runtime::GetInstance().GetProcess(pid);
     int  domain = luaL_checkinteger(l, 3);
     if (domain == AF_UNIX)
     {
@@ -353,7 +351,7 @@ GLR::StreamLinkStack::~StreamLinkStack()
 
 }
 
-void GLR::StreamLinkStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLLERTYPE &_Poller )
+void GLR::StreamLinkStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/, POLLERTYPE &/*_Poller*/ )
 {
     StreamLinkStack *ls = this;
     while (!ls->_RecvTasks.Empty())
@@ -384,9 +382,6 @@ void GLR::StreamLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POL
 
         t.Current += len;
 
-        GALA_ERROR("RECVLLLen(%d)", len);
-        GALA_ERROR("ARG(%d)", t.RecvArg.Len);
-        GALA_ERROR("RecvLen(%d)", t.Current);
         assert(t.Current <= t.RecvArg.Len);
         if (t.Current == t.RecvArg.Len)
         {
@@ -415,7 +410,7 @@ void GLR::StreamLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev , PO
     Task &t = _SendTasks.Head();
     size_t len = _Sock->Send(&t.Buffer[t.Current], t.Buffer.size() - t.Current);
     t.Current += len;
-    GALA_ERROR("Current(%d)", t.Current);
+    GALA_ERROR("Current(%ld)", t.Current);
     if (t.Current == t.Buffer.size())
     {
         int pid = t.Pid;
@@ -453,7 +448,7 @@ void GLR::StreamServerStack::PutAcceptTask( int pid )
     _RecvTasks.Put(t);
 }
 
-void GLR::StreamServerStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLLERTYPE &_Poller )
+void GLR::StreamServerStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/, POLLERTYPE &/*_Poller*/ )
 {
     StreamServerStack *ls = this;
     while (!ls->_RecvTasks.Empty())

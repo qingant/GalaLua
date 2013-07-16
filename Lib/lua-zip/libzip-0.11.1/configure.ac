@@ -2,7 +2,7 @@ AC_PREREQ(2.57)
 AC_INIT([libzip],[0.11.1],[libzip@nih.at])
 AC_CONFIG_SRCDIR([lib/zip_add.c])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_MACRO_DIR([m4])
+#AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
 
 dnl AC_CANONICAL_HOST
@@ -31,7 +31,7 @@ then
 fi
 
 AC_CHECK_LIB(z, main)
-AC_CACHE_CHECK(new ZLIB version, id_cv_lib_zlib_ok, 
+AC_CACHE_CHECK(new ZLIB version, id_cv_lib_zlib_ok,
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <zlib.h>]], [[extern ZEXPORT int unzOpen (const char *path);]])],[id_cv_lib_zlib_ok=yes],[id_cv_lib_zlib_ok=no]))
 if test "$id_cv_lib_zlib_ok" = "no"
 then
@@ -82,7 +82,7 @@ in
     *bsd*) MANFMT=mdoc;;
     *) MANFMT=man;;
 esac
-AC_SUBST([MANFMT])
+#AC_SUBST([MANFMT])
 
 AH_BOTTOM([
 #ifndef HAVE_SSIZE_T
@@ -101,7 +101,6 @@ typedef long long ssize_t;
 AC_CONFIG_FILES([Makefile
 		 libzip.pc
 		 libzip-uninstalled.pc
-		 man/Makefile
 		 lib/Makefile
 		 regress/Makefile
 		 src/Makefile])

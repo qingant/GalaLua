@@ -108,15 +108,11 @@ void GLR::MessageServerStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &, POL
 
 }
 
-void GLR::MessageServerStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLLERTYPE &_Poller )
+void GLR::MessageServerStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/, POLLERTYPE &_Poller )
 {
     int recvfd = _Sock->Accept(NULL, NULL);
-    //    printf("****************************************GLR::MessageServerStack::OnRecv  %d \n",recvfd);
     _LinkMap[recvfd] = new MessageLinkStack(new Galaxy::GalaxyRT::CSocket(recvfd), _Router);
     _Poller.Register(recvfd, Galaxy::GalaxyRT::EV_IN);
-    //_Poller.Remove(ev.first, Galaxy::GalaxyRT::EV_IN);
-    //Runtime::GetInstance().GetBus().Response(t.Pid, 1, LUA_TNUMBER, recvfd);
-    //_RecvTasks.Get();
 }
 
 void GLR::MessageServerStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE& )
@@ -187,7 +183,7 @@ void GLR::MessageLinkStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLE
 
 }
 
-void GLR::MessageLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLLERTYPE &_Poller)
+void GLR::MessageLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/, POLLERTYPE &/*_Poller*/)
 {
     //int fd = ev.first;
     GALA_DEBUG("%d", _RecvTask.Len);
@@ -195,10 +191,8 @@ void GLR::MessageLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, PO
     {
         size_t len = _Sock->Recv(((char*)&_RecvTask.Len)+_RecvTask.HeadCurrent, 4-_RecvTask.HeadCurrent);
         _RecvTask.HeadCurrent += len;
-        GALA_DEBUG("HeadCurrent %d", _RecvTask.HeadCurrent);
         if (_RecvTask.HeadCurrent == 4)
         {
-            GALA_DEBUG("Len %d %d", _RecvTask.Len, ntohl(_RecvTask.Len));
             _RecvTask.Len = ntohl(_RecvTask.Len);
             assert(_RecvTask.Len < 1024*1024);
             _RecvTask.Buffer.resize(_RecvTask.Len + 4, 0);
@@ -211,15 +205,12 @@ void GLR::MessageLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, PO
         ssize_t len = _Sock->Recv(&_RecvTask.Buffer[_RecvTask.Current],_RecvTask.Len -_RecvTask.Current+4);
         if (len < 0)
         {
-            GALA_DEBUG("Recv Error");
             THROW_EXCEPTION_EX("recv error");
         }
         _RecvTask.Current += len;
-        GALA_DEBUG("%d %d %d", len, _RecvTask.Len, _RecvTask.Current);
         if ((_RecvTask.Current - 4) == _RecvTask.Len)
         {
             OnMessage(_RecvTask.Buffer);
-            //Runtime::GetInstance().GetBus().Send(_Gpid, _RecvTask.Buffer);
             _RecvTask = Task();
         }
     }
@@ -403,25 +394,26 @@ void GLR::BusController::DoNodeReg( lua_State *l )
     }
     else
     {
-        Galaxy::GalaxyRT::CTCPSocketClient *c = new Galaxy::GalaxyRT::CTCPSocketClient(host, port);  // should be guard
-        MessageLinkStack *ms = new MessageLinkStack(c, _Router); // as above
+        std::auto_ptr<Galaxy::GalaxyRT::CTCPSocketClient> c(new Galaxy::GalaxyRT::CTCPSocketClient(host, port));  
+        std::auto_ptr<MessageLinkStack> ms(new MessageLinkStack(c.release(), _Router)); // as above
         try
         {
             ms->RegisterTo(host, port);
         }
         catch (Galaxy::GalaxyRT::CException& e)
         {
-            delete ms;
             std::string errmsg = "Cannot Register";
             Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
             return;
         }
         ms->_Gpid = des_pid;
-        _LinkMap[c->GetFD()] = ms;
+        _LinkMap[c->GetFD()] = ms.get();
         _Router.insert(std::make_pair(std::string(id), c->GetFD()));
         _Poller.Register(c->GetFD(), Galaxy::GalaxyRT::EV_IN);
+        
         GALA_ERROR("Return %d", pid);
         Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 1, LUA_TNUMBER, c->GetFD());
+        ms.release();
     }
 }
 

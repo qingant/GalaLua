@@ -5,37 +5,41 @@ OBJ=lua_minizip.o
 AR          = ar
 ARFLAGS     = -rcu $(ARFLAG)
 RANLIB      = ranlib
-
+MAKE        = make
 PLATFORM=$(shell uname)
 LDFLG   = none
+CFLAGS  =
 ifeq (${PLATFORM},Linux)
 	LDFLG = -shared
-	CC=gcc -ansi -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
+	CFLAGS = -c -ansi -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
+	CC=gcc
 	AR          = ar
 	ARFLAGS     = -rcu
 	RANLIB      = ranlib
 	RANLIBFLAGS =
 else ifeq (${PLATFORM},AIX)
 	LDFLG = -qmkshrobj
-	CC=xlc_r -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lluajit -lm
+	CFLAGS = -c -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lluajit -lm
+	CC=xlc_r
 	AR          = ar
 	ARFLAGS     = -X64 -rcu
 	RANLIB      = ranlib
 	RANLIBFLAGS = -X64
+	MAKE        = gmake
 endif
 
 libzip:
-	cd libzip-0.11.1 && ./configure && make -C lib && cp -af lib/.libs/libzip.so* $(HOME)/lib/
+	cd libzip-0.11.1 && chmod +x configure && ./configure CC=$(CC) && OBJECT_MODE=64 $(MAKE) -C lib && cp -f lib/.libs/libzip.so* $(HOME)/lib/
 
 #
 #minizip:
-#	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c  -o minizip.so -lluajit -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib 
+#	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c  -o minizip.so -lluajit -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib
 #	cp -rf minizip.so $(HOME)/lib/lua
 
 
 %.o: %.c
-	$(CC) -std=c99 -c $^ -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/
-	
+	$(CC) $(CFLAGS) -std=c99 -c $^ -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/
+
 static: minizip.a libzip.a
 
 minizip.a:$(OBJ)
@@ -45,7 +49,7 @@ minizip.a:$(OBJ)
 	rm -f minizip.a
 
 libzip.a:
-	cd libzip-0.11.1 && ./configure && make -C lib && cp -af lib/.libs/libzip.a $(HOME)/share/static
+	cd libzip-0.11.1 && chmod +x configure && ./configure CC=$(CC) && OBJECT_MODE=64 $(MAKE) -C lib && cp -f lib/.libs/libzip.a $(HOME)/share/static
 
 clean:
 	-rm -f *.o *.a *.so
