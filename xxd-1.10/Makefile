@@ -2,8 +2,16 @@
 # Makefile for xxd
 #
 
-CC=gcc
-CFLAGS=-O
+OS=$(shell uname)
+ifeq ($(OS),AIX)
+	MAKE = gmake
+	CC   = xlc_r
+	CFLAGS=-O
+else
+	MAKE = make
+	CC   = gcc
+	CFLAGS=-O
+endif
 
 all: xxd
 
