@@ -9,7 +9,7 @@ PLAT= none
 PLATFORM      =  $(shell uname)
 # Where to install. The installation starts in the src and doc directories,
 # so take care if INSTALL_TOP is not an absolute path.
-INSTALL_TOP= $(HOME)/lua5.1.5
+INSTALL_TOP= $(HOME)/luajit
 INSTALL_BIN= $(INSTALL_TOP)/bin
 INSTALL_INC= $(INSTALL_TOP)/include
 INSTALL_LIB= $(INSTALL_TOP)/lib
@@ -68,6 +68,8 @@ install: dummy
 	cd doc && $(INSTALL_DATA) $(TO_MAN) $(INSTALL_MAN)
 	ln -f -s $(INSTALL_BIN)/lua $(HOME)/bin/lua
 	mv $(INSTALL_LIB)/libluajit.a $(HOME)/share/static
+	mkdir -p $(HOME)/include/luajit
+	cp -rf $(INSTALL_INC)/* $(HOME)/include/luajit/
 uninstall:
 	rm -rf $(INSTALL_TOP)/bin/lua*
 	rm -rf $(INSTALL_TOP)/include/lua*

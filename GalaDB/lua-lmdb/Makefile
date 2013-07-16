@@ -2,76 +2,22 @@
 # based on lpack's
 
 # change these to reflect your Lua installation
-ifeq ($(LUAVER),5.2)
-  LUA=/Users/shmul/dev/sandbox/lua-5.2.0/src
-  LUAINC= $(LUA)
-  LUALIB= $(LUA)
-  LUABIN= $(LUA)
-else
-  LUA=$(HOME)
-  LUAINC= $(LUA)/include/luajit-2.0
-  LUALIB= $(LUA)/lib
-  LUABIN= $(LUA)/bin
+
+include ../mk.rules
+
+PLATFORM=$(shell uname)
+ifeq ($(PLATFORM),Darwin)
+  LDFLAGS += -undefined dynamic_lookup
 endif
 
+all:lightningmdb.so
 
-LMDB=$(HOME)
-LMDBINC= $(LMDB)
-LMDBLIB= $(LMDB)
-
-# probably no need to change anything below here
-platform=$(shell uname)
-
-ifeq ($(platform),Darwin)
-  PLATFORM_LDFLAGS= -undefined dynamic_lookup
-else
-  PLATFORM_LDFLAGS=
-endif
-WARN= -pedantic -Wall
-CFLAGS= $(INCS) $(WARN) $G -g  -fPIC
-LDFLAGS= -L$(LUALIB) -L$(LMDBLIB) -llmdb $(PLATFORM_LDFLAGS)
-INCS= -I$(LUAINC) -I$(LMDBINC) -I../lmdb/
-
-MYNAME= lightningmdb
-MYLIB= $(MYNAME)
-T= $(MYNAME).so
-OBJS= $(MYLIB).o
-TEST= test.lua
-
-all:	$T
-
-test:	$T
-	$(LUABIN)/lua $(TEST)
-
-o:	$(MYLIB).o
-
-so:	$T
-
-$T:	$(OBJS)
-	$(CC) -o $@ -shared $(OBJS) $(CFLAGS) $(LDFLAGS)
-	cp -rf $T $(HOME)/lib/lua
+lightningmdb.so:lightningmdb.o ../lmdb/mdb.o ../lmdb/midl.o
+	$(GCC) $(LNKFLAG) -L$(HOME)/lib -lluajit -lm -o $@ $?
+	mv $@  $(HOME)/lib/lua
 
 clean:
-	-rm -f $(OBJS) $T core core.* a.out
+	rm -rf *.so
+	rm -rf *.o
 
-doc:
-	@echo "$(MYNAME) library:"
-	@fgrep '/**' $(MYLIB).c | cut -f2 -d/ | tr -d '*' | sort | column
-
-# distribution
-
-D= $(MYNAME)
-A= $(MYLIB).tar.gz
-TOTAR= Makefile,README.md,$(MYLIB).c,test*.lua
-
-tar:	clean
-	tar zcvf $A -C .. $D/{$(TOTAR)}
-
-distr:	tar
-	touch -r $A .stamp
-
-diff:	clean
-	tar zxf $(FTP)/$A
-	diff $D .
-
-# eof
+.PHONY: all clean

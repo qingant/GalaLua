@@ -38,7 +38,7 @@ db:
 	$(MAKE) -C GalaDB
 
 static: pre
-	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 static
+#	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 static
 	$(MAKE) -C Stub static
 	$(MAKE) -C Runtime static
 	$(MAKE) -C GLR static

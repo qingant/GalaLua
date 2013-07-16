@@ -154,11 +154,11 @@ clean:
 
 .PHONY: all install amalg clean static
 
-static: 
+static:
 	$(MAKE) -C src static
 	$(INSTALL_F) src/$(FILE_A) $(INSTALL_STATIC)
-	mkdir -p $(HOME)/include/luajit-2.0
-	cp src/lauxlib.h  src/luaconf.h  src/lua.h  src/lualib.h $(HOME)/include/luajit-2.0
+	mkdir -p $(HOME)/include/luajit
+	cp src/lauxlib.h  src/luaconf.h  src/lua.h  src/lualib.h $(HOME)/include/luajit
 	make clean
 
 ##############################################################################
