@@ -5,6 +5,7 @@ local pprint=require "pprint"
 local path=require "path"
 local string=require "string"
 local cjson=require "cjson"
+local xml=require "xml"
 
 local Manifest="MANIFEST"
 local ModuleCache="module.cache"
@@ -25,61 +26,6 @@ function string.endwith(str,suffix)
     end
 end
 
-
-local main_lua=[[
-module(...,package.seeall)
-
-local cjson=require "cjson"
-local zip=require "minizip"
-
-local GAR=glr.get_option("g")
-print(GAR)
-
-function read_manifest(zipfd)
-    local manifest="MANIFEST"
-    local f=zipfd:open(manifest)
-    local size=zipfd:stat(manifest).size
-    if size>0 then
-        return cjson.decode(f:read(size))
-    else
-        return {}
-    end
-end
-
--- gar loader
-function loader(modulename)
-    local gar=GAR
-    local zipfd=zip.open(gar)
-    local file=read_manifest(zipfd)[modulename]
-    print("loader:",modulename,file)
-    if file then
-        local fstream=zipfd:open(file)
-        local str=fstream:read(zipfd:stat(file).size)
-        fstream:close()
-        return assert(loadstring(str))
-    end
-    zipfd:close()
-    return "error"
-end
-
-table.insert(package.loaders,2,loader)
-
-function main()
-    local module_name=glr.get_option("m")
-    local entry=glr.get_option("e")
-    
-    print("main:",module_name,entry)
-    local m=require(module_name)
-    
-    m[entry]()
-end
-
-if ...=="__main__" then
-    main()
-end
-
-]]
-
 --read module search cache file
 function read_cache(zipfd)
     local f=zipfd:open(ModuleCache)
@@ -91,18 +37,8 @@ function read_cache(zipfd)
     end
 end
 
---add main.lua to zip
-function add_main(zipfd,file)
-    if file then
-        add_file(zipfd,file,"main.lua")
-    else
-        add_string(zipfd,main_lua,"main.lua")
-    end
-end
-
---read @file from @gar
-function read_file(gar,file)
-    local zipfd=zip.open(gar)
+--read @file from opened gar package @zipfd
+function read_file(zipfd,file)
     local ret={}
     if not file then
         local max_id=zipfd:get_num_files()
@@ -119,8 +55,8 @@ function read_file(gar,file)
             file={file}
         end
         for i,v in pairs(file) do 
-            if zipfd:name_locate(v) then
-                local f=zipfd:open(v)
+            local f=zipfd:open(v)
+            if f then
                 ret[v]=f:read(zipfd:stat(v).size)
             end
         end
@@ -128,26 +64,65 @@ function read_file(gar,file)
 
     return ret
 end
---search module in zipfd
---@mod:module
-function search_module(zipfd,mod)
-    local max_id=zipfd:get_num_files()
-    if max_id then
-        for i=1,max_id do
-            local file=zipfd:get_name(i)
-            local module_name=file:match("/*([^/]+)%.lua$") 
-            if module_name==mod then
-                return file
-            end
-        end
-    end
+
+--[[
+<?xml version="1.0" encoding="uft8"?>
+<Manifest>
+       <Version>1.0</Version>
+       <Name>sys</Name>   <!-- gar package name -->
+       <Author>wzhq</Author>
+       <Summary>gar package</Summary>
+       <Revision/>
+       <Compatibility>2.0</Compatibility>
+       <Date>2013/6/20 16:45:03</Date>  
+       <Catagory>Resource</Catagory>  <!-- Excutable/Resource -->
+       <Path>?.lua;aim/Service/?.lua</Path>  <!--lua module search dir in this gar package-->
+       <Root>aim</Root>    <!--root dir in this gar package-->
+</Manifest>
+]]
+function add_manifest(zipfd,manifest_file)
+--    local root=xml.cxml_element("Manifest")
+--    root:add_sub_element(xml.cxml_element("Version","1.0"))
+--    root:add_sub_element(xml.cxml_element("Name","aim"))
+--    root:add_sub_element(xml.cxml_element("Author","aaa"))
+--    root:add_sub_element(xml.cxml_element("Summary","gar package"))
+--    root:add_sub_element(xml.cxml_element("Date",os.date('%F %H:%M')))
+--    root:add_sub_element(xml.cxml_element("Catagory","Excutable"))
+--    root:add_sub_element(xml.cxml_element("Path","?.lua"))
+
+--    local manifest=xml.cxml_writer(root)
+
+    add_file(zipfd,manifest_file,"Manifest")
 end
 
-function add_manifest(zipfd)
-    local t={version=0.1}
-    local manifest=cjson.encode(t)
-    add_string(zipfd,manifest,Manifest)
+--[[
+--check manifest and get gar file name 
+--@Manifest: file with xml structure
+--]]
+function check_and_get(Manifest)
+    local manifest=io.open(Manifest):read("*a")
+    local doc=xml.cxml_reader(manifest,#manifest)
+    local root=doc:document()
+    local ret={}
+    for i,elm in pairs(root:sub_elements()) do 
+        ret[elm:key()]=elm:value()
+    end
+    return ret
 end
+
+
+--FIXME: edit manifest,add Path,Name...
+function edit_manifest(zipfd)
+    local f=zipfd:open(Manifest)
+    if f then
+        local str=f:read(zipfd:stat(Manifest).size)
+        local doc=xml.cxml_reader(str,#str)
+    else
+    end
+ 
+end
+
+
 
 --[[
 -- generate module cache file and add to zip package @zipfd.
@@ -242,31 +217,33 @@ function add2zip(zipfd,file,zipfile,not_recurse)
 end
 
 --[==[
--- @_out:the output zip file
+-- @_out:Manifest file
 -- @_in:the file want to zip. support multi paths in a table like {in_path=zip_path,...},
 --      zip in_path as zip_path, use in_path if zip_path is empty string.
 ]==]
-function create_zip(_out,_in)
-    assert(_out and _in,"invalid argument")
+function create_zip(manifest_file,_in)
+    assert(manifest_file and _in,"invalid argument")
     function remove_prefix_slash(str)
         local str=str or ""
         return  str:match("/*(.*)") 
     end
-    local zipfd=zip.open(_out,zip.CREATE)
-
+    local m=check_and_get(manifest_file)
+    local _out=assert(m.Name,"invalid Manifest file")
+    local zipfd=zip.open(_out..".gar",zip.CREATE)
+    
     if type(_in)=="string" then
         _in={[_in]=""}
     end
+    
 
     for in_path,as_path in pairs(_in) do
         if as_path=="" then
-            as_path=remove_prefix_slash(in_path)
+            as_path=m.Root or remove_prefix_slash(in_path)
         end
         add2zip(zipfd,in_path,as_path)
     end
-    add_manifest(zipfd)
-    add_cache(zipfd)
---    add_main(zipfd)
+    add_manifest(zipfd,manifest_file)
+--    add_cache(zipfd)
 
     zipfd:close()
 end
@@ -284,7 +261,7 @@ function cmds.pack(...)
         path[select(i,...)]=""
     end
     if not (gar and next(path))  then
-        io.write("gar pack xxx.gar path1 [path2]...\n")
+        io.write("gar pack manifest_file  path1 [path2]...\n")
         return 
     end
     
@@ -294,19 +271,22 @@ function cmds.pack(...)
     create_zip(gar,path)
 end
 
+function cmds.edit(gar)
+    if not gar then
+        io.write("gar edit xxx.gar\n")
+        return 
+    end
+    io.write("TODO\n")
+end
+
 --FIXME:better show format
 function cmds.show(gar)
     if not gar then
         io.write("gar show xxx.gar\n")
         return 
     end
-    local module_list=cjson.decode(read_file(gar,ModuleCache)[ModuleCache])
-    io.write("modules :   \n")
-    for m,f in pairs(module_list) do
-        local fmt=string.format("%s -- %s\n",m,f)
-        io.write(fmt)
---        io.write(m,":",f,"\n")
-    end
+    io.write("TODO \n")
+--    local zipfd=zip.open(gar)
 end
 
 function cmds.help()
@@ -341,13 +321,12 @@ function gar_completion(s,prefix)
 end
 
 function dir_completion(s,prefix)
-    if s=="" then
-        return gar_completion(s,prefix)
-    end
     local pre,arg=string.match(s,"(.*%s+)(.*)$")
-    if arg then
-        return _completion.path_completion(arg,prefix..pre)
+    if not arg then
+        arg=s
+        pre=""
     end
+    return _completion.path_completion(arg,prefix..pre)
 end
 
 completion={}
