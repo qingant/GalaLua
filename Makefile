@@ -37,7 +37,11 @@ mod:
 db:
 	$(MAKE) -C GalaDB
 static: pre
-#	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 static
+ifeq ($(PLATFORM) Linux)
+	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 static
+else
+	$(MAKE) -C lua-5.1.5 && $(MAKE) -C lua-5.1.5 install
+endif
 	$(MAKE) -C Stub static
 	$(MAKE) -C Runtime static
 	$(MAKE) -C GLR static
