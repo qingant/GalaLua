@@ -265,12 +265,10 @@ if ...=="__main__" then
     local _env=create()
     _conf=watchConf(_env)
 
-    --[[
-    entry={host="127.0.0.1",port=2000,index=0,group="wg1",stderr="stderr",stdout="stdout",module_name="ctr",entry="main"}
+    entry={host="127.0.0.1",port=2000,index=0,group="wg1",stderr="stderr",stdout="stdout",module_name="sup",entry="main"}
     _conf:save(entry)
-]]
 
-    _conf:import()
-    _conf:to_xml()
+--    _conf:import()
+--    _conf:to_xml()
     _conf:show()
 end
