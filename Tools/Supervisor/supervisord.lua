@@ -131,18 +131,22 @@ end
 function process(entry)
     local Process=p:new{entry=entry}
     
-    --FIXME:can not work right now
     function Process:stop()
+        self.last_cmd="stop"
+
         local state=self:get_state()
         if (state~=STATE.STOPPING) and (state ~=STATE.STOPPED) then
             self.entry.state=STATE.STOPPING
             --TODO:how to get child pid(send self_pid when it start??)
-            local stopcmd=self.entry.stopcmd or string.format("kill -9 %d",self.entry.status.pid)
+            local stopcmd=self.entry.stopcmd or string.format("kill -9 %d",self.entry.pid)
             execute(stopcmd)
-            self:wait_till_finished()
+    --        self:wait_till_finished()
         end
     end
-    
+   
+    --{{
+    -- TODO:add timeout?
+    --}}
     function Process:wait_till_finished()
         while true do
             local state=self:get_state()
@@ -206,8 +210,16 @@ function process(entry)
 
         return state
     end
-
+    
+    function Process:auto_start()
+        if self.last_cmd=="stop" then   --we just want to stop process 
+            return
+        end
+        self:start()
+        self.last_cmd="auto_start"
+    end
     function Process:start()
+        self.last_cmd="start"
         --can only start those not started
         local state=self:get_state()
         if (state~=STATE.RUNNING) and (state~=STATE.STARTING) then
@@ -223,15 +235,65 @@ function process(entry)
             --wait till it have started
             self:wait_till_finished()
         end
---        self:get_info()
+        self:getpid()
+    end
+    
+    function Process:get_info_from_inspector(cmd)
+        print("get_info_from_inspector........")
+        local addr={host=glr.sys.host,port=glr.sys.port,gpid=__id__}
+
+        local msg={Type="NODE",Action="GET",Cmd=cmd,ToAddr=addr,Nonstop=true}
+        pprint.pprint(msg,"MSG_TO")
+        if not glr.send({host=self.entry.host,port=self.entry.port,gpid=1},cjson.encode(msg)) then
+            print("send to inspector error...")
+        end
+
+        print("waiting for NODE RES.....")
+        while true do
+            local msg_type,addr,msg=glr.recv()
+            local msg_table=cjson.decode(msg)
+            pprint.pprint(msg_table,"NODE RES")
+            if msg_table.Type=="NODE" and 
+               msg_table.Action=="RES"  and 
+               msg_table.Cmd==cmd then
+                return msg_table.Content
+            end
+        end
     end
 
-    --XXX:should call glr.recv after this function to get the information
-    function Process:get_info()
+    --[[
+    --get process pid 
+    --]]
+    function Process:getpid()
+        pprint.pprint(self.entry,"getpid...........")
         local state=self:get_state()
-        if (state==STATE.RUNNING) then
-            glr.get_info(self.entry.host,self.entry.port)
+        if state==STATE.RUNNING then
+            --XXX:only get pid when there's `nil
+            if not self.entry.pid then
+                self.entry.pid=self:get_info_from_inspector("pid").pid
+            end
         end
+        print("get pid:",self.entry.pid)
+    end
+    
+    --FIXME: what should return when the process is stopped
+    --TODO: we should collect some information when calling process start
+    function Process:status()
+        self.last_cmd="status"
+        local state=self:get_state()
+        if state==STATE.RUNNING then
+            self.entry.status=self:get_info_from_inspector("status")
+        else
+            return self.entry.status
+        end
+    end
+
+    --XXX:export self.entry, with it can rebuild Exactly the same process object.
+    --    in order to send a process_object to other glr node, we must 
+    --    use "cjson.encode" function to encode a process object to json string.
+    --    cjson.encode(table1):there is no meaning if some of table1's value are functions.
+    function Process:export()
+        return self.entry
     end
 
     return Process
@@ -261,8 +323,8 @@ function supervisor()
      --[[
     --  return the configure find by @id 
     --]]
-    function get_config_by_id(id)
-        return self._conf:get_config_by_id(id)[1]
+    function Supervisor:get_config_by_id(id)
+        return self._conf:get_config_by_id(id)
     end
 
     --[[
@@ -273,7 +335,7 @@ function supervisor()
     --    ...
     -- }
     --]]
-    function get_config(group,name)
+    function Supervisor:get_config(group,name)
         return self._conf:get_config(group,name)
     end
    
@@ -320,7 +382,7 @@ function supervisor()
         end
         
         self.processes[e.group][token]=process(e)
-        return self.process[e.group][token]
+        return self.processes[e.group][token]
     end
     
     --[[
@@ -335,48 +397,43 @@ function supervisor()
         print("update_state")
     end
 
-    --TODO: do not work right now
-    function Supervisor:save_status(addr,status)
-        for i,e in pairs(self.processes) do
-            for _,process in pairs(e) do
-                pprint.pprint(process,"aaaaaa")
-                if process:get_state()==STATE.RUNNING then
-                    if process.entry.host==addr.host and process.entry.port==addr.port then
-                         process.status=status
-                         return true
-                    end
-                end
-            end
-        end
-    end
-
     return Supervisor
 end
 
 function main()
     node=supervisor()
-    local cmds={start="",stop="",status="",config=""}
+    local cmds={start="",status="",config=""}
     while true do
         local msg_type, addr, msg = glr.recv()
 
         if msg_type == glr.CLOSED then
             local conf_entry=node:get_config_by_id(addr.host)
-            pprint.pprint(conf_entry,"RESTART")
-            if conf_entry then
-                local err,id=glr.spawn("watch","run_cmd",cjson.encode(conf_entry),"start")
+            if conf_entry[1] then
+                local proc=node:get_processes_by_entries(conf_entry)[1]
+                pprint.pprint(proc,"RESTART")
+                if proc.last_cmd~="stop" then
+                    local err,id=glr.spawn("supervisord","run_cmd",cjson.encode(conf_entry),"start")
+                end
             end
         elseif MSG_TYPE.APP==msg_type then
             local msg_table=cjson.decode(msg)
             local cmd=msg_table.cmd
             if cmd=="return" then   --message from run_cmd function
-                pprint.pprint(msg_table)
+                print("return from spawn ............")
+                pprint.pprint(msg_table,"return")
                 node:attach(msg_table.content)
+            elseif cmd=="stop" then
+                local procs=node:get_processes(msg_table.group or DefaultGroup,msg_table.name)
+                pprint.pprint(procs,"STOPP")
+                for i,e in ipairs(procs) do   --procs may have more than one item
+                    e:stop()
+                end
             elseif cmds[cmd] then   --message from client
                 print(("*"):rep(20),msg,("*"):rep(20))
 
-                local conf_entry=node:get_config(msg_table.group or DefaultGroup,msg_table.name)
-                for i,e in ipairs(conf_entry) do   --conf_entry may have more than one item
-                    local err,id=glr.spawn("watch","run_cmd",cjson.encode(e),msg_table.cmd)
+                local procs=node:get_processes(msg_table.group or DefaultGroup,msg_table.name)
+                for i,e in ipairs(procs) do   --procs may have more than one item
+                    local err,id=glr.spawn("supervisord","run_cmd",cjson.encode(e:export()),msg_table.cmd)
                 end
 
             end
@@ -402,19 +459,20 @@ end
 --  }
 --
 --]]
-function run_cmd(conf,cmd)
-    local conf_entry=cjson.decode(conf) 
-    local _p=process(conf_entry)
+function run_cmd(proc,cmd)
+    local proc=cjson.decode(proc) 
+    local _p=process(proc)
     _p[cmd](_p)
 
     local msg_table={}
     msg_table.cmd="return"
-    msg_table.content=conf_entry
+    msg_table.content=_p:export()
 
     glr.send({host=glr.sys.host,port=glr.sys.port,gpid=0},cjson.encode(msg_table))
     print("run_cmd over")
 end
 
 if ...=="__main__" then
+    print("supervisord is running...")
     main()
 end
