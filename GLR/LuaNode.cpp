@@ -13,10 +13,16 @@ Galaxy::GalaxyRT::CRWLock Process::Lock;
 int32_t Process::NodeId;
 
 
-Process::Process(void)
+Process::Process(int id)
     :_Stack(lua_open()),
-    _Id(NodeId++)
+    _Id(id == 0?NodeId++:id)
 {
+    // step over supervisor binded pid
+    if (NodeId == 1)
+    {
+        NodeId += 12;    // reserve first 12 id for special services
+    }
+
     if (_Stack == NULL)
     {
         THROW_EXCEPTION_EX("Create Lua Stack Failure");
@@ -83,14 +89,7 @@ LN_MSG_TYPE Process::RecvMsg()
 
 LN_ID_TYPE Process::CreateNode()
 {
-    //std::auto_ptr<Process> node(new Process());
-    Process *node = new Process();
-    printf("Node(%p:%d) Created!\n", node, node->_Id);
-    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
-    Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
-    //NodeMap.insert(std::make_pair(node->_Id, node));
-    NodeMap[node->_Id] = node;
-    return node->_Id;
+    return CreateNode(0);
 }
 int Process::Spawn( lua_State *l )
 {
@@ -212,6 +211,7 @@ Process & Process::GetNodeById( LN_ID_TYPE id)
     }
 
     Process *p = NodeMap[id];
+
     if (p == NULL)
     {
         THROW_EXCEPTION_EX("Process Not Exist");
@@ -366,7 +366,8 @@ int Process::SendMsgToNode( lua_State *l )
     head->Head.Len = len+sizeof(*head) - 4;
     head->Source.Gpid = self_id;
     memcpy((void*)&pack_msg[sizeof(*head)], msg, len);
-    GetNodeById(id).SendMsg(pack_msg);
+    //GetNodeById(id).SendMsg(pack_msg);
+    SendMsgToNode(id, pack_msg);
     lua_pushboolean(l, 1);
     return 1;
 }
@@ -428,6 +429,7 @@ void Process::Resume()
     else
     {
         GALA_DEBUG("Resume Return (%d)\n", rt);
+        StackDump();
         lua_getglobal(_Stack, "debug");
         lua_getfield(_Stack, -1, "traceback");
         lua_pcall(_Stack, 0, 1, 0);      // this call should never fail
@@ -665,20 +667,20 @@ void Process::Destory( LN_ID_TYPE pid)
 
 void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::MSG_TYPE /*type*/)
 {
-    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
-    Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+
     try
     {
-        /*       std::string pack_msg(msg.size() + sizeof(MSG_HEAD),0);
-        MSG_HEAD *head = (MSG_HEAD*)&pack_msg[0];
-        head->Type = type;
-        head->GPid = -1;
-        head->Len = msg.size();
-        memcpy((void*)&pack_msg[sizeof(*head)], msg.c_str(), msg.size());*/
+        Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
+        Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+        
         GetNodeById(pid).SendMsg(msg);
     }
     catch (Galaxy::GalaxyRT::CException &e)
     {
+        if (GetNodeExceptionHandle(pid))
+        {
+            SendMsgToNode(pid, msg);
+        }
         GALA_DEBUG("Send To (%d) err:\n%s", pid, e.what());
     }
 
@@ -838,10 +840,12 @@ void GLR::Process::EntryGar(const std::string &Gar,const std::string &module, co
     lua_getglobal(_Stack, "glr");
     lua_getfield(_Stack,-1,"run_gar");
     lua_pushstring(_Stack, Gar.c_str());
-    if (lua_pcall(_Stack, 1, 1, 0) != 0)
+    lua_getglobal(_Stack, "debug");
+    lua_getfield(_Stack, -1, "traceback");
+    if (lua_pcall(_Stack, 1, 1, -1) != 0)
     {
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
-        StackDump();
+        //StackDump();
         THROW_EXCEPTION_EX(msg);
     }
     Entry(module,entry);
@@ -894,5 +898,55 @@ int GLR::Process::Exit( lua_State */*l*/ )
     //TODO: 使用其他信号，优雅可控的退出程序
     return kill(getpid(), SIGKILL);
 }
+
+void GLR::Process::CreateSpyer()
+{
+
+    CreateNode(SpyerId);
+
+    Process &spyer = GetNodeById(SpyerId);
+    lua_getglobal(spyer._Stack, "glr");
+    lua_getfield(spyer._Stack,-1,"run_spyer");
+    spyer.Start(GLR::Runtime::GetInstance().GetSchedule());
+
+    /*lua_State *l = spyer._Stack;
+    lua_getglobal(l, "glr");
+    lua_getfield(l,-1,"runSpyer");
+    lua_getglobal(l, "debug");
+    lua_getfield(l, -1, "traceback");
+    if (lua_pcall(l, 1, 1, -1) != 0)
+    {
+    const char *msg = luaL_checkstring(l,-1);
+    GALA_ERROR(msg);
+    THROW_EXCEPTION_EX(msg);
+    }
+    */
+}
+
+GLR::LN_ID_TYPE GLR::Process::CreateNode( int id)
+{
+    Process *node = new Process(id);
+    printf("Node(%p:%d) Created!\n", node, node->_Id);
+    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+    //NodeMap.insert(std::make_pair(node->_Id, node));
+    NodeMap[node->_Id] = node;
+    return node->_Id;
+}
+
+bool GLR::Process::GetNodeExceptionHandle( LN_ID_TYPE pid)
+{
+
+    if (pid == SpyerId)
+    {
+        CreateSpyer();
+        return true;
+    }
+    return false;
+    
+}
+
+
+
 
 

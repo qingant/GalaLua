@@ -37,7 +37,7 @@ mod:
 db:
 	$(MAKE) -C GalaDB
 static: pre
-ifeq ($(PLATFORM) Linux)
+ifeq ($(PLATFORM), Linux)
 	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 static
 else
 	$(MAKE) -C lua-5.1.5 && $(MAKE) -C lua-5.1.5 install

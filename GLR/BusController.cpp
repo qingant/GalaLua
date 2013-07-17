@@ -395,6 +395,7 @@ void GLR::BusController::DoNodeReg( lua_State *l )
     else
     {
         std::auto_ptr<Galaxy::GalaxyRT::CTCPSocketClient> c(new Galaxy::GalaxyRT::CTCPSocketClient(host, port));  
+        int cFd = c->GetFD();
         std::auto_ptr<MessageLinkStack> ms(new MessageLinkStack(c.release(), _Router)); // as above
         try
         {
@@ -407,12 +408,12 @@ void GLR::BusController::DoNodeReg( lua_State *l )
             return;
         }
         ms->_Gpid = des_pid;
-        _LinkMap[c->GetFD()] = ms.get();
-        _Router.insert(std::make_pair(std::string(id), c->GetFD()));
-        _Poller.Register(c->GetFD(), Galaxy::GalaxyRT::EV_IN);
+        _LinkMap[cFd] = ms.get();
+        _Router.insert(std::make_pair(std::string(id), cFd));
+        _Poller.Register(cFd, Galaxy::GalaxyRT::EV_IN);
         
         GALA_ERROR("Return %d", pid);
-        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 1, LUA_TNUMBER, c->GetFD());
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 1, LUA_TNUMBER, cFd);
         ms.release();
     }
 }
