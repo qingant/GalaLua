@@ -202,6 +202,9 @@ function _Importer:new( o )
 end
 function _Importer:importFromXML( path , root)
     local t=io.open(path,"r"):read("*a")
+    self:importFromXMLBuffer(t, root)
+end
+function _Importer:importFromXMLBuffer( buf, root )
     local reader = xml.cxml_reader(t,#t)
     local xRoot = reader:document()
     local dRoot = self._db:get_root(root)
@@ -212,8 +215,7 @@ function _Importer:importFromXML( path , root)
                       self:_import(xRoot, dRoot)
                       db:commit()
                   end
-                  )
-
+                  ) 
 end
 
 function _Importer:showResult(  )
