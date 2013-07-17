@@ -2,13 +2,9 @@ module(..., package.seeall)
 local __main__ = ...
 local __self__ = package.loaded[__main__]
 local os = require "os"
-
-
+local osext = require "osext"
 local cjson = require "cjson" 
 local pprint = require "pprint"
-local configure = require "configure"
-local ffi = require "ffi"
-local structs = require "structs"
 local string =require  "string"
 
 function main()
@@ -17,9 +13,10 @@ function main()
     --  {
     --      Type:NODE
     --      Action:GET
-    --      Cmd:gpid/status
+    --      Cmd:gpid/status/pid
     --      Gpids:[0,1]/...
     --      ToAddr:{host:,port:,gpid:}
+    --      Nonstop:true/false   --directly send to ToAddr or backtrack to sender(ctr)
     --  }
     --
     --  response protocol:
@@ -40,8 +37,16 @@ function main()
             local err,gpids=glr.status.processes()
             assert(err,gpids)
             pprint.pprint(gpids,"status::gpids")
-            local msg={Type="NODE",Action="RES",ToAddr=msg_table.ToAddr}
-
+            local msg={Type="NODE",Action="RES",Cmd=msg_table.Cmd}
+            
+            -- want to take the direct train?
+            if msg_table.Nonstop then 
+                addr=msg_table.ToAddr
+            else
+                msg.ToAddr=msg_table.ToAddr
+            end
+            
+            pprint.pprint(addr,"AAAAAAA")
             if msg_table.Cmd=="gpid" then
                 msg.Content=gpids
                 glr.send(addr,cjson.encode(msg))
@@ -56,6 +61,10 @@ function main()
                 end
                 msg.Content=content
                 pprint.pprint(msg,"RESPONSETOCNR")
+                glr.send(addr,cjson.encode(msg))
+            elseif msg_table.Cmd=="pid" then
+                local content={pid=osext.getpid()}
+                msg.Content=content
                 glr.send(addr,cjson.encode(msg))
             else
                 msg.Content={"Not valid Command"}
