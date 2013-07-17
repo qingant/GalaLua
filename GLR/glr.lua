@@ -209,4 +209,12 @@ end
 local gar=require "gar_loader"
 run_gar=gar.run_gar
 
+function run_spyer( ... )
+    local spyerModuleName = get_option("spyer") or "spyer"
+    local spyerModule = require(spyerModuleName)
+    return spyerModule.main( ... )
+end
+
+
+
 return M

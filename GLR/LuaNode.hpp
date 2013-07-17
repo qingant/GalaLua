@@ -83,8 +83,9 @@ namespace GLR
             TIMER,
             SOCKET,
         };
+        static const int SpyerId = 1;
     private:
-        Process(void);
+        Process(int id = 0);
         void InitNode(void);
     public:
         static void Status();
@@ -118,11 +119,14 @@ namespace GLR
         static int Exit(lua_State *l);
     public:
         static LN_ID_TYPE CreateNode();
+        static LN_ID_TYPE CreateNode(int);
         static Process &GetNodeById(LN_ID_TYPE);
+        static bool GetNodeExceptionHandle(LN_ID_TYPE);
         static void Destory(LN_ID_TYPE);
         static void SendMsgToNode(LN_ID_TYPE,
             const std::string &,
             MSG_HEAD::MSG_TYPE type = MSG_HEAD::APP);
+        static void CreateSpyer();
 
     public:
         void DoString(const std::string&);
