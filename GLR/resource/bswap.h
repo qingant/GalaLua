@@ -68,7 +68,7 @@ extern "C"
 #endif
 
 #ifndef __freebsd__
-#  if (defined(__aix__) || (defined(__linux__) && (__GLIBC__ < 2 || __GLIBC_MINOR__ < 9)))
+#  if defined(_AIX) || (defined(__linux__) && (__GLIBC__ < 2 || __GLIBC_MINOR__ < 9))
     uint16_t htobe16(uint16_t h16);
     uint16_t htole16(uint16_t h16);
     uint16_t be16toh(uint16_t be16);

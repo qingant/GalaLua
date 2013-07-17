@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#if defined(__linux__) || defined(__aix__)
+#if defined(__linux__) || defined(_AIX)
 #include <limits.h>
 #endif
 

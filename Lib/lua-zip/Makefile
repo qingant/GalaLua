@@ -9,16 +9,16 @@ PLATFORM=$(shell uname)
 LDFLG   =
 CFLAGS  =
 ifeq (${PLATFORM},Linux)
-   MAKE  = make
+	MAKE  = make
 	LDFLG = -shared
-	CFLAGS = -c -ansi -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
+	CFLAGS = -c -ansi -std=gnu99 -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
 	CC=gcc
 	AR          = ar
 	ARFLAGS     = -rcu
 	RANLIB      = ranlib
 	RANLIBFLAGS =
 else ifeq (${PLATFORM},AIX)
-	LDFLG = -qmkshrobj -q64 -bM:SRE -bnoentry -brtl -brtllib -berok
+	LDFLG = -qmkshrobj -q64 qlanglvl=extc99 -bM:SRE -bnoentry -brtl -brtllib -berok
 	CFLAGS = -c -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lm
 	CC=xlc_r
 	AR          = ar
@@ -38,7 +38,7 @@ libzip:
 
 
 %.o: %.c
-	$(CC) $(CFLAGS) -std=c99 -c $^ -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/
+	$(CC) $(CFLAGS) -c $< -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/
 
 static: minizip.a libzip.a
 
