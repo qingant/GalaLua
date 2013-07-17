@@ -112,7 +112,7 @@ namespace GLR
     private:
         void OnMessage(const std::string &);
     public:
-        void RegisterTo(const std::string &, int);
+        void RegisterTo(const std::string &, int, short timeout);
         int Gpid() const {return _Gpid;}
     public:
         int  _Gpid;
