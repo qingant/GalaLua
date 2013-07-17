@@ -201,7 +201,8 @@ static int Liconv_close(lua_State *L) {
         /* Mark the pointer as freed, preventing interpreter crashes
            if the user forces __gc to be called twice. */
         void **ptr = lua_touserdata(L, 1);
-        *ptr = NULL;
+        if (ptr != NULL)
+            *ptr = NULL;
         lua_pushboolean(L, 1);  /* ok */
     }
     else

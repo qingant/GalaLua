@@ -24,17 +24,19 @@
 # documentation would be greatly appreciated (but it is not required).
 
 PLATFORM=$(shell uname)
-LDFLG   = none
+LDFLAG   = none
 ifeq (${PLATFORM},Linux)
-	LDFLG = -shared
-	CC=gcc -ansi -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
+	CC          = gcc -ansi -Wall -O2 -fPIC -I../../../LuaJIT-2.0.0/src/
+	CFLAGS      = -I$(PREFIX)/include/luajit-2.0 -fPIC -O3 -Wall -fomit-frame-pointer
+	LDFLAGS     = -shared
 	AR          = ar
 	ARFLAGS     = -rcu
 	RANLIB      = ranlib
 	RANLIBFLAGS =
 else ifeq (${PLATFORM},AIX)
-	LDFLG = -qmkshrobj
-	CC=xlc_r -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lluajit -lm
+	CC          = xlc_r
+	CFLAGS      = -q64 -O2 -I../../../lua-5.1.5/src
+	LDFLAGS     = -qmkshrobj -L$(HOME)/lib -lluajit -lm
 	AR          = ar
 	ARFLAGS     = -X64 -rcu
 	RANLIB      = ranlib
@@ -51,8 +53,6 @@ OMIT_FRAME_PTR = -fomit-frame-pointer
 
 LUABIN = luajit
 LUAPKG = luajit
-CFLAGS = -I$(PREFIX)/include/luajit-2.0 -fPIC -O3 -Wall $(OMIT_FRAME_PTR)
-LFLAGS = -shared
 LIBS   = -L$(PREFIX)/lib -lluajit
 
 ## If your system doesn't have pkg-config or if you do not want to get the
@@ -60,20 +60,20 @@ LIBS   = -L$(PREFIX)/lib -lluajit
 ## change the following ones according to your building environment.
 
 #CFLAGS = -I/usr/local/include/ -fPIC -O3 -Wall $(OMIT_FRAME_PTR)
-#LFLAGS = -shared
+#LDFLAGS = -shared
 #INSTALL_PATH = /usr/local/lib/lua/5.2/
 
 
 all: iconv.so iconv.a
 
-iconv.lo: luaiconv.c
-	$(CC) -o iconv.lo -c $(CFLAGS) luaiconv.c
+iconv.o: luaiconv.c
+	$(CC) -o $@ -c $(CFLAGS) $<
 
-iconv.so: iconv.lo
-	$(CC) -o iconv.so $(LFLAGS) $(LIBS) iconv.lo
+iconv.so: iconv.o
+	$(CC) -o $@ $< $(LDFLAGS) $(LIBS)
 
-iconv.a: iconv.lo
-	$(AR) $(ARFLAGS) $@ $^
+iconv.a: iconv.o
+	$(AR) $(ARFLAGS) $@ $<
 	$(RANLIB) $(RANLIBFLAGS) $@
 
 install: iconv.so iconv.a
@@ -81,7 +81,8 @@ install: iconv.so iconv.a
 	cp iconv.a $(HOME)/share/static/lua
 
 clean:
-	$(RM) iconv.so iconv.lo iconv.a
+	$(RM) iconv.so iconv.o iconv.a
 
 test: iconv.so test_iconv.lua
 	luajit test_iconv.lua
+
