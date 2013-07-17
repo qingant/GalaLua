@@ -33,8 +33,8 @@ function send(addr, msg)
 	end
 end
 
-function connect(host, port, pid)
-	return _glr.int(2, 0, host, port, pid)
+function connect(host, port, pid, timeout)
+	return _glr.int(2, 0, host, port, pid, timeout)
 end
 
 function recv()
