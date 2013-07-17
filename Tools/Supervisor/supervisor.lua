@@ -26,6 +26,17 @@ function cmds.start(name)
     end
 end
 
+function cmds.status(name)
+  print("status",name)
+    if name then
+        local host=serv_host
+        local port=serv_port
+        glr.connect(host,port)
+        glr.send({host=host,port=port,gpid=0},
+        cjson.encode({cmd="status",name=name}))
+    end
+
+end
 function cmds.stop(name)
     print("stop",name)
     if name then
