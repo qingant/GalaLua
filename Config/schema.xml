@@ -192,6 +192,21 @@
                         </Port>
                     </Address>
                 </CTR>
+                <SUP name="" meta="struct" UIType="struct" commit="" title="监听器配置" >
+                    <Address name="" meta="struct" UIType="struct" commit="" title="地址配置">
+                        <IP  name="" meta="entry" UIType="entry" commit="" title="IP配置">
+                            <type>ip</type>
+                            <size>16</size>
+                        </IP>
+                        <Port name="" meta="entry" UIType="entry" commit="" title="端口配置">
+                            <type>int</type>
+                            <limit>
+                                <min>1024</min>
+                                <max>65535</max>
+                            </limit>
+                        </Port>
+                    </Address>
+                </SUP>
                 <LSRList name="" meta="array" count="64" UIType="array" commit="" title="监听器列表">
                     <LSR name="" meta="struct" UIType="arraystruct" commit="" title="监听器配置" AliasPath="Alias">
                         <Alias name="" meta="entry" default="" UIType="entry" commit="" title="别名配置">

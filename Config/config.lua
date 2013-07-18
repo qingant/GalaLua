@@ -225,7 +225,6 @@ function _Importer:importFromXMLBuffer( buf, root, xpath )
     self._xRoot = xRoot
     self._db:with(
                   function (db)
-                      pprint.pprint(dRoot:to_xml(), "dbroot")
                       if xpath ~= nil then
                           local xpathlist = xpath:split("/")
                           for _, item in pairs(xpathlist) do
@@ -287,11 +286,11 @@ end
 
 
 if ... == "__main__" then
-    local path = os.getenv("HOME") .. "/tmp/conf" --"/tmp/test_config"
+    local path = os.getenv("HOME") .. "/var/conf" --"/tmp/test_config"
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
     local db = mdb:new():init(mdb.create_env(path))
     local imp = _Importer:new{_db = db}
-    local config_path = "./sample.xml"
+    local config_path = os.getenv("HOME") .. "/var/xmlconf/schema.xml"
     imp:importFromXML(config_path, "Schema")
     imp:showResult()
     local config = _Config:new():init(path)
@@ -314,11 +313,15 @@ if ... == "__main__" then
     -- config:put("Base/AMQToken", "testABC")
     -- print(config:get("Base/AMQToken"))
     -- -- put svc/lsr config
+    config:put("CTR/Address/IP", "127.0.0.1")
+    config:put("CTR/Address/Port", "4000")
+    config:put("SUP/Address/IP", "127.0.0.1")
+    config:put("SUP/Address/Port", "4001")
     config:put("Base/AMQToken", "AMQToken.chl")
     config:put("SVC/Threads", "8")
     config:put("SVC/MaxProcess", "256")
     config:put("AppLoger/Dir", "~/log/")
-    config:put("AppLoger/DirFormat", "0")
-    config:put("AppLoger/NameFormat", "1")
-
+    config:put("AppLoger/DirFormat", "DATE")
+    config:put("AppLoger/NameFormat", "DETAILS")
+    config:export(os.getenv("HOME") .. "/var/xmlconf/default.xml")
 end
