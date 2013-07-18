@@ -19,7 +19,19 @@ end
 function _XML:isLeaf( ... )
     return (#self:sub_elements() == 0)
 end
-
+function _XML:isVector( ... )
+    local subs = self:sub_elements()
+    if #subs > 1 then
+        local key = subs[1]:key()
+        for i,v in ipairs(subs) do
+            if key ~= v:key() then
+                return false
+            end
+        end
+        return true
+    end
+    return false
+end
 local _Config = {}
 Config = _Config
 
@@ -194,6 +206,7 @@ end
 local _Importer = {
 
 }
+Importer = _Importer
 function _Importer:new( o )
     local o = o or {}
     setmetatable(o, self)    
@@ -202,18 +215,34 @@ function _Importer:new( o )
 end
 function _Importer:importFromXML( path , root)
     local t=io.open(path,"r"):read("*a")
-    local reader = xml.cxml_reader(t,#t)
+    self:importFromXMLBuffer(t, root)
+end
+function _Importer:importFromXMLBuffer( buf, root, xpath )
+    local reader = xml.cxml_reader(buf, #buf)
     local xRoot = reader:document()
     local dRoot = self._db:get_root(root)
+
     self._xRoot = xRoot
-    self._dRoot = dRoot
     self._db:with(
                   function (db)
+                      pprint.pprint(dRoot:to_xml(), "dbroot")
+                      if xpath ~= nil then
+                          local xpathlist = xpath:split("/")
+                          for _, item in pairs(xpathlist) do
+                              node = dRoot:xpath(item)[1]
+                              if node == nil then
+                                  dRoot = dRoot:add_node(item)
+                              else
+                                  dRoot = node
+                              end
+                          end
+                      end
+                      self._dRoot = dRoot
+                      pprint.pprint(dRoot:to_xml(), "dbroot")
                       self:_import(xRoot, dRoot)
                       db:commit()
                   end
-                  )
-
+                  ) 
 end
 
 function _Importer:showResult(  )
@@ -229,11 +258,21 @@ function _Importer:_import( xElement, dElement )
     for k,v in pairs(xElement:properties()) do
         dElement:add_attrib(k, v)
     end
-
-    for i,v in ipairs(xElement:sub_elements()) do
-        print("VK",v:key())
-        local e = dElement:add_node(v:key())
-        self:_import(v, e)
+    if xElement:isVector() then
+        for i,v in ipairs(xElement:sub_elements()) do
+            local e = dElement:add_vector_item()
+            self:_import(v, e)
+        end
+    else
+        for i,v in ipairs(xElement:sub_elements()) do
+            local e
+            if v:isVector() then
+                e = dElement:add_vector_node(v:key())
+            else
+                e = dElement:add_node(v:key())
+            end
+            self:_import(v, e)
+        end
     end
     if #xElement:sub_elements() > 0 then
         return
@@ -269,17 +308,17 @@ if ... == "__main__" then
 
     --config:put("MonitorList/4/SVC/")
 
-    -- config:put("MonitorList/1/Base/AMQToken", "test")
-    -- local tk = config:get("MonitorList/1/Base/AMQToken")
+    -- config:put("Base/AMQToken", "test")
+    -- local tk = config:get("Base/AMQToken")
     -- print(tk)
-    -- config:put("MonitorList/1/Base/AMQToken", "testABC")
-    -- print(config:get("MonitorList/1/Base/AMQToken"))
+    -- config:put("Base/AMQToken", "testABC")
+    -- print(config:get("Base/AMQToken"))
     -- -- put svc/lsr config
-    -- config:put("MonitorList/1/Base/AMQToken", "AMQToken.chl")
-    -- config:put("MonitorList/1/SVC/Threads", "8")
-    -- config:put("MonitorList/1/SVC/MaxProcess", "256")
-    -- config:put("MonitorList/1/AppLoger/Dir", "~/log/")
-    -- config:put("MonitorList/1/AppLoger/DirFormat", "0")
-    -- config:put("MonitorList/1/AppLoger/NameFormat", "1")
+    config:put("Base/AMQToken", "AMQToken.chl")
+    config:put("SVC/Threads", "8")
+    config:put("SVC/MaxProcess", "256")
+    config:put("AppLoger/Dir", "~/log/")
+    config:put("AppLoger/DirFormat", "0")
+    config:put("AppLoger/NameFormat", "1")
 
 end
