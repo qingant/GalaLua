@@ -18,7 +18,7 @@ local mdb=mdb.mdb
 
 Watch="Watch"
 defaultGroup="wg1"
-Path=os.getenv("HOME").."/tmp/watch"
+PATH=os.getenv("HOME").."/var/supervisor"
 
 function create_with_path(path)
     --create and open env
@@ -32,8 +32,8 @@ function create()
     --create and open env
     
     --FIXME::make it more elegant???
-    os.execute("mkdir -p "..Path)
-    return mdb.create_env(Path) 
+    os.execute("mkdir -p "..PATH)
+    return mdb.create_env(PATH) 
 end
 
 local data={db_type="lmdb"}
