@@ -840,9 +840,7 @@ void GLR::Process::EntryGar(const std::string &Gar,const std::string &module, co
     lua_getglobal(_Stack, "glr");
     lua_getfield(_Stack,-1,"run_gar");
     lua_pushstring(_Stack, Gar.c_str());
-    lua_getglobal(_Stack, "debug");
-    lua_getfield(_Stack, -1, "traceback");
-    if (lua_pcall(_Stack, 1, 1, -1) != 0)
+    if (lua_pcall(_Stack, 1, 1, 0) != 0)
     {
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
         //StackDump();
