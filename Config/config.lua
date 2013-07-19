@@ -237,8 +237,8 @@ function _Importer:importFromXMLBuffer( buf, root, xpath )
                           end
                       end
                       self._dRoot = dRoot
-                      pprint.pprint(dRoot:to_xml(), "dbroot")
                       self:_import(xRoot, dRoot)
+                      pprint.pprint(dRoot:to_xml(), "dbroot")
                       db:commit()
                   end
                   ) 

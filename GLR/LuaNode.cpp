@@ -365,6 +365,7 @@ int Process::SendMsgToNode( lua_State *l )
     head->Head.GPid = id;
     head->Head.Len = len+sizeof(*head) - 4;
     head->Source.Gpid = self_id;
+    memcpy(head->Source.Host, GLR::Runtime::GetInstance().Host().c_str(), GLR::Runtime::GetInstance().Host().size());
     memcpy((void*)&pack_msg[sizeof(*head)], msg, len);
     //GetNodeById(id).SendMsg(pack_msg);
     SendMsgToNode(id, pack_msg);
@@ -840,9 +841,7 @@ void GLR::Process::EntryGar(const std::string &Gar,const std::string &module, co
     lua_getglobal(_Stack, "glr");
     lua_getfield(_Stack,-1,"run_gar");
     lua_pushstring(_Stack, Gar.c_str());
-    lua_getglobal(_Stack, "debug");
-    lua_getfield(_Stack, -1, "traceback");
-    if (lua_pcall(_Stack, 1, 1, -1) != 0)
+    if (lua_pcall(_Stack, 1, 1, 0) != 0)
     {
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
         //StackDump();
