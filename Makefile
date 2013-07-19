@@ -45,8 +45,8 @@ endif
 	$(MAKE) -C Stub static
 	$(MAKE) -C Runtime static
 	$(MAKE) -C GLR static
-	$(MAKE) -C Lib static
 	$(MAKE) -C LuaObject static
+	$(MAKE) -C Lib static
 
 clean:
 	$(MAKE) -C Stub clean

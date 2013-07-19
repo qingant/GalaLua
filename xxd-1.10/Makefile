@@ -17,3 +17,14 @@ all: xxd
 
 xxd: xxd.c
 	$(CC) $(CFLAGS) -o xxd xxd.c
+
+.PHONY: clean install uninstall
+
+install:
+	cp xxd $(HOME)/bin
+
+uninstall:
+	rm $(HOME)/bin/xxd
+
+clean:
+	-rm -f xxd *.o

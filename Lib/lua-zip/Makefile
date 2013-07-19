@@ -29,7 +29,7 @@ else ifeq (${PLATFORM},AIX)
 endif
 
 libzip:
-	cd libzip-0.11.1 && chmod +x configure && ./configure CC=$(CC) && OBJECT_MODE=64 $(MAKE) -C lib && cp -f lib/.libs/libzip.so* $(HOME)/lib/
+	cd libzip-0.11.1 && chmod +x configure && ./configure CC=$(CC) && OBJECT_MODE=64 && $(MAKE) -C lib && cp -f lib/.libs/libzip.so* $(HOME)/lib/
 
 #
 #minizip:
@@ -40,7 +40,7 @@ libzip:
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/
 
-static: minizip.a libzip.a
+static: libzip.a minizip.a 
 
 minizip.a:$(OBJ)
 	$(AR) $(ARFLAGS) $@ $^
@@ -49,10 +49,13 @@ minizip.a:$(OBJ)
 	rm -f minizip.a
 
 libzip.a:
-	cd libzip-0.11.1 && chmod +x configure && ./configure CC=$(CC) && OBJECT_MODE=64 $(MAKE) -C lib && cp -f lib/.libs/libzip.a $(HOME)/share/static
+	cd libzip-0.11.1 && chmod +x configure && ./configure CC=$(CC) && OBJECT_MODE=64 && $(MAKE) -C lib && cp -f lib/.libs/libzip.a $(HOME)/share/static
 
 clean:
 	-rm -f *.o *.a *.so
 	-rm -rf libzip-0.11.1/autom4te.cache
-	@if [ -f libzip-0.11.1/Makefile ]; then $(MAKE) -C libzip-0.11.1 distclean; fi
+	@if [ -f libzip-0.11.1/Makefile ]; then \
+		$(MAKE) -C libzip-0.11.1 clean; \
+		$(MAKE) -C libzip-0.11.1 distclean; \
+	fi
 

@@ -13,6 +13,11 @@ local require= require
 local table=table
 local package=package
 local loadstring=loadstring
+local setmetatable = setmetatable
+local pcall = pcall
+local error = error
+local print = print
+local unpack = unpack
 setfenv(1, M)
 local self_host, self_port = _glr.node_addr()
 
@@ -37,10 +42,90 @@ function connect(host, port, pid, timeout)
 	return _glr.int(2, 0, host, port, pid, timeout)
 end
 
-function recv()
-	return _glr.recv()
+local mailBox = {}
+function mailBox:new(  )
+    local o = {}
+    setmetatable(o, self)
+    self.__index = self
+    self._first = 1
+    self._last = 0
+    self._mailBox = {}
+    return o
 end
+function mailBox:push( msg )
+    local mBox = self._mailBox
 
+    mBox[self._last + 1] = msg
+    self._last = self._last + 1
+
+end
+function mailBox:pushLeft( msg )
+    local mBox = self._mailBox
+    assert((self._first - 1) ~= 0, "Cannot Push Over Head")
+    mBox[self._first - 1] = msg
+    self._first = self._first - 1
+end
+function mailBox:pop(  )
+    if  self._first <= self._last then
+        local r = self._mailBox[self._first]
+        self._mailBox[self._first] = nil
+        self._first = self._first + 1
+        return r
+    else
+        error("No Message")
+    end
+end
+function mailBox:available(  )
+    return (self._first <= self._last)
+end
+local cacheBox = mailBox:new()
+function recv()
+    if cacheBox:available() then
+        local result = cacheBox:pop()
+        return unpack(result)
+    else
+       return _glr.recv()
+   end
+end
+function recvByCondition( condition )
+    local cache = {}
+    function restore(  )
+        while cacheBox:available() do
+            cache[#cache + 1] = cacheBox:pop()
+        end
+        for i,v in ipairs(cache) do
+            cacheBox:push(cache[i])
+            cache[i] = nil
+        end
+        cache = nil
+    end
+    while true do
+        local mType, mAddr, msg = recv()
+        local err, flag = pcall(condition, {mType, mAddr, msg})
+        if not err then
+            restore()
+            error(flag)
+        end
+        if flag then
+            restore()
+            return mType, mAddr, msg
+        else
+            cache[#cache+1] = {mType, mAddr, msg}
+        end
+    end   
+end
+function recvByAddr( addr )
+    return recvByCondition(function ( msg )
+                               return (msg[2].host == addr.host and
+                                       msg[2].port == addr.port and
+                                       msg[2].gpid == addr.gpid)
+                           end)
+end
+function recvByType( mType )
+    return recvByCondition(function ( msg )
+                               return (msg[1] == mType)
+                           end)
+end
 function kill(gpid)
 	return _glr.kill(gpid)
 end
@@ -218,3 +303,4 @@ end
 
 
 return M
+

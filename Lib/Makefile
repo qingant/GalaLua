@@ -45,7 +45,7 @@ static:
 	cd lua-cjson-2.1.0 && $(MAKE) static && $(MAKE) clean
 	cd lua-struct && $(MAKE) static && $(MAKE) clean
 	cd lua-zip && $(MAKE) static
-	$(MAKE) -C lua-xml all
+	$(MAKE) -C lua-xml static
 
 clean:
 	$(MAKE) -C lua-cjson-2.1.0 clean

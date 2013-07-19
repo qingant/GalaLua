@@ -25,7 +25,14 @@ libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/r
 
 res:
 	echo "" > resource.h
+ifeq ($(shell uname), Linux)
 	xxd -i glr.lua >> resource.h
+else
+	$(MAKE) -C ../xxd-1.10
+	$(MAKE) -C ../xxd-1.10 install
+	../xxd-1.10/xxd -i glr.lua >> resource.h
+endif
+
 ttt:ttt.o
 	$(G++) $?  $(SYTMLIB) $(STUBLIB) -lluajit -o $@
 

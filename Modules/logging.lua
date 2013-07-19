@@ -30,32 +30,71 @@ local function interp(s, tab)
 end
 
 --strMt.__mod = interp
+-- glr  printer
+function glrLoggerServer( path )
+    local fileHanle = io.open(path, "a")
+    while true do
+        local msgType, addr, msg = glr.recv()
+        if msg:sub(1,2) == "!!" then
+            print("Flush")
+            fileHanle:flush()
+        else
+            print("Write", msg)
+            fileHanle:write(msg)
+            fileHanle:write("\n")
+        end
+    end
+end
+local GlrLoggerAppender = {}
+function GlrLoggerAppender:new()
+    local o = {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function GlrLoggerAppender:init( path )
+    local rt, pid = glr.spawn("logging", "glrLoggerServer", path)
+
+    self._appender = pid
+    return self
+end
+function GlrLoggerAppender:print( msg )
+    glr.send(self._appender, msg)
+end
+function GlrLoggerAppender:flush(  )
+    glr.send(self._appender, "!!")
+end
 
 -- enum log level
-DEBUG = 0
-TRACE = 2
-INFO = 3
-ERROR = 4
-FATAL = 5
+local DEBUG = 0
+local TRACE = 2
+local INFO = 3
+local ERROR = 4
+local FATAL = 5
 
-_logger = {
+local _logger = {
     enum_DEBUG = 0,
     enum_TRACE = 2,
     enum_INFO = 3,
     enum_ERROR = 4,
     enum_FATAL = 5,
 }
-logger = _logger
+local logger = _logger
 function _logger:new(o)
     local o = o or {}
     setmetatable(o, self)
     self.__index = self
-    return self
+    return o
 end
 function _logger:init( printer, level_func )
-    self._printer = printer or print
+    self._printer = printer and function (...) printer.print(printer, ...) end or print
+    self._printerHandle = printer
     self._get_level = level_func or function () return self.enum_DEBUG end
     return self
+end
+function _logger:flush( )
+    self._printerHandle:flush()
 end
 function _logger:_log(level, format, ...)
     if self._get_level() <= level then
@@ -98,12 +137,13 @@ _logger.log = _logger.debug
 
 if ... == "__main__" then
     function test(  )
-        local log = logger:new():init()
+        local log = logger:new():init(GlrLoggerAppender:new():init("test.log"))
         log:debug("debug")
         log:trace("trace")
         log:info("info")
         log:error("error")
         log:fatal("fatal")
+        log:flush()
     end
     test()
 

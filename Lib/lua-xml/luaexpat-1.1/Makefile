@@ -52,7 +52,12 @@ install:
 	cp src/$T/lom.lua $(LUA_DIR)/$T
 	cp src/lxp.a $(HOME)/share/static/lua
 
-.PHONY: clean
+.PHONY: clean static
+
+static: src/lxp.a
+	mkdir -p $(LUA_DIR)/$T
+	cp src/$T/lom.lua $(LUA_DIR)/$T
+	cp src/lxp.a $(HOME)/share/static/lua
 
 clean:
 	rm -f src/$(LIBNAME) $(OBJS) src/lxp.a
