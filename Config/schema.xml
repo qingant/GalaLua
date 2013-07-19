@@ -8,18 +8,6 @@
                 <AGENT/>
                 <SQLITE/>
             </DBType>
-            <ListenerType meta="enum">
-                <NONETYPE/>
-                <LSRSTREAM/>
-                <FTP/>
-                <TASK/>
-                <MQ/>
-            </ListenerType>
-            <SocketType meta="enum">
-                <NONETYPE/>
-                <TCP/>
-                <UNIX/>
-            </SocketType>
             <LevelType meta="enum">
                 <INFO/>
                 <DEBUG/>
@@ -53,17 +41,8 @@
             <items>/Configure/_STRUCTURE/MonitorList</items>
         </_PLATFORM>
     </_DESCRIPTION>
-    <_STRUCTURE>
-       
+    <_STRUCTURE>      
             <Monitor name="" meta="struct" UIType="arraystruct" title="具体监控配置" AliasPath="Base/Alias">
-                <LuaEnvList name="" meta="array" count="8" UIType="arraystruct" title="lua环境列表">
-                    <LuaEnv name="" meta="struct" UIType="struct" title="lua环境配置">
-                        <Path name="" meta="entry" UIType="entry" commit="" title="路径配置">
-                            <type>path</type>
-                            <size>128</size>
-                        </Path>
-                    </LuaEnv>
-                </LuaEnvList>
                 <Base name="" meta = "struct" UIType="struct" title="基本配置">
                     <Alias name=""  meta="entry" default="" UIType="entry" commit="" title="别名">
                       <type>string</type>
@@ -72,11 +51,7 @@
                     <AMQToken name="" meta = "entry" default="" UIType="entry" commit ="" title="AMQ路径配置">
                         <type>path</type>
                         <size>32</size>
-                    </AMQToken>
-                    <RTToken name="" meta = "entry" default="" UIType="entry" commit ="" title="路由表路径配置">
-                        <type>path</type>
-                        <size>32</size>
-                    </RTToken>
+                    </AMQToken>                   
                     <SVCLimits name="" meta = "entry" default="2" UIType="entry" commit ="" title="SVC数量配置">
                         <type>int</type>
                         <limit>
@@ -84,6 +59,16 @@
                             <max>64</max>
                         </limit>
                     </SVCLimits>
+                    <SVCPort name="" meta = "entry" default="3345" UIType="entry" commit ="" title="SVC起始端口">
+                        <type>int</type>
+                        <limit>
+                            <min>3345</min>
+                        </limit>
+                    </SVCPort>
+                    <GarName name="" meta = "entry" default="aim.gar" UIType="entry" commit ="" title="gar包名称">
+                        <type>string</type>
+                        <size>32</size>
+                    </GarName>
                 </Base>
                 <LowLoger name="" meta = "entry" UIType="enum" commit ="" title="平台日志配置">
                     <type>LevelType</type>
@@ -135,47 +120,6 @@
                     <IsFlush name="" meta="entry" default="true" UIType="entry" commit="" title="是否刷新">
                         <type>bool</type>
                     </IsFlush>
-                    <DBConnection name="" meta="union" commit="" UIType="union" title="数据库配置">
-                        <_SCROLLTYPE name="" meta="entry" UIType="entry" commit="" title="数据库类型">
-                            <type>DBType</type>
-                        </_SCROLLTYPE>
-                        <_UNIONSELECTOR name="" meta="struct" UIType="struct" commit="" title="具体配置">
-                            <ORACLE name="" meta="struct" UIType="struct" commit="" title="Oracle配置">
-                                <Name name="" meta="entry" default="orcl" UIType="entry" commit="" title="数据库名">
-                                    <type>string</type>
-                                    <size>30</size>
-                                </Name>
-                                <User name="" meta="entry" default="system" UIType="entry" commit="" title="用户名">
-                                    <type>string</type>
-                                    <size>30</size>
-                                </User>
-                                <Passwd name="" meta="entry" default="oracle" UIType="entry" commit="" title="密码">
-                                    <type>string</type>
-                                    <size>30</size>
-                                </Passwd>
-                            </ORACLE>
-                            <DB2 name="" meta="struct" UIType="struct" commit="" title="DB2配置">
-                                <Name name="" meta="entry" default="dborcl" UIType="entry" commit="" title="数据库名">
-                                    <type>string</type>
-                                    <size>30</size>
-                                </Name>
-                                <User name="" meta="entry" default="gala" UIType="entry" commit="" title="用户名">
-                                    <type>string</type>
-                                    <size>30</size>
-                                </User>
-                                <Passwd name="" meta="entry" default="gala" UIType="entry" commit="" title="密码">
-                                    <type>string</type>
-                                    <size>30</size>
-                                </Passwd>
-                            </DB2>
-                            <SQLITE name="" meta="struct" UIType="struct" commit="" title="Sqlite配置">
-                                <DBFile name="" meta="entry" UIType="entry" commit="" title="路径配置">
-                                    <type>path</type>
-                                    <size>256</size>
-                                </DBFile>
-                            </SQLITE>
-                         </_UNIONSELECTOR>
-                    </DBConnection>
                 </SVC>
                 <CTR name="" meta="struct" UIType="struct" commit="" title="监听器配置" >
                     <Address name="" meta="struct" UIType="struct" commit="" title="地址配置">
@@ -207,88 +151,78 @@
                         </Port>
                     </Address>
                 </SUP>
-                <LSRList name="" meta="array" count="64" UIType="array" commit="" title="监听器列表">
+                <LSRList name="" meta="array" count="4" UIType="array" commit="" title="监听器列表">
                     <LSR name="" meta="struct" UIType="arraystruct" commit="" title="监听器配置" AliasPath="Alias">
                         <Alias name="" meta="entry" default="" UIType="entry" commit="" title="别名配置">
                             <type>string</type>
                             <size>32</size>
                         </Alias>
-                        <ImplDllName name="" meta="entry" default="" UIType="entry" commit="" title="动态库连接配置">
-                            <type>string</type>
-                            <size>32</size>
-                        </ImplDllName>
-                        <Threads name="" meta="entry" default="8" UIType="entry" commit="" title="线程数配置">
-                            <type>int</type>
-                            <limit>
-                                <min>0</min>
-                                <max>200</max>
-                            </limit>
-                        </Threads>
-                        <ThreadStackSize name="" meta="entry" default="1024*1024*4" UIType="entry" commit="" title="堆栈配置">
-                            <type>int</type>
-                            <limit>
-                                <min>0</min>
-                                <max>1024*1024*4</max>
-                            </limit>
-                        </ThreadStackSize>
-                        <Protocol name="" meta="union" UIType="union" commit="" title="协议配置">
-                            <_SCROLLTYPE name="" meta="entry" UIType="entry" commit="" title="类型配置">
-                                <type>ListenerType</type>
-                            </_SCROLLTYPE>
-                            <_UNIONSELECTOR name="" meta="struct" UIType="struct" commit="" title="具体配置">
-                                <LSRSTREAM name="" meta="struct" UIType="struct" commit="" title="数据流配置">
-                                    <Address name="" meta="union" UIType="union" commit="" title="地址配置">
-                                        <_SCROLLTYPE name="" meta="entry" UIType="entry" commit="" title="类型配置">
-                                            <type>SocketType</type>
-                                        </_SCROLLTYPE>
-                                        <_UNIONSELECTOR name="" meta="struct" UIType="struct" commit="" title="具体配置">
-                                          <TCP name="" meta="struct" UIType="struct" commit="" title="TCP配置">
-                                                <IP name="" meta="entry" default="127.0.0.1" UIType="entry" commit="" title="IP配置">
-                                                    <type>ip</type>
-                                                    <size>16</size>
-                                                </IP>
-                                                <Port name="" meta="entry" default="9000" UIType="entry" commit="" title="端口配置">
-                                                    <type>int</type>
-                                                    <limit>
-                                                        <min>1024</min>
-                                                        <max>65535</max>
-                                                    </limit>
-                                                </Port>
-                                            </TCP>
-                                            <UNIX name="" meta="struct" UIType="struct" commit="" title="域套接配置">
-                                                <Token name="" meta="entry" default="" UIType="entry" commit="" title="路径配置">
-                                                    <type>string</type>
-                                                    <size>32</size>
-                                                </Token>
-                                            </UNIX>
-
-                                        </_UNIONSELECTOR>
-                                    </Address>
-                                    <RecvTimeOut name="" meta="entry" default="30" UIType="entry" commit="" title="接收超时配置">
-                                        <type>int</type>
-                                        <limit>
-                                            <min>-1</min>
-                                            <max>60</max>
-                                        </limit>
-                                    </RecvTimeOut>
-                                    <ExchangeTMO name="" meta="entry" default="30" UIType="entry" commit="" title="交换超时配置">
-                                        <type>int</type>
-                                        <limit>
-                                            <min>-1</min>
-                                            <max>60</max>
-                                        </limit>
-                                    </ExchangeTMO>
-                                    <PTCDllName name="" meta="entry" default="" UIType="entry" commit="" title="协议解析配置">
-                                        <type>string</type>
-                                        <size>32</size>
-                                    </PTCDllName>
-                                </LSRSTREAM>
-                            </_UNIONSELECTOR>
-                        </Protocol>
+                        <Address name="" meta="struct" UIType="struct" commit="" title="地址配置">
+                                        
+                            <IP name="" meta="entry" default="127.0.0.1" UIType="entry" commit="" title="IP配置">
+                                <type>ip</type>
+                                <size>16</size>
+                            </IP>
+                            <Port name="" meta="entry" default="9000" UIType="entry" commit="" title="端口配置">
+                                <type>int</type>
+                                <limit>
+                                    <min>1024</min>
+                                    <max>65535</max>
+                                </limit>
+                            </Port>
+                        </Address>
                     </LSR>
-                </LSRList>
+                </LSRList> 
+                <Manager name="" meta="struct" UIType="struct" commit="" title="管理配置">
+                    <CookieTimeOut name="" meta="entry" UIType="entry" commit="" title="cookie超时时间">
+                        <type>int</type>
+                        <limit>
+                            <min>0</min>
+                        </limit>
+                    </CookieTimeOut>
+                </Manager>
+                <DBConnection name="" meta="union" commit="" UIType="union" title="数据库配置">
+                    <_SCROLLTYPE name="" meta="entry" UIType="entry" commit="" title="数据库类型">
+                        <type>DBType</type>
+                    </_SCROLLTYPE>
+                    <_UNIONSELECTOR name="" meta="struct" UIType="struct" commit="" title="具体配置">
+                        <ORACLE name="" meta="struct" UIType="struct" commit="" title="Oracle配置">
+                            <Name name="" meta="entry" default="orcl" UIType="entry" commit="" title="数据库名">
+                                <type>string</type>
+                                <size>30</size>
+                            </Name>
+                            <User name="" meta="entry" default="system" UIType="entry" commit="" title="用户名">
+                                <type>string</type>
+                                <size>30</size>
+                            </User>
+                            <Passwd name="" meta="entry" default="oracle" UIType="entry" commit="" title="密码">
+                                <type>string</type>
+                                <size>30</size>
+                            </Passwd>
+                        </ORACLE>
+                        <DB2 name="" meta="struct" UIType="struct" commit="" title="DB2配置">
+                            <Name name="" meta="entry" default="dborcl" UIType="entry" commit="" title="数据库名">
+                                <type>string</type>
+                                <size>30</size>
+                            </Name>
+                            <User name="" meta="entry" default="gala" UIType="entry" commit="" title="用户名">
+                                <type>string</type>
+                                <size>30</size>
+                            </User>
+                            <Passwd name="" meta="entry" default="gala" UIType="entry" commit="" title="密码">
+                                <type>string</type>
+                                <size>30</size>
+                            </Passwd>
+                        </DB2>
+                        <SQLITE name="" meta="struct" UIType="struct" commit="" title="Sqlite配置">
+                            <DBFile name="" meta="entry" UIType="entry" commit="" title="路径配置">
+                                <type>path</type>
+                                <size>256</size>
+                            </DBFile>
+                        </SQLITE>
+                     </_UNIONSELECTOR>
+                </DBConnection>            
             </Monitor>
-
     </_STRUCTURE>
 </Configure>
 
