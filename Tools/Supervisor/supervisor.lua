@@ -13,7 +13,19 @@ local io=require "io"
 
 local config=require "supervisor_conf"
 
-local serv_host,serv_port="127.0.0.1",56789
+
+function get_supervisord_arg()
+    local Config=(require "config").Config
+    local db_path=require "db_path"
+
+    local _conf= Config:new():init(db_path.config)
+    local host=_conf:get("Supervisor/IP")
+    local port=_conf:get("Supervisor/Port")
+    local gar=_conf:get("Supervisor/Gar")
+    return host,port,gar
+end
+
+local serv_host,serv_port,DefaultGar=get_supervisord_arg()
 
 --[[
     configure
@@ -91,6 +103,11 @@ function configure(env)
     return Configure
 end
 
+function sleep(n)
+    assert(n,"must pass seconds")
+    local cmd=string.format("sleep %d",n)
+    os.execute(cmd)
+end
 
 --return true if supervisord is started
 --@sec: delay @sec seconds
@@ -161,16 +178,22 @@ function cmds.stop_monitor()
     end
 end
 --start supervisord, not argument should be passed.
-function cmds.start_monitir(name)
+function cmds.start_monitor(name)
     
     if name then
-        return cmds.help("start_monitir")
+        return cmds.help("start_monitor")
     end
     
     if isStarted() then
         io.write("supervisord alreadly started...\n")
     else
-        ret=os.execute("glr -m supervisord -e main -h 127.0.0.1 -p 56789 -D")
+        local gar=""
+        if DefaultGar and DefaultGar~="" then
+            gar="--gar="..DefaultGar
+        end
+        local cmd=string.format("glr -m supervisord -e main -h %s -p %d %s -D ",
+                                serv_host,serv_port,gar)
+        ret=os.execute(cmd)
         if isStarted(5) then
             io.write("supervisord is running now... \n")
         else

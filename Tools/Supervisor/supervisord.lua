@@ -9,20 +9,26 @@ local pprint=require "pprint"
 local cjson=require "cjson"
 local conf=require "supervisor_conf"
 
+local db_path=require "db_path"
+local path=require "path"
+
 --process state
-STATE={
+local STATE={
     STOPPED=1,
     RUNNING=2,
     STOPPING=3,
     STARTING=4,
 }
 
-MSG_TYPE={
+local MSG_TYPE={
     APP=3,
 }
 
 local logdir=os.getenv("HOME").."/log"
 local DefaultGroup="wg1"
+
+--default gar package search for module
+local DefaultGar=glr.get_option("gar")
 
 function execute(cmd)
     return os.execute(cmd)
@@ -226,14 +232,32 @@ function process(entry)
         self:start()
         self.last_cmd="auto_start"
     end
+
+    --XXX:maybe run module from gar package
+    function Process:get_run_gar_arg()
+        local gar=""
+        local gar_search={}
+        gar_search[#gar_search+1]=self.entry.gar
+        gar_search[#gar_search+1]=DefaultGar
+        for i,g in ipairs(gar_search) do
+            if g ~="" then
+                gar="-g "..path.join(db_path.gar_path,g)
+                break
+            end
+        end
+        return gar
+    end
+
     function Process:start()
         self.last_cmd="start"
         --can only start those not started
         local state=self:get_state()
         if (state~=STATE.RUNNING) and (state~=STATE.STARTING) then
             self.entry.state=STATE.STARTING
-            startcmd=string.format("glr -h %s -p %d -i %d -m %s -e main -D",
-                                    self.entry.host,self.entry.port,self.entry.index, self.entry.module)
+
+            local gar=self:get_run_gar_arg()
+            startcmd=string.format("glr %s -h %s -p %d -i %d -m %s -e main -D",
+                                    gar,self.entry.host,self.entry.port,self.entry.index, self.entry.module)
             print(startcmd)
             local ret=execute(startcmd)
             print("execute:",ret)
@@ -412,6 +436,7 @@ function supervisor()
 end
 
 function main()
+
     node=supervisor()
     local cmds={start="",status="",config=""}
     while true do
