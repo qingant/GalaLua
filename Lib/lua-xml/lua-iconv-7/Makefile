@@ -83,7 +83,7 @@ install: iconv.so iconv.a
 .PHONY: clean test static
 
 static: iconv.a
-
+	cp iconv.a $(HOME)/share/static/lua
 
 clean:
 	$(RM) iconv.so iconv.o iconv.a

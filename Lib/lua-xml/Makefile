@@ -40,7 +40,6 @@ luaexpat: libexpat
 
 static: etree luaxpath libexpat
 	$(MAKE) -C lua-iconv-7 static
-	$(MAKE) -C lua-iconv-7 install
 	$(MAKE) -C luaexpat-1.1 static
 
 clean:
