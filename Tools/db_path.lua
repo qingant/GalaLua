@@ -9,7 +9,7 @@ local os=require "os"
 
 --{{
 local home=os.getenv("HOME")
-config=home.."/var/config"
+config=home.."/var/conf"
 router=home.."/var/platdb"
 supervisor=home.."/var/supervisor"
 --}}
