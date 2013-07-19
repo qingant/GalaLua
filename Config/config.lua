@@ -318,7 +318,7 @@ if ... == "__main__" then
     config:put("SUP/Address/IP", "127.0.0.1")
     config:put("SUP/Address/Port", "4001")
     config:put("Base/AMQToken", "AMQToken.chl")
-    config:put("Base/GarName", "aim.gar")
+    config:put("SUP/GarName", "aim.gar")
     config:put("Base/SVCLimits", "4")
     config:put("Base/SVCPort", "3345")
     config:put("SVC/Threads", "8")
