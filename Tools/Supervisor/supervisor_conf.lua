@@ -15,16 +15,17 @@ local mdb = require "mdb"
 local pprint = require "pprint"
 local os = require "os"
 local mdb=mdb.mdb
+local db_path=require "db_path"
 
 Watch="Watch"
 defaultGroup="wg1"
-PATH=os.getenv("HOME").."/var/supervisor"
+PATH=db_path.supervisor
 
 function create_with_path(path)
     --create and open env
     
     --FIXME::make it more elegant???
-    os.execute("rm -rf "..path.." && mkdir -p "..path)
+    os.execute("mkdir -p "..path)
     return mdb.create_env(path) 
 end
 
@@ -79,7 +80,7 @@ function watchConf(env)
     --<watch>
     --  <group1>
     --      <module_name>
-    --          <index stderr=logfile stdout=logfile host="" port="" entry="main" valid=true></index>
+    --          <index stderr=logfile stdout=logfile host="" port="" entry="main" valid=true gar="path"></index>
     --      </module_name>
     --  </group1>
     --</watch>
@@ -88,6 +89,8 @@ function watchConf(env)
     --      reffer to the specify host and post entry
     --   </host::port>
     --</idref>
+    --
+    --XXX:if the gar path is not absolute path, db_path.gar_path will be "PWD"
     --]]
     local watch_conf=data:new({env=env,root_name=Watch})
     function watch_conf:init()
@@ -127,6 +130,7 @@ function watchConf(env)
                                 local index=conf_entry.index  or 0
                                 local stderr=conf_entry.stderr 
                                 local stdout=conf_entry.stdout
+                                local gar_path=conf_entry.gar or ""
                                 local valid=conf_entry.valid or true
 
                                 assert(host or port or module_name,
@@ -143,6 +147,7 @@ function watchConf(env)
                                 index_node:add_attrib("module",module_name)
                                 index_node:add_attrib("index",index)
                                 index_node:add_attrib("group",group)
+                                index_node:add_attrib("gar",gar_path)
                                 index_node:add_attrib("valid",valid)
                                 
                                 local ref_name=string.format("%s::%s",host,port)
@@ -196,7 +201,7 @@ function watchConf(env)
     end
 
     function watch_conf:import()
-        local mdb_path =os.getenv("HOME").. "/tmp/conf"
+        local mdb_path =db_path.config
         local db=mdb:new():init(mdb.create_env(mdb_path))
 
         db:withReadOnly(function (db,_conf) 
