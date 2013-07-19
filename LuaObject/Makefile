@@ -1,5 +1,5 @@
 
-all:router.so amq.so logger.so _dir.so xml.so cp
+all:router.so amq.so logger.so _dir.so xml.so osext.so cp
 
 include ../mk.rules
 amq:amq.so
@@ -22,6 +22,9 @@ xml.so:LuaXML.o
 	@echo $(PLATFORM)
 	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@
 
+osext.so:LuaOS.o
+	@echo $(PLATFORM)
+	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@
 cp:
 	cp -rf *.so $(HOME)/lib/lua
 

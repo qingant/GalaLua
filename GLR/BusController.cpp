@@ -135,6 +135,7 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
 {
     GLR_BUS_HEAD *pMsg = (GLR_BUS_HEAD *)msg.c_str();
     GALA_DEBUG("OnMessage");
+    SHORT timeout = 30;
     if (pMsg->Head.Type == MSG_HEAD::REGISTER)
     {
         if (msg.size() < sizeof(GLR_BUS_HEAD))
@@ -152,7 +153,11 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
         //_Sock->SegmentSend(-1, (const char*)&len, sizeof(len));
         pMsg->Head.Type = MSG_HEAD::REGISTER_OK;
         pMsg->Head.Len = htonl(sizeof(GLR_BUS_HEAD) - 4);
-        _Sock->SegmentSend(-1, msg.c_str(), sizeof(GLR_BUS_HEAD));
+        if(!_Sock->SegmentSend(timeout, msg.c_str(), sizeof(GLR_BUS_HEAD)))
+        {
+            _Sock->Close();
+            return;
+        }
         _Router.insert(std::make_pair(std::string(id), _Sock->GetFD()));
         GALA_DEBUG("%s registered", id);
         _Id = id;
@@ -261,7 +266,7 @@ void GLR::MessageLinkStack::PutSendTask( const std::string &msg, int pid, int sr
     _SendTaskQ.Put(t);
 }
 
-void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port)
+void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port, short timeout )
 {
     char id[64] = {0};
     snprintf(id, sizeof(id), "%s::%d", host.c_str(), port);
@@ -275,9 +280,15 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port)
     pAddr->Port = htonl(Runtime::GetInstance().NodeId());
     //uint32_t len = htonl(sizeof(GLR_MSG));
     //_Sock->SegmentSend(-1, (const char*)&len, sizeof(len));
-    _Sock->SegmentSend(-1, buf.c_str(), buf.size());
+    if(!_Sock->SegmentSend(timeout, buf.c_str(), buf.size()))
+    {
+        THROW_EXCEPTION_EX("Register Timeout");
+    }
 
-    _Sock->SegmentRecv(-1, (char*)&buf[0], sizeof(GLR_BUS_HEAD));
+    if(!_Sock->SegmentRecv(timeout, (char*)&buf[0], sizeof(GLR_BUS_HEAD)))
+    {
+        THROW_EXCEPTION_EX("Register Timeout");
+    }
     // _Sock->SegmentRecv(-1, (char*)&msg, sizeof(msg));
 
     if (pHead->Type == MSG_HEAD::REGISTER_OK)
@@ -289,8 +300,6 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port)
     {
         THROW_EXCEPTION_EX("REGIST Error");
     }
-
-
 }
 
 GLR::BusController::BusController()
@@ -384,6 +393,7 @@ void GLR::BusController::DoNodeReg( lua_State *l )
 
     //default des_pid=0
     int des_pid = luaL_optint(l, 5,0);
+    int timeout = 30;
 
     char id[64] = {0};
     snprintf(id, sizeof(id), "%s::%d", host, port);
@@ -395,10 +405,11 @@ void GLR::BusController::DoNodeReg( lua_State *l )
     else
     {
         std::auto_ptr<Galaxy::GalaxyRT::CTCPSocketClient> c(new Galaxy::GalaxyRT::CTCPSocketClient(host, port));  
+        int cFd = c->GetFD();
         std::auto_ptr<MessageLinkStack> ms(new MessageLinkStack(c.release(), _Router)); // as above
         try
         {
-            ms->RegisterTo(host, port);
+            ms->RegisterTo(host, port, timeout);
         }
         catch (Galaxy::GalaxyRT::CException& e)
         {
@@ -407,12 +418,12 @@ void GLR::BusController::DoNodeReg( lua_State *l )
             return;
         }
         ms->_Gpid = des_pid;
-        _LinkMap[c->GetFD()] = ms.get();
-        _Router.insert(std::make_pair(std::string(id), c->GetFD()));
-        _Poller.Register(c->GetFD(), Galaxy::GalaxyRT::EV_IN);
-        
+        _LinkMap[cFd] = ms.get();
+        _Router.insert(std::make_pair(std::string(id), cFd));
+        _Poller.Register(cFd, Galaxy::GalaxyRT::EV_IN);
+
         GALA_ERROR("Return %d", pid);
-        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 1, LUA_TNUMBER, c->GetFD());
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 1, LUA_TNUMBER, cFd);
         ms.release();
     }
 }

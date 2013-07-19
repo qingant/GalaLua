@@ -17,7 +17,8 @@ local mdb=(require "mdb").mdb
 
 local prompt, history = '> ', 'history.txt'
 
-local mdb_path =os.getenv("HOME").. "/tmp/config"
+local db_path=require "db_path"
+local mdb_path =db_path.config
 
 local ROOT="Configure"
 local ROOT2="Contents"

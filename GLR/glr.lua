@@ -33,8 +33,8 @@ function send(addr, msg)
 	end
 end
 
-function connect(host, port, pid)
-	return _glr.int(2, 0, host, port, pid)
+function connect(host, port, pid, timeout)
+	return _glr.int(2, 0, host, port, pid, timeout)
 end
 
 function recv()
@@ -208,5 +208,13 @@ end
 
 local gar=require "gar_loader"
 run_gar=gar.run_gar
+
+function run_spyer( ... )
+    local spyerModuleName = get_option("spyer") or "spyer"
+    local spyerModule = require(spyerModuleName)
+    return spyerModule.main( ... )
+end
+
+
 
 return M

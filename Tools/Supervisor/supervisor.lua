@@ -11,36 +11,207 @@ local pprint=require "pprint"
 local cjson=require "cjson"
 local io=require "io"
 
-local serv_host,serv_port="127.0.0.1",56789
+local config=require "supervisor_conf"
+
+
+function get_supervisord_arg()
+    local Config=(require "config").Config
+    local db_path=require "db_path"
+
+    local _conf= Config:new():init(db_path.config)
+    local host=_conf:get("Supervisor/IP")
+    local port=_conf:get("Supervisor/Port")
+    local gar=_conf:get("Supervisor/Gar")
+    return host,port,gar
+end
+
+local serv_host,serv_port,DefaultGar=get_supervisord_arg()
+
+--[[
+    configure
+]]
+local configure_base={}
+function configure_base:new(o)
+    local o=o or {}
+    setmetatable(o,self)
+    self.__index=self
+    configure_base.init(o)
+
+    return o
+end
+
+function configure_base:init()
+    self._conf=config.watchConf(self._env)
+end
+function configure(env)
+    local Configure=configure_base:new({_env=env})
+    
+    --id: host::port
+    function Configure:get_config_by_id(id,_type)
+        local _type=_type or "valid"
+        local conf_entries=self._conf:find_by_id(id)
+        return filter(conf_entries,_type=="valid")
+    end
+
+    -- group:which group
+    -- name:must match pattern (module_name..index)
+    --      lsr0 ===> lsr:module_name 0:index
+    --      lsr  ===> lsr:module_name match all indexs
+    --      if not passed, then return the whole @group
+    -- _type: default value is "valid". 
+    -- return: a table with all found configure entries,
+    --        empty table if not found. Default is just 
+    --        valid config entry.
+    function Configure:get_config(group,name,_type)
+        assert(group,"group must be passed!")
+        local module_name,index
+        local _type=_type or "valid"
+        if name then
+            local i=name:find("%d")
+            if i then
+                index=assert(tonumber(name:sub(i)),"not a valid name")
+                
+                module_name=name:sub(1,i-1)
+            else
+                module_name=name
+            end
+            print(module_name,index)
+        end
+
+        local conf_entries=self._conf:find(group,module_name,index)
+        
+        return filter(conf_entries,_type=="valid")
+    end
+
+    --[[
+    -- @valid:just return those valid
+    --]]
+    function filter(conf_entries,valid)
+        if valid then
+            local ret={}
+            for i,v in pairs(conf_entries) do
+                if v.valid then
+                    ret[#ret+1]=v
+                end
+            end
+            return ret
+        else
+            return conf_entries
+        end
+    end
+    
+    return Configure
+end
+
+function sleep(n)
+    assert(n,"must pass seconds")
+    local cmd=string.format("sleep %d",n)
+    os.execute(cmd)
+end
+
+--return true if supervisord is started
+--@sec: delay @sec seconds
+function isStarted(sec)
+    local sec=sec or 0
+    local i=0
+    local addr={host=serv_host,port=serv_port,gpid=0}
+    while true do
+        local ret=glr.connect(serv_host,serv_port)
+        if ret then
+            return addr
+        else
+            if i<sec then
+                sleep(1)
+            else
+                break
+            end
+        end
+        i=i+1
+    end
+end
+
 
 local cmds={}
-function cmds.start(name)
-    if name then
-        local host=serv_host
-        local port=serv_port
-        glr.connect(host,port)
+function all_cmds(cmd)
+    function docmd(name)
+        if name  then
+            local addr=isStarted()
+            if not addr then
+                return 
+            end
 
-        glr.send({host=host,port=port,gpid=0},
-        cjson.encode({cmd="start",name=name}))
-        --XXX:waiting reply ????
+            if name=="all" then
+                name=nil
+            end
+
+            local DefaultGroup="wg1"
+
+            local _conf=configure(config.create())
+            local conf_entries=_conf:get_config(DefaultGroup,name)
+
+            glr.send(addr,cjson.encode({cmd=cmd,name=conf_entries}))
+            
+            --XXX:waiting replies.
+            for i=1,#conf_entries do
+                local msg_type,addr,msg=glr.recv()
+
+                print("GETMSG:",msg)
+                local msg_table=cjson.decode(msg)
+
+                pprint.pprint(msg_table)
+            end
+        else
+            cmds.help(cmd)
+        end
+    end
+    return docmd
+end
+
+--stop supervisord
+function cmds.stop_monitor()
+    local addr =isStarted()
+    if addr then
+        addr.gpid=1
+        glr.send(addr,cjson.encode({Type="NODE",Action="EXEC",Cmd="kill"}))
+    else
+        io.write("supervisord is alreadly stopped\n")
+    end
+end
+--start supervisord, not argument should be passed.
+function cmds.start_monitor(name)
+    
+    if name then
+        return cmds.help("start_monitor")
+    end
+    
+    if isStarted() then
+        io.write("supervisord alreadly started...\n")
+    else
+        local gar=""
+        if DefaultGar and DefaultGar~="" then
+            gar="--gar="..DefaultGar
+        end
+        local cmd=string.format("glr -m supervisord -e main -h %s -p %d %s -D ",
+                                serv_host,serv_port,gar)
+        ret=os.execute(cmd)
+        if isStarted(5) then
+            io.write("supervisord is running now... \n")
+        else
+            io.write("start_monitor error  \n")
+        end
     end
 end
 
-function cmds.stop(name)
-    print("stop",name)
-    if name then
-        local host=serv_host
-        local port=serv_port
-        glr.connect(host,port)
-        glr.send({host=host,port=port,gpid=0},
-        cjson.encode({cmd="stop",name=name}))
-    end
-end
+cmds.start=all_cmds("start")
+cmds.stop=all_cmds("stop")
+cmds.status=all_cmds("status")
 
 function cmds.help(arg)
     local help_msg={
             start="start ctr0",
             stop="stop ctr0",
+            start_monitor="start_monitor",
+            status="status ctr0",
             help="help [cmd]"
          }
 

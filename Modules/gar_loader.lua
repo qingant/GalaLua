@@ -21,7 +21,7 @@ function run_gar(gar)
     --get Path tag in manifest.
     function get_gpath(str)
         local path="?.lua"
-        local exec="Excutable"   --default is runnable
+        local exec="Executable"   --default is runnable
         if str then
             local doc=xml.cxml_reader(str,#str)
             local root=doc:document()
@@ -46,17 +46,20 @@ function run_gar(gar)
     function loader(modulename)
         local gar=gar
         local zipfd=zip.open(gar)
-        local gpath=get_gpath(read_file(zipfd,Manifest))
+        if zipfd then   --if open success
+            local gpath=get_gpath(read_file(zipfd,Manifest))
 
-        local real_mod=string.gsub(modulename,"%.","/")
+            local real_mod=string.gsub(modulename,"%.","/")
 
-        for path in string.gmatch(gpath, "([^;]+)") do
-            local file=string.gsub(path,"%?",real_mod)
-            local f=zipfd:open(file)
-            if f then
-                return assert(loadstring(f:read(zipfd:stat(file).size)))
+            for path in string.gmatch(gpath, "([^;]+)") do
+                local file=string.gsub(path,"%?",real_mod)
+                local f=zipfd:open(file)
+                if f then
+                    return assert(loadstring(f:read(zipfd:stat(file).size)))
+                end
             end
         end
+
         return nil
     end
 

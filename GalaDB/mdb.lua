@@ -687,11 +687,11 @@ function element:to_table()
         for k,v in pairs(self:get_child()) do
             result[#result + 1] = v:to_table()
         end
-		result[to_table_attrib_key] = {}
-		local attrib = result[to_table_attrib_key]
-		for k,v in pairs(self:get_attrib()) do
-			attrib[k] = v
-		end
+		-- result[to_table_attrib_key] = {}
+		-- local attrib = result[to_table_attrib_key]
+		-- for k,v in pairs(self:get_attrib()) do
+		-- 	attrib[k] = v
+		-- end
     elseif self:is_leaf() then
         local vs = self:get_value()
         if #vs == 1 then
