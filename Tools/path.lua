@@ -37,7 +37,7 @@ function split(path)
     local _basename="/"
     local _dirname="/"
     if path~="/" then
-        _dirname,_basename=string.match(path,"(.*)/([^/]+)") 
+        _dirname,_basename=string.match(path,"^(.*/)([^/]+)$") 
         if ((not _basename) or (not _dirname)) then
             _basename=path
             _dirname="."
@@ -66,3 +66,23 @@ function ls(file,filter)
     return all
 end
 
+if ...=="__main__" then
+    function test_split()
+        print(split("test.lua"))
+        print(split("/test/ac/c.lua"))
+        print(split("a/test.lua"))
+        print(split("./"))
+        print(split("/"))
+    end
+
+    function test_join()
+        print(join("test","ss"))
+        print(join("/test","ss"))
+        print(join("//","ss"))
+        print(join("/","/ss"))
+        print(join(".","."))
+    end
+    test_join()
+
+    test_split()
+end

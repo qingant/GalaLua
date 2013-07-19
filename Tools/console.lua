@@ -144,7 +144,9 @@ function Console()
 
     local gar=require "pack_gar"
     local configi=require "configi"
+    local supervisor=require "supervisor"
 
+    c.register("supervisor",supervisor.helper,supervisor.completion)
     c.register("gar",gar.helper,gar.completion)
     c.register("config",configi.helper,configi.completion)
 
