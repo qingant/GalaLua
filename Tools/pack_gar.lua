@@ -198,7 +198,9 @@ end
 --add @file to @zipfd as @zipfile
 --@not_recurse: run add2zip recursively if false
 function add2zip(zipfd,file,zipfile,not_recurse)
-    local zipfile=zipfile or file
+    if (not zipfile) or (zipfile=="") then
+        zipfile=file
+    end
     local ft=path.dir_type(file)
     if (ft=="reg") then
         add_file(zipfd,file,zipfile)
@@ -238,7 +240,16 @@ function create_zip(manifest_file,_in)
 
     for in_path,as_path in pairs(_in) do
         if as_path=="" then
-            as_path=m.Root or remove_prefix_slash(in_path)
+            if path.dir_type(in_path)=="reg" then
+                local dirn,basen=path.split(in_path)
+                as_path=path.join(m.Root,basen)
+            else
+                as_path=m.Root 
+            end
+
+            if (not as_path) or (as_path=="") then
+                as_path=remove_prefix_slash(in_path)
+            end
         end
         add2zip(zipfd,in_path,as_path)
     end
