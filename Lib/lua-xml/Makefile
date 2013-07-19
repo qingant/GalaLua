@@ -22,7 +22,11 @@ luaxpath:
 
 libexpat:
 	rm -f expat-2.1.0/Makefile
+#ifeq ($(OS), Linux)
 	cd expat-2.1.0 && ./configure --prefix=$(HOME) --libdir=$(HOME)/lib --includedir=$(HOME)/include/luajit-2.0
+#else
+	cd expat-2.1.0 && ./configure --prefix=$(HOME) --libdir=$(HOME)/lib --includedir=$(HOME)/include/luajit
+#endif
 	cd expat-2.1.0 && cp expat_config.h lib/expat_external.h lib/expat.h $(HOME)/include
 	make -C expat-2.1.0
 	cp expat-2.1.0/.libs/libexpat.so* $(HOME)/lib
@@ -32,7 +36,12 @@ luaexpat: libexpat
 	$(MAKE) -C luaexpat-1.1
 	$(MAKE) -C luaexpat-1.1 install
 
-.PHONY: clean
+.PHONY: clean static
+
+static: etree luaxpath libexpat
+	$(MAKE) -C lua-iconv-7 static
+	$(MAKE) -C lua-iconv-7 install
+	$(MAKE) -C luaexpat-1.1 static
 
 clean:
 	$(MAKE) -C lua-iconv-7 clean

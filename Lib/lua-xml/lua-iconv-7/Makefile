@@ -80,6 +80,11 @@ install: iconv.so iconv.a
 	cp iconv.so $(PREFIX)/lib/lua
 	cp iconv.a $(HOME)/share/static/lua
 
+.PHONY: clean test static
+
+static: iconv.a
+
+
 clean:
 	$(RM) iconv.so iconv.o iconv.a
 
