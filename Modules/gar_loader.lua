@@ -21,7 +21,7 @@ function run_gar(gar)
     --get Path tag in manifest.
     function get_gpath(str)
         local path="?.lua"
-        local exec="Excutable"   --default is runnable
+        local exec="Executable"   --default is runnable
         if str then
             local doc=xml.cxml_reader(str,#str)
             local root=doc:document()
