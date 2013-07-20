@@ -3,7 +3,6 @@
 #include "GLR.hpp"
 #include "lualib.h"
 #include "Process.hpp"
-#include "resource.h"
 #include <algorithm>
 //defines of static data member
 using namespace GLR;
@@ -316,30 +315,17 @@ void Process::InitNode( void )
 
     // getnid
 
-    //GALA_DEBUG((const char*)glr_lua);
-    if (luaL_loadbuffer(_Stack, (const char*)glr_lua, strlen((const char*)glr_lua), "glr")!= 0)
-    {
-        GALA_DEBUG("Load String Failure");
-        StackDump();
-        const char *msg = luaL_checklstring(_Stack, -1, NULL);
-        THROW_EXCEPTION_EX(msg);
-    }
-
+    lua_getglobal(_Stack, "require");
     lua_pushstring(_Stack, "glr");
-    //StackDump();
-
-
-    if(lua_pcall(_Stack, 1, 1, 0) != 0)
+    if (lua_pcall(_Stack, 1, 1,0) != 0)
     {
-        GALA_DEBUG("Call String Failure");
+        GALA_ERROR("Import `glr` Failed");
         StackDump();
-        const char *msg = luaL_checklstring(_Stack, -1, NULL);
+        const char *msg = luaL_checkstring(_Stack,-1);
         THROW_EXCEPTION_EX(msg);
     }
-
-
-    StackDump();
     lua_setglobal(_Stack, "glr");
+
     if (GLR::Runtime::_Initializer != NULL)
     {
         GLR::Runtime::_Initializer(_Stack);    //user defined initialize hook
@@ -673,7 +659,7 @@ void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::M
     {
         Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
         Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
-        
+
         GetNodeById(pid).SendMsg(msg);
     }
     catch (Galaxy::GalaxyRT::CException &e)
@@ -942,7 +928,7 @@ bool GLR::Process::GetNodeExceptionHandle( LN_ID_TYPE pid)
         return true;
     }
     return false;
-    
+
 }
 
 

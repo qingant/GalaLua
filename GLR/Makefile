@@ -1,4 +1,4 @@
-all:res lib glr #mkresx glr_s
+all: lib glr #mkresx glr_s
 lib:libGLR.so #libGLR.a
 include ../mk.rules
 STATIC_LIB_PATH = $(HOME)/share/static
@@ -39,7 +39,8 @@ ttt:ttt.o
 glr:LuaTest.o
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) -I./resource $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@
+	$(G++)  $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@
+	cp glr.lua $(HOME)/lib/lua/
 	mv $@ $(HOME)/bin/
 
 glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/resxloader.c resource/cmodulepack.c
