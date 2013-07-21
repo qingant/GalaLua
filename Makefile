@@ -1,4 +1,4 @@
-DES = pre stub rt amq cfg lua lobj lib glr mod db #pyo #app sup
+DES = pre stub rt amq cfg lua lobj lib glr mod db conf #pyo #app sup
 all:$(DES)
 .PHONY:$(DES) static clean
 PLATFORM      =  $(shell uname)
@@ -34,6 +34,8 @@ lib:
 	$(MAKE) -C Lib all
 mod:
 	$(MAKE) -C Modules
+conf:
+	$(MAKE) -C Config
 db:
 	$(MAKE) -C GalaDB
 static: pre

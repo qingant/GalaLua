@@ -1,6 +1,6 @@
 OBJ=lua_minizip.o
 
-#all:libzip.a minizip.a
+all:libzip minizip
 
 AR          = ar
 ARFLAGS     = -rcu $(ARFLAG)
@@ -31,10 +31,10 @@ endif
 libzip:
 	cd libzip-0.11.1 && chmod +x configure && ./configure CC=$(CC) && OBJECT_MODE=64 && $(MAKE) -C lib && cp -f lib/.libs/libzip.so* $(HOME)/lib/
 
-#
-#minizip:
-#	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c  -o minizip.so -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib
-#	cp -rf minizip.so $(HOME)/lib/lua
+
+minizip:
+	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c  -o minizip.so -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib
+	cp -rf minizip.so $(HOME)/lib/lua
 
 
 %.o: %.c
