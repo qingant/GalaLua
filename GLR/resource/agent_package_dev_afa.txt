@@ -1,0 +1,4 @@
+$(GalaLua_HOME)/Lib/lua-xml/xmlparse.lua
+$(GalaLua_HOME)/Lib/lua-xml/luaxpath/modules
+$(GalaLua_HOME)/Lib/lua-xml/luaxpath/xpath.lua
+$(GalaLua_HOME)/Lib/lua-xml/luaexpat-1.1/src/lxp
