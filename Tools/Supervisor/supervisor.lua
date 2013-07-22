@@ -19,13 +19,12 @@ function get_supervisord_arg()
     local db_path=require "db_path"
 
     local _conf= Config:new():init(db_path.config)
-    local host=_conf:get("Supervisor/IP")
-    local port=_conf:get("Supervisor/Port")
-    local gar=_conf:get("Supervisor/Gar")
+    local host=_conf:get("SUP/Address/IP")
+    local port=_conf:get("SUP/Address/Port")
+    local gar=_conf:get("SUP/GarName")
     return host,port,gar
 end
 
-local serv_host,serv_port,DefaultGar=get_supervisord_arg()
 
 --[[
     configure
@@ -112,6 +111,7 @@ end
 --return true if supervisord is started
 --@sec: delay @sec seconds
 function isStarted(sec)
+    local serv_host,serv_port,DefaultGar=get_supervisord_arg()
     local sec=sec or 0
     local i=0
     local addr={host=serv_host,port=serv_port,gpid=0}
@@ -140,10 +140,6 @@ function all_cmds(cmd)
                 return 
             end
 
-            if name=="all" then
-                name=nil
-            end
-
             local DefaultGroup="wg1"
 
             local _conf=configure(config.create())
@@ -153,7 +149,7 @@ function all_cmds(cmd)
             
             --XXX:waiting replies.
             for i=1,#conf_entries do
-                local msg_type,addr,msg=glr.recv()
+                local msg_type,addr,msg=glr.recv()    --TODO:timeout for failed
 
                 print("GETMSG:",msg)
                 local msg_table=cjson.decode(msg)
@@ -165,6 +161,18 @@ function all_cmds(cmd)
         end
     end
     return docmd
+end
+
+function startall()
+    all_cmds("start")("svc")
+    all_cmds("start")("lsr")
+    all_cmds("start")("ctr")
+end
+
+function stopall()
+    all_cmds("stop")("ctr")
+    all_cmds("stop")("lsr")
+    all_cmds("stop")("svc")
 end
 
 --stop supervisord
@@ -187,6 +195,7 @@ function cmds.start_monitor(name)
     if isStarted() then
         io.write("supervisord alreadly started...\n")
     else
+        local serv_host,serv_port,DefaultGar=get_supervisord_arg()
         local gar=""
         if DefaultGar and DefaultGar~="" then
             gar="--gar="..DefaultGar
@@ -206,13 +215,41 @@ cmds.start=all_cmds("start")
 cmds.stop=all_cmds("stop")
 cmds.status=all_cmds("status")
 
+cmds.startall=startall
+cmds.stopall=stopall
+
+
+function list_config()
+    local DefaultGroup="wg1"
+    local _conf=configure(config.create())
+    local conf_entries=_conf:get_config(DefaultGroup)
+    for i,c in ipairs(conf_entries) do
+        output(c)
+    end
+end
+
+function output(conf)
+    local token=string.format("%s%.4d",conf.module,conf.index)
+    io.write(("*"):rep(50),"\n")
+    io.write(token,":\n")
+    for k,v in pairs(conf) do
+        io.write("\t",k,":",v,"\n")
+    end
+    io.write(("*"):rep(50),"\n")
+end
+
+cmds.config=list_config
+
 function cmds.help(arg)
     local help_msg={
             start="start ctr0",
             stop="stop ctr0",
+            startall="startall",
+            stopall="stopall ",
             start_monitor="start_monitor",
             status="status ctr0",
-            help="help [cmd]"
+            help="help [cmd]",
+            config="list valid configures",
          }
 
     local arg=arg or "all"
