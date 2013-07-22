@@ -25,7 +25,6 @@ function get_supervisord_arg()
     return host,port,gar
 end
 
-local serv_host,serv_port,DefaultGar=get_supervisord_arg()
 
 --[[
     configure
@@ -112,6 +111,7 @@ end
 --return true if supervisord is started
 --@sec: delay @sec seconds
 function isStarted(sec)
+    local serv_host,serv_port,DefaultGar=get_supervisord_arg()
     local sec=sec or 0
     local i=0
     local addr={host=serv_host,port=serv_port,gpid=0}
@@ -195,6 +195,7 @@ function cmds.start_monitor(name)
     if isStarted() then
         io.write("supervisord alreadly started...\n")
     else
+        local serv_host,serv_port,DefaultGar=get_supervisord_arg()
         local gar=""
         if DefaultGar and DefaultGar~="" then
             gar="--gar="..DefaultGar
