@@ -67,9 +67,7 @@ function string.startwith(s,prefix)
     return string.match(s,string.format("^%s",prefix)) 
 end
 
-local db=mdb:new():init(mdb.create_env(mdb_path))
 
-local config= _Config:new():init(mdb_path)
 
 --split xpath with '/' (only zero or one '/' is available) 
 --if path is nil then return emtpy table
@@ -120,7 +118,7 @@ local function remove_suffix_slash(path)
     return path
 end
 
-function get_enum_type(enum_type)
+function get_enum_type(db,enum_type)
    local ret={}
    local root=db:get_root(SCHEMA_ROOT):get_child(SCHEMA_ROOT2)
    local types=root:xpath(string.format("%s/*",enum_type))
@@ -134,6 +132,7 @@ end
 --path must be a valid configure xpath
 --can have a suffix / (only one)
 local function get_type(path)
+    local db=mdb:new():init(mdb.create_env(mdb_path))
     return db:withReadOnly(function (db)
                                 local root=db:get_root(ROOT):get_child(ROOT2)
                                 local l=root:_xpath(remove_suffix_slash(path))
@@ -148,7 +147,7 @@ local function get_type(path)
                                 elseif attr.type=="bool" then
                                     return {type=attr.type}
                                 elseif attr.type then
-                                    local subtype=get_enum_type(attr.type)
+                                    local subtype=get_enum_type(db,attr.type)
                                     return {type="define",realtype=attr.type,subtype=subtype}
                                 else
                                     return {}
@@ -179,6 +178,7 @@ end
 -- return all children keys start with prefix 
 -- path: must without suffix '/'
 local function xpath_completion(path,prefix)
+    local db=mdb:new():init(mdb.create_env(mdb_path))
     return db:withReadOnly(function (db)
                                 --Print("get:",path,">>",prefix)
                                 local ret={}
@@ -432,6 +432,7 @@ function helper(argv)
     local cmd=argv[1] 
     table.remove(argv,1)
     if cmd then
+        local config= _Config:new():init(mdb_path)
         cmds[cmd](config,unpack(argv))
     else
         cmds.help()
