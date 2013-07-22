@@ -37,7 +37,7 @@ luaxml:
 encryption:
 	cd lua-encryption && $(MAKE) all
 linenoise:
-	cd lua-linenoise && $(MAKE) all
+	cd lua-linenoise && $(MAKE) all && mv  linenoise.so $(HOME)/lib/lua
 resource:
 	cd resource && $(MAKE) all
 
