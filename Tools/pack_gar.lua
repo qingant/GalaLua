@@ -75,7 +75,7 @@ end
        <Revision/>
        <Compatibility>2.0</Compatibility>
        <Date>2013/6/20 16:45:03</Date>  
-       <Catagory>Resource</Catagory>  <!-- Excutable/Resource -->
+       <Catagory>Resource</Catagory>  <!-- Executable/Resource -->
        <Path>?.lua;aim/Service/?.lua</Path>  <!--lua module search dir in this gar package-->
        <Root>aim</Root>    <!--root dir in this gar package-->
 </Manifest>
@@ -87,7 +87,7 @@ function add_manifest(zipfd,manifest_file)
 --    root:add_sub_element(xml.cxml_element("Author","aaa"))
 --    root:add_sub_element(xml.cxml_element("Summary","gar package"))
 --    root:add_sub_element(xml.cxml_element("Date",os.date('%F %H:%M')))
---    root:add_sub_element(xml.cxml_element("Catagory","Excutable"))
+--    root:add_sub_element(xml.cxml_element("Catagory","Executable"))
 --    root:add_sub_element(xml.cxml_element("Path","?.lua"))
 
 --    local manifest=xml.cxml_writer(root)
