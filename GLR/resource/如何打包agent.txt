@@ -3,6 +3,10 @@
 其中，list.txt的内容如下面所介绍的形式进行组织。
 
 假设gdk的安装路径为GDK_HOME环境变量所示，aim源码所在路径为AIM_HOME环境变量所示，GalaLua源码所在的路径为GalaLua_HOME环境变量所示，那么list.txt文件的内容如下所示（其中GDK_HOME目录下所需要的文件默认已经在Makefile中提供，此处GDK_HOME相关的行可以省略）：
+注意：当前目录下的agent_package_dev_sys.txt提供了简化的、打包sys类型设备所需文件的列表文件，agent_package_dev_afa.txt提供了简化的、打包afa类型设备所需文件的列表文件。在使用这些文件时，无需定义AIM_HOME、GalaLua_HOME等环境变量，打包agent的是如下调用即可：
+    lua makeagent.lua agent_package_dev_afa.txt AIM_HOME=/path/to/aim_home GalaLua_HOME=/foo/bar/galalua_home
+
+-----------------------------------以下为list.txt文件的内容的示例----------------------------------
 
 $(GDK_HOME)/share/static/lua/cjson.a
 $(GDK_HOME)/share/static/lua/struct.a
