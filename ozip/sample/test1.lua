@@ -1,27 +1,24 @@
-package.path="?.lua" .. ";" .. package.path
+
+package.path="../?.lua" .. ";" .."?.lua" .. ";" .. package.path
 
 local ozip = require("ozip")
-local print_r = require("print_r")
 
-local _ar = ozip.open("/home/ocaml/Downloads/unzip11/1.zip", "w")
+
+local file_name = "1.zip"
+
+local _ar = ozip.open(file_name, "w")
 local tt = ozip.deepcopy(ozip.default_add_options)
 tt.filename="luozhihui"
 --_ar:openFile(tt)
 _ar:addFile("ggg.txt")
-local ctx="Hello ozip, ZhiHui Luo test now LLLLLLLLLLLLLLLLLLLLLSSSDDDDDDDDDDDDDDDDDDDDDDDD\0 a;ddddddddddddddddddddddddddddd"
+local ctx="Hello ozip, ZhiHui Luo test now LLdddddddd"
 _ar:writeFile(ctx)
 _ar:closeFile()
 _ar:close("Test  ozip close")
 
-local zf = ozip.open("/home/ocaml/Downloads/unzip11/1.zip")
+local zf = ozip.open(file_name)
 zf:locateFile("luozhihui", 1)
 info = zf:info(256, 256, 256)
---
---print("--------------------------->")
---for key, val in pairs(info) do 
---   print(key, val)
---end
---print("--------------------------->")
 
 zf:openFile(0, "lll")
 local iret = 1;

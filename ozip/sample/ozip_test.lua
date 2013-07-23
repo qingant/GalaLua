@@ -1,6 +1,8 @@
-package.cpath="/home/ocaml/Downloads/unzip11/?.so" .. ";" .. package.cpath
+package.cpath="../?.so" .. ";" .. package.cpath
 
 local ozip = require("_ozip")
+
+local file_name = "1.zip"
 
 local Z_DEFLATED  				= 8
 local Z_DEFAULT_COMPRESSION 	= -1
@@ -34,7 +36,7 @@ local default_add_options = {
 }
 
 
-local ggg = ozip.fs_zipOpen("/home/ocaml/Downloads/unzip11/oo.zip", 0)
+local ggg = ozip.fs_zipOpen(file_name, 0)
 --error()
 print(" \n -> " .. type(ggg) .. " <-\n ")
 
@@ -50,7 +52,7 @@ ozip.fs_zipClose(ggg, "Test minizip close")
 --error()
 
 
-local zf = ozip.fs_unzOpen("/home/ocaml/Downloads/unzip11/oo.zip")
+local zf = ozip.fs_unzOpen(file_name)
 print(type(zf) .. "fs_unzOpen Return type\n")
 ozip.fs_unzLocateFile(zf, "readme.txt", 1)
 info = ozip.fs_unzGetCurrentFileInfo(zf, 256, 256, 256)

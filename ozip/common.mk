@@ -1,4 +1,4 @@
-CC			= clang
+CC			= gcc
 COMMINC		= -I.
 LNKFLAG		= -shared 
 COMPWARN	= -Wall -Wextra 

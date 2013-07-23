@@ -1,7 +1,8 @@
---
---
---
-package.cpath="/home/ocaml/Downloads/unzip11/?.so" .. ";" .. package.cpath
+-- luozhihui
+-- camel.flying@gmail.com
+-- ozip module
+
+package.cpath="../?.so" .. ";" .. package.cpath
 
 local ozip = require("_ozip")
 local string = require("string")
@@ -231,15 +232,30 @@ function fs_unz.files(self)
 end
 
 local function open(filename, mode)	
-	if not mode or mode == 'r' then
-		-- return unz open archive
+	if not mode or mode == 'r' then 		-- return unz open archive
 		return fs_unz:new(filename, mode)
-	elseif mode == 'w' then
-		-- return zip open archive
+		
+	elseif mode == 'w' then				-- return zip open archive
 		return fs_zip:new(filename, mode)
-	elseif mode == 'a' then
-		-- return zip open archive with append
+		
+	elseif mode == 'a' then				-- return zip open archive with append
 		return fs_zip:new(filename, mode)
+		
+	else
+		error("invalid mode! mode  'r' 'w' 'a' expected\m" )
+	end
+end
+
+local function openZipInStr(filename, mode)	
+	if not mode or mode == 'r' then 		-- return strunz open archive
+		return fs_unz:new(filename, mode)
+		
+	elseif mode == 'w' then				-- return strzip open archive
+		return fs_zip:new(filename, mode)
+		
+	elseif mode == 'a' then				-- return strzip open archive with append
+		return fs_zip:new(filename, mode)
+		
 	else
 		error("invalid mode! mode  'r' 'w' 'a' expected\m" )
 	end
@@ -247,6 +263,7 @@ end
 
 return {
 	open = open,
+	open_zip_in_str = openZipInStr,
 	default_add_options = default_add_options,
 	deepcopy = deepcopy,
 }
