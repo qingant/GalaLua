@@ -241,6 +241,15 @@ function show_status(status)
     io.write(table.concat(out,"\n"))
 end
 
+function cmds.statusall(name)
+    if name then
+        cmds.help("statusall")
+    else
+        cmds.status("lsr")
+        cmds.status("svc")
+        cmds.status("ctr")
+    end
+end
 function cmds.status(name)
     local st=all_cmds("status")(name)
     for i,s in ipairs(st) do
@@ -306,6 +315,7 @@ function cmds.help(arg)
             stopall="stopall: stop all process",
             start_monitor="start_monitor: start supervisord",
             status="status xxx: eg status ctr0",
+            statusall="statusall: get all processes status",
             help="help [cmd]",
             config="config: list valid configures",
             list="list: list all processes ",
