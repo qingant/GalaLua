@@ -300,14 +300,15 @@ cmds.config=list_config
 
 function cmds.help(arg)
     local help_msg={
-            start="start ctr0",
-            stop="stop ctr0",
-            startall="startall",
-            stopall="stopall ",
-            start_monitor="start_monitor",
-            status="status ctr0",
+            start="start xxx: eg start ctr0",
+            stop="stop xxx: eg stop ctr0",
+            startall="startall: start all processed with valid configure",
+            stopall="stopall: stop all process",
+            start_monitor="start_monitor: start supervisord",
+            status="status xxx: eg status ctr0",
             help="help [cmd]",
-            config="list valid configures",
+            config="config: list valid configures",
+            list="list: list all processes ",
          }
 
     local arg=arg or "all"
