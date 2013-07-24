@@ -172,7 +172,12 @@ function process(entry,max)
     --]]
     function Process:stop()
         local state=self:get_state()
-        if (state~=STATE.STOPPING) and (state ~=STATE.STOPPED) then
+
+        --FATA means error occurs, it's not started, 
+        --so update_state as STOPPED directly.
+        if (state==STATE.FATAL) then
+            self:update_state(STATE.STOPPED)
+        elseif (state~=STATE.STOPPING) and (state ~=STATE.STOPPED)  then
             self:update_state(STATE.STOPPING)
             local addr={host=self.entry.host,port=self.entry.port,gpid=1}
 
@@ -348,7 +353,7 @@ function process(entry,max)
                 self:getpid()
                 return self:update_state(STATE.RUNNING)
             elseif state==STATE.BACKOFF then
-                self.start_retry=self.start_retry+1
+                start_retry=start_retry+1
             else
                 --XXX:should never get here
                 return self:update_state(STATE.UNKNOWN)
