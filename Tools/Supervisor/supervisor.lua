@@ -147,11 +147,13 @@ function all_cmds(cmd)
 
             glr.send(addr,cjson.encode({cmd=cmd,name=conf_entries}))
             
+            pprint.pprint(conf_entries,"SEND")
             --XXX:waiting replies.
             for i=1,#conf_entries do
                 local msg_type,addr,msg=glr.recv()    --TODO:timeout for failed
 
                 print("GETMSG:",msg)
+                pprint.pprint(addr,msg_type)
                 local msg_table=cjson.decode(msg)
 
                 pprint.pprint(msg_table)
@@ -236,6 +238,28 @@ function output(conf)
         io.write("\t",k,":",v,"\n")
     end
     io.write(("*"):rep(50),"\n")
+end
+
+function cmds.list(arg)
+    if not arg then
+        local addr=isStarted()
+        if not addr then
+            return 
+        end
+
+        glr.send(addr,cjson.encode({cmd="list"}))
+
+        --XXX:waiting replies.
+        local msg_type,addr,msg=glr.recv()    --TODO:timeout for failed
+
+        print("GETMSG:",msg)
+        pprint.pprint(addr,msg_type)
+        local msg_table=cjson.decode(msg)
+
+        pprint.pprint(msg_table)
+    else
+        cmds.help(cmd)
+    end
 end
 
 cmds.config=list_config

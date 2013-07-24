@@ -440,30 +440,30 @@ function ProcessTable()
     local self={}
     local self_id={}
 
-    function get_by_id(id)
+    local _process={}
+    function _process.get_by_id(id)
         return self_id[id]
     end
 
-    function get(group,token)
+    function _process.get(group,token)
         if self[group] then
             return self[group][token]
         end
     end
     
     --save it if not existed!
-    function save_new(conf)
+    function _process.save_new(conf)
         local token=string.format("%s%.4d",conf.module,conf.index)
-        pprint.pprint(conf,"save_new")
-        local _p=get(conf.group,token)
-        pprint.pprint(_p,"save_new")
+        local _p=_process.get(conf.group,token)
+
         if not _p then
-            _p=save(conf)
+            _p=_process.save(conf)
         end
         return _p
     end
     
     --save process, if existed then replace it.
-    function save(conf)
+    function _process.save(conf)
         self[conf.group]=self[conf.group] or {}
         local token=string.format("%s%.4d",conf.module,conf.index)
         local _p=process(conf)
@@ -474,20 +474,13 @@ function ProcessTable()
     end
     
     --get all process 
-    function getall()
+    function _process.getall()
         local ret={}
         for k,v in pairs(self_id) do
             ret[#ret+1]=v:export()
         end
         return ret 
     end
-
-    local _process={}
-    _process.get=get
-    _process.get_by_id=get_by_id
-    _process.save=save
-    _process.save_new=save_new
-    _process.getall=getall
 
     return _process
 end
@@ -544,7 +537,6 @@ function supervisor()
             ret[#ret+1]=_process.save_new(e)
         end
         pprint.pprint(ret,"get_processes_by_entries")
-        pprint.pprint(_process.getall(),"getall")
         return ret
     end
 
@@ -567,13 +559,17 @@ function supervisor()
         print("update_state")
     end
 
+    function Supervisor:get_all_process()
+        return _process.getall()
+    end
+
     return Supervisor
 end
 
 function main()
 
     local node=supervisor()
-    local cmds={start="",status="",config=""}
+    local cmds={start="",status="",config="",list=""}
     while true do
         local msg_type, addr, msg = glr.recv()
 
@@ -592,6 +588,9 @@ function main()
                 print("return from spawn ............")
                 pprint.pprint(msg_table,"return")
                 node:attach(msg_table.content)
+            elseif cmd=="list" then
+                msg_table.content=node:get_all_process()
+                glr.send(addr,cjson.encode(msg_table))
             elseif cmd=="stop" then
                 local procs=node:get_processes(msg_table.name)
                 pprint.pprint(procs,"STOPP")
