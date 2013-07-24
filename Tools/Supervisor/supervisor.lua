@@ -137,6 +137,8 @@ function all_cmds(cmd)
         if name  then
             local addr=isStarted()
             if not addr then
+                io.write("supervisord is not running\n")
+                io.write("run 'supervisor start_monitor' to start it\n")
                 return 
             end
 
@@ -148,16 +150,16 @@ function all_cmds(cmd)
             glr.send(addr,cjson.encode({cmd=cmd,name=conf_entries}))
             
             pprint.pprint(conf_entries,"SEND")
+            local ret={}
             --XXX:waiting replies.
             for i=1,#conf_entries do
                 local msg_type,addr,msg=glr.recv()    --TODO:timeout for failed
 
                 print("GETMSG:",msg)
                 pprint.pprint(addr,msg_type)
-                local msg_table=cjson.decode(msg)
-
-                pprint.pprint(msg_table)
+                ret[#ret+1]=cjson.decode(msg)
             end
+            return ret
         else
             cmds.help(cmd)
         end
@@ -213,9 +215,41 @@ function cmds.start_monitor(name)
     end
 end
 
+function show_status(status)
+    local out={}
+    function add(s)
+        out[#out+1]=s or ""
+    end
+    local content=status.content
+    local self=status.self
+    local token=string.format("%s%.4d",self.module,tonumber(self.index))
+    local sep1=("*"):rep(40)
+    local sep2=("-"):rep(20)
+    add(sep1)
+    add(string.format("%s  state:%s",token,content.state))
+    add(string.format("host:%s   port:%s",self.host,self.port))
+    local glr_p=content.status or {}
+    for gpid,s in pairs(glr_p) do
+        add(sep2)
+        add("gpid:"..gpid)
+        for k,v in pairs(s) do
+            add("\t"..k..":"..v)
+        end
+    end
+    add(sep1)
+    add()
+    io.write(table.concat(out,"\n"))
+end
+
+function cmds.status(name)
+    local st=all_cmds("status")(name)
+    for i,s in ipairs(st) do
+        show_status(s)
+    end
+end
+
 cmds.start=all_cmds("start")
 cmds.stop=all_cmds("stop")
-cmds.status=all_cmds("status")
 
 cmds.startall=startall
 cmds.stopall=stopall
