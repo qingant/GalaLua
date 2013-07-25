@@ -45,7 +45,7 @@ static voidpf 	ZCALLBACK mem_fopen_file_func OF((voidpf opaque, const void* addr
 {
 	voidpf file=NULL;
 	PMEMFILE mf = (PMEMFILE)addr;
-	file = memfile_open(opaque, mf->addr, mode, mf->size, mf->limit);
+	file = memfile_open(mf->addr, mode, mf->size, mf->limit);
 
     return file;
 }
@@ -54,21 +54,21 @@ static voidpf 	ZCALLBACK mem_fopen_file_func OF((voidpf opaque, const void* addr
 static uLong ZCALLBACK mem_fread_file_func (voidpf opaque, voidpf stream, void* buf, uLong size)
 {
     uLong ret;
-    ret = (uLong)memfile_read(opaque, stream, buf, size);
+    ret = (uLong)memfile_read(stream, buf, size);
     return ret;
 }
 
 static uLong ZCALLBACK mem_fwrite_file_func (voidpf opaque, voidpf stream, const void* buf, uLong size)
 {
     uLong ret;
-    ret = (uLong)memfile_write(opaque, stream, buf, size);
+    ret = (uLong)memfile_write(stream, buf, size);
     return ret;
 }
 
 static ZPOS64_T ZCALLBACK mem_ftell_file_func (voidpf opaque, voidpf stream)
 {
     long ret;
-    ret = memfile_tell(opaque,(FILE *)stream);
+    ret = memfile_tell((FILE *)stream);
     return ret;
 }
 
@@ -90,7 +90,7 @@ static long ZCALLBACK mem_fseek_file_func (voidpf opaque, voidpf stream, ZPOS64_
     default: return -1;
     }
     ret = 0;
-    if (memfile_seek(opaque, stream, offset, fseek_origin) != 0)
+    if (memfile_seek(stream, offset, fseek_origin) != 0)
         ret = -1;
     return ret;
 }
@@ -98,14 +98,14 @@ static long ZCALLBACK mem_fseek_file_func (voidpf opaque, voidpf stream, ZPOS64_
 static int ZCALLBACK mem_fclose_file_func (voidpf opaque, voidpf stream)
 {
     int ret;
-    ret = memfile_close(opaque, (FILE *)stream, NULL);
+    ret = memfile_close((FILE *)stream, NULL);
     return ret;
 }
 
 static int ZCALLBACK mem_ferror_file_func (voidpf opaque, voidpf stream)
 {
     int ret;
-    ret = memfile_error(opaque, stream);
+    ret = memfile_error(stream);
     return ret;
 }
 

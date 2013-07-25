@@ -838,12 +838,13 @@ extern unzFile ZEXPORT str_unzOpen (const void *path)
 extern int ZEXPORT unzClose (unzFile file)
 {
     unz64_s* s;
-    if (file==NULL)
-        return UNZ_PARAMERROR;
+	if (file == NULL) {
+		return UNZ_PARAMERROR;
+	}
     s=(unz64_s*)file;
 
-    if (s->pfile_in_zip_read!=NULL)
-        unzCloseCurrentFile(file);
+	if (s->pfile_in_zip_read != NULL)
+		unzCloseCurrentFile(file);
 
     ZCLOSE64(s->z_filefunc, s->filestream);
     TRYFREE(s);
@@ -2035,7 +2036,7 @@ extern int ZEXPORT unzGetLocalExtrafield (unzFile file, voidp buf, unsigned len)
 */
 extern int ZEXPORT unzCloseCurrentFile (unzFile file)
 {
-    int err=UNZ_OK;
+	int err = UNZ_OK;
 
     unz64_s* s;
     file_in_zip64_read_info_s* pfile_in_zip_read_info;

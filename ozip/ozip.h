@@ -50,6 +50,10 @@ extern "C" {
 #define WRITEBUFFERSIZE (8192)
 #define MAXFILENAME (256)
 
+#ifndef Z_MAX_WBITS
+#define Z_MAX_WBITS 15
+#endif
+
 #ifdef _WIN32
 #define USEWIN32IOAPI
 #include "iowin32.h"
