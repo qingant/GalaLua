@@ -18,7 +18,7 @@ ifeq (${PLATFORM},Linux)
 	RANLIB      = ranlib
 	RANLIBFLAGS =
 else ifeq (${PLATFORM},AIX)
-	LDFLG = -qmkshrobj -q64 qlanglvl=extc99 -bM:SRE -bnoentry -brtl -brtllib -berok
+	LDFLG = -qmkshrobj -q64 -bM:SRE -bnoentry -brtl -brtllib -berok
 	CFLAGS = -c -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lm
 	CC=xlc_r
 	AR          = ar
@@ -33,14 +33,14 @@ libzip:
 
 
 minizip:
-	gcc -shared  -fPIC -ansi -fstack-check lua_minizip.c  -o minizip.so -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib
+	$(CC) $(LDFLG) $(CFLAGS) lua_minizip.c  -o minizip.so -lzip -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/ -L$(HOME)/lib/  -L$(HOME)/lib/lib
 	cp -rf minizip.so $(HOME)/lib/lua
 
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -Ilibzip-0.11.1/lib -I../../LuaJIT-2.0.0/src/
 
-static: libzip.a minizip.a 
+static: libzip.a minizip.a
 
 minizip.a:$(OBJ)
 	$(AR) $(ARFLAGS) $@ $^
