@@ -159,6 +159,7 @@ end
 function process(entry,max)
     local Process=p:new{entry=entry}
     local MAX_TIMES=max or 3
+    local pid
     
     --[[
     --  stop process.
@@ -171,26 +172,31 @@ function process(entry,max)
     --]]
     function Process:stop()
         local state=self:get_state()
-        if (state~=STATE.STOPPING) and (state ~=STATE.STOPPED) then
-            self.entry.state=STATE.STOPPING
+
+        --FATA means error occurs, it's not started, 
+        --so update_state as STOPPED directly.
+        if (state==STATE.FATAL) then
+            self:update_state(STATE.STOPPED)
+        elseif (state~=STATE.STOPPING) and (state ~=STATE.STOPPED)  then
+            self:update_state(STATE.STOPPING)
             local addr={host=self.entry.host,port=self.entry.port,gpid=1}
 
             local ret=glr.send(addr,cjson.encode({Type="NODE",Action="EXEC",Cmd="kill"})) 
             if ret then  --send "kill" command success
                 --FIXME: some time delay before get_state?
+                sleep(1)
                 state=self:get_state()
             end
             if (state~=STATE.STOPPED) then
                 -- just kill -9 it
                 pprint.pprint(self.entry,"stop")
-                local stopcmd=string.format("kill -9 %d",self.entry.pid)
+                local stopcmd=string.format("kill -9 %d",pid)
                 execute(stopcmd)
             end
-
             self:update_state(STATE.STOPPED)
         end
     end
-
+    
     --[[
       get_state: get the process's current state.
 
@@ -345,10 +351,9 @@ function process(entry,max)
             local state=self:get_state()
             if state==STATE.RUNNING then
                 self:getpid()
-                pprint.pprint(self.entry,"SSSSSSSSSSS")
                 return self:update_state(STATE.RUNNING)
             elseif state==STATE.BACKOFF then
-                self.start_retry=self.start_retry+1
+                start_retry=start_retry+1
             else
                 --XXX:should never get here
                 return self:update_state(STATE.UNKNOWN)
@@ -358,6 +363,11 @@ function process(entry,max)
         return self:update_state(STATE.FATAL)
     end
 
+
+    --[[
+    -- get information from glr process's "spyer server(gpid: 1)"
+    --
+    --]]
     function Process:get_info_from_inspector(cmd)
         print("get_info_from_inspector........")
         local addr={host=glr.sys.host,port=glr.sys.port,gpid=__id__}
@@ -388,20 +398,25 @@ function process(entry,max)
         pprint.pprint(self.entry,"getpid...........")
         local state=self:get_state()
         if state==STATE.RUNNING then
-            self.entry.pid=self:get_info_from_inspector("pid").pid
+            pid=self:get_info_from_inspector("pid").pid
+            return pid
         end
-        print("get pid:",self.entry.pid)
+        print("get pid:",pid)
     end
     
     --FIXME: what should return when the process is stopped
-    --TODO: we should collect some information when calling process start
     function Process:status()
+        local ret={}
         local state=self:get_state()
         if state==STATE.RUNNING then
-            self.entry.status=self:get_info_from_inspector("status")
-        else
-            return self.entry.status
+            ret.pid=self:getpid()
+            ret.status=self:get_info_from_inspector("status")
+
+            --XXX:update state?? 
+            --self:update_state(STATE.RUNNING)
         end
+        ret.state=state
+        return ret
     end
 
     --XXX:export self.entry, with it can rebuild Exactly the same process object.
@@ -440,30 +455,30 @@ function ProcessTable()
     local self={}
     local self_id={}
 
-    function get_by_id(id)
+    local _process={}
+    function _process.get_by_id(id)
         return self_id[id]
     end
 
-    function get(group,token)
+    function _process.get(group,token)
         if self[group] then
             return self[group][token]
         end
     end
     
     --save it if not existed!
-    function save_new(conf)
+    function _process.save_new(conf)
         local token=string.format("%s%.4d",conf.module,conf.index)
-        pprint.pprint(conf,"save_new")
-        local _p=get(conf.group,token)
-        pprint.pprint(_p,"save_new")
+        local _p=_process.get(conf.group,token)
+
         if not _p then
-            _p=save(conf)
+            _p=_process.save(conf)
         end
         return _p
     end
     
     --save process, if existed then replace it.
-    function save(conf)
+    function _process.save(conf)
         self[conf.group]=self[conf.group] or {}
         local token=string.format("%s%.4d",conf.module,conf.index)
         local _p=process(conf)
@@ -474,20 +489,13 @@ function ProcessTable()
     end
     
     --get all process 
-    function getall()
+    function _process.getall()
         local ret={}
         for k,v in pairs(self_id) do
             ret[#ret+1]=v:export()
         end
         return ret 
     end
-
-    local _process={}
-    _process.get=get
-    _process.get_by_id=get_by_id
-    _process.save=save
-    _process.save_new=save_new
-    _process.getall=getall
 
     return _process
 end
@@ -544,7 +552,6 @@ function supervisor()
             ret[#ret+1]=_process.save_new(e)
         end
         pprint.pprint(ret,"get_processes_by_entries")
-        pprint.pprint(_process.getall(),"getall")
         return ret
     end
 
@@ -564,64 +571,78 @@ function supervisor()
     function Supervisor:attach(proc)
         local _p=self:create_process(proc)
         _p:update_state()
-        print("update_state")
+    end
+
+    function Supervisor:get_all_process()
+        return _process.getall()
     end
 
     return Supervisor
 end
 
-function main()
 
-    local node=supervisor()
-    local cmds={start="",status="",config=""}
-    while true do
-        local msg_type, addr, msg = glr.recv()
 
-        if msg_type == glr.CLOSED then
-            local proc=node:get_processes_by_id(addr.host)
-            if proc then
-                pprint.pprint(proc,"RESTART")
-                local err,id=glr.spawn("supervisord","run_cmd",
-                                       cjson.encode(proc:export()),"restart_if_exited")
-            end
-        elseif MSG_TYPE.APP==msg_type then
-            local msg_table=cjson.decode(msg)
-            local cmd=msg_table.cmd
+function cmds(sup)
+    local sup=assert(sup,"must pass valid supervisor")
 
-            if cmd=="return" then   --message from run_cmd function
-                print("return from spawn ............")
-                pprint.pprint(msg_table,"return")
-                node:attach(msg_table.content)
-            elseif cmd=="stop" then
-                local procs=node:get_processes(msg_table.name)
-                pprint.pprint(procs,"STOPP")
-                for i,e in ipairs(procs) do   --procs may have more than one item
-                    e:stop()
-                end
-                glr.send(addr,msg)
-            elseif cmds[cmd] then   --message from client
-                print(("*"):rep(20),msg,("*"):rep(20))
+    local Cmds={}
+    
+    function unknown(msg_table,toaddr)
+        local msg=cjson.encode(msg_table)
+        print("unknown command:",msg_table.cmd)
+        glr.send(toaddr,cjson.encode({ret="unkown cmd",msg=msg}))
+    end
 
-                local procs=node:get_processes(msg_table.name)
-                for i,e in ipairs(procs) do   --procs may have more than one item
-                    local err,id=glr.spawn("supervisord","run_cmd",
-                                           cjson.encode(e:export()),cmd,cjson.encode(addr))
-                end
-            end
-        else
-            glr.send(addr,cjson.encode({ret="unkown message",msg=msg}))
+    local mt={__index=function () return unkown end}
+    setmetatable(Cmds,mt)
+
+    function Cmds.stop(msg_table,toaddr)
+        local procs=sup:get_processes(msg_table.name)
+        local ret={cmd="stop"}
+        for i,_p in ipairs(procs) do   --procs may have more than one item
+            _p:stop()
+            ret.content=_p:export()
+            glr.send(toaddr,cjson.encode(ret))
         end
     end
+
+    function Cmds.start(msg_table,toaddr)
+        local procs=sup:get_processes(msg_table.name)
+        for i,e in ipairs(procs) do   --procs may have more than one item
+            local err,id=glr.spawn("supervisord","run_ctrl_cmd",cjson.encode(e:export()),
+                                   msg_table.cmd,cjson.encode(toaddr))
+        end
+    end
+
+    function Cmds.status(msg_table,toaddr)
+        local procs=sup:get_processes(msg_table.name)
+        for i,e in ipairs(procs) do   --procs may have more than one item
+            local err,id=glr.spawn("supervisord","run_info_cmd",cjson.encode(e:export()),
+                                   msg_table.cmd,cjson.encode(toaddr))
+        end
+
+    end
+
+    function Cmds.list(msg_table,toaddr)
+        msg_table.content=sup:get_all_process()
+        glr.send(toaddr,cjson.encode(msg_table))
+    end
+
+    --update process 
+    function Cmds.update(msg_table)
+        sup:attach(msg_table.content)
+    end
+
+    return Cmds
 end
 
-
 --[[
---  run command @cmd, then send "return" message to 
---  main process and the client @addr.
+--  run control command @cmd, then send "update" message to 
+--  main process and send success or failed message to the client @addr.
 --
---  "return" message format:
+--  "update" message format:
 --  {
---      cmd="return",
+--      cmd="update",
 --      content={
 --                  host=...,
 --                  port=...,
@@ -633,16 +654,19 @@ end
 --
 --  client message format:
 --  {
+--      cmd="",
+--      content=process.entry
 --  }
 --
 --]]
-function run_cmd(proc,cmd,addr)
+function run_ctrl_cmd(proc,cmd,addr)
     local proc=cjson.decode(proc) 
     local _p=process(proc)
+
     _p[cmd](_p)
 
     local msg_table={}
-    msg_table.cmd="return"
+    msg_table.cmd="update"
     msg_table.content=_p:export()
 
     local msg=cjson.encode(msg_table)
@@ -655,8 +679,58 @@ function run_cmd(proc,cmd,addr)
         local msg=cjson.encode(msg_table)
         glr.send(cjson.decode(addr),msg)   --to supervisord client
     end
-    print("run_cmd over")
+    print("run_ctrl_cmd over")
 end
+
+--[[
+--  run get information command @cmd, then send what @cmd function return 
+--  to the client @addr.
+--
+--  --  client message format:
+--  {
+--      cmd="",
+--      content={...}
+--  }
+--
+]]
+function run_info_cmd(proc,cmd,addr)
+    local addr=assert(addr,"must pass addr")
+    local proc=cjson.decode(proc) 
+    local _p=process(proc)
+
+    local ret=_p[cmd](_p)
+    local msg_table={cmd=cmd}
+    msg_table.self=_p:export()
+    msg_table.content=ret or {}
+
+    local msg=cjson.encode(msg_table)
+    glr.send(cjson.decode(addr),msg)   --to supervisord client
+
+    print("run_info_cmd over")
+end
+
+function main()
+    local node=supervisor()
+    local command=cmds(node)
+    while true do
+        local msg_type, addr, msg = glr.recv()
+
+        if msg_type == glr.CLOSED then
+            local proc=node:get_processes_by_id(addr.host)
+            if proc then
+                pprint.pprint(proc,"RESTART")
+                local err,id=glr.spawn("supervisord","run_ctrl_cmd",
+                                       cjson.encode(proc:export()),"restart_if_exited")
+            end
+        elseif MSG_TYPE.APP==msg_type then
+            local msg_table=cjson.decode(msg)
+            command[msg_table.cmd](msg_table,addr)
+        else
+            glr.send(addr,cjson.encode({ret="unkown message",msg=msg}))
+        end
+    end
+end
+
 
 if ...=="__main__" then
     print("supervisord is running...")

@@ -210,8 +210,8 @@ function watchConf(env)
             local lsr=root:get_child("LSRList")
 
             for i,ch in pairs(lsr:get_child()) do
-                local host=ch:xpath("Address/Port")[1]:get_value()[1]
-                local port=ch:xpath("Address/IP")[1]:get_value()[1]
+                local host=ch:xpath("Address/IP")[1]:get_value()[1]
+                local port=ch:xpath("Address/Port")[1]:get_value()[1]
 
                 --local host=ch:xpath("Protocol/LSRSTREAM/Address/TCP/Port")[1]:get_value()[1]
                 --local port=ch:xpath("Protocol/LSRSTREAM/Address/TCP/IP")[1]:get_value()[1]
@@ -245,8 +245,8 @@ function watchConf(env)
            
             local ctr=root:get_child("CTR")
 
-            local host=ctr:xpath("Address/Port")[1]:get_value()[1]
-            local port=ctr:xpath("Address/IP")[1]:get_value()[1]
+            local host=ctr:xpath("Address/IP")[1]:get_value()[1]
+            local port=ctr:xpath("Address/Port")[1]:get_value()[1]
             local index=0
             local group="wg1"
             local entry="main"
@@ -270,10 +270,10 @@ if ...=="__main__" then
     local _env=create()
     _conf=watchConf(_env)
 
-    entry={host="127.0.0.1",port=2000,index=0,group="wg1",stderr="stderr",stdout="stdout",module_name="sup",entry="main"}
-    _conf:save(entry)
+--    entry={host="127.0.0.1",port=2000,index=0,group="wg1",stderr="stderr",stdout="stdout",module_name="sup",entry="main"}
+--    _conf:save(entry)
 
---    _conf:import()
+    _conf:import()
 --    _conf:to_xml()
     _conf:show()
 end
