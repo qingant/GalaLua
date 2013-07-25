@@ -27,4 +27,4 @@ install:
 .PHONY:clean
 
 clean:
-	/bin/rm -f *.o *~ minizip miniunz libozip.so _ozip.so test1 *.zip sample/*.o
+	/bin/rm -f *.o *~ minizip miniunz libozip.so _ozip.so test1 *.zip sample/*.o sample/*.zip

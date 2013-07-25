@@ -5,8 +5,8 @@
  *      Author: ocaml
  */
 
-#include <lua5.1/lauxlib.h>
-#include <lua5.1/lua.h>
+#include <lauxlib.h>
+#include <lua.h>
 #include "ozip.h"
 #include <assert.h>
 #include <errno.h>
@@ -82,19 +82,20 @@ static int Lua_zipOpen(lua_State* L) {
  * problems.
  */
 static int Lua_zipClose(lua_State* L) {
-	zipFile ar = *check_ziparchive(L, 1);
+	zipFile* ar = check_ziparchive(L, 1);
 	const char* global_comment = luaL_checkstring(L,-1);
 	int err;
 
 	stackdump(L);
-	if (!ar) {
+	if (!*ar) {
 		return 0;
 	}
 
-	err = ozip_zipClose(ar, global_comment);
+	err = ozip_zipClose(*ar, global_comment);
 	if (err != ZIP_OK) {
 		return luaL_error(L, "failure to ozip_zipClose: %d\n", err);
 	}
+	*ar = NULL;
 
 	return 0;
 }
@@ -317,18 +318,18 @@ static int Lua_unzOpen64(lua_State* L) {
 }
 
 static int Lua_unzClose(lua_State* L) {
-	unzFile ar = *check_unzarchive(L, 1);
+	unzFile* ar = check_unzarchive(L, 1);
 	int err;
 
-	fprintf(stderr, "============>call Lua_unzClose now <===================\n");
-	if (!ar) {
+	if (!*ar) {
 		return luaL_error(L, "userdata is nil\n");
 	}
 
-	err = ozip_unzClose(ar);
+	err = ozip_unzClose(*ar);
 	if (err != UNZ_OK) {
 		return luaL_error(L, "failure to Lua_unzClose: %d\n", err);
 	}
+	*ar = NULL;
 
 	return 0;
 }
@@ -709,13 +710,16 @@ static int Lua_strunzOpen(lua_State* L) {
 }
 
 static int Lua_zipArchiveGC(lua_State* L) {
-	zipFile* ar = *check_ziparchive(L, 1);
-
-	if (!ar) {
+	zipFile* ar = check_ziparchive(L, 1);
+	int err;
+	if (!*ar) {
 		return 0;
 	}
 
-//	ozip_zipClose(ar, NULL);
+	if ((err = Lua_zipClose(L)) == UNZ_OK) {
+		return luaL_error(L, "failure to Lua_zipClose");
+	}
+	*ar = NULL;
 
 	return 0;
 }
@@ -757,11 +761,10 @@ static int Lua_unzArchiveGC(lua_State* L) {
 		return 0;
 	}
 
-	fprintf(stderr, "<<<<<<<<<<<<< Lua_unzArchiveGC >>>>>>>>>>>>>>>\n");
-//	if ((err = Lua_unzClose(L)) == UNZ_OK) {
-//		*ar = NULL;
-//	}
-
+	if ((err = Lua_unzClose(L)) == UNZ_OK) {
+		return luaL_error(L, "failure to Lua_unzClose");
+	}
+	*ar = NULL;
 	return 0;
 }
 
