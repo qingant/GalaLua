@@ -1,7 +1,7 @@
 
 local ARCHIVE_SUFFIX_NAME = ".a"
 local LUA_PCK_SUFFIX_NAME = ".lua"
-local MAKEFILE_STATIC_PATH = "/opt/agree/gdk/share/Makefile.static"
+local MAKEFILE_STATIC_PATH = os.getenv("GDK_HOME") .. "/share/Makefile.static"
 
 local function basename(pathname)
     local retval = string.reverse(pathname)
@@ -52,7 +52,8 @@ local function makeagent(args)
     retval = {"make -f", MAKEFILE_STATIC_PATH, scripts, archives, args[2], args[3]}
     local make = table.concat(retval, " ")
     local clean = "make -f " .. MAKEFILE_STATIC_PATH .. " clean"
-    if os.execute(clean) == 0 and os.execute(make) == 0 and args[2] == "install" then
+    os.execute(clean)
+    if os.execute(make) == 0 and args[2] == "install" then
         retval = {"make -f", MAKEFILE_STATIC_PATH, args[2]}
         os.execute(table.concat(retval, " "))
     end
