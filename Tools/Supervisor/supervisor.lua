@@ -137,6 +137,8 @@ function all_cmds(cmd)
         if name  then
             local addr=isStarted()
             if not addr then
+                io.write("supervisord is not running\n")
+                io.write("run 'supervisor start_monitor' to start it\n")
                 return 
             end
 
@@ -147,15 +149,17 @@ function all_cmds(cmd)
 
             glr.send(addr,cjson.encode({cmd=cmd,name=conf_entries}))
             
+            pprint.pprint(conf_entries,"SEND")
+            local ret={}
             --XXX:waiting replies.
             for i=1,#conf_entries do
                 local msg_type,addr,msg=glr.recv()    --TODO:timeout for failed
 
                 print("GETMSG:",msg)
-                local msg_table=cjson.decode(msg)
-
-                pprint.pprint(msg_table)
+                pprint.pprint(addr,msg_type)
+                ret[#ret+1]=cjson.decode(msg)
             end
+            return ret
         else
             cmds.help(cmd)
         end
@@ -211,9 +215,50 @@ function cmds.start_monitor(name)
     end
 end
 
+function show_status(status)
+    local out={}
+    function add(s)
+        out[#out+1]=s or ""
+    end
+    local content=status.content
+    local self=status.self
+    local token=string.format("%s%.4d",self.module,tonumber(self.index))
+    local sep1=("*"):rep(40)
+    local sep2=("-"):rep(20)
+    add(sep1)
+    add(string.format("%s  state:%s",token,content.state))
+    add(string.format("host:%s   port:%s",self.host,self.port))
+    local glr_p=content.status or {}
+    for gpid,s in pairs(glr_p) do
+        add(sep2)
+        add("gpid:"..gpid)
+        for k,v in pairs(s) do
+            add("\t"..k..":"..v)
+        end
+    end
+    add(sep1)
+    add()
+    io.write(table.concat(out,"\n"))
+end
+
+function cmds.statusall(name)
+    if name then
+        cmds.help("statusall")
+    else
+        cmds.status("lsr")
+        cmds.status("svc")
+        cmds.status("ctr")
+    end
+end
+function cmds.status(name)
+    local st=all_cmds("status")(name)
+    for i,s in ipairs(st) do
+        show_status(s)
+    end
+end
+
 cmds.start=all_cmds("start")
 cmds.stop=all_cmds("stop")
-cmds.status=all_cmds("status")
 
 cmds.startall=startall
 cmds.stopall=stopall
@@ -238,18 +283,42 @@ function output(conf)
     io.write(("*"):rep(50),"\n")
 end
 
+function cmds.list(arg)
+    if not arg then
+        local addr=isStarted()
+        if not addr then
+            return 
+        end
+
+        glr.send(addr,cjson.encode({cmd="list"}))
+
+        --XXX:waiting replies.
+        local msg_type,addr,msg=glr.recv()    --TODO:timeout for failed
+
+        print("GETMSG:",msg)
+        pprint.pprint(addr,msg_type)
+        local msg_table=cjson.decode(msg)
+
+        pprint.pprint(msg_table)
+    else
+        cmds.help(cmd)
+    end
+end
+
 cmds.config=list_config
 
 function cmds.help(arg)
     local help_msg={
-            start="start ctr0",
-            stop="stop ctr0",
-            startall="startall",
-            stopall="stopall ",
-            start_monitor="start_monitor",
-            status="status ctr0",
+            start="start xxx: eg start ctr0",
+            stop="stop xxx: eg stop ctr0",
+            startall="startall: start all processed with valid configure",
+            stopall="stopall: stop all process",
+            start_monitor="start_monitor: start supervisord",
+            status="status xxx: eg status ctr0",
+            statusall="statusall: get all processes status",
             help="help [cmd]",
-            config="list valid configures",
+            config="config: list valid configures",
+            list="list: list all processes ",
          }
 
     local arg=arg or "all"
