@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "zlib.h"
+#include <zlib.h>
 #include "zip.h"
 
 #include "memfile.h"
@@ -64,7 +64,7 @@
 # define ALLOC(size) (malloc(size))
 #endif
 #ifndef TRYFREE
-# define TRYFREE(p) {if (p) free(p);}
+# define TRYFREE(p) {if (p){ free(p); p=NULL;}}
 #endif
 
 /*

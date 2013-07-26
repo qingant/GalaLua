@@ -78,6 +78,7 @@ int main() {
     ret = ozip_zipWriteInFileInZip (zf, ctx, strlen(ctx));
     ret = ozip_zipCloseFileInZip (zf);
     ret = ozip_zipClose (zf, NULL);
+    ret = ozip_zipClose (zf, NULL);
 
     printf("\n\n=================================>\n\n");
     unzFile ar = ozip_strunzOpen(pctx, size, size+1);

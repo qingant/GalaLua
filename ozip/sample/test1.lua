@@ -10,7 +10,7 @@ local _ar = ozip.open(file_name, "w")
 local tt = ozip.deepcopy(ozip.default_add_options)
 tt.filename="luozhihui"
 --_ar:openFile(tt)
-_ar:addFile("ggg.txt")
+_ar:addFile(tt)
 local ctx="Hello ozip, ZhiHui Luo test now LLdddddddd"
 _ar:writeFile(ctx)
 _ar:closeFile()
@@ -20,7 +20,7 @@ local zf = ozip.open(file_name)
 zf:locateFile("luozhihui", 1)
 info = zf:info(256, 256, 256)
 
-zf:openFile(0, "lll")
+zf:openFile(0, "")
 local iret = 1;
 
 while iret > 0 do 
@@ -32,7 +32,6 @@ end
 
 zf:closeFile()
 
-
 --- print all info
 for info in zf:files() do
 	print("--------------------------->")
@@ -43,5 +42,7 @@ for info in zf:files() do
 end
 
 zf:close()
+--zf:close()
+
 
 
