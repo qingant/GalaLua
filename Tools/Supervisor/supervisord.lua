@@ -186,9 +186,9 @@ function process(entry,max)
 
         --FATA means error occurs, it's not started, 
         --so update_state as STOPPED directly.
-        if (state==STATE.FATAL) then
+        if (state==STATE.FATAL) or (state==STATE.STOPPED) then
             self:update_state(STATE.STOPPED)
-        elseif (state~=STATE.STOPPING) and (state ~=STATE.STOPPED)  then
+        elseif (state~=STATE.STOPPING) then  --FIXME: whatif state==STATE.EXITED???
             self:update_state(STATE.STOPPING)
             local addr={host=self.entry.host,port=self.entry.port,gpid=1}
 
@@ -614,7 +614,6 @@ function cmds(sup)
             _p:stop()
             local _proc=_p:export()
             ret.result={}
-            pprint.pprint(_proc,"CCCCCCCCCC")
             ret.result.state=STATE_NAME[_proc.state]
             ret.result.name=string.format("%s%.4d",_proc.module,_proc.index)
             ret.result.group=_proc.group
