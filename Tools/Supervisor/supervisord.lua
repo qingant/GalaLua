@@ -42,6 +42,17 @@ local STATE={
     UNKNOWN=8,
 }
 
+local STATE_NAME={
+    "STOPPED",
+    "RUNNING",
+    "STOPPING",
+    "STARTING",
+    "FATAL",
+    "BACKOFF",
+    "EXITED",
+    "UNKNOWN",
+}
+
 local MSG_TYPE={
     APP=3,
 }
@@ -601,7 +612,13 @@ function cmds(sup)
         local ret={cmd="stop"}
         for i,_p in ipairs(procs) do   --procs may have more than one item
             _p:stop()
-            ret.content=_p:export()
+            local _proc=_p:export()
+            ret.result={}
+            pprint.pprint(_proc,"CCCCCCCCCC")
+            ret.result.state=STATE_NAME[_proc.state]
+            ret.result.name=string.format("%s%.4d",_proc.module,_proc.index)
+            ret.result.group=_proc.group
+
             glr.send(toaddr,cjson.encode(ret))
         end
     end
@@ -655,7 +672,11 @@ end
 --  client message format:
 --  {
 --      cmd="",
---      content=process.entry
+--      result={
+--         state=statename,
+--         group=group,
+--         name=process name,
+--      }
 --  }
 --
 --]]
@@ -665,18 +686,25 @@ function run_ctrl_cmd(proc,cmd,addr)
 
     _p[cmd](_p)
 
+    local _proc=_p:export()
     local msg_table={}
+
     msg_table.cmd="update"
-    msg_table.content=_p:export()
+    msg_table.content=_proc
 
     local msg=cjson.encode(msg_table)
     glr.send({host=glr.sys.host,port=glr.sys.port,gpid=0},msg)
 
     if addr then
-        msg_table.cmd=cmd
+        local ret={}
+        ret.cmd=cmd
+        ret.result={}
 
-        --FIXME: what to response
-        local msg=cjson.encode(msg_table)
+        ret.result.state=STATE_NAME[_proc.state]
+        ret.result.name=string.format("%s%.4d",_proc.module,_proc.index)
+        ret.result.group=_proc.group
+
+        local msg=cjson.encode(ret)
         glr.send(cjson.decode(addr),msg)   --to supervisord client
     end
     print("run_ctrl_cmd over")
@@ -689,7 +717,12 @@ end
 --  --  client message format:
 --  {
 --      cmd="",
---      content={...}
+--      result={
+--          state="",  STATE_NAME
+--          name="",
+--          group="",
+--          nodes={...}, glr nodes
+--      }
 --  }
 --
 ]]
@@ -700,8 +733,14 @@ function run_info_cmd(proc,cmd,addr)
 
     local ret=_p[cmd](_p)
     local msg_table={cmd=cmd}
-    msg_table.self=_p:export()
-    msg_table.content=ret or {}
+    local _proc=_p:export()
+
+    msg_table.result={}
+
+    msg_table.result.state=STATE_NAME[_proc.state]
+    msg_table.result.name=string.format("%s%.4d",_proc.module,_proc.index)
+    msg_table.result.group=_proc.group
+    msg_table.result.nodes=ret
 
     local msg=cjson.encode(msg_table)
     glr.send(cjson.decode(addr),msg)   --to supervisord client
