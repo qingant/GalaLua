@@ -38,6 +38,8 @@ encryption:
 	cd lua-encryption && $(MAKE) all
 linenoise:
 	cd lua-linenoise && $(MAKE) all
+md5:
+	cd lua-encryption && $(MAKE) all
 resource:
 	cd resource && $(MAKE) all
 
