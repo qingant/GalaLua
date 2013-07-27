@@ -80,7 +80,7 @@ local _logger = {
     enum_ERROR = 4,
     enum_FATAL = 5,
 }
-local logger = _logger
+logger = _logger
 function _logger:new(o)
     local o = o or {}
     setmetatable(o, self)
