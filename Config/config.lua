@@ -57,7 +57,6 @@ function _Config:get( xpath )
     print(path)
     return self._db:withReadOnly(function (db)
                                  local root = db:get_root("Configure"):get_child("Contents")
-
                                  local vs = root:xpath(path)[1]:get_value()
                                  return vs[1]
                                  end)
@@ -83,7 +82,12 @@ function _Config:put( xpath, value )
 end
 function _Config:import( path )
     self._db:with(function ( db )
-        local contents = db:get_root("Configure"):get_child("Contents")
+        -- local contents = db:get_root("Configure"):get_child("Contents")
+        local conf_node = db:get_root("Configure")
+        local contents = conf_node:get_child("Contents")
+        if not contents then
+            contents = conf_node:add_node("Contents")
+        end
         local t=io.open(path,"r"):read("*a")
         print(t)
         local reader = xml.cxml_reader(t,#t)
@@ -213,28 +217,19 @@ function _Importer:new( o )
     self.__index = self
     return o
 end
-function _Importer:importFromXML( path , root)
+function _Importer:importFromXML( path , root, xpath)
     local t=io.open(path,"r"):read("*a")
-    self:importFromXMLBuffer(t, root)
+    self:importFromXMLBuffer(t, root, xpath)
 end
 function _Importer:importFromXMLBuffer( buf, root, xpath )
     local reader = xml.cxml_reader(buf, #buf)
     local xRoot = reader:document()
     local dRoot = self._db:get_root(root)
-
     self._xRoot = xRoot
     self._db:with(
                   function (db)
                       if xpath ~= nil then
-                          local xpathlist = xpath:split("/")
-                          for _, item in pairs(xpathlist) do
-                              node = dRoot:xpath(item)[1]
-                              if node == nil then
-                                  dRoot = dRoot:add_node(item)
-                              else
-                                  dRoot = node
-                              end
-                          end
+                          dRoot = dRoot:create_xpath(xpath)
                       end
                       self._dRoot = dRoot
                       self:_import(xRoot, dRoot)
