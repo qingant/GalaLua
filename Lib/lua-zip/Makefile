@@ -11,7 +11,7 @@ CFLAGS  =
 ifeq (${PLATFORM},Linux)
 	MAKE  = make
 	LDFLG = -shared
-	CFLAGS = -c -ansi -std=gnu99 -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
+	CFLAGS = -ansi -std=gnu99 -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
 	CC=gcc
 	AR          = ar
 	ARFLAGS     = -rcu
@@ -19,7 +19,7 @@ ifeq (${PLATFORM},Linux)
 	RANLIBFLAGS =
 else ifeq (${PLATFORM},AIX)
 	LDFLG = -qmkshrobj -q64 -bM:SRE -bnoentry -brtl -brtllib -berok
-	CFLAGS = -c -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lm
+	CFLAGS =  -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lm
 	CC=xlc_r
 	AR          = ar
 	ARFLAGS     = -X64 -rcu
