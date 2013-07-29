@@ -154,7 +154,7 @@ function Console()
 end
 
 
-local function main()
+function main()
     local c=Console()
     c.main()
 end
