@@ -45,7 +45,9 @@ function glrLoggerServer( path )
         end
     end
 end
-local GlrLoggerAppender = {}
+
+GlrLoggerAppender = {}
+
 function GlrLoggerAppender:new()
     local o = {}
     setmetatable(o, self)
@@ -80,6 +82,7 @@ local _logger = {
     enum_ERROR = 4,
     enum_FATAL = 5,
 }
+local _loggerFlag ={"DEBUG", "TRACE", "INFO", "ERROR", "FATAL"}
 logger = _logger
 function _logger:new(o)
     local o = o or {}
@@ -100,9 +103,9 @@ function _logger:_log(level, format, ...)
     if self._get_level() <= level then
         local str = string.format(format, ...)
         local info = debug.getinfo(3)
-
+        info.level = _loggerFlag[level]
         info.msg = str
-        local log_str = ("File=%(short_src)s, Func=%(name,func)s, Line=%(currentline)s : %(msg)s" % info)
+        local log_str = ("[%(level)s:] [File=%(short_src)s Line=%(currentline)s] : %(msg)s" % info)
         self._printer(log_str)
     end
 end
