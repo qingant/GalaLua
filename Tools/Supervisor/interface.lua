@@ -9,9 +9,6 @@ local pprint=require "pprint"
 local cjson=require "cjson"
 local io=require "io"
 
-local supervisor_conf=require "supervisor_conf"
-
-
 function get_supervisord_arg()
     local Config=(require "config").Config
     local db_path=require "db_path"
@@ -23,75 +20,6 @@ function get_supervisord_arg()
     return host,port,gar
 end
 
-
---[[
-    configure
-]]
-function configure(env)
-    local Configure={}
-
-    function Configure:init()
-        self._conf=supervisor_conf.watchConf(supervisor_conf.create())
-    end
-
-    Configure:init()
-    
-    --id: host::port
-    function Configure:get_config_by_id(id,_type)
-        local _type=_type or "valid"
-        local conf_entries=self._conf:find_by_id(id)
-        return filter(conf_entries,_type=="valid")
-    end
-
-    -- group:which group
-    -- name:must match pattern (module_name..index)
-    --      lsr0 ===> lsr:module_name 0:index
-    --      lsr  ===> lsr:module_name match all indexs
-    --      if not passed, then return the whole @group
-    -- _type: default value is "valid". 
-    -- return: a table with all found configure entries,
-    --        empty table if not found. Default is just 
-    --        valid config entry.
-    function Configure:get_config(group,name,_type)
-        assert(group,"group must be passed!")
-        local module_name,index
-        local _type=_type or "valid"
-        if name then
-            local i=name:find("%d")
-            if i then
-                index=assert(tonumber(name:sub(i)),"not a valid name")
-                
-                module_name=name:sub(1,i-1)
-            else
-                module_name=name
-            end
-            print(module_name,index)
-        end
-
-        local conf_entries=self._conf:find(group,module_name,index)
-        
-        return filter(conf_entries,_type=="valid")
-    end
-
-    --[[
-    -- @valid:just return those valid
-    --]]
-    function filter(conf_entries,valid)
-        if valid then
-            local ret={}
-            for i,v in pairs(conf_entries) do
-                if v.valid then
-                    ret[#ret+1]=v
-                end
-            end
-            return ret
-        else
-            return conf_entries
-        end
-    end
-    
-    return Configure
-end
 
 function sleep(n)
     local n=n or 1
@@ -122,39 +50,74 @@ function isStarted(sec)
     end
 end
 
+--@addr: supervisord ip and port
+--return an array of what we received, return nil and error message 
+--if supervisord is not started.
+function recv_from_supervisord() 
+    local addr=isStarted()
+    if not addr then
+        return nil,"supervisord is not running"
+    end
+
+    local addr_token=string.format("%s::%s",addr.host,addr.port) 
+
+    local ret={}
+    local first_msg=true
+    local rest=0
+    --XXX:wait for command reply
+    while true do
+        local msg_type,addr,msg=glr.recv()    --TODO:timeout for failed
+
+        if msg_type==glr.CLOSED then
+            if addr_token==addr.host and (not isStarted()) then
+                return nil,"supervisord is exited unexpectedly!"
+            end
+        else
+            print("GETMSG:",msg)
+            local t=cjson.decode(msg)
+
+            --first message will return the number of rest messages
+            if first_msg then   
+                rest=t.rest or 0 
+                first_msg=false
+            else
+                ret[#ret+1]=t
+            end
+
+            if rest<=0 then
+                break
+            end
+            rest=rest-1
+        end
+    end
+    return ret
+end
+
+--send message @content to supervisord
+function send_to_supervisord(content)
+    local addr=isStarted()
+    if not addr then
+        return nil,"supervisord is not running"
+    end
+
+    if not glr.send(addr,content) then
+        return nil,"send to supervisord failed"
+    end
+    return true
+end
+
 local function all_cmds(cmd)
     assert(cmd,"cmd can't be nil")
     function docmd(name)
         if name then
-            local addr=isStarted()
-            if not addr then
-                return nil,"supervisord is not running"
-            end
-
             if name=="*all" then
                 name=nil
             end
-
-            local _conf=configure()
-            local conf_entries=_conf:get_config(supervisor_conf.defaultGroup,name)
-
-            if not next(conf_entries) then
-                return nil,"no valid config with "..name
+            local err,msg=send_to_supervisord(cjson.encode({cmd=cmd,name=name}))
+            if not err then   --failed sending message to supervisord 
+                return nil,msg
             end
-
-            glr.send(addr,cjson.encode({cmd=cmd,name=conf_entries}))
-            
-            pprint.pprint(conf_entries,"SEND")
-            local ret={}
-            --XXX:waiting replies.
-            for i=1,#conf_entries do
-                local msg_type,addr,msg=glr.recv()    --TODO:timeout for failed
-
-                print("GETMSG:",msg)
-                pprint.pprint(addr,msg_type)
-                ret[#ret+1]=cjson.decode(msg)
-            end
-            return ret
+            return recv_from_supervisord()
         else
             return  nil,"argument can't be nil"
         end
@@ -212,21 +175,13 @@ function start_supervisord()
     end
 end
 
-function config(name)
-    local _conf=configure()
-    return _conf:get_config(supervisor_conf.defaultGroup,name)
-end
+
 
 function list()
-    local addr=isStarted()
-    if not addr then
-        return  nil,"supervisord is not running"
+    local err,msg=send_to_supervisord(cjson.encode({cmd="list"}))
+    if not err then
+        return  nil,msg
     end
-
-    glr.send(addr,cjson.encode({cmd="list"}))
-
-    --XXX:waiting replies.
-    local msg_type,addr,msg=glr.recv()    --TODO:timeout for failed
-
-    return cjson.decode(msg)
+    --XXX:waiting one reply.
+    return recv_from_supervisord()[1]
 end

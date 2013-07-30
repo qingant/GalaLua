@@ -220,13 +220,15 @@ end
 
 --list all processes that supervisord monitoring
 local function list()
-    local procs=interface.list()
-    if procs then
-        for i,c in ipairs(procs) do
+    local ret,errmsg=interface.list()
+    pprint.pprint(ret,"LIST")
+    if ret then
+        local p=ret.result or {}
+        for i,c in ipairs(p) do
             show_config(c)
         end
     else
-        io.write("supervisord is not running!!\n")
+        io.write(errmsg,"\n")
     end
 end
 
