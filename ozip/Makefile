@@ -1,30 +1,30 @@
-CC=cc
-CFLAGS=-O -g -Wall -D_DEBUG_ 
 
-LIB_ZIP_OBJS = 
-LIB_STRZIP_OBJS = _ozip.o io_str.o util.o memfile.o -lz
+include common.mk
 
 .c.o:
-	$(CC) -c -fPIC $(CFLAGS) $*.c
+	$(CC) $(CMPFLAG) -o $@ $<
+
+UNZ_OBJS	= miniunz.o unzip.o ioapi.o -lz
+ZIP_OBJS	= minizip.o zip.o   ioapi.o -lz
+LIB_OBJS	= ozip.o ioapi.o iostr.o unzip.o zip.o memfile.o -lz
+OZIP_OBJS	= ozip_lua.o ozip.o ioapi.o iostr.o unzip.o zip.o memfile.o -llua5.1 -lz
+
+all: libozip.so _ozip.so test1
 	
-LIB:libozip.so
-
-BIN:ozip_tool
-
-test:
-
-all:LIB	BIN
-#all: libozip.so ozip_tool
-
-libozip.so:$(LIB_STRZIP_OBJS)
-	@echo "libozip.so"
-	rm -rf $@
-	$(CC) -fPIC -shared $(CFLAGS) -o $@ $(LIB_STRZIP_OBJS)
-
-ozip_tool:ozip_tool.o 
-	@echo " == ozip_tool == "
-	$(CC) $(CFLAGS) -o $@ ozip_tool.o  -lozip -lz -L.
+libozip.so: $(LIB_OBJS)
+	$(CC) $(LNKFLAG) -o $@ $(LIB_OBJS) $(SYTMLIB) 
 	
+_ozip.so: $(OZIP_OBJS)
+	$(CC) $(LNKFLAG) -o $@ $(OZIP_OBJS) $(SYTMLIB) 
+	
+test1:sample/strzip_test.o
+	$(CC) -o $@ sample/strzip_test.o -lozip -L.
+	
+	
+install:
+
+
+.PHONY:clean
+
 clean:
-	/bin/rm -f *.o  *.so
-	/bin/rm -f ozip_tool
+	/bin/rm -f *.o *~ minizip miniunz libozip.so _ozip.so test1 *.zip sample/*.o sample/*.zip

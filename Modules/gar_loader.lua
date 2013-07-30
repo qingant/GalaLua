@@ -35,7 +35,7 @@ function run_gar(gar)
             end
         end
         
-        if exec~="Excutable" then
+        if exec~="Executable" then
             error("not a excutable gar package")
         end
 

@@ -11,208 +11,74 @@ local pprint=require "pprint"
 local cjson=require "cjson"
 local io=require "io"
 
-local config=require "supervisor_conf"
+local interface=require "interface"
 
+local ALL={"svc","lsr","ctr"}
 
-function get_supervisord_arg()
-    local Config=(require "config").Config
-    local db_path=require "db_path"
+function output()
+    local O={}
+    local out={}
 
-    local _conf= Config:new():init(db_path.config)
-    local host=_conf:get("Supervisor/IP")
-    local port=_conf:get("Supervisor/Port")
-    local gar=_conf:get("Supervisor/Gar")
-    return host,port,gar
-end
-
-local serv_host,serv_port,DefaultGar=get_supervisord_arg()
-
---[[
-    configure
-]]
-local configure_base={}
-function configure_base:new(o)
-    local o=o or {}
-    setmetatable(o,self)
-    self.__index=self
-    configure_base.init(o)
-
-    return o
-end
-
-function configure_base:init()
-    self._conf=config.watchConf(self._env)
-end
-function configure(env)
-    local Configure=configure_base:new({_env=env})
-    
-    --id: host::port
-    function Configure:get_config_by_id(id,_type)
-        local _type=_type or "valid"
-        local conf_entries=self._conf:find_by_id(id)
-        return filter(conf_entries,_type=="valid")
-    end
-
-    -- group:which group
-    -- name:must match pattern (module_name..index)
-    --      lsr0 ===> lsr:module_name 0:index
-    --      lsr  ===> lsr:module_name match all indexs
-    --      if not passed, then return the whole @group
-    -- _type: default value is "valid". 
-    -- return: a table with all found configure entries,
-    --        empty table if not found. Default is just 
-    --        valid config entry.
-    function Configure:get_config(group,name,_type)
-        assert(group,"group must be passed!")
-        local module_name,index
-        local _type=_type or "valid"
-        if name then
-            local i=name:find("%d")
-            if i then
-                index=assert(tonumber(name:sub(i)),"not a valid name")
-                
-                module_name=name:sub(1,i-1)
-            else
-                module_name=name
-            end
-            print(module_name,index)
+    function O.add(...)
+        local s=""
+        for i,v in ipairs{...} do
+            s=s..v
         end
-
-        local conf_entries=self._conf:find(group,module_name,index)
-        
-        return filter(conf_entries,_type=="valid")
+        out[#out+1]=s 
     end
 
-    --[[
-    -- @valid:just return those valid
-    --]]
-    function filter(conf_entries,valid)
-        if valid then
-            local ret={}
-            for i,v in pairs(conf_entries) do
-                if v.valid then
-                    ret[#ret+1]=v
-                end
-            end
-            return ret
-        else
-            return conf_entries
+    function O.write()
+        O.add()
+        io.write(table.concat(out,"\n"))
+    end
+
+    return O
+end
+
+local function show_status(status)
+    local out=output()
+
+    local sep1=("*"):rep(40)
+    local sep2=("-"):rep(20)
+    out.add(sep1)
+    out.add(string.format("%s\t[%s]",status.name,status.state))
+    local glr_p=status.nodes or {}
+    for gpid,s in pairs(glr_p) do
+        out.add(sep2)
+        out.add("gpid:"..gpid)
+        for k,v in pairs(s) do
+            out.add("\t"..k..":"..v)
         end
     end
-    
-    return Configure
+    out.add(sep1)
+    out.write()
 end
 
-function sleep(n)
-    assert(n,"must pass seconds")
-    local cmd=string.format("sleep %d",n)
-    os.execute(cmd)
-end
-
---return true if supervisord is started
---@sec: delay @sec seconds
-function isStarted(sec)
-    local sec=sec or 0
-    local i=0
-    local addr={host=serv_host,port=serv_port,gpid=0}
-    while true do
-        local ret=glr.connect(serv_host,serv_port)
-        if ret then
-            return addr
-        else
-            if i<sec then
-                sleep(1)
-            else
-                break
-            end
-        end
-        i=i+1
+local function show_config(conf)
+    local out=output()
+    local token=string.format("%s%.4d",conf.module,conf.index)
+    out.add(token)
+    out.add(("*"):rep(50))
+    out.add(token..":")
+    for k,v in pairs(conf) do
+        out.add("\t"..k..":"..v)
     end
+    out.add(("*"):rep(50))
+    out.write()
 end
 
-
-local cmds={}
-function all_cmds(cmd)
-    function docmd(name)
-        if name  then
-            local addr=isStarted()
-            if not addr then
-                return 
-            end
-
-            if name=="all" then
-                name=nil
-            end
-
-            local DefaultGroup="wg1"
-
-            local _conf=configure(config.create())
-            local conf_entries=_conf:get_config(DefaultGroup,name)
-
-            glr.send(addr,cjson.encode({cmd=cmd,name=conf_entries}))
-            
-            --XXX:waiting replies.
-            for i=1,#conf_entries do
-                local msg_type,addr,msg=glr.recv()
-
-                print("GETMSG:",msg)
-                local msg_table=cjson.decode(msg)
-
-                pprint.pprint(msg_table)
-            end
-        else
-            cmds.help(cmd)
-        end
-    end
-    return docmd
-end
-
---stop supervisord
-function cmds.stop_monitor()
-    local addr =isStarted()
-    if addr then
-        addr.gpid=1
-        glr.send(addr,cjson.encode({Type="NODE",Action="EXEC",Cmd="kill"}))
-    else
-        io.write("supervisord is alreadly stopped\n")
-    end
-end
---start supervisord, not argument should be passed.
-function cmds.start_monitor(name)
-    
-    if name then
-        return cmds.help("start_monitor")
-    end
-    
-    if isStarted() then
-        io.write("supervisord alreadly started...\n")
-    else
-        local gar=""
-        if DefaultGar and DefaultGar~="" then
-            gar="--gar="..DefaultGar
-        end
-        local cmd=string.format("glr -m supervisord -e main -h %s -p %d %s -D ",
-                                serv_host,serv_port,gar)
-        ret=os.execute(cmd)
-        if isStarted(5) then
-            io.write("supervisord is running now... \n")
-        else
-            io.write("start_monitor error  \n")
-        end
-    end
-end
-
-cmds.start=all_cmds("start")
-cmds.stop=all_cmds("stop")
-cmds.status=all_cmds("status")
-
-function cmds.help(arg)
+local function help(arg)
     local help_msg={
-            start="start ctr0",
-            stop="stop ctr0",
-            start_monitor="start_monitor",
-            status="status ctr0",
-            help="help [cmd]"
+            start="start xxx: eg start ctr0",
+            stop="stop xxx: eg stop ctr0",
+            startall="startall: start all processed with valid configure",
+            stopall="stopall: stop all process",
+            start_monitor="start_monitor: start supervisord",
+            status="status xxx: eg status ctr0",
+            statusall="statusall: get all processes status",
+            help="help [cmd]",
+            config="config: list valid configures",
+            list="list: list all processes ",
          }
 
     local arg=arg or "all"
@@ -226,6 +92,145 @@ function cmds.help(arg)
     end
     io.write(prompt,"\n")
 end
+
+--if call function @cmd without right number of 
+--argument, print help message and return.
+--@name_in_help:
+--@cmd:
+--@argc: a table of available argument number, 
+--       or just a number
+function all_cmds(name_in_help,cmd,argc)
+    assert(cmd,"cmd can't be nil")
+    local argc=argc or 0
+    if type(argc)=="number" then
+        argc={argc}
+    end
+    function _cmd(...)
+        local argc_pass=select('#',...)
+        pprint.pprint(argc,argc_pass)
+        for i,v in ipairs(argc) do
+            if v==argc_pass then
+                return cmd(...)
+            end
+        end
+        return help(name_in_help)
+    end
+    return _cmd
+end
+
+local function status(name)
+    local st=interface.status(name)
+    if st then
+        for i,s in ipairs(st) do
+            show_status(s.result)
+        end
+    end
+end
+
+
+local function stop_supervisord()
+    local ret,msg=interface.stop_supervisord() 
+    if ret then
+        io.write(msg or "supervisor is stopped","\n")
+    end
+end
+
+local function start_supervisord()
+    local ret,msg=interface.start_supervisord()
+    if ret then
+        io.write(msg or "supervisor is running now","\n")
+    else
+        io.write(msg,"\n")
+    end
+end
+
+local function start(name)
+    local ret,msg=interface.start(name)
+    local out=output()
+    if ret then
+        for i,v in ipairs(ret) do
+            local content=v.result
+            out.add(string.format("%s\t[%s]",content.name,content.state))
+        end
+    else
+        out.add(msg)
+    end
+    out.write()
+end
+
+local function stop(name)
+    local ret,msg=interface.stop(name)
+    local out=output()
+    if ret then
+        for i,v in ipairs(ret) do
+            local content=v.result
+            out.add(string.format("%s\t[%s]",content.name,content.state))
+        end
+    else
+        out.add(msg)
+    end
+    out.write()
+end
+
+local cmds={}
+cmds.stop_monitor=all_cmds("stop_monitor",stop_supervisord)
+cmds.start_monitor=all_cmds("start_monitor",start_supervisord)
+
+cmds.start=all_cmds("start",start,1)
+cmds.stop=all_cmds("stop",stop,1)
+cmds.status=all_cmds("status",status,1)
+
+local function startall()
+    for i=1,#ALL do
+        cmds.start(ALL[i])
+    end
+end
+
+local function stopall()
+    for i=#ALL,1,-1 do
+        cmds.stop(ALL[i])
+    end
+end
+
+local function statusall()
+    for i=1,#ALL do
+        cmds.status(ALL[i])
+    end
+end
+
+--list config
+local function config(name)
+    local conf_entries=interface.config(name)
+
+    if #conf_entries==0 then
+        io.write("no available config with ",name,"\n")
+    else
+        for i,c in ipairs(conf_entries) do
+            show_config(c)
+        end
+    end
+end
+
+
+--list all processes that supervisord monitoring
+local function list()
+    local procs=interface.list()
+    if procs then
+        for i,c in ipairs(procs) do
+            show_config(c)
+        end
+    else
+        io.write("supervisord is not running!!\n")
+    end
+end
+
+cmds.stopall=all_cmds("stopall",stopall)
+cmds.statusall=all_cmds("statusall",statusall)
+cmds.startall=all_cmds("startall",startall)
+cmds.config=all_cmds("config",config,{0,1})
+cmds.list=all_cmds("list",list)
+
+cmds.help=help
 
 local mt={__index=function (t,key) io.write("monitor ",key,":command not found\n") return cmds.help end }
 setmetatable(cmds,mt)

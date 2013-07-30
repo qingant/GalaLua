@@ -54,6 +54,7 @@ mkresx: resource/mkresx.c resource/resource.c resource/bswap.c
 	mv resource/mkresx $(HOME)/bin
 
 agent:
+	-cp -f glr.lua $(HOME)/lib/lua
 	cp resource/Makefile.static $(HOME)/share
 	cp resource/makeagent.lua $(HOME)/bin
 
