@@ -72,6 +72,7 @@ function sleep(s)
     os.execute("sleep "..s)
 end
 
+
 --[[
     configure
 ]]
@@ -103,14 +104,12 @@ function configure(env)
     -- name:must match pattern (module_name..index)
     --      lsr0 ===> lsr:module_name 0:index
     --      lsr  ===> lsr:module_name match all indexs
-    -- _type: default value is "valid". 
     -- return: a table with all found configure entries,
     --        empty table if not found. Default is just 
     --        valid config entry.
-    function Configure:get_config(group,name,_type)
+    function Configure:get_config(group,name)
         assert(group,"group must be passed!")
         local module_name,index
-        local _type=_type or "valid"
         if name then
             local i=name:find("%d")
             if i then
@@ -125,24 +124,28 @@ function configure(env)
 
         local conf_entries=self._conf:find(group,module_name,index)
         
-        return filter(conf_entries,_type=="valid")
+        return filter(conf_entries)
     end
 
     --[[
-    -- @valid:just return those valid
+    -- set default value if the value is invalid of every valid configure, and
+    -- return it. This function can ensure all usable key is not nil.
     --]]
-    function filter(conf_entries,valid)
-        if valid then
-            local ret={}
-            for i,v in pairs(conf_entries) do
-                if v.valid then
-                    ret[#ret+1]=v
-                end
+    function filter(conf_entries)
+        local ret={}
+        for i,v in pairs(conf_entries) do
+            if v.valid then
+                v.index=tonumber(v.index)or -1
+
+                v.group=v.group or DefaultGroup
+                v.module=v.module or ""
+
+                v.host=v.host or ""
+                v.port=tonumber(v.port) or -1 
+                ret[#ret+1]=v
             end
-            return ret
-        else
-            return conf_entries
         end
+        return ret
     end
     
     return Configure
@@ -163,15 +166,50 @@ end
 
 function p:init()
     pprint.pprint(self.entry,"ENTRY")
-    assert(self.entry or self.entry.group or self.entry.module,
-            "not enough element in entry")
+
+    self.entry=self.entry or {}
+    self.entry.host=tostring(self.entry.host)
+    self.entry.port=tonumber(self.entry.port) or -1 
 end
 
+--[[
+-- @entry:must has key below
+--        {
+--          host="",
+--          port="",
+--          index="",
+--          module="",
+--        }
+--]]
 function process(entry,max)
     local Process=p:new{entry=entry}
     local MAX_TIMES=max or 3
     local pid
-    
+    local startcmd
+
+    --maybe run module from gar package
+    function Process:get_run_gar_arg()
+        local gar=""
+        local gar_search={}
+        gar_search[#gar_search+1]=self.entry.gar
+        gar_search[#gar_search+1]=DefaultGar
+        for i,g in ipairs(gar_search) do
+            if g ~="" then
+                gar="-g "..path.join(db_path.gar_path,g)
+                break
+            end
+        end
+        return gar
+    end
+
+    function Process:get_startcmd()
+        local startcmd=string.format("glr %s -h %s -p %d -i %d -m %s -e main -D",
+                                     self:get_run_gar_arg(),self.entry.host,self.entry.port,
+                                     self.entry.index, self.entry.module)
+        return startcmd
+    end
+
+    startcmd=Process:get_startcmd()
     --[[
     --  stop process.
     --
@@ -233,9 +271,6 @@ function process(entry,max)
                     FATAL
     ]]
     function Process:get_state()
-        local host=assert(self.entry.host,"host should not be empty")
-        local port=assert(self.entry.port,"port should not be empty")
-        
         --original state
         local state=self.entry.state
         --if (state==STATE.RUNNING) or (state==STATE.STOPPED) then
@@ -246,7 +281,7 @@ function process(entry,max)
 
            return state
         else 
-            local ret=glr.connect(host,port)
+            local ret=glr.connect(self.entry.host,self.entry.port)
             if ret then
                 if (not state) or (state==STATE.STARTING) or (state==STATE.RUNNING) then
                     state=STATE.RUNNING
@@ -278,20 +313,6 @@ function process(entry,max)
         end
     end
 
-    --maybe run module from gar package
-    function Process:get_run_gar_arg()
-        local gar=""
-        local gar_search={}
-        gar_search[#gar_search+1]=self.entry.gar
-        gar_search[#gar_search+1]=DefaultGar
-        for i,g in ipairs(gar_search) do
-            if g ~="" then
-                gar="-g "..path.join(db_path.gar_path,g)
-                break
-            end
-        end
-        return gar
-    end
 
     --[[
     --@timeout: default is 10 seconds
@@ -333,9 +354,6 @@ function process(entry,max)
         if (state~=STATE.RUNNING) and (state~=STATE.STARTING) then
             self:update_state(STATE.STARTING)
 
-            local gar=self:get_run_gar_arg()
-            startcmd=string.format("glr %s -h %s -p %d -i %d -m %s -e main -D",
-                                    gar,self.entry.host,self.entry.port,self.entry.index, self.entry.module)
             print(startcmd)
             local ret=execute(startcmd)
             print("execute:",ret)
@@ -386,7 +404,10 @@ function process(entry,max)
         local msg={Type="NODE",Action="GET",Cmd=cmd,ToAddr=addr,Nonstop=true}
         pprint.pprint(msg,"MSG_TO")
         if not glr.send({host=self.entry.host,port=self.entry.port,gpid=1},cjson.encode(msg)) then
+            --must not into here
             print("send to inspector error...")
+            self:update_state(STATE.UNKNOWN)
+            return {}
         end
 
         print("waiting for NODE RES.....")
@@ -437,6 +458,17 @@ function process(entry,max)
     function Process:export()
         return self.entry
     end
+    
+    --TODO:better information for show
+--    function Process:export_for_show()
+--        local result={}
+--        result.state=STATE_NAME[self:get_state()]
+--        result.pid=self:getpid()
+--        result.name=string.format("%s%.4d",self.entry.module,self.entry.index)
+--        result.group=self.entry.group
+--
+--        return result
+--    end
 
     return Process
 end
@@ -491,10 +523,10 @@ function ProcessTable()
     --save process, if existed then replace it.
     function _process.save(conf)
         self[conf.group]=self[conf.group] or {}
-        local token=string.format("%s%.4d",conf.module,conf.index)
+        local token=string.format("%s%.4d",conf.module,(tonumber(conf.index) or 0))
         local _p=process(conf)
         self[conf.group][token]=_p
-        local id=string.format("%s::%d",conf.host,conf.port)
+        local id=string.format("%s::%s",conf.host,(tonumber(conf.port) or -1))
         self_id[id]=_p
         return _p
     end
@@ -536,38 +568,55 @@ function supervisor()
         return self._conf:get_config(group,name)
     end
 
-  --[[ 
+    --[[ 
     -- group:which group
     -- name:must match pattern (module_name..index)
     --      lsr0 ===> lsr:module_name 0:index
     --      lsr  ===> lsr:module_name match all indexs
     -- return: a process table matching group and name,
     --         empty table if nothing found
-    function Supervisor:get_processes(group,name)
-        local conf_entries=self._conf:get_config(group,name)
-        return self:get_processes_by_entries(conf_entries)
+    --
+    ]]
+    function Supervisor:get_processes_from_config(group,name)
+        local group=group or DefaultGroup
+        return self:get_processes_by_entries(self._conf:get_config(group,name))
     end
-]]
+    
+    --[[
+    -- return the process index by @id, nil otherwise. 
+    --]]
     function Supervisor:get_processes_by_id(id)
-        assert(id,"id can't be nil")
-        return _process.get_by_id(id)
+        if id then
+            return _process.get_by_id(id)
+        end
     end
 
     -- return processes specified by @procs in `_process, create 
     -- a new process object if not existed. Empty table will be return 
     -- if no valid entry in @procs.
     function Supervisor:get_processes_by_entries(procs)
-        pprint.pprint(procs,"get_processes_by_entries")
         local ret={} 
         for i,e in pairs(procs) do
             ret[#ret+1]=_process.save_new(e)
         end
-        pprint.pprint(ret,"get_processes_by_entries")
         return ret
     end
-
-    function Supervisor:get_processes(procs)
-        return self:get_processes_by_entries(procs)
+    
+    --[[
+    -- return the founded process table, empty table if not found or error
+    -- arguments. 
+    --]]
+    function Supervisor:get_processes(procs,group)
+        local _t=type(procs)
+        local ret={}
+        if _t=="table" then
+            ret=self:get_processes_by_entries(procs)
+        elseif (_t=="string" or _t=="nil") then
+            ret=self:get_processes_from_config(group,procs)
+        else
+            print("error argument to get_processes:",procs)
+        end
+        return ret
     end
 
     -- return a new process object specified by @proc and save it.
@@ -599,6 +648,7 @@ function cmds(sup)
     local Cmds={}
     
     function unknown(msg_table,toaddr)
+        rest_message_number(msg_table.cmd,1,toaddr)
         local msg=cjson.encode(msg_table)
         print("unknown command:",msg_table.cmd)
         glr.send(toaddr,cjson.encode({ret="unkown cmd",msg=msg}))
@@ -606,9 +656,29 @@ function cmds(sup)
 
     local mt={__index=function () return unkown end}
     setmetatable(Cmds,mt)
+    
+    
+    --reply the number of rest messages when calling cmd name @cmd_name
+    function rest_message_number(cmd_name,num,toaddr)
+        local ret={cmd=cmd_name}
+        ret.rest=num     -- number of rest messages
+        glr.send(toaddr,cjson.encode(ret))
+    end
 
-    function Cmds.stop(msg_table,toaddr)
-        local procs=sup:get_processes(msg_table.name)
+    function cmd_skel(func,cmd_name)
+        local func=func
+        local cmd_name=cmd_name
+
+        function skel(msg_table,toaddr)
+            local procs=sup:get_processes(msg_table.name)
+            rest_message_number(cmd_name,#procs,toaddr)
+            func(procs,toaddr)
+        end
+
+        return skel
+    end
+
+    function stop(procs,toaddr)
         local ret={cmd="stop"}
         for i,_p in ipairs(procs) do   --procs may have more than one item
             _p:stop()
@@ -621,26 +691,28 @@ function cmds(sup)
             glr.send(toaddr,cjson.encode(ret))
         end
     end
+    Cmds.stop=cmd_skel(stop,"stop")
 
-    function Cmds.start(msg_table,toaddr)
-        local procs=sup:get_processes(msg_table.name)
+    function start(procs,toaddr)
         for i,e in ipairs(procs) do   --procs may have more than one item
             local err,id=glr.spawn("supervisord","run_ctrl_cmd",cjson.encode(e:export()),
-                                   msg_table.cmd,cjson.encode(toaddr))
+                                   "start",cjson.encode(toaddr))
         end
     end
+    Cmds.start=cmd_skel(start,"start")
 
-    function Cmds.status(msg_table,toaddr)
-        local procs=sup:get_processes(msg_table.name)
+    function status(procs,toaddr)
         for i,e in ipairs(procs) do   --procs may have more than one item
             local err,id=glr.spawn("supervisord","run_info_cmd",cjson.encode(e:export()),
-                                   msg_table.cmd,cjson.encode(toaddr))
+                                   "status",cjson.encode(toaddr))
         end
 
     end
+    Cmds.status=cmd_skel(status,"status")
 
     function Cmds.list(msg_table,toaddr)
-        msg_table.content=sup:get_all_process()
+        rest_message_number("list",1,toaddr)
+        msg_table.result=sup:get_all_process()
         glr.send(toaddr,cjson.encode(msg_table))
     end
 
