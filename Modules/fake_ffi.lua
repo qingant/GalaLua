@@ -81,6 +81,7 @@ C = {
     ACT_TASK_DEL = 16,
     ACT_TASK_QUERY = 17,
     ACT_REQUEST_BUILTIN = 18,
+    ACT_REG_FAIL = 101,
     REG=0,
     GET=1,
     PUT=2,

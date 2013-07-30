@@ -654,6 +654,19 @@ function element:add_ref( link )
     return self:_add_ref(name, link)
 end
 
+function element:create_xpath(path)
+  local pathlist = path:split("/")
+  local cnode = self
+  for _, item in pairs(pathlist) do
+      node = cnode:_xpath(item)
+      if node == nil then
+          cnode = cnode:add_node(item)
+      else
+          cnode = node
+      end
+  end
+  return cnode
+end
 
 function element:add_table(t)
     if table.isArray(t) then
@@ -1084,6 +1097,14 @@ if ... == "__main__" then
         db:commit()
     end
 
+    function test_create_xpath(db)
+        local domain_root = db:get_root(root1)
+        local node = domain_root:create_xpath("test/test1")
+        node:add_table({["test"] = "test"})
+        pprint.pprint(node:to_table(), "node")
+        db:commit()
+    end
+
     local limit = 1
     for i=1,limit do
         db:with(test)
@@ -1107,7 +1128,7 @@ if ... == "__main__" then
         db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
         db:withReadOnly(test_merge)
         db:withReadOnly(test_xquery_xpath)
-
+        db:with(test_create_xpath)
     end
 
 end
