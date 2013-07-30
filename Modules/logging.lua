@@ -11,25 +11,25 @@ local conf_path = os.getenv("HOME") .. "/var/conf/"
 local function interp(s, tab)
 	
 	return (s:gsub('%%%((%a[%w_,]*)%)([-0-9%.]*[cdeEfgGiouxXsq])',
-		function(k, fmt) 
-			
+                   function(k, fmt) 
+                       
 
-			local ss = "(nil)"
-			if string.contains(k, ",") then
-				for i,v in ipairs(string.split(k, ",")) do
-					
-					if tab[v] then
+                       local ss = "(nil)"
+                       if string.contains(k, ",") then
+                           for i,v in ipairs(string.split(k, ",")) do
+                               
+                               if tab[v] then
 
-						ss = ("%"..fmt):format(tab[v])
-                        break
-					end
-				end
-			else
-				ss = tab[k] and ("%"..fmt):format(tab[k]) or ss 
-			end
-			
-			return ss
-		end))
+                                   ss = ("%"..fmt):format(tab[v])
+                                   break
+                               end
+                           end
+                       else
+                           ss = tab[k] and ("%"..fmt):format(tab[k]) or ss 
+                       end
+                       
+                       return ss
+                   end))
 end
 
 --strMt.__mod = interp
@@ -37,27 +37,27 @@ end
 function glrLoggerServer( targetPath , confPath)
     --获取文件大小
     function fsize( file )
-	local current = file:seek()	-- 获取当前位置
-	local size = file:seek("end")   -- 获取文件大小
-	file:seek("set", current)
-	return size
+        local current = file:seek()	-- 获取当前位置
+        local size = file:seek("end")   -- 获取文件大小
+        file:seek("set", current)
+        return size
     end
     --获取路径
     function stripfilename(filename)
-	return string.match(filename, "(.+)/[^/]*%.%w+$")
+        return string.match(filename, "(.+)/[^/]*%.%w+$")
     end
     --获取文件名
     function strippath(filename)
-	return string.match(filename, ".+/([^/]*%.%w+)$")
+        return string.match(filename, ".+/([^/]*%.%w+)$")
     end
     --去除扩展名
     function stripextension(filename)
-	local idx = filename:match(".+()%.%w+$")
+        local idx = filename:match(".+()%.%w+$")
         if(idx) then
             return filename:sub(1, idx-1)
-	else
+        else
             return filename
-	end
+        end
     end
 
     --获取扩展名
@@ -88,20 +88,20 @@ function glrLoggerServer( targetPath , confPath)
             fileHandle:flush()
         else
             print("Write", msg)
-	    fileHandle:write(msg)
-	    fileHandle:write("\n")
+            fileHandle:write(msg)
+            fileHandle:write("\n")
         end
-	local logSize = fsize(fileHandle)/(1024*1024)
-	if logSize >= (tonumber(singleLogSize)*tonumber(svcNum)*1024*1024) then
-	    local extension = getextension(targetPath)
-	    local filename = stripextension(targetPath)
-	    local rollingpath = string.format("%s_%d.%s",filename,rollingIndex,extension)
+        local logSize = fsize(fileHandle)/(1024*1024)
+        if logSize >= (tonumber(singleLogSize)*tonumber(svcNum)*1024*1024) then
+            local extension = getextension(targetPath)
+            local filename = stripextension(targetPath)
+            local rollingpath = string.format("%s_%d.%s",filename,rollingIndex,extension)
             fileHandle = io.open(rollingpath, "w+")
             fileHandle:close()
             fileHandle = io.open(rollingpath, "a")
             fileHandle:setvbuf("full")
             rollingIndex = (rollingIndex + 1) % (tonumber(splitLogMaxNum)*tonumber(svcNum))
-	end
+        end
     end
 end
 
@@ -135,7 +135,7 @@ local ERROR = 4
 local FATAL = 5
 
 local _logger = {
-    enum_DEBUG = 0,
+    enum_DEBUG = 1,
     enum_TRACE = 2,
     enum_INFO = 3,
     enum_ERROR = 4,
@@ -192,7 +192,7 @@ _logger.log = _logger.debug
 -- 	level = level or DEBUG
 -- 	local info = debug.getinfo(2)
 -- 	info.msg = pprint.format(msg)
-	
+
 -- 	local log_str = ("File=%(short_src)s, Func=%(name,func)s, Line=%(currentline)s : %(msg)s" % info)
 -- 	printer(log_str)
 -- end
