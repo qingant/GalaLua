@@ -41,7 +41,13 @@ local function show_status(status)
     local sep1=("*"):rep(40)
     local sep2=("-"):rep(20)
     out.add(sep1)
-    out.add(string.format("%s\t[%s]",status.name,status.state))
+
+    local pid=""
+    if status.pid then
+        pid=string.format("[pid:%s]",status.pid)
+    end
+
+    out.add(string.format("%s\t[%s]  %s",status.name,status.state,pid))
     local glr_p=status.nodes or {}
     for gpid,s in pairs(glr_p) do
         out.add(sep2)

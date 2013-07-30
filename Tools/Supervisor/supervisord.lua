@@ -721,6 +721,7 @@ end
 --          name="",
 --          group="",
 --          nodes={...}, glr nodes
+--          pid=,
 --      }
 --  }
 --
@@ -736,10 +737,11 @@ function run_info_cmd(proc,cmd,addr)
 
     msg_table.result={}
 
-    msg_table.result.state=STATE_NAME[_proc.state]
+    msg_table.result.state=STATE_NAME[ret.state]
+    msg_table.result.pid=ret.pid
     msg_table.result.name=string.format("%s%.4d",_proc.module,_proc.index)
     msg_table.result.group=_proc.group
-    msg_table.result.nodes=ret
+    msg_table.result.nodes=ret.status
 
     local msg=cjson.encode(msg_table)
     glr.send(cjson.decode(addr),msg)   --to supervisord client
