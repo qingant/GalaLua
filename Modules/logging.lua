@@ -72,7 +72,7 @@ function _logger:_log(level, format, ...)
         local info = debug.getinfo(3)
         info.level = _loggerFlag[level]
         info.msg = str
-        local log_str = ("[%(level)s:] [File=%(short_src)s Line=%(currentline)s] : %(msg)s" % info)
+        local log_str = ("[%(level)s] [File=%(short_src)s Line=%(currentline)s] : %(msg)s" % info)
         self._printer(log_str)
     end
 end
