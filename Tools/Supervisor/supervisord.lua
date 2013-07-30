@@ -721,6 +721,14 @@ function cmds(sup)
         sup:attach(msg_table.content)
     end
 
+    function Cmds.config(msg_table,toaddr)
+        rest_message_number("config",1,toaddr)
+        local ret={cmd=msg_table.cmd}
+        ret.result=sup:get_config(DefaultGroup,msg_table.name)
+        glr.send(toaddr,cjson.encode(ret))
+
+    end
+
     return Cmds
 end
 

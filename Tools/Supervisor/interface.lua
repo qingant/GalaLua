@@ -175,6 +175,14 @@ function start_supervisord()
     end
 end
 
+function config(name)
+    local err,msg=send_to_supervisord(cjson.encode({cmd="config",name=name}))
+    if not err then
+        return  nil,msg
+    end
+    --XXX:waiting one reply.
+    return recv_from_supervisord()[1]
+end
 
 
 function list()

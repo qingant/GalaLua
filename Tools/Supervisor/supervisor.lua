@@ -206,14 +206,15 @@ end
 
 --list config
 local function config(name)
-    local conf_entries=interface.config(name)
-
-    if #conf_entries==0 then
-        io.write("no available config with ",name,"\n")
-    else
-        for i,c in ipairs(conf_entries) do
+    local ret,errmsg=interface.config(name)
+    pprint.pprint(ret,"config")
+    if ret then
+        local p=ret.result or {}
+        for i,c in ipairs(p) do
             show_config(c)
         end
+    else
+        io.write(errmsg,"\n")
     end
 end
 
