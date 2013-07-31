@@ -1,11 +1,12 @@
 # -*- Makefile -*-
-PREFIX      = /opt/agree/gdk
+
+PREFIX      = $(GDK_HOME)
 OS          = $(shell uname)
 
 USER_AR_LIBS    = 
-USER_LUA_SCRIPT = 
+USER_LUA_SCRIPT += $(PREFIX)/lib/lua/fake_ffi.lua $(PREFIX)/lib/lua/logging.lua $(PREFIX)/lib/lua/tab_utils.lua $(PREFIX)/lib/lua/str_utils.lua $(PREFIX)/lib/lua/pprint.lua $(PREFIX)/lib/lua/structX.lua $(PREFIX)/lib/lua/glr.lua
 
-LUA_PACKAGE_C_LIBS = $(PREFIX)/share/static/lua/cjson.a $(PREFIX)/share/static/lua/struct.a $(PREFIX)/share/static/lua/iconv.a $(PREFIX)/share/static/lua/minizip.a $(PREFIX)/share/static/lua/_dir.a $(PREFIX)/share/static/lua/lxp.a
+LUA_PACKAGE_C_LIBS += $(PREFIX)/share/static/lua/cjson.a $(PREFIX)/share/static/lua/struct.a $(PREFIX)/share/static/lua/iconv.a $(PREFIX)/share/static/lua/minizip.a $(PREFIX)/share/static/lua/_dir.a $(PREFIX)/share/static/lua/lxp.a
 
 GDK_AR_LIBS = $(PREFIX)/share/static/libGLR.a $(PREFIX)/share/static/libGalaxyStub.a $(PREFIX)/share/static/libGalaxyRT.a $(PREFIX)/share/static/libluajit.a $(PREFIX)/share/static/libexpat.a $(PREFIX)/share/static/libzip.a
 
@@ -44,10 +45,10 @@ glr_sl: glr_s $(USER_LUA_SCRIPT)
 	cat luascript.resx >> $@
 	-rm -f luascript.resx
 
-.PHONY: install uninstall clean
+.PHONY: install uninstall clean 
 
 install: glr_sl
-	cp glr_sl $(PREFIX)/bin
+	-cp glr_sl $(PREFIX)/bin
 
 uninstall:
 	-rm -f $(PREFIX)/bin/glr_sl

@@ -1,4 +1,3 @@
---
 --[[
    Author: Julio Manuel Fernandez-Diaz
    Date:   January 12, 2007
@@ -68,13 +67,12 @@ function format(t, name, indent)
    local function addtocart (value, name, indent, saved, field)
       indent = indent or ""
       saved = saved or {}
-      field = field or name or ""
-      
+      field = field or name
+
       cart = cart .. indent .. field
 
-
       if type(value) ~= "table" then
-         cart = cart  .. basicSerialize(value) .. ";\n"
+         cart = cart .. " = " .. basicSerialize(value) .. ";\n"
       else
          if saved[value] then
             cart = cart .. " = {...}; " .. saved[value] 
@@ -100,21 +98,15 @@ function format(t, name, indent)
       end
    end
 
-   name = name -- or "__unnamed__"
+   name = name or "__unnamed__"
    if type(t) ~= "table" then
-      if name then
-         return name .. " = " .. basicSerialize(t)
-      else
-         return basicSerialize(t)
-      end
+      return name .. " = " .. basicSerialize(t)
    end
    cart, autoref = "", ""
    addtocart(t, name, indent)
    return cart .. autoref
 end
 
-function pprint(t, name, indent)
-   local rp = format(t, name, indent)
-   print(rp)
-   return rp
+function pprint(var, name)
+    print(format(var, name))
 end

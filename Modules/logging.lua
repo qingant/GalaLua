@@ -5,68 +5,35 @@ local printer = print
 assert(require("str_utils"), "Cannot Import str_utils")
 assert(require("tab_utils"),"Cannot Import tab_utils")
 
+local conf_path = os.getenv("HOME") .. "/var/conf/"
+
 local function interp(s, tab)
 	
 	return (s:gsub('%%%((%a[%w_,]*)%)([-0-9%.]*[cdeEfgGiouxXsq])',
-		function(k, fmt) 
-			
+                   function(k, fmt) 
+                       
 
-			local ss = "(nil)"
-			if string.contains(k, ",") then
-				for i,v in ipairs(string.split(k, ",")) do
-					
-					if tab[v] then
+                       local ss = "(nil)"
+                       if string.contains(k, ",") then
+                           for i,v in ipairs(string.split(k, ",")) do
+                               
+                               if tab[v] then
 
-						ss = ("%"..fmt):format(tab[v])
-                        break
-					end
-				end
-			else
-				ss = tab[k] and ("%"..fmt):format(tab[k]) or ss 
-			end
-			
-			return ss
-		end))
+                                   ss = ("%"..fmt):format(tab[v])
+                                   break
+                               end
+                           end
+                       else
+                           ss = tab[k] and ("%"..fmt):format(tab[k]) or ss 
+                       end
+                       
+                       return ss
+                   end))
 end
 
 --strMt.__mod = interp
 -- glr  printer
-function glrLoggerServer( path )
-    local fileHanle = io.open(path, "a")
-    while true do
-        local msgType, addr, msg = glr.recv()
-        if msg:sub(1,2) == "!!" then
-            print("Flush")
-            fileHanle:flush()
-        else
-            print("Write", msg)
-            fileHanle:write(msg)
-            fileHanle:write("\n")
-        end
-    end
-end
-
-GlrLoggerAppender = {}
-
-function GlrLoggerAppender:new()
-    local o = {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-function GlrLoggerAppender:init( path )
-    local rt, pid = glr.spawn("logging", "glrLoggerServer", path)
-
-    self._appender = pid
-    return self
-end
-function GlrLoggerAppender:print( msg )
-    glr.send(self._appender, msg)
-end
-function GlrLoggerAppender:flush(  )
-    glr.send(self._appender, "!!")
-end
+GlrLoggerAppender = require("log_server").GlrLoggerAppender
 
 -- enum log level
 local DEBUG = 0
@@ -76,7 +43,7 @@ local ERROR = 4
 local FATAL = 5
 
 local _logger = {
-    enum_DEBUG = 0,
+    enum_DEBUG = 1,
     enum_TRACE = 2,
     enum_INFO = 3,
     enum_ERROR = 4,
@@ -105,7 +72,7 @@ function _logger:_log(level, format, ...)
         local info = debug.getinfo(3)
         info.level = _loggerFlag[level]
         info.msg = str
-        local log_str = ("[%(level)s:] [File=%(short_src)s Line=%(currentline)s] : %(msg)s" % info)
+        local log_str = ("[%(level)s] [File=%(short_src)s Line=%(currentline)s] : %(msg)s" % info)
         self._printer(log_str)
     end
 end
@@ -125,6 +92,9 @@ end
 function _logger:fatal(format, ...)
     self:_log(self.enum_FATAL, format, ...)
 end
+function _logger:close()
+    self._printerHandle:close()
+end
 _logger.log = _logger.debug
 
 -- function log(msg, ...)
@@ -133,7 +103,7 @@ _logger.log = _logger.debug
 -- 	level = level or DEBUG
 -- 	local info = debug.getinfo(2)
 -- 	info.msg = pprint.format(msg)
-	
+
 -- 	local log_str = ("File=%(short_src)s, Func=%(name,func)s, Line=%(currentline)s : %(msg)s" % info)
 -- 	printer(log_str)
 -- end

@@ -11,7 +11,7 @@ else
 endif
 
 SQLITE_HOME = $(HOME)/
-DES = json struct libzip lfs linenoise #luaxml cp sqlite dba
+DES = json struct libzip lfs linenoise md5 #luaxml cp sqlite dba
 all:$(DES)
 .PHONY:$(DES) static clean
 
@@ -37,7 +37,8 @@ luaxml:
 encryption:
 	cd lua-encryption && $(MAKE) all
 linenoise:
-	cd lua-linenoise && $(MAKE) all
+	cd lua-linenoise && $(MAKE) all && mv  linenoise.so $(HOME)/lib/lua
+
 md5:
 	cd lua-encryption && $(MAKE) all
 resource:

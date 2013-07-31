@@ -1,0 +1,195 @@
+--[[
+--
+-- supervisord interface
+--
+--]]
+module(...,package.seeall)
+
+local pprint=require "pprint"
+local cjson=require "cjson"
+local io=require "io"
+
+function get_supervisord_arg()
+    local Config=(require "config").Config
+    local db_path=require "db_path"
+
+    local _conf= Config:new():init(db_path.config)
+    local host=_conf:get("SUP/Address/IP")
+    local port=_conf:get("SUP/Address/Port")
+    local gar=_conf:get("SUP/GarName")
+    return host,port,gar
+end
+
+
+function sleep(n)
+    local n=n or 1
+
+    local cmd=string.format("sleep %d",n)
+    os.execute(cmd)
+end
+
+--return true if supervisord is started
+--@sec: delay @sec seconds
+function isStarted(sec)
+    local serv_host,serv_port,DefaultGar=get_supervisord_arg()
+    local sec=sec or 0
+    local i=0
+    local addr={host=serv_host,port=serv_port,gpid=0}
+    while true do
+        local ret=glr.connect(serv_host,serv_port)
+        if ret then
+            return addr
+        else
+            if i<sec then
+                sleep(1)
+            else
+                break
+            end
+        end
+        i=i+1
+    end
+end
+
+--@addr: supervisord ip and port
+--return an array of what we received, return nil and error message 
+--if supervisord is not started.
+function recv_from_supervisord() 
+    local addr=isStarted()
+    if not addr then
+        return nil,"supervisord is not running"
+    end
+
+    local addr_token=string.format("%s::%s",addr.host,addr.port) 
+
+    local ret={}
+    local first_msg=true
+    local rest=0
+    --XXX:wait for command reply
+    while true do
+        local msg_type,addr,msg=glr.recv()    --TODO:timeout for failed
+
+        if msg_type==glr.CLOSED then
+            if addr_token==addr.host and (not isStarted()) then
+                return nil,"supervisord is exited unexpectedly!"
+            end
+        else
+            print("GETMSG:",msg)
+            local t=cjson.decode(msg)
+
+            --first message will return the number of rest messages
+            if first_msg then   
+                rest=t.rest or 0 
+                first_msg=false
+            else
+                ret[#ret+1]=t
+            end
+
+            if rest<=0 then
+                break
+            end
+            rest=rest-1
+        end
+    end
+    return ret
+end
+
+--send message @content to supervisord
+function send_to_supervisord(content)
+    local addr=isStarted()
+    if not addr then
+        return nil,"supervisord is not running"
+    end
+
+    if not glr.send(addr,content) then
+        return nil,"send to supervisord failed"
+    end
+    return true
+end
+
+local function all_cmds(cmd)
+    assert(cmd,"cmd can't be nil")
+    function docmd(name)
+        if name then
+            if name=="*all" then
+                name=nil
+            end
+            local err,msg=send_to_supervisord(cjson.encode({cmd=cmd,name=name}))
+            if not err then   --failed sending message to supervisord 
+                return nil,msg
+            end
+            return recv_from_supervisord()
+        else
+            return  nil,"argument can't be nil"
+        end
+    end
+    return docmd
+end
+
+function statusall()
+    all_cmds("status")("*all")
+end
+
+function startall()
+    all_cmds("start")("*all")
+end
+
+function stopall()
+    all_cmds("stop")("*all")
+end
+
+start=all_cmds("start")
+stop=all_cmds("stop")
+status=all_cmds("status")
+
+--stop supervisord
+function stop_supervisord()
+    local addr =isStarted()
+    if addr then
+        addr.gpid=1
+        glr.send(addr,cjson.encode({Type="NODE",Action="EXEC",Cmd="kill"}))
+        return true
+    else
+        return true,"supervisord is alreadly stopped"
+    end
+end
+
+--start supervisord
+--return true if started, else return nil and error message
+function start_supervisord()
+    if isStarted() then
+        return true,"supervisord alreadly started"
+    else
+        local serv_host,serv_port,DefaultGar=get_supervisord_arg()
+        local gar=""
+        if DefaultGar and DefaultGar~="" then
+            gar="--gar="..DefaultGar
+        end
+        local cmd=string.format("glr -m supervisord -e main -h %s -p %d %s -D ",
+                                serv_host,serv_port,gar)
+        ret=os.execute(cmd)
+        if isStarted(5) then
+            return true 
+        else
+            return nil,"start_monitor error"
+        end
+    end
+end
+
+function config(name)
+    local err,msg=send_to_supervisord(cjson.encode({cmd="config",name=name}))
+    if not err then
+        return  nil,msg
+    end
+    --XXX:waiting one reply.
+    return recv_from_supervisord()[1]
+end
+
+
+function list()
+    local err,msg=send_to_supervisord(cjson.encode({cmd="list"}))
+    if not err then
+        return  nil,msg
+    end
+    --XXX:waiting one reply.
+    return recv_from_supervisord()[1]
+end

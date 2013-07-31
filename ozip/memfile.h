@@ -23,21 +23,22 @@ enum memfile_err {
 typedef struct _memfile
 {
 	void* addr;
-	uLong pos; /*read offset*/
-	uLong size;
-	uLong limit;
+	long pos; /*read offset*/
+	long size;
+	long limit;
+	int mode;
 	char err_msg[1024];
 }MEMFILE, *PMEMFILE;
 
 /* gc the memfile's source such as: addr */
 typedef int (*GC)(voidpf strfile);
 
-extern voidpf 	memfile_open(voidpf opaque, void* addr, int mode, uLong size, uLong limit);
-extern uLong 	memfile_read(voidpf opaque, voidpf strfile, void* buffer, uLong size);
-extern uLong 	memfile_write(voidpf opaque, voidpf strfile, const void* buffer, uLong size);
-extern long 	memfile_tell(voidpf opaque, voidpf strfile);
-extern long 	memfile_seek(voidpf opaque, voidpf strfile, uLong offset, int origin );
-extern int 	memfile_close(voidpf opaque, voidpf strfile, GC gc );
-extern int 	memfile_error(voidpf opaque, voidpf strfile );
+extern voidpf 	memfile_open(void* addr, int mode, uLong size, uLong limit);
+extern uLong 	memfile_read(voidpf strfile, void* buffer, uLong size);
+extern uLong 	memfile_write(voidpf strfile, const void* buffer, uLong size);
+extern long 	memfile_tell(voidpf strfile);
+extern long 	memfile_seek(voidpf strfile, uLong offset, int origin );
+extern int 	memfile_close(voidpf strfile, GC gc );
+extern int 	memfile_error(voidpf strfile );
 
 #endif /*_MEMFILE_H_*/

@@ -847,6 +847,12 @@ void GLR::Process::Entry( const std::string &module, const std::string &entry, .
         StackDump();
         THROW_EXCEPTION_EX(msg);
     }
+    //XXX:only those return "table" and "userdata" is valid lua module in GLR??
+    if (!(lua_istable(_Stack,-1)||lua_isuserdata(_Stack,-1)))
+    {
+        THROW_EXCEPTION_EX(module+": "+"not a valid lua module");
+    }
+
     char tmp[1024] = {};
     std::string::const_iterator it = entry.begin(), it1 = entry.begin();
     do 
@@ -859,6 +865,12 @@ void GLR::Process::Entry( const std::string &module, const std::string &entry, .
         StackDump();
     }while (it != entry.end());
 
+    if (!lua_isfunction(_Stack,-1))
+    {
+        const char *type=lua_typename(_Stack,lua_type(_Stack,-1));
+        
+        THROW_EXCEPTION_EX(module+": can't call entry '"+entry+"'(a "+type+" value)");
+    }
 }
 
 int GLR::Process::MessageAvailable( lua_State *l )

@@ -1,150 +1,89 @@
 /*
  * util.c
  *
- *  Created on: 2013-5-15
+ *  Created on: 2013-7-25
  *      Author: ocaml
  */
 
 #include "util.h"
 
-int get_byte(filefunc,filestream,pi)
-    const ozip_filefunc* filefunc;
-    voidpf filestream;
-    int *pi;
+#define MAXFILENAME (256)
+
+#ifdef _WIN32
+uLong filetime(f, tmzip, dt)
+    char *f;                /* name of file to get info on */
+    tm_zip *tmzip;             /* return value: access, modific. and creation times */
+    uLong *dt;             /* dostime */
 {
-    unsigned char c;
-    int err = (int)ZREAD(*filefunc,filestream,&c,1);
-    if (err==1)
-    {
-        *pi = (int)c;
-        return OZIP_OK;
-    }
-    else
-    {
-        if (ZERROR(*filefunc,filestream))
-        {
-        	return OZIP_ERRNO;
-        }
-        else
-        {
-        	return OZIP_EOF;
-        }
-    }
+  int ret = 0;
+  {
+      FILETIME ftLocal;
+      HANDLE hFind;
+      WIN32_FIND_DATAA ff32;
+
+      hFind = FindFirstFileA(f,&ff32);
+      if (hFind != INVALID_HANDLE_VALUE)
+      {
+        FileTimeToLocalFileTime(&(ff32.ftLastWriteTime),&ftLocal);
+        FileTimeToDosDateTime(&ftLocal,((LPWORD)dt)+1,((LPWORD)dt)+0);
+        FindClose(hFind);
+        ret = 1;
+      }
+  }
+  return ret;
 }
-
-
-int get_short (filefunc,filestream,pX)
-    const ozip_filefunc* filefunc;
-    voidpf filestream;
-    uLong *pX;
-{
-    uLong x ;
-    int i = 0;
-    int err;
-
-    err = get_byte(filefunc,filestream,&i);
-    x = (uLong)i;
-
-    if (err==OZIP_OK)
-    {
-    	err = get_byte(filefunc,filestream,&i);
-    }
-    x += ((uLong)i)<<8;
-
-    if (err==OZIP_OK)
-    {
-    	*pX = x;
-    }
-    else
-    {
-    	*pX = 0;
-    }
-    return err;
-}
-
-
-int get_long (filefunc,filestream,pX)
-    const ozip_filefunc* filefunc;
-    voidpf filestream;
-    uLong *pX;
-{
-    uLong x ;
-    int i = 0;
-    int err;
-
-    err = get_byte(filefunc,filestream,&i);
-    x = (uLong)i;
-
-    if (err==OZIP_OK)
-        err = get_byte(filefunc,filestream,&i);
-    x += ((uLong)i)<<8;
-
-    if (err==OZIP_OK)
-        err = get_byte(filefunc,filestream,&i);
-    x += ((uLong)i)<<16;
-
-    if (err==OZIP_OK)
-        err = get_byte(filefunc,filestream,&i);
-    x += ((uLong)i)<<24;
-
-    if (err==OZIP_OK)
-        *pX = x;
-    else
-        *pX = 0;
-    return err;
-}
-
-
-/* My own strcmpi / strcasecmp */
- int strcmp_case_nosensitive (fileName1,fileName2)
-    const char* fileName1;
-    const char* fileName2;
-{
-    for (;;)
-    {
-        char c1=*(fileName1++);
-        char c2=*(fileName2++);
-        if ((c1>='a') && (c1<='z'))
-            c1 -= 0x20;
-        if ((c2>='a') && (c2<='z'))
-            c2 -= 0x20;
-        if (c1=='\0')
-            return ((c2=='\0') ? 0 : -1);
-        if (c2=='\0')
-            return 1;
-        if (c1<c2)
-            return -1;
-        if (c1>c2)
-            return 1;
-    }
-    return 1;
-}
-
-
-#ifdef  CASESENSITIVITYDEFAULT_NO
-#define CASESENSITIVITYDEFAULTVALUE 2
 #else
-#define CASESENSITIVITYDEFAULTVALUE 1
-#endif
-
-#ifndef STRCMPCASENOSENTIVEFUNCTION
-#define STRCMPCASENOSENTIVEFUNCTION strcmp_case_nosensitive
-#endif
-
-int string_file_name_compare (fileName1,fileName2,iCaseSensitivity)
-    const char* fileName1;
-    const char* fileName2;
-    int iCaseSensitivity;
+#ifdef unix
+uLong filetime(f, tmzip, dt)
+    char *f;               /* name of file to get info on */
+    tm_zip *tmzip;         /* return value: access, modific. and creation times */
+    uLong *dt;             /* dostime */
 {
-    if (iCaseSensitivity==0)
-        iCaseSensitivity=CASESENSITIVITYDEFAULTVALUE;
+  int ret=0;
+  struct stat s;        /* results of stat() */
+  struct tm* filedate;
+  time_t tm_t=0;
 
-    if (iCaseSensitivity==1)
-        return strcmp(fileName1,fileName2);
+  if (strcmp(f,"-")!=0)
+  {
+    char name[MAXFILENAME+1];
+    int len = strlen(f);
+    if (len > MAXFILENAME)
+      len = MAXFILENAME;
 
-    return STRCMPCASENOSENTIVEFUNCTION(fileName1,fileName2);
+    strncpy(name, f,MAXFILENAME-1);
+    /* strncpy doesnt append the trailing NULL, of the string is too long. */
+    name[ MAXFILENAME ] = '\0';
+
+    if (name[len - 1] == '/')
+      name[len - 1] = '\0';
+    /* not all systems allow stat'ing a file with / appended */
+    if (stat(name,&s)==0)
+    {
+      tm_t = s.st_mtime;
+      ret = 1;
+    }
+  }
+  filedate = localtime(&tm_t);
+
+  tmzip->tm_sec  = filedate->tm_sec;
+  tmzip->tm_min  = filedate->tm_min;
+  tmzip->tm_hour = filedate->tm_hour;
+  tmzip->tm_mday = filedate->tm_mday;
+  tmzip->tm_mon  = filedate->tm_mon ;
+  tmzip->tm_year = filedate->tm_year;
+
+  return ret;
 }
-
-#ifndef BUFREADCOMMENT
-#define BUFREADCOMMENT (0x400)
+#else
+uLong filetime(f, tmzip, dt)
+    char *f;			/* name of file to get info on */
+    tm_zip *tmzip;		/* return value: access, modific. and creation times */
+    uLong *dt;          /* dostime */
+{
+    return 0;
+}
 #endif
+#endif
+
+
