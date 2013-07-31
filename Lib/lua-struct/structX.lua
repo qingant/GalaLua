@@ -180,7 +180,7 @@ function packX(tblk,endian,tbl)
       fmt = format_cache[tbl]
       local value_set = {}
       local value_res = table_func(tblk,tbl,value_set)
-      return strop.rtrim(struct.pack(fmt,unpack(value_res)))
+      return struct.pack(fmt,unpack(value_res))
    else
       error("the pack :tblk and tbl is not table")
    end
@@ -200,11 +200,16 @@ end
 function build_entry(tbl,des,rtbl,idx)
    local index = idx
    local name = get_name(des)
-   local type = get_type(des)
-   if name == nil or type == nil then
+   local types = get_type(des)
+   if name == nil or types == nil then
       error("then des bad format")
    end
-   rtbl[name] = tbl[index]
+   local sztemp = tbl[index]
+   if type(sztemp) == "string" then
+       rtbl[name] = strop.rtrimz(tbl[index])
+   else
+       rtbl[name] = tbl[index]
+   end
    index = index + 1
    return index
 end
