@@ -1,5 +1,6 @@
 --[[
---
+-- supervisord only monitor those had called `start` function.
+-- status function will not change the process state.
 --]]
 module(...,package.seeall)
 
@@ -651,10 +652,11 @@ function cmds(sup)
         rest_message_number(msg_table.cmd,1,toaddr)
         local msg=cjson.encode(msg_table)
         print("unknown command:",msg_table.cmd)
-        glr.send(toaddr,cjson.encode({ret="unkown cmd",msg=msg}))
+        pprint.pprint(toaddr)
+        glr.send(toaddr,cjson.encode({error="unkown cmd:"..msg}))
     end
 
-    local mt={__index=function () return unkown end}
+    local mt={__index=function () return unknown end}
     setmetatable(Cmds,mt)
     
     
@@ -696,7 +698,7 @@ function cmds(sup)
     function start(procs,toaddr)
         for i,e in ipairs(procs) do   --procs may have more than one item
             local err,id=glr.spawn("supervisord","run_ctrl_cmd",cjson.encode(e:export()),
-                                   "start",cjson.encode(toaddr))
+                                   "start",__id__,cjson.encode(toaddr))
         end
     end
     Cmds.start=cmd_skel(start,"start")
@@ -727,6 +729,14 @@ function cmds(sup)
         ret.result=sup:get_config(DefaultGroup,msg_table.name)
         glr.send(toaddr,cjson.encode(ret))
 
+    end
+    function Cmds.auto_restart(msg_table)
+        local proc=sup:get_processes_by_id(msg_table.name)
+        if proc then
+            pprint.pprint(proc,"RESTART")
+            local err,id=glr.spawn("supervisord","run_ctrl_cmd",
+                                   cjson.encode(proc:export()),"restart_if_exited",__id__)
+        end
     end
 
     return Cmds
@@ -759,7 +769,7 @@ end
 --  }
 --
 --]]
-function run_ctrl_cmd(proc,cmd,addr)
+function run_ctrl_cmd(proc,cmd,main_gpid,addr)
     local proc=cjson.decode(proc) 
     local _p=process(proc)
 
@@ -772,7 +782,7 @@ function run_ctrl_cmd(proc,cmd,addr)
     msg_table.content=_proc
 
     local msg=cjson.encode(msg_table)
-    glr.send({host=glr.sys.host,port=glr.sys.port,gpid=0},msg)
+    glr.send({host=glr.sys.host,port=glr.sys.port,gpid=(main_gpid or 0)},msg)
 
     if addr then
         local ret={}
@@ -830,23 +840,19 @@ function run_info_cmd(proc,cmd,addr)
 end
 
 function main()
+    print("supervisor running.............")
     local node=supervisor()
     local command=cmds(node)
     while true do
         local msg_type, addr, msg = glr.recv()
 
         if msg_type == glr.CLOSED then
-            local proc=node:get_processes_by_id(addr.host)
-            if proc then
-                pprint.pprint(proc,"RESTART")
-                local err,id=glr.spawn("supervisord","run_ctrl_cmd",
-                                       cjson.encode(proc:export()),"restart_if_exited")
-            end
+            command.auto_restart({name=addr.host})
         elseif MSG_TYPE.APP==msg_type then
             local msg_table=cjson.decode(msg)
             command[msg_table.cmd](msg_table,addr)
         else
-            glr.send(addr,cjson.encode({ret="unkown message",msg=msg}))
+            glr.send(addr,cjson.encode({error="unkown message:"..msg}))
         end
     end
 end
