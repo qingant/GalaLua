@@ -692,7 +692,8 @@ function element:add_table(t)
     end
     return self
 end
-function element:to_table()
+function element:to_table(attr_flag=true)
+    -- if attr_flag true return table include attribute
     local result = {}   
 	
     if self:is_vector() then
@@ -716,12 +717,13 @@ function element:to_table()
         for k,v in pairs(self:get_child()) do
             result[k] = v:to_table()
         end
-		result[to_table_attrib_key] = {}
-		local attrib = result[to_table_attrib_key]
-		for k,v in pairs(self:get_attrib()) do
-			attrib[k] = v
-		end
-
+        if attr_flag then
+        		result[to_table_attrib_key] = {}
+        		local attrib = result[to_table_attrib_key]
+        		for k,v in pairs(self:get_attrib()) do
+        			attrib[k] = v
+        		end
+        end
     end
     return result
 end
