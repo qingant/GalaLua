@@ -1,5 +1,6 @@
 module(..., package.seeall)
 local cjson = require("cjson")
+local memcached = require("memcached")
 --获取文件大小
 local function fSize( file )
     local current = file:seek()	-- 获取当前位置
@@ -44,17 +45,34 @@ end
 --     end
 -- end
 function glrLoggerProcessor( targetPath)
-
+    local cache = memcached:new():init(1024)
     local fileHandle = io.open(targetPath, "a")
+    fileHandle:setvbuf("no")
     while true do
         local msgType, addr, msg = glr.recv()
-        if msg:sub(1,2) == "!!" then -- flush
-            fileHandle:flush()
-        elseif msg:sub(1,2) == "!#" then -- close
-            return
+        if msg:sub(1,2) == "!!" or msg:sub(1,2) == "!#" then -- flush
+            --fileHandle:flush()
+	    local cachedata = cache:get()
+	    for _, v in pairs(cachedata) do
+	        fileHandle:write(v)
+		fileHandle:write("\n")		
+	    end	    
+	    if msg:sub(1,2) == "!#" then
+	       return 
+	    end
+	    cache:clean()
         else
-            fileHandle:write(msg)
-            fileHandle:write("\n")
+            --fileHandle:write(msg)
+            --fileHandle:write("\n")
+	    if (cache:size() + #msg) >= cache:cap() then
+	        local cachedata = cache:get()
+	        for _, v in pairs(cachedata) do
+	            fileHandle:write(v)
+		    fileHandle:write("\n")		
+	        end   
+		cache:clean()
+	    end
+	    cache:put(msg)
         end
     end
 end
@@ -71,14 +89,22 @@ end
 function GlrLoggerAppender:init( path )
     local rt, pid = glr.spawn("log_server", "glrLoggerProcessor", path)
     self._appender = pid
+    self.isclosed = false
     return self
 end
 function GlrLoggerAppender:print( msg )
-    glr.send(self._appender, msg)
+    if self.isclosed == false then
+        glr.send(self._appender, msg)
+    end
 end
 function GlrLoggerAppender:flush(  )
-    glr.send(self._appender, "!!")
+    if self.isclosed == false then
+        glr.send(self._appender, "!!")
+    end
 end
 function GlrLoggerAppender:close()
-    glr.send(self._appender, "!#")
+    if self.isclosed == false then
+        glr.send(self._appender, "!#")
+	self.isclosed = true
+    end
 end
