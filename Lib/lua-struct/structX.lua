@@ -2,7 +2,9 @@
 module(...,package.seeall)
 
 local struct = require("struct")
-local pprint=require "pprint"
+local pprint = require("pprint")
+local strop  = require("stringop")
+
 format_cache = {}
 
 function is_entry(type)
@@ -178,7 +180,7 @@ function packX(tblk,endian,tbl)
       fmt = format_cache[tbl]
       local value_set = {}
       local value_res = table_func(tblk,tbl,value_set)
-      return struct.pack(fmt,unpack(value_res))
+      return strop.rtrim(struct.pack(fmt,unpack(value_res)))
    else
       error("the pack :tblk and tbl is not table")
    end
