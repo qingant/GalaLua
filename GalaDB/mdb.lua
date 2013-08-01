@@ -692,7 +692,6 @@ function element:add_table(t)
     end
     return self
 end
-<<<<<<< HEAD
 function element:to_table(args)
     -- if attr_flag true return table include attribute
     local result = {}
