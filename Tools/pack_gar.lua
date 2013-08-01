@@ -195,12 +195,20 @@ function is_exist(zipfd,file)
     return zipfd:name_locate(file)  
 end
 
+local function ignoreMe(file)
+    if (file==".") or (file=="..") or (string.sub(file,1,1)==".") then
+        return true
+    end
+    return false
+end
+
 --add @file to @zipfd as @zipfile
 --@not_recurse: run add2zip recursively if false
 function add2zip(zipfd,file,zipfile,not_recurse)
     if (not zipfile) or (zipfile=="") then
         zipfile=file
     end
+
     local ft=path.dir_type(file)
     if (ft=="reg") then
         add_file(zipfd,file,zipfile)
@@ -210,7 +218,7 @@ function add2zip(zipfd,file,zipfile,not_recurse)
         --Zip sub-directory recursively 
         if not not_recurse then
             for i,f in pairs(path.dir(file)) do
-                if f~="." and f~=".." then
+                if not ignoreMe(f) then
                     add2zip(zipfd,path.join(file,f),path.join(zipfile,f))
                 end
             end
@@ -219,7 +227,6 @@ function add2zip(zipfd,file,zipfile,not_recurse)
 end
 
 --[==[
--- @_out:Manifest file
 -- @_in:the file want to zip. support multi paths in a table like {in_path=zip_path,...},
 --      zip in_path as zip_path, use in_path if zip_path is empty string.
 ]==]
@@ -230,8 +237,11 @@ function create_zip(manifest_file,_in)
         return  str:match("/*(.*)") 
     end
     local m=check_and_get(manifest_file)
-    local _out=assert(m.Name,"invalid Manifest file")
-    local zipfd=zip.open(_out..".gar",zip.CREATE)
+    local name=assert(m.Name,"invalid Manifest file")
+    local ver=assert(m.Version,"invalid Manifest file")
+    local _out=string.format("%s-%s.gar",name,ver)
+
+    local zipfd=zip.open(_out,zip.CREATE)
     
     if type(_in)=="string" then
         _in={[_in]=""}
