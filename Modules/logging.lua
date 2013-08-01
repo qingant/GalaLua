@@ -69,10 +69,10 @@ end
 function _logger:_log(level, format, ...)
     if self._get_level() <= level then
         local str = string.format(format, ...)
-        local info = debug.getinfo(3)
+        local info = debug.getinfo(1)
         info.level = _loggerFlag[level]
         info.msg = str
-        local log_str = ("[%(level)s] [File=%(short_src)s Line=%(currentline)s] : %(msg)s" % info)
+        local log_str = ("[%(level)s] [File=%(short_src)s Function=%(name)s Line=%(currentline)s] : %(msg)s" % info)
         self._printer(log_str)
     end
 end
