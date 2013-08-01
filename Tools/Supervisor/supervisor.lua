@@ -13,7 +13,9 @@ local io=require "io"
 
 local interface=require "interface"
 
-local ALL={"svc","lsr","ctr"}
+--local ALL={"svc","lsr","ctr"}
+local ALL={"svc","lsr"}
+
 
 function output()
     local O={}
