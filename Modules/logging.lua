@@ -68,13 +68,8 @@ function _logger:flush( )
 end
 function _logger:_log(level, format, ...)
     if self._get_level() <= level then
-        local str
-        if #{...} == 0 then
-            str = format
-        else
-            str = string.format(format, ...)
-        end
-        local info = debug.getinfo(1)
+        local str = string.format(format, ...)
+        local info = debug.getinfo(3)
         info.level = _loggerFlag[level]
         info.msg = str
         local log_str = ("[%(level)s] [File=%(short_src)s Function=%(name)s Line=%(currentline)s] : %(msg)s" % info)

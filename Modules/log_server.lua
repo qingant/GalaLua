@@ -1,6 +1,6 @@
 module(..., package.seeall)
 local cjson = require("cjson")
-local memcached = require("memcached")
+local memcached = require("memcached").GlrBuffer
 --获取文件大小
 local function fSize( file )
     local current = file:seek()	-- 获取当前位置
