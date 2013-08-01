@@ -161,7 +161,17 @@ int main( int argc, char* argv[] )
     {
         GALA_DEBUG("RUNNING Gar package\n");
         std::string file=_CProcess.GetOption("g");
-
+        
+        if (file[0]!='/' && access(file.c_str(),R_OK)<0)
+        {
+            if (cwd!=NULL)
+            {
+                char path[256] = {};
+                snprintf(path,sizeof(path),"%s/%s",cwd,file.c_str());
+                file=path;
+            }
+        }
+        std::cout <<file<<std::endl;
         std::string module;
         if (_CProcess.ExistOption("m"))
         {

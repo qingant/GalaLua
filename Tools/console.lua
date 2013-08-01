@@ -39,7 +39,7 @@ function ConsoleBase(o)
     setmetatable(cmds,mt)
     local completions={help=""}
 
-    local history,prompt="history.log",">"
+    local history,prompt=os.getenv("HOME").."/log/console.log",">"
 
     function console_base.set_history(file)
         history=file or history
