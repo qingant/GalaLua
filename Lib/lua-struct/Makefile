@@ -21,7 +21,7 @@ OBJ=struct.o
 
 default: $(OBJ)
 	$(CC) $(LDFLG) -o struct.so  $(OBJ)
-
+	cp -rf  struct.so structX.lua stringop.lua $(HOME)/lib/lua/
 .PHONY: static
 
 static: struct.a
