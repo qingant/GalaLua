@@ -242,7 +242,7 @@ function watchConf(env)
                 stderr=stderr,stdout=stdout,group=group,entry=entry}
                 _conf:save(e)
             end
-           
+          --[[ 
             local ctr=root:get_child("CTR")
 
             local host=ctr:xpath("Address/IP")[1]:get_value()[1]
@@ -257,6 +257,7 @@ function watchConf(env)
             local e={host=host,port=port,module_name=module_name,index=index,
             stderr=stderr,stdout=stdout,group=group,entry=entry}
             _conf:save(e)
+            ]]
         end,self)
 
     end
@@ -270,7 +271,7 @@ if ...=="__main__" then
     local _env=create()
     _conf=watchConf(_env)
 
---    entry={host="127.0.0.1",port=2000,index=0,group="wg1",stderr="stderr",stdout="stdout",module_name="sup",entry="main"}
+--    entry={host="127.0.0.1",port=2395,group="wg1",module_name="sup",entry="main",index=0}
 --    _conf:save(entry)
 
     _conf:import()

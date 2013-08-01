@@ -14,8 +14,11 @@ function get_supervisord_arg()
     local db_path=require "db_path"
 
     local _conf= Config:new():init(db_path.config)
-    local host=_conf:get("SUP/Address/IP")
-    local port=_conf:get("SUP/Address/Port")
+    local host=_conf:get("CTR/Address/IP")
+    local port=tonumber(_conf:get("CTR/Address/Port"))
+
+    --local host=_conf:get("SUP/Address/IP")
+    --local port=tonumber(_conf:get("SUP/Address/Port"))
     local gar=_conf:get("SUP/GarName")
     return host,port,gar
 end
@@ -28,17 +31,35 @@ function sleep(n)
     os.execute(cmd)
 end
 
+--register ctr and get supervisord's gpid
+function register_and_get_gpid(addr)
+    local reg={Type="CTR",Action="REG"}
+    if not glr.send(addr,cjson.encode(reg)) then
+        return nil
+    end
+    print("waiting to register to CTR")
+    --only recv message from ctr main node
+    local msg_type, addr, msg = glr.recvByAddr(addr)
+
+    return cjson.decode(msg)["supervisord"]
+end
+
 --return true if supervisord is started
 --@sec: delay @sec seconds
 function isStarted(sec)
-    local serv_host,serv_port,DefaultGar=get_supervisord_arg()
-    local sec=sec or 0
+    local serv_host,serv_port=get_supervisord_arg()
+    local sec=tonumber(sec) or 0
     local i=0
     local addr={host=serv_host,port=serv_port,gpid=0}
+    pprint.pprint(addr,"isStarted")
     while true do
         local ret=glr.connect(serv_host,serv_port)
         if ret then
-            return addr
+            local gpid=register_and_get_gpid(addr)
+            if gpid then
+                addr.gpid=gpid 
+                return addr
+            end
         else
             if i<sec then
                 sleep(1)
@@ -50,7 +71,6 @@ function isStarted(sec)
     end
 end
 
---@addr: supervisord ip and port
 --return an array of what we received, return nil and error message 
 --if supervisord is not started.
 function recv_from_supervisord() 
@@ -99,7 +119,8 @@ function send_to_supervisord(content)
     if not addr then
         return nil,"supervisord is not running"
     end
-
+    
+    pprint.pprint(addr,"SENDTOSUPERVISORD")
     if not glr.send(addr,content) then
         return nil,"send to supervisord failed"
     end
@@ -126,15 +147,15 @@ local function all_cmds(cmd)
 end
 
 function statusall()
-    all_cmds("status")("*all")
+    return all_cmds("status")("*all")
 end
 
 function startall()
-    all_cmds("start")("*all")
+    return all_cmds("start")("*all")
 end
 
 function stopall()
-    all_cmds("stop")("*all")
+    return all_cmds("stop")("*all")
 end
 
 start=all_cmds("start")
@@ -153,19 +174,25 @@ function stop_supervisord()
     end
 end
 
---start supervisord
---return true if started, else return nil and error message
+--start supervisord, return true if started, else return nil and error message.
 function start_supervisord()
     if isStarted() then
         return true,"supervisord alreadly started"
     else
+        print("starting supervisord............")
         local serv_host,serv_port,DefaultGar=get_supervisord_arg()
         local gar=""
+        local run=""
         if DefaultGar and DefaultGar~="" then
             gar="--gar="..DefaultGar
+            run="-g "..os.getenv("GDK_HOME").."/bin/"..DefaultGar
         end
-        local cmd=string.format("glr -m supervisord -e main -h %s -p %d %s -D ",
-                                serv_host,serv_port,gar)
+
+        --supervisord is now embeded in CTR.
+        --local cmd=string.format("glr -m supervisord -e main -h %s -p %d %s -D ",
+        local cmd=string.format("glr %s -m ctr -e main -h %s -p %d %s -D ",
+                                run,serv_host,serv_port,gar)
+        print(cmd)
         ret=os.execute(cmd)
         if isStarted(5) then
             return true 

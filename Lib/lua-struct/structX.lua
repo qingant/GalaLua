@@ -2,7 +2,9 @@
 module(...,package.seeall)
 
 local struct = require("struct")
-local pprint=require "pprint"
+local pprint = require("pprint")
+local strop  = require("stringop")
+
 format_cache = {}
 
 function is_entry(type)
@@ -198,11 +200,16 @@ end
 function build_entry(tbl,des,rtbl,idx)
    local index = idx
    local name = get_name(des)
-   local type = get_type(des)
-   if name == nil or type == nil then
+   local types = get_type(des)
+   if name == nil or types == nil then
       error("then des bad format")
    end
-   rtbl[name] = tbl[index]
+   local sztemp = tbl[index]
+   if type(sztemp) == "string" then
+       rtbl[name] = strop.rtrimz(tbl[index])
+   else
+       rtbl[name] = tbl[index]
+   end
    index = index + 1
    return index
 end
