@@ -696,10 +696,11 @@ function element:to_table(args)
     -- if attr_flag true return table include attribute
     local result = {}
 	assert((args == nil) or (type(args) == "table"), "args must be table or nil")
+
     if self:is_vector() then
 
         for k,v in pairs(self:get_child()) do
-            result[#result + 1] = v:to_table()
+            result[#result + 1] = v:to_table(attr_flag)
         end
 		-- result[to_table_attrib_key] = {}
 		-- local attrib = result[to_table_attrib_key]
@@ -715,7 +716,7 @@ function element:to_table(args)
         end
     else
         for k,v in pairs(self:get_child()) do
-            result[k] = v:to_table()
+            result[k] = v:to_table(attr_flag)
         end
         if args and args.attr_flag==false then
             
