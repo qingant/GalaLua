@@ -95,6 +95,7 @@ namespace GLR
 
         static Galaxy::GalaxyRT::CRWLock  Lock;
         static int32_t NodeId;
+        static int32_t NodeCount;     //现在活动中的进程数
     public:
         static Globals GlobalVars;
     public:

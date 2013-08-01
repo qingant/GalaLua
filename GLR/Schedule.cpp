@@ -6,12 +6,7 @@ using namespace GLR;
 
 Schedule::~Schedule()
 {
-    _ScheQueue.Close();
-    for (typeof(_Cores.begin()) it = _Cores.begin(); it != _Cores.end(); ++it)
-    {
-        it->second->Join();
-    }
-
+    Stop();
 }
 
 
@@ -23,6 +18,7 @@ Schedule & Schedule::GetInstance( int threads /*= 4*/ )
 }
 
 Schedule::Schedule( int threads )
+    :_isLiving(true)
 {
     for (int i = 0; i != threads; ++i)
     {
@@ -105,6 +101,11 @@ void* Processor::Run( const Galaxy::GalaxyRT::CThread &thread)
             time(&_Status._LastOp);
             _Status._GLRProcessId = node->Id();
         }   
+        catch (const Galaxy::GalaxyRT::CQueueClosedException &e)
+        {
+            // elegant exit
+            return NULL;
+        }
         catch (const std::exception &e)
         {
             // TODO: better error handling
@@ -136,4 +137,18 @@ Processor::~Processor()
 void Processor::Clean( const Galaxy::GalaxyRT::CThread & thread)
 {
     assert(&thread);
+}
+
+void GLR::Schedule::Stop()
+{
+    if (_isLiving)
+    {
+        _ScheQueue.Close();
+        for (typeof(_Cores.begin()) it = _Cores.begin(); it != _Cores.end(); ++it)
+        {
+            it->second->Join();
+        }
+        _isLiving = false;
+    }
+
 }

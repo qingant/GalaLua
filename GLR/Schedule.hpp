@@ -60,11 +60,13 @@ namespace GLR
         static Schedule &GetInstance(int threads = 8);
         //void CoreThread();
         void PutTask(Process &node);
+        void Stop();
     public:
         ~Schedule(void);
     private:
         std::vector<std::pair<Processor*, Galaxy::GalaxyRT::CThread*> >  _Cores;
         LN_SCHE_QUEUE_TYPE      _ScheQueue;
+        bool                    _isLiving;
 
     };
 

@@ -10,7 +10,8 @@ std::vector<Process*> Process::NodeMap(10240);
 //std::vector<Process*>(10240);
 Galaxy::GalaxyRT::CRWLock Process::Lock;
 int32_t Process::NodeId;
-
+int32_t Process::NodeCount = 0;
+#define RESERVED_PID (32)
 
 Process::Process(int id)
     :_Stack(lua_open()),
@@ -19,7 +20,7 @@ Process::Process(int id)
     // step over supervisor binded pid
     if (NodeId == 1)
     {
-        NodeId += 12;    // reserve first 12 id for special services
+        NodeId += RESERVED_PID;    // reserve first 12 id for special services
     }
 
     if (_Stack == NULL)
@@ -635,11 +636,20 @@ void Process::Destory( LN_ID_TYPE pid)
     }else
     {
         if (p->_Status._State == Process::ProcessStatus::RECV_WAIT ||
-            p->_Status._State == Process::ProcessStatus::INT_WAIT 
+            p->_Status._State == Process::ProcessStatus::INT_WAIT ||
+            p->_Status._State == Process::ProcessStatus::STOPED
             )
         {
             NodeMap[pid] = NULL;
+            
             delete p;
+            NodeCount--;
+            if (NodeCount == 0)
+            {
+                //TODO: destroy objects in globals
+                Runtime::GetInstance().ElegantExit();
+            }
+            
             //p->_Status._Killed = true;
         }
         else
@@ -928,6 +938,7 @@ GLR::LN_ID_TYPE GLR::Process::CreateNode( int id)
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
     //NodeMap.insert(std::make_pair(node->_Id, node));
     NodeMap[node->_Id] = node;
+    NodeCount++;
     return node->_Id;
 }
 

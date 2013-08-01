@@ -57,6 +57,8 @@ namespace GLR
         const std::string &Host() const { return _Host; }
         void Host(const std::string &val) { _Host = val; }
         time_t Stamp() const {return _Stamp;}
+        void _ElegantExit();
+        void ElegantExit();
     private:
         Schedule *_Schedule;
         Bus      *_Bus;
@@ -65,6 +67,11 @@ namespace GLR
        time_t  _Stamp;
 
 
+    };
+    class Exiter:public Galaxy::GalaxyRT::CRunnable
+    {
+    public:
+        virtual void* Run( const Galaxy::GalaxyRT::CThread &t );
     };
 
 };

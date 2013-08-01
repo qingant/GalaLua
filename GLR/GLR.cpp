@@ -77,6 +77,17 @@ void GLR::Runtime::EntryEx( const std::string &path ,GLR::Runtime::LoadEntryFrom
 
 }
 
+void GLR::Runtime::_ElegantExit()
+{
+    GetSchedule().Stop();
+}
+
+void GLR::Runtime::ElegantExit()
+{
+    Galaxy::GalaxyRT::CRunnable &r = *(new Exiter());
+    (new Galaxy::GalaxyRT::CThread(r, 0))->Start();
+}
+
 void Runtime::Entry( const std::string &gar,const std::string &module, const std::string &entry )
 {
     LN_ID_TYPE main_node_id = Process::CreateNode();
@@ -96,4 +107,10 @@ void Runtime::Entry( const std::string &path, const std::string &entry )
     main_node.Entry(path, entry);
 
     main_node.Start(*_Schedule);
+}
+
+void* GLR::Exiter::Run( const Galaxy::GalaxyRT::CThread & )
+{
+    GLR::Runtime::GetInstance()._ElegantExit();
+    exit(0);
 }
