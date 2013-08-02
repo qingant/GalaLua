@@ -182,11 +182,21 @@ end
 
 local cmds={}
 cmds.stop_monitor=all_cmds("stop_monitor",stop_supervisord)
-cmds.start_monitor=all_cmds("start_monitor",start_supervisord)
-
 cmds.start=all_cmds("start",start,1)
 cmds.stop=all_cmds("stop",stop,1)
 cmds.status=all_cmds("status",status,1)
+
+function start_monitor()
+    local conf=require "supervisor_conf"
+    local sup_conf=conf.watchConf(conf.create())
+    sup_conf:import()
+    local err,msg=interface.start_supervisord()
+    if not err then
+        io.write("starting CTR  failed\n") 
+    else
+        io.write("starting CTR  success\n") 
+    end
+end
 
 local function startall()
     for i=1,#ALL do
@@ -235,6 +245,7 @@ local function list()
     end
 end
 
+cmds.start_monitor=all_cmds("start_monitor",start_monitor)
 cmds.stopall=all_cmds("stopall",stopall)
 cmds.statusall=all_cmds("statusall",statusall)
 cmds.startall=all_cmds("startall",startall)

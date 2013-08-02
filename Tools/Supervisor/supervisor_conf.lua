@@ -216,7 +216,7 @@ function watchConf(env)
                 --local host=ch:xpath("Protocol/LSRSTREAM/Address/TCP/Port")[1]:get_value()[1]
                 --local port=ch:xpath("Protocol/LSRSTREAM/Address/TCP/IP")[1]:get_value()[1]
                 local index=i
-                local group="wg1"
+                local group=defaultGroup
                 local entry="main"
                 local module_name="lsr"
                 local stderr=string.format("%s%.4d-stderr.log",module_name,index)
@@ -232,7 +232,7 @@ function watchConf(env)
                 local host="127.0.0.1"
                 local port=svc_port+i
                 local index=i
-                local group="wg1"
+                local group=defaultGroup
                 local entry="main"
                 local module_name="svc"
                 local stderr=string.format("%s%.4d-stderr.log",module_name,index)
@@ -248,7 +248,7 @@ function watchConf(env)
             local host=ctr:xpath("Address/IP")[1]:get_value()[1]
             local port=ctr:xpath("Address/Port")[1]:get_value()[1]
             local index=0
-            local group="wg1"
+            local group=defaultGroup
             local entry="main"
             local module_name="ctr"
             local stderr=string.format("%s%.4d-stderr.log",module_name,index)
@@ -271,7 +271,7 @@ if ...=="__main__" then
     local _env=create()
     _conf=watchConf(_env)
 
---    entry={host="127.0.0.1",port=2395,group="wg1",module_name="sup",entry="main",index=0}
+--    entry={host="127.0.0.1",port=2395,group=defaultGroup,module_name="sup",entry="main",index=0}
 --    _conf:save(entry)
 
     _conf:import()
