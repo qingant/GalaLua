@@ -182,7 +182,7 @@ function start_supervisord()
         local gar=""
         local run=""
         if DefaultGar and DefaultGar~="" then
-            gar="--gar="..DefaultGar
+--            gar="--gar="..DefaultGar
             run="-g "..DefaultGar
         end
 
