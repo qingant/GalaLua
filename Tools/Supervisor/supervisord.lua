@@ -59,7 +59,7 @@ local MSG_TYPE={
 }
 
 local logdir=os.getenv("HOME").."/log"
-local DefaultGroup="wg1"
+local DefaultGroup=conf.defaultGroup
 
 --default gar package search for module
 local DefaultGar=glr.get_option("gar")
