@@ -185,7 +185,7 @@ function start_supervisord()
         local run=""
         if DefaultGar and DefaultGar~="" then
             gar="--gar="..DefaultGar
-            run="-g "..os.getenv("GDK_HOME").."/bin/"..DefaultGar
+            run="-g "..DefaultGar
         end
 
         --supervisord is now embeded in CTR.
