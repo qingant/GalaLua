@@ -832,7 +832,11 @@ int GLR::Process::Kill(lua_State *l)
 void GLR::Process::EntryGar(const std::string& Gar, const std::string& module, const std::string& entry, ...)
 {
     lua_getglobal(_Stack, "glr");
-    lua_getfield(_Stack, -1, "run_gar");
+
+    lua_pushstring(_Stack, Gar.c_str());
+    lua_setfield(_Stack,-2, "__gar__");
+
+    lua_getfield(_Stack,-1,"run_gar");
     lua_pushstring(_Stack, Gar.c_str());
     if (lua_pcall(_Stack, 1, 1, 0) != 0)
     {
