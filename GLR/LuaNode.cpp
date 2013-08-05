@@ -6,7 +6,7 @@
 #include <algorithm>
 //defines of static data member
 using namespace GLR;
-std::vector<Process*> Process::NodeMap(10240); 
+std::vector<Process *> Process::NodeMap(10240);
 //std::vector<Process*>(10240);
 Galaxy::GalaxyRT::CRWLock Process::Lock;
 int32_t Process::NodeId;
@@ -14,15 +14,15 @@ int32_t Process::NodeCount = 0;
 #define RESERVED_PID (32)
 
 Process::Process(int id)
-    :_Stack(lua_open()),
-    _Id(id == 0?NodeId++:id)
+   : _Stack(lua_open()),
+     _Id(id == 0 ? NodeId++ : id)
 {
     // step over supervisor binded pid
     if (NodeId == 1)
     {
         NodeId += RESERVED_PID;    // reserve first 12 id for special services
     }
-
+ 
     if (_Stack == NULL)
     {
         THROW_EXCEPTION_EX("Create Lua Stack Failure");
@@ -37,10 +37,11 @@ Process::~Process(void)
     lua_close(_Stack);
 }
 
-void Process::SendMsg( const LN_MSG_TYPE &msg )
+void Process::SendMsg(const LN_MSG_TYPE& msg)
 {
     GALA_DEBUG("Send %d", _Id);
     GALA_DEBUG("This(%p) LuaState(%p)", this, _Stack);
+
 
     Galaxy::GalaxyRT::CLockGuard _gl(&_Lock);
     bool isEmpty = _Channel.Empty();
@@ -49,7 +50,7 @@ void Process::SendMsg( const LN_MSG_TYPE &msg )
     if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
     {
         Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock);
-        GLR_BUS_HEAD *head = (GLR_BUS_HEAD*)&msg[0];
+        GLR_BUS_HEAD *head = (GLR_BUS_HEAD *)&msg[0];
         lua_pushinteger(_Stack, head->Head.Type);
         lua_newtable(_Stack);
         lua_pushstring(_Stack, head->Source.Host);
@@ -68,8 +69,7 @@ void Process::SendMsg( const LN_MSG_TYPE &msg )
         Runtime::GetInstance().GetSchedule().PutTask(*this);
         GALA_DEBUG("Return");
 
-    }
-    else
+    } else
     {
         GALA_DEBUG("Put!");
         _Channel.Put(msg);
@@ -91,7 +91,7 @@ LN_ID_TYPE Process::CreateNode()
 {
     return CreateNode(0);
 }
-int Process::Spawn( lua_State *l )
+int Process::Spawn(lua_State *l)
 {
 
     try
@@ -104,7 +104,7 @@ int Process::Spawn( lua_State *l )
         // Get Arguments From Caller State
         size_t len = 0;
         const char *module = NULL;
-        module = lua_tolstring(l,1,&len);
+        module = lua_tolstring(l, 1, &len);
         if (module == NULL)
         {
             THROW_EXCEPTION_EX("Extract Para Error");
@@ -121,53 +121,33 @@ int Process::Spawn( lua_State *l )
 
         // Create Lua Node
         LN_ID_TYPE node_id = CreateNode();
-        Process &node = GetNodeById(node_id);
+        Process& node = GetNodeById(node_id);
         //node.LoadFile(module);
         // node.DoString(std::string(module, len));
         //lua_getglobal(node._Stack, "loadstring");
         //lua_pushlstring(node._Stack, module, len);
         if (GLR::Runtime::_GarFile.empty())
         {
-            node.Entry(module, method);  
-        }
-        else
+            node.Entry(module, method);
+        } else
         {
-            node.EntryGar(GLR::Runtime::_GarFile,module, method);  
+            node.EntryGar(GLR::Runtime::_GarFile, module, method);
         }
 
-        /*
-        lua_getglobal(node._Stack, "require");
-        lua_pushstring(node._Stack, module);
-        if (lua_pcall(node._Stack, 1,1,0) != 0)
-        {
-        const char *msg = luaL_checklstring(node._Stack, -1, NULL);
-        THROW_EXCEPTION_EX(msg);
-        }
-
-
-        node.StackDump();
-
-        lua_getfield(node._Stack, -1, method);
-        node.StackDump();
-        */
-        //luaL_loadfile(node._Stack, module);
-        // Register Node Entry
-        //lua_getglobal(node._Stack, method);
-        // node.PushFun(method);
         int i = 3;
-        for ( ; i <= lua_gettop(l); ++i)
+        for (; i <= lua_gettop(l); ++i)
         {
-            int type = lua_type(l,i);
+            int type = lua_type(l, i);
             size_t len = 0;
-            const char * str = NULL;
+            const char *str = NULL;
             switch (type)
             {
             case LUA_TSTRING:
-                str = luaL_checklstring(l,i,&len);
-                lua_pushlstring(node._Stack,str, len);
+                str = luaL_checklstring(l, i, &len);
+                lua_pushlstring(node._Stack, str, len);
                 break;
             case LUA_TBOOLEAN:
-                len = lua_toboolean(l,i);
+                len = lua_toboolean(l, i);
                 lua_pushboolean(node._Stack, len);
                 break;
             case LUA_TNUMBER:
@@ -180,7 +160,7 @@ int Process::Spawn( lua_State *l )
             }
         }
 
-        node._Status._NArg = (i-3);
+        node._Status._NArg = (i - 3);
         // put to schedule queue
 
 
@@ -193,7 +173,7 @@ int Process::Spawn( lua_State *l )
         // Op on Self State
         //lua_getglobal(this->_Stack, buf);
     }
-    catch (Galaxy::GalaxyRT::CException &e)
+    catch (Galaxy::GalaxyRT::CException& e)
     {
         lua_pushnil(l);
         lua_pushstring(l, e.what());
@@ -203,7 +183,7 @@ int Process::Spawn( lua_State *l )
 
 }
 
-Process & Process::GetNodeById( LN_ID_TYPE id)
+Process& Process::GetNodeById(LN_ID_TYPE id)
 {
     if ((size_t)id >= NodeMap.size())
     {
@@ -223,8 +203,8 @@ Process & Process::GetNodeById( LN_ID_TYPE id)
 
 int GLR::Process::GetOption(lua_State *l)
 {
-    Galaxy::GalaxyRT::CProcess *_pCProcess=GLR::Runtime::_pCProcess;
-    if (_pCProcess==NULL)
+    Galaxy::GalaxyRT::CProcess *_pCProcess = GLR::Runtime::_pCProcess;
+    if (_pCProcess == NULL)
     {
 
         luaL_error(l, "_pCProcess is NULL");
@@ -241,70 +221,70 @@ int GLR::Process::GetOption(lua_State *l)
 }
 int GLR::Process::SetOptions(lua_State *l)
 {
-    Galaxy::GalaxyRT::CProcess *_pCProcess=GLR::Runtime::_pCProcess;
-    if (_pCProcess==NULL)
+    Galaxy::GalaxyRT::CProcess *_pCProcess = GLR::Runtime::_pCProcess;
+    if (_pCProcess == NULL)
     {
         luaL_error(l, "pCProcess is null");
         return 0;
     }
 
-    const char *str=luaL_checkstring(l,1);
-    int i=_pCProcess->SetArgument(str);
-    lua_pushnumber(l,i);
+    const char *str = luaL_checkstring(l, 1);
+    int i = _pCProcess->SetArgument(str);
+    lua_pushnumber(l, i);
     return 1;
 }
 
-void Process::InitNode( void )
+void Process::InitNode(void)
 {
     luaL_openlibs(_Stack);
 
     // built in module glr
     static const  luaL_Reg glr_reg[] =
     {
-        {"spawn", Spawn},
-        {"send", SendMsgToNode},
-        {"recv", Recieve},
-        {"int", Interrupt},
-        {"all", AllProcesses},
-        {"status", Status},
-        {"global", RegisterGlobal},
-        {"get_global", GetGlobal},
-        {"node_addr", GetNodeAddr},
-        {"get_path", GetFilePath},
-        {"kill", Kill},
-        {"set_options", SetOptions},
-        {"get_option", GetOption},
-        {"msg_available", MessageAvailable},
-        {"glr_stamp", GLRStamp},
-        {"exit", Exit},
-        {NULL, NULL},
+        { "spawn", Spawn },
+        { "send", SendMsgToNode },
+        { "recv", Recieve },
+        { "int", Interrupt },
+        { "all", AllProcesses },
+        { "status", Status },
+        { "global", RegisterGlobal },
+        { "get_global", GetGlobal },
+        { "node_addr", GetNodeAddr },
+        { "get_path", GetFilePath },
+        { "kill", Kill },
+        { "set_options", SetOptions },
+        { "get_option", GetOption },
+        { "msg_available", MessageAvailable },
+        { "glr_stamp", GLRStamp },
+        { "exit", Exit },
+        { NULL, NULL },
     };
     luaL_register(_Stack, "_glr", glr_reg);
     lua_setglobal(_Stack, "_glr");
 
     lua_getglobal(_Stack, "_glr");
-    lua_pushstring(_Stack,"id");
+    lua_pushstring(_Stack, "id");
     lua_pushinteger(_Stack, _Id);
     lua_settable(_Stack, -3);
 
     // Some useful const
     // lua_getglobal(_Stack, "glr");
-    lua_pushstring(_Stack,"AF_UNIX");
+    lua_pushstring(_Stack, "AF_UNIX");
     lua_pushinteger(_Stack, AF_UNIX);
-    lua_settable(_Stack, -3);   
+    lua_settable(_Stack, -3);
 
     // lua_getglobal(_Stack, "glr");
-    lua_pushstring(_Stack,"AF_INET");
+    lua_pushstring(_Stack, "AF_INET");
     lua_pushinteger(_Stack, AF_INET);
-    lua_settable(_Stack, -3);   
+    lua_settable(_Stack, -3);
 
     lua_pushstring(_Stack, "KILL");
     lua_pushinteger(_Stack, MSG_HEAD::KILL);
-    lua_settable(_Stack, -3);   
+    lua_settable(_Stack, -3);
 
     lua_pushstring(_Stack, "CLOSED");
     lua_pushinteger(_Stack, MSG_HEAD::CLOSED);
-    lua_settable(_Stack, -3);   
+    lua_settable(_Stack, -3);
 
     //StackDump();
     //lua_pop(_Stack,1);
@@ -318,11 +298,11 @@ void Process::InitNode( void )
 
     lua_getglobal(_Stack, "require");
     lua_pushstring(_Stack, "glr");
-    if (lua_pcall(_Stack, 1, 1,0) != 0)
+    if (lua_pcall(_Stack, 1, 1, 0) != 0)
     {
         GALA_ERROR("Import `glr` Failed");
         StackDump();
-        const char *msg = luaL_checkstring(_Stack,-1);
+        const char *msg = luaL_checkstring(_Stack, -1);
         THROW_EXCEPTION_EX(msg);
     }
     lua_setglobal(_Stack, "glr");
@@ -338,7 +318,7 @@ void Process::InitNode( void )
     //lua_sethook(_Stack, LuaNode::Preempt, LUA_MASKCOUNT, 1000);
 }
 
-int Process::SendMsgToNode( lua_State *l )
+int Process::SendMsgToNode(lua_State *l)
 {
     lua_getglobal(l, "__id__");
     //lua_pushlstring("id");
@@ -346,21 +326,21 @@ int Process::SendMsgToNode( lua_State *l )
     LN_ID_TYPE id = luaL_checkinteger(l, 1);
     size_t len = 0;
     const char *msg = luaL_checklstring(l, 2, &len);
-    LN_MSG_TYPE  pack_msg(len+sizeof(GLR_BUS_HEAD), 0);
+    LN_MSG_TYPE  pack_msg(len + sizeof(GLR_BUS_HEAD), 0);
     GLR_BUS_HEAD *head = (GLR_BUS_HEAD *)&pack_msg[0];
     head->Head.Type = MSG_HEAD::APP;
     head->Head.GPid = id;
-    head->Head.Len = len+sizeof(*head) - 4;
+    head->Head.Len = len + sizeof(*head) - 4;
     head->Source.Gpid = self_id;
     memcpy(head->Source.Host, GLR::Runtime::GetInstance().Host().c_str(), GLR::Runtime::GetInstance().Host().size());
-    memcpy((void*)&pack_msg[sizeof(*head)], msg, len);
+    memcpy((void *)&pack_msg[sizeof(*head)], msg, len);
     //GetNodeById(id).SendMsg(pack_msg);
     SendMsgToNode(id, pack_msg);
     lua_pushboolean(l, 1);
     return 1;
 }
 
-void Process::Preempt( lua_State *l, lua_Debug *ar )
+void Process::Preempt(lua_State *l, lua_Debug *ar)
 {
 
     lua_getinfo(l, "n", ar);
@@ -371,7 +351,7 @@ void Process::Preempt( lua_State *l, lua_Debug *ar )
 void Process::Resume()
 {
     //int narg = 0;
-    int rt = 0;
+    int rt = 0; 
     /* if (_Status.State() == ProcessStatus::RUNNING)
     {
     THROW_EXCEPTION_EX("Fatal Erorr: Corrupt Process Schedule");
@@ -400,14 +380,13 @@ void Process::Resume()
     _Status._NArg = 0;
     if (rt == LUA_YIELD)
     {
-        if (State()!= ProcessStatus::RECV_WAIT && State() != ProcessStatus::INT_WAIT)
+        if (State() != ProcessStatus::RECV_WAIT && State() != ProcessStatus::INT_WAIT)
         {
 
             _Status._State = ProcessStatus::YIELD;
             return;
-        }  
-    }
-    else if (rt == 0)
+        }
+    } else if (rt == 0)
     {
         _Status._State = ProcessStatus::STOPED;
         THROW_EXCEPTION_EX("Stopped!");
@@ -429,7 +408,7 @@ void Process::Resume()
 
 }
 
-int Process::Recieve( lua_State *l )
+int Process::Recieve(lua_State *l)
 {
     Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
@@ -437,7 +416,7 @@ int Process::Recieve( lua_State *l )
     lua_getglobal(l, "__id__");
     //lua_pushlstring("id");
     LN_ID_TYPE self_id = luaL_checkinteger(l, -1);
-    Process &self = GetNodeById(self_id);
+    Process& self = GetNodeById(self_id);
     {
         Galaxy::GalaxyRT::CLockGuard _gl(&self._Lock);
         if (self._Channel.Empty())
@@ -454,7 +433,7 @@ int Process::Recieve( lua_State *l )
     {
         LN_MSG_TYPE msg = self.RecvMsg();
 
-        GLR_BUS_HEAD *head = (GLR_BUS_HEAD*)&msg[0];
+        GLR_BUS_HEAD *head = (GLR_BUS_HEAD *)&msg[0];
         lua_pushinteger(self._Stack, head->Head.Type);
         lua_newtable(self._Stack);
         lua_pushstring(self._Stack, head->Source.Host);
@@ -479,24 +458,23 @@ int Process::Recieve( lua_State *l )
 
 }
 
-void Process::DoString( const std::string &code )
+void Process::DoString(const std::string& code)
 {
-    if ((luaL_loadstring(_Stack, code.c_str()) !=0) && (lua_pcall(_Stack, 0, 0, 0) != 0))
+    if ((luaL_loadstring(_Stack, code.c_str()) != 0) && (lua_pcall(_Stack, 0, 0, 0) != 0))
     {
         StackDump();
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
         THROW_EXCEPTION_EX(msg);
-    }
-    else
+    } else
     {
         _Path = "";
         printf("Load String Succeed\n");
     }
 }
 
-void Process::PushFun( const std::string &fname )
+void Process::PushFun(const std::string& fname)
 {
-    lua_getglobal(_Stack,fname.c_str());
+    lua_getglobal(_Stack, fname.c_str());
 
 }
 
@@ -505,26 +483,25 @@ void Process::Status()
     printf("LuaNode Status:\n");
     for (typeof(NodeMap.begin()) it = NodeMap.begin(); it != NodeMap.end(); ++it)
     {
-        printf("LuaNode [%d] of Object(%p) Status(%d)\n",(*it)->_Id, (*it), (*it)->State());
+        printf("LuaNode [%d] of Object(%p) Status(%d)\n", (*it)->_Id, (*it), (*it)->State());
     }
 
 }
 
-void Process::Start( Schedule &sche)
+void Process::Start(Schedule& sche)
 {
-    sche.PutTask(*this);   
+    sche.PutTask(*this);
 }
 
-void Process::LoadString(const std::string &path )
+void Process::LoadString(const std::string& path)
 {
 
-    if (luaL_loadstring(_Stack, path.c_str()) !=0)
+    if (luaL_loadstring(_Stack, path.c_str()) != 0)
     {
         StackDump();
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
         THROW_EXCEPTION_EX(msg);
-    }
-    else
+    } else
     {
         _Path = "";
         lua_pushstring(_Stack, "__main__");
@@ -533,16 +510,15 @@ void Process::LoadString(const std::string &path )
     }
 
 }
-void Process::LoadFile( const std::string &path )
+void Process::LoadFile(const std::string& path)
 {
 
-    if (luaL_loadfile(_Stack, path.c_str()) !=0)
+    if (luaL_loadfile(_Stack, path.c_str()) != 0)
     {
         StackDump();
         const char *msg = luaL_checklstring(_Stack, -1, NULL);
         THROW_EXCEPTION_EX(msg);
-    }
-    else
+    } else
     {
         _Path = path;
         lua_pushstring(_Stack, "__main__");
@@ -556,17 +532,17 @@ void Process::StackDump()
 {
     int top = lua_gettop(_Stack);
     printf("Stack of Node(%p:%d):\n", this, _Id);
-    for (int i = 1; i<=top; ++i)
+    for (int i = 1; i <= top; ++i)
     {
         int type = lua_type(_Stack, i);
-        printf("    %d : ",i);
+        printf("    %d : ", i);
         switch (type)
         {
         case LUA_TSTRING:
             printf("'%s'", lua_tostring(_Stack, i));
             break;
         case LUA_TBOOLEAN:
-            printf(lua_toboolean(_Stack, i)?"true":"false");
+            printf(lua_toboolean(_Stack, i) ? "true" : "false");
             break;
         case LUA_TNUMBER:
             printf("%g", lua_tonumber(_Stack, i));
@@ -594,24 +570,24 @@ int Process::Yield()
     return lua_yield(_Stack, 0);
 }
 
-int Process::Debug( lua_State *l )
+int Process::Debug(lua_State *l)
 {
     luaL_loadfile(l, NULL);
     return 0;
 }
 
-void Process::Interrupt( int device)
+void Process::Interrupt(int device)
 {
     Runtime::GetInstance().GetBus().Interrupt(device, _Stack);
 
 }
 
-int Process::Interrupt( lua_State *l )
+int Process::Interrupt(lua_State *l)
 {
 
     lua_getglobal(l, "__id__");
     LN_ID_TYPE id = luaL_checkinteger(l, -1);
-    Process &n = Process::GetNodeById(id);
+    Process& n = Process::GetNodeById(id);
     n._Status._State = ProcessStatus::GLR_CALL;
     int dev = luaL_checkinteger(l, 1);
     //Galaxy::GalaxyRT::CLockGuard _Gl(&n._Lock);
@@ -624,16 +600,16 @@ int Process::Interrupt( lua_State *l )
     return n.Yield();
 }
 
-void Process::Destory( LN_ID_TYPE pid)
+void Process::Destory(LN_ID_TYPE pid)
 {
-    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
-    Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+    Galaxy::GalaxyRT::CRWLockAdapter _WL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
 
     Process *p = NodeMap[pid];
     if (p == NULL)
     {
         return;
-    }else
+    } else
     {
         if (p->_Status._State == Process::ProcessStatus::RECV_WAIT ||
             p->_Status._State == Process::ProcessStatus::INT_WAIT ||
@@ -641,7 +617,7 @@ void Process::Destory( LN_ID_TYPE pid)
             )
         {
             NodeMap[pid] = NULL;
-            
+
             delete p;
             NodeCount--;
             if (NodeCount == 0)
@@ -649,10 +625,9 @@ void Process::Destory( LN_ID_TYPE pid)
                 //TODO: destroy objects in globals
                 Runtime::GetInstance().ElegantExit();
             }
-            
+
             //p->_Status._Killed = true;
-        }
-        else
+        } else
         {
             p->_Status._Killed = true;
         }
@@ -662,7 +637,7 @@ void Process::Destory( LN_ID_TYPE pid)
 
 }
 
-void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::MSG_TYPE /*type*/)
+void Process::SendMsgToNode(LN_ID_TYPE pid, const std::string& msg, MSG_HEAD::MSG_TYPE /*type*/)
 {
 
     try
@@ -672,7 +647,7 @@ void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::M
 
         GetNodeById(pid).SendMsg(msg);
     }
-    catch (Galaxy::GalaxyRT::CException &e)
+    catch (Galaxy::GalaxyRT::CException& e)
     {
         if (GetNodeExceptionHandle(pid))
         {
@@ -684,14 +659,14 @@ void Process::SendMsgToNode( LN_ID_TYPE pid, const std::string &msg, MSG_HEAD::M
 
 }
 
-int Process::Status( lua_State *l )
+int Process::Status(lua_State *l)
 {
 
     Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock,        Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
 
     int pid = luaL_checkinteger(l, 1);
-    Process &nd = GetNodeById(pid);
+    Process& nd = GetNodeById(pid);
     lua_pushboolean(l, 1);
     lua_newtable(l);
     lua_pushinteger(l, nd._Status._State);
@@ -711,7 +686,7 @@ int Process::Status( lua_State *l )
     return 2;
 }
 
-int Process::AllProcesses( lua_State *l )
+int Process::AllProcesses(lua_State *l)
 {
     Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
@@ -740,7 +715,7 @@ GLR::Globals::~Globals()
 
 }
 
-void GLR::Globals::Put( const std::string &id, void **data, const std::string &type)
+void GLR::Globals::Put(const std::string& id, void **data, const std::string& type)
 {
     UserData ud;
     ud.Content = *data;
@@ -748,68 +723,67 @@ void GLR::Globals::Put( const std::string &id, void **data, const std::string &t
     _VarMap.insert(std::make_pair(id, ud));
 }
 
-const GLR::Globals::UserData & GLR::Globals::Get( const std::string &id )
+const GLR::Globals::UserData& GLR::Globals::Get(const std::string& id)
 {
     return _VarMap[id];
 }
 
 GLR::Globals GLR::Process::GlobalVars;
 
-//All userdata pass into this function should have registered 
+//All userdata pass into this function should have registered
 //it's metatable name to it's metatable with key "__my_name"
-int GLR::Process::RegisterGlobal( lua_State *l )
+int GLR::Process::RegisterGlobal(lua_State *l)
 {
     void *ud = lua_touserdata(l, 2);
     const char *id = luaL_checkstring(l, 1);
 
-    //get the metatable name 
-    if(lua_getmetatable(l,2)==0)
+    //get the metatable name
+    if (lua_getmetatable(l, 2) == 0)
     {
-        return luaL_error(l,"userdata do not has metatable  %s %d",__func__,__LINE__);
+        return luaL_error(l, "userdata do not has metatable  %s %d", __func__, __LINE__);
     }
     //!+ 这要求所操作类型具有"__my_name"属性
-    lua_getfield(l,-1,"__my_name");
+    lua_getfield(l, -1, "__my_name");
 
     const char *type = luaL_checkstring(l, -1);
 
-    GlobalVars.Put(id, (void**)ud, type);
+    GlobalVars.Put(id, (void **)ud, type);
     lua_pushvalue(l, -1);
     return 0;
 }
 
-int GLR::Process::GetGlobal( lua_State *l )
+int GLR::Process::GetGlobal(lua_State *l)
 {
     const char *id = luaL_checkstring(l, 1);
-    const Globals::UserData &ud = GlobalVars.Get(id);
+    const Globals::UserData& ud = GlobalVars.Get(id);
 
-    if (ud.Content==NULL)
+    if (ud.Content == NULL)
     {
         lua_pushnil(l);
         std::string err(id);
-        err+=" not found";
-        lua_pushstring(l,err.c_str());
+        err += " not found";
+        lua_pushstring(l, err.c_str());
         return 2;
-    }
-    else
+    } else
     {
         void *p = lua_newuserdata(l, sizeof(ud.Content));
         memcpy(p, &ud.Content, sizeof(ud.Content));
-        luaL_getmetatable(l,ud.Name.c_str());
+        luaL_getmetatable(l, ud.Name.c_str());
 
-        lua_pushvalue(l,-1);
+        lua_pushvalue(l, -1);
 
         //clear __gc
         lua_pushnil(l);
-        lua_setfield(l,-2,"__gc");
+        lua_setfield(l, -2, "__gc");
 
         lua_setmetatable(l, -3);
-        lua_settop(l,-2);
+        lua_settop(l, -2);
 
         return 1;
     }
 }
 
-int GLR::Process::GetNodeAddr( lua_State *l )
+int GLR::Process::GetNodeAddr(lua_State *l)
 {
 
     lua_pushstring(l, Runtime::GetInstance().Host().c_str());
@@ -817,25 +791,25 @@ int GLR::Process::GetNodeAddr( lua_State *l )
     return 2;
 }
 
-int GLR::Process::GetFilePath( lua_State *l )
+int GLR::Process::GetFilePath(lua_State *l)
 {
     lua_getglobal(l, "__id__");
     LN_ID_TYPE id = luaL_checkinteger(l, -1);
-    Process &n = Process::GetNodeById(id);
+    Process& n = Process::GetNodeById(id);
     lua_pushstring(l, n._Path.c_str());
     return 1;
 }
 
-int GLR::Process::Kill( lua_State *l )
+int GLR::Process::Kill(lua_State *l)
 {
     int gpid = luaL_checkinteger(l, 1);
     Destory(gpid);
     return 0;
 }
-void GLR::Process::EntryGar(const std::string &Gar,const std::string &module, const std::string &entry, ... )
+void GLR::Process::EntryGar(const std::string& Gar, const std::string& module, const std::string& entry, ...)
 {
     lua_getglobal(_Stack, "glr");
-    lua_getfield(_Stack,-1,"run_gar");
+    lua_getfield(_Stack, -1, "run_gar");
     lua_pushstring(_Stack, Gar.c_str());
     if (lua_pcall(_Stack, 1, 1, 0) != 0)
     {
@@ -843,10 +817,10 @@ void GLR::Process::EntryGar(const std::string &Gar,const std::string &module, co
         //StackDump();
         THROW_EXCEPTION_EX(msg);
     }
-    Entry(module,entry);
+    Entry(module, entry);
 
 }
-void GLR::Process::Entry( const std::string &module, const std::string &entry, ... )
+void GLR::Process::Entry(const std::string& module, const std::string& entry, ...)
 {
     lua_getglobal(_Stack, "require");
     lua_pushstring(_Stack, module.c_str());
@@ -858,48 +832,49 @@ void GLR::Process::Entry( const std::string &module, const std::string &entry, .
         THROW_EXCEPTION_EX(msg);
     }
     //XXX:only those return "table" and "userdata" is valid lua module in GLR??
-    if (!(lua_istable(_Stack,-1)||lua_isuserdata(_Stack,-1)))
+    if (!(lua_istable(_Stack, -1) || lua_isuserdata(_Stack, -1)))
     {
-        THROW_EXCEPTION_EX(module+": "+"not a valid lua module");
+        THROW_EXCEPTION_EX(module + ": " + "not a valid lua module");
     }
 
-    char tmp[1024] = {};
+    char tmp[1024] = { };
     std::string::const_iterator it = entry.begin(), it1 = entry.begin();
-    do 
+    do
     {
         it = std::find(it1, entry.end(), '.');
-        memset(tmp,0 , sizeof(tmp));
+        memset(tmp, 0, sizeof(tmp));
         std::copy(it1, it, tmp);
         it1 = it + 1;
         lua_getfield(_Stack, -1, tmp);
         StackDump();
-    }while (it != entry.end());
+    }
+    while (it != entry.end());
 
-    if (!lua_isfunction(_Stack,-1))
+    if (!lua_isfunction(_Stack, -1))
     {
-        const char *type=lua_typename(_Stack,lua_type(_Stack,-1));
-        
-        THROW_EXCEPTION_EX(module+": can't call entry '"+entry+"'(a "+type+" value)");
+        const char *type = lua_typename(_Stack, lua_type(_Stack, -1));
+
+        THROW_EXCEPTION_EX(module + ": can't call entry '" + entry + "'(a " + type + " value)");
     }
 }
 
-int GLR::Process::MessageAvailable( lua_State *l )
+int GLR::Process::MessageAvailable(lua_State *l)
 {
     lua_getglobal(l, "__id__");
     //lua_pushlstring("id");
     LN_ID_TYPE self_id = luaL_checkinteger(l, -1);
-    Process &self = GetNodeById(self_id);
-    lua_pushboolean(l, self._Channel.Empty()?0:1);
+    Process& self = GetNodeById(self_id);
+    lua_pushboolean(l, self._Channel.Empty() ? 0 : 1);
     return 1;
 }
 
-int GLR::Process::GLRStamp( lua_State *l )
+int GLR::Process::GLRStamp(lua_State *l)
 {
-    lua_pushinteger(l,Runtime::GetInstance().Stamp());
+    lua_pushinteger(l, Runtime::GetInstance().Stamp());
     return 1;
 }
 
-int GLR::Process::Exit( lua_State */*l*/ )
+int GLR::Process::Exit(lua_State */*l*/)
 {
     //TODO: 判断调用方进程号，只有主进程（0号）方可exit
     //TODO: 使用其他信号，优雅可控的退出程序
@@ -911,38 +886,27 @@ void GLR::Process::CreateSpyer()
 
     CreateNode(SpyerId);
 
-    Process &spyer = GetNodeById(SpyerId);
+    Process& spyer = GetNodeById(SpyerId);
     lua_getglobal(spyer._Stack, "glr");
-    lua_getfield(spyer._Stack,-1,"run_spyer");
+    lua_getfield(spyer._Stack, -1, "run_spyer");
     spyer.Start(GLR::Runtime::GetInstance().GetSchedule());
 
-    /*lua_State *l = spyer._Stack;
-    lua_getglobal(l, "glr");
-    lua_getfield(l,-1,"runSpyer");
-    lua_getglobal(l, "debug");
-    lua_getfield(l, -1, "traceback");
-    if (lua_pcall(l, 1, 1, -1) != 0)
-    {
-    const char *msg = luaL_checkstring(l,-1);
-    GALA_ERROR(msg);
-    THROW_EXCEPTION_EX(msg);
-    }
-    */
 }
 
-GLR::LN_ID_TYPE GLR::Process::CreateNode( int id)
+GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
 {
+   
+    Galaxy::GalaxyRT::CRWLockAdapter _WL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
     Process *node = new Process(id);
-    printf("Node(%p:%d) Created!\n", node, node->_Id);
-    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
-    Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
+    printf("Node(%p:%d) Created!\n", node, node->_Id); 
     //NodeMap.insert(std::make_pair(node->_Id, node));
     NodeMap[node->_Id] = node;
     NodeCount++;
     return node->_Id;
 }
 
-bool GLR::Process::GetNodeExceptionHandle( LN_ID_TYPE pid)
+bool GLR::Process::GetNodeExceptionHandle(LN_ID_TYPE pid)
 {
 
     if (pid == SpyerId)
