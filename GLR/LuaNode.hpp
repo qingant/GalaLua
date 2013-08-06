@@ -93,7 +93,7 @@ namespace GLR
         //TODO: use concurrent map instead
         static std::vector<Process*> NodeMap;
 
-        static Galaxy::GalaxyRT::CRWLock  Lock;
+        static Galaxy::GalaxyRT::CRWLock  ProcessMapLock;
         static int32_t NodeId;
         static int32_t NodeCount;     //现在活动中的进程数
     public:

@@ -8,7 +8,7 @@
 using namespace GLR;
 std::vector<Process *> Process::NodeMap(10240);
 //std::vector<Process*>(10240);
-Galaxy::GalaxyRT::CRWLock Process::Lock;
+Galaxy::GalaxyRT::CRWLock Process::ProcessMapLock;
 int32_t Process::NodeId;
 int32_t Process::NodeCount = 0;
 #define RESERVED_PID (32)
@@ -410,7 +410,7 @@ void Process::Resume()
 
 int Process::Recieve(lua_State *l)
 {
-    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
+    Galaxy::GalaxyRT::CRWLockAdapter _RL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
 
     lua_getglobal(l, "__id__");
@@ -602,7 +602,7 @@ int Process::Interrupt(lua_State *l)
 
 void Process::Destory(LN_ID_TYPE pid)
 {
-    Galaxy::GalaxyRT::CRWLockAdapter _WL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
+    Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
 
     Process *p = NodeMap[pid];
@@ -642,7 +642,7 @@ void Process::SendMsgToNode(LN_ID_TYPE pid, const std::string& msg, MSG_HEAD::MS
 
     try
     {
-        Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
+        Galaxy::GalaxyRT::CRWLockAdapter _RL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
         Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
 
         GetNodeById(pid).SendMsg(msg);
@@ -662,7 +662,7 @@ void Process::SendMsgToNode(LN_ID_TYPE pid, const std::string& msg, MSG_HEAD::MS
 int Process::Status(lua_State *l)
 {
 
-    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock,        Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
+    Galaxy::GalaxyRT::CRWLockAdapter _RL(ProcessMapLock,        Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
 
     int pid = luaL_checkinteger(l, 1);
@@ -688,7 +688,7 @@ int Process::Status(lua_State *l)
 
 int Process::AllProcesses(lua_State *l)
 {
-    Galaxy::GalaxyRT::CRWLockAdapter _RL(Lock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
+    Galaxy::GalaxyRT::CRWLockAdapter _RL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
     lua_pushboolean(l, 1);
     lua_newtable(l);
@@ -896,7 +896,7 @@ void GLR::Process::CreateSpyer()
 GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
 {
    
-    Galaxy::GalaxyRT::CRWLockAdapter _WL(Lock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
+    Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
     Process *node = new Process(id);
     printf("Node(%p:%d) Created!\n", node, node->_Id); 
