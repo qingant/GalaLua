@@ -22,49 +22,7 @@
 namespace GLR
 {
     typedef Galaxy::GalaxyRT::CPollSelector POLLERTYPE;
-//    enum GLR_MSG_TYPE
-//    {
-//        REGISTER = 0,
-//        REGISTER_OK = 1,
-//        REGISTER_FAIL = 2,
-//        APPLICATION = 3,
-//    };
-//#pragma  pack(1)
-//    struct GLR_MSG
-//    {
-//        //uint32_t Len;
-//        unsigned char Type;
-//        uint32_t      Gpid;
-//        //struct 
-//        //{
-//        //    char Host[20];
-//        //    uint32_t  Port;
-//        //    uint32_t  GPid;
-//        //} Source;
-//        //struct  
-//        //{
-//        //    char     _[20];
-//        //    uint32_t Serial;
-//        //    uint32_t  GPid;
-//        //}Desination;
-//        char Content[1];
-//        GLR_MSG()
-//        {
-//            memset(this, 0, sizeof(*this));
-//        }
-//    };
-//#pragma pack(1)
-//    typedef struct{
-//        char   Host[20];              // Host
-//        uint32_t   Port;              // Port
-//        uint32_t   Gpid;           
-//    }GLR_ADDR;
-//    struct GLR_BUS_HEAD 
-//    {
-//        MSG_HEAD Head;
-//        GLR_ADDR Source;
-//    };
-//#pragma pack()
+
     class MessageStack
     {
     public:
