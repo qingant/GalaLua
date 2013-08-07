@@ -29,12 +29,59 @@ function output()
         out[#out+1]=s 
     end
 
+    function O.format(sep)
+        return table.concat(out,sep or "\n")
+    end
+
     function O.write()
         O.add()
         io.write(table.concat(out,"\n"))
     end
 
     return O
+end
+
+--command output
+function cmd_output()
+    local out={}
+
+    function out.show(...)
+        local o=output()
+        o.add(...)
+        o.write()
+    end
+
+    function out.result(prompt,state)
+        local s=type(state)
+        if (s=="boolean" or s=="nil") then
+            if state then
+                out.success(prompt)
+            else
+                out.fail(prompt)
+            end
+        elseif(s=="string" or s=="number") then
+            out.show(string.format("%s   \t [%s]",prompt,state))
+        end
+    end
+
+    function out.fail(prompt,sep)
+        local sep=sep or (" "):rep(10)
+        out.show(string.format("%s%s[FAIL]",prompt,sep))
+    end
+
+    function out.success(prompt)
+        local sep=sep or (" "):rep(10)
+        out.show(string.format("%s%s[OK]",prompt,sep))
+    end
+
+    function out.error(prompt)
+        out.show("Error: ",prompt)
+    end
+    function out.warn(prompt)
+        out.show("Warn: ",prompt)
+    end
+
+    return out
 end
 
 local function show_status(status)
@@ -77,28 +124,33 @@ end
 
 local function help(arg)
     local help_msg={
-            start="start xxx: eg start ctr0",
-            stop="stop xxx: eg stop ctr0",
-            startall="startall: start all processed with valid configure",
-            stopall="stopall: stop all process",
-            start_monitor="start_monitor: start supervisord",
-            status="status xxx: eg status ctr0",
-            statusall="statusall: get all processes status",
-            help="help [cmd]",
-            config="config: list valid configures",
-            list="list: list all processes ",
+            help="help [cmd]: show this help.",
+            start="start <process>: start process, eg start lsr0.",
+            stop="stop <process>: stop process, eg stop lsr0.",
+            startall="startall: start all processes.",
+            stopall="stopall: stop all processes.",
+            start_monitor="start_monitor: start supervisord.",
+            stop_monitor="stop_monitor: stop supervisord.",
+            status="status <process>: get process's status, eg status lsr0.",
+            statusall="statusall: get all processes's status.",
+            config="config: list valid configures.",
+            list="list: list all processes.",
          }
 
     local arg=arg or "all"
-
+    local out=output()
     local prompt=help_msg[arg] 
     if not prompt then 
-        prompt="available command:\n"
+        out.add("Usage: supervisor <CMD> [process]")
+        out.add("Available commands are:")
+        local space=(" "):rep(2)
         for i,v in pairs(help_msg) do
-            prompt=prompt.."\t"..v.."\n"
+            out.add(string.format("%s%-15s%s",space,i,v))
         end
+    else
+        out.add("Usage: ",prompt)
     end
-    io.write(prompt,"\n")
+    out.write()
 end
 
 --if call function @cmd without right number of 
@@ -115,7 +167,6 @@ function all_cmds(name_in_help,cmd,argc)
     end
     function _cmd(...)
         local argc_pass=select('#',...)
-        pprint.pprint(argc,argc_pass)
         for i,v in ipairs(argc) do
             if v==argc_pass then
                 return cmd(...)
@@ -126,59 +177,59 @@ function all_cmds(name_in_help,cmd,argc)
     return _cmd
 end
 
-local function status(name)
-    local st=interface.status(name)
-    if st then
-        for i,s in ipairs(st) do
-            show_status(s.result)
+local function error_out(name,ret,msg)
+    local out=output()
+    local success_out={}
+    if ret then
+        if #ret==0 then
+            out.add(string.format("Error: No such process: \"%s\"",name))
+        else
+            success_out=ret
         end
+    else
+        if msg then
+            out.add("Error: ",msg)
+        end
+    end
+    out.write()
+    return success_out
+end
+
+local function status(name)
+    local st=error_out(name,interface.status(name))
+    for i,s in ipairs(st) do
+        show_status(s.result)
+    end
+end
+
+local function start(name)
+    local out=cmd_output()
+    out.show(string.format("starting %s......",name))
+    local ret=error_out(name,interface.start(name))
+    for i,v in ipairs(ret) do
+        local content=v.result
+        out.result(content.name,content.state)
+    end
+end
+
+local function stop(name)
+    local out=cmd_output()
+    out.show(string.format("stopping %s......",name))
+    local ret=error_out(name,interface.stop(name))
+    for i,v in ipairs(ret) do
+        local content=v.result
+        out.result(content.name,content.state)
     end
 end
 
 
 local function stop_supervisord()
+    local out=cmd_output()
+    out.show("stopping supervisord........")
     local ret,msg=interface.stop_supervisord() 
-    if ret then
-        io.write(msg or "supervisor is stopped","\n")
-    end
+    out.result("stop supervisord",ret)
 end
 
-local function start_supervisord()
-    local ret,msg=interface.start_supervisord()
-    if ret then
-        io.write(msg or "supervisor is running now","\n")
-    else
-        io.write(msg,"\n")
-    end
-end
-
-local function start(name)
-    local ret,msg=interface.start(name)
-    local out=output()
-    if ret then
-        for i,v in ipairs(ret) do
-            local content=v.result
-            out.add(string.format("%s\t[%s]",content.name,content.state))
-        end
-    else
-        out.add(msg)
-    end
-    out.write()
-end
-
-local function stop(name)
-    local ret,msg=interface.stop(name)
-    local out=output()
-    if ret then
-        for i,v in ipairs(ret) do
-            local content=v.result
-            out.add(string.format("%s\t[%s]",content.name,content.state))
-        end
-    else
-        out.add(msg)
-    end
-    out.write()
-end
 
 local cmds={}
 cmds.stop_monitor=all_cmds("stop_monitor",stop_supervisord)
@@ -187,15 +238,18 @@ cmds.stop=all_cmds("stop",stop,1)
 cmds.status=all_cmds("status",status,1)
 
 function start_monitor()
+    local out=cmd_output()
+    out.show("starting supervisord........")
+
+    out.show("importing configure........")
     local conf=require "supervisor_conf"
     local sup_conf=conf.watchConf(conf.create())
     sup_conf:import()
+
+    out.success("importing configure")
+
     local err,msg=interface.start_supervisord()
-    if not err then
-        io.write("starting CTR  failed\n") 
-    else
-        io.write("starting CTR  success\n") 
-    end
+    out.result("start supervisord",err)
 end
 
 local function startall()
@@ -218,30 +272,36 @@ end
 
 --list config
 local function config(name)
+    local out=cmd_output()
     local ret,errmsg=interface.config(name)
-    pprint.pprint(ret,"config")
     if ret then
-        local p=ret.result or {}
-        for i,c in ipairs(p) do
+        ret=ret[1]
+        if not (ret and ret.result and next(ret.result)) then 
+            return out.warn(string.format("No valid configures"))
+        end
+        for i,c in ipairs(ret.result) do
             show_config(c)
         end
     else
-        io.write(errmsg,"\n")
+        out.error(errmsg)
     end
 end
 
 
 --list all processes that supervisord monitoring
 local function list()
+    local out=cmd_output()
     local ret,errmsg=interface.list()
-    pprint.pprint(ret,"LIST")
     if ret then
-        local p=ret.result or {}
-        for i,c in ipairs(p) do
+        ret=ret[1]
+        if not (ret and ret.result and next(ret.result)) then 
+            return out.warn(string.format("No valid process"))
+        end
+        for i,c in ipairs(ret.result) do
             show_config(c)
         end
     else
-        io.write(errmsg,"\n")
+        out.error(errmsg)
     end
 end
 
@@ -254,15 +314,15 @@ cmds.list=all_cmds("list",list)
 
 cmds.help=help
 
-local mt={__index=function (t,key) io.write("monitor ",key,":command not found\n") return cmds.help end }
+local mt={__index=function (t,key) io.write("supervisor ",key,":command not found\n") return cmds.help end }
 setmetatable(cmds,mt)
 
 function helper(argv)
-    pprint.pprint(argv)
-    pprint.pprint(cmds)
+--    pprint.pprint(argv)
+--    pprint.pprint(cmds)
 
     table.remove(argv,1)
-    pprint.pprint(argv)
+    --pprint.pprint(argv)
     local cmd=argv[1] 
     table.remove(argv,1)
     if cmd then

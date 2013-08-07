@@ -51,7 +51,6 @@ function isStarted(sec)
     local sec=tonumber(sec) or 0
     local i=0
     local addr={host=serv_host,port=serv_port,gpid=0}
-    pprint.pprint(addr,"isStarted")
     while true do
         local ret=glr.connect(serv_host,serv_port)
         if ret then
@@ -93,7 +92,7 @@ function recv_from_supervisord()
                 return nil,"supervisord is exited unexpectedly!"
             end
         else
-            print("GETMSG:",msg)
+            print(string.format("RECV :%s",msg))
             local t=cjson.decode(msg)
 
             --first message will return the number of rest messages
@@ -120,7 +119,7 @@ function send_to_supervisord(content)
         return nil,"supervisord is not running"
     end
     
-    pprint.pprint(addr,"SENDTOSUPERVISORD")
+    print(string.format("SEND :%s",content))
     if not glr.send(addr,content) then
         return nil,"send to supervisord failed"
     end
@@ -179,7 +178,6 @@ function start_supervisord()
     if isStarted() then
         return true,"supervisord alreadly started"
     else
-        print("starting supervisord............")
         local serv_host,serv_port,DefaultGar=get_supervisord_arg()
         local gar=""
         local run=""
@@ -208,7 +206,7 @@ function config(name)
         return  nil,msg
     end
     --XXX:waiting one reply.
-    return recv_from_supervisord()[1]
+    return recv_from_supervisord()
 end
 
 
@@ -218,5 +216,5 @@ function list()
         return  nil,msg
     end
     --XXX:waiting one reply.
-    return recv_from_supervisord()[1]
+    return recv_from_supervisord()
 end
