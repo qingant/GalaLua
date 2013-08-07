@@ -27,6 +27,7 @@ namespace GLR
             APP = 3,        //Normal Application Message
             KILL = 4,       //Message To Kill this GLR Process
             CLOSED = 5,     //Resource bind to this GLR Process closed
+            EXIT = 6,       //Process Exit Message
         };
         uint32_t Len;  //Message Length not including this head structure
         unsigned char  Type; //Message Type

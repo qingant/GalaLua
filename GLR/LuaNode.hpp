@@ -146,6 +146,8 @@ namespace GLR
         void Terminal();
 
         virtual ~Process(void);
+    private:
+        void SendExitMsg();
     public:
         void StackDump();
         int32_t Id() const { return _Id; }
@@ -159,6 +161,7 @@ namespace GLR
         Galaxy::GalaxyRT::CPthreadMutex              _IntLock;   //Interrupt Lock
         //std::condition_variable _Cond;
         int32_t                 _Id;
+        int32_t                 _ParentId;                       //_ParentId ¸¸½ø³ÌId
         void Id(int32_t val) { _Id = val; }
         std::string   _Path;
     public:

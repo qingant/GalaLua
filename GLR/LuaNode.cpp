@@ -22,7 +22,7 @@ Process::Process(int id)
     {
         NodeId += RESERVED_PID;    // reserve first 12 id for special services
     }
- 
+
     if (_Stack == NULL)
     {
         THROW_EXCEPTION_EX("Create Lua Stack Failure");
@@ -119,13 +119,20 @@ int Process::Spawn(lua_State *l)
             THROW_EXCEPTION_EX("Extract Para Error");
         }
 
+
+
+
         // Create Lua Node
         LN_ID_TYPE node_id = CreateNode();
         Process& node = GetNodeById(node_id);
-        //node.LoadFile(module);
-        // node.DoString(std::string(module, len));
-        //lua_getglobal(node._Stack, "loadstring");
-        //lua_pushlstring(node._Stack, module, len);
+
+
+        // set node parent id(for supervisor tree)
+        lua_getglobal(l, "__id__");
+        int parentId = luaL_checkint(l, -1);
+        node._ParentId = parentId;
+
+
         if (GLR::Runtime::_GarFile.empty())
         {
             node.Entry(module, method);
@@ -351,7 +358,7 @@ void Process::Preempt(lua_State *l, lua_Debug *ar)
 void Process::Resume()
 {
     //int narg = 0;
-    int rt = 0; 
+    int rt = 0;
     /* if (_Status.State() == ProcessStatus::RUNNING)
     {
     THROW_EXCEPTION_EX("Fatal Erorr: Corrupt Process Schedule");
@@ -599,12 +606,17 @@ int Process::Interrupt(lua_State *l)
     printf("Yield\n");
     return n.Yield();
 }
-
+void Process::SendExitMsg()
+{
+    std::string buffer(sizeof(GLR_BUS_HEAD), 0);
+    GLR_BUS_HEAD *pExitMsg = (GLR_BUS_HEAD *)&buffer[0];
+    pExitMsg->Head.Type = MSG_HEAD::EXIT;
+    pExitMsg->Head.GPid = _ParentId;
+    pExitMsg->Source.Gpid = _Id;
+    SendMsgToNode(_ParentId, buffer, MSG_HEAD::EXIT); 
+}
 void Process::Destory(LN_ID_TYPE pid)
 {
-    Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
-    Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
-
     Process *p = NodeMap[pid];
     if (p == NULL)
     {
@@ -616,8 +628,16 @@ void Process::Destory(LN_ID_TYPE pid)
             p->_Status._State == Process::ProcessStatus::STOPED
             )
         {
+            // Send Message To Parent Process
+            p->SendExitMsg();
+
+            Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
+            Galaxy::GalaxyRT::CLockGuard _Gl(& _WL); 
+
+
             NodeMap[pid] = NULL;
 
+            
             delete p;
             NodeCount--;
             if (NodeCount == 0)
@@ -895,11 +915,11 @@ void GLR::Process::CreateSpyer()
 
 GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
 {
-   
+
     Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
     Process *node = new Process(id);
-    printf("Node(%p:%d) Created!\n", node, node->_Id); 
+    printf("Node(%p:%d) Created!\n", node, node->_Id);
     //NodeMap.insert(std::make_pair(node->_Id, node));
     NodeMap[node->_Id] = node;
     NodeCount++;
