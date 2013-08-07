@@ -235,8 +235,8 @@ function process(entry,max)
             if ret then  --send "kill" command success
                 --FIXME: some time delay before get_state?
                 sleep(1)
-                state=self:get_state()
             end
+            state=self:get_state()
             if (state~=STATE.STOPPED) then
                 -- just kill -9 it
                 pprint.pprint(self.entry,"stop")
@@ -357,7 +357,6 @@ function process(entry,max)
 
             print(startcmd)
             local ret=execute(startcmd)
-            print("execute:",ret)
 --            if ret==0 then    --XXX:useless, because "glr" always return 0 when run with "-D".
 --                print("execute success")
 --            end
@@ -399,20 +398,17 @@ function process(entry,max)
     --
     --]]
     function Process:get_info_from_inspector(cmd)
-        print("get_info_from_inspector........")
         local addr={host=glr.sys.host,port=glr.sys.port,gpid=__id__}
 
         local msg={Type="NODE",Action="GET",Cmd=cmd,ToAddr=addr,Nonstop=true}
-        pprint.pprint(msg,"MSG_TO")
         if not glr.send({host=self.entry.host,port=self.entry.port,gpid=1},cjson.encode(msg)) then
             --must not into here
-            print("send to inspector error...")
             self:update_state(STATE.UNKNOWN)
             return {}
         end
 
-        print("waiting for NODE RES.....")
         while true do
+            --FIXME:add timeout
             local msg_type,addr,msg=glr.recv()
             local msg_table=cjson.decode(msg)
             pprint.pprint(msg_table,"NODE RES")
