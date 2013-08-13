@@ -141,8 +141,8 @@ int Process::Spawn(lua_State *l)
             node.EntryGar(GLR::Runtime::_GarFile, module, method);
         }
 
-        int i = 3;
-        for (; i <= lua_gettop(l); ++i)
+        int i = 3, j = 0;
+        for (; i <= lua_gettop(l); ++i, ++j)
         {
             int type = lua_type(l, i);
             size_t len = 0;
@@ -167,7 +167,7 @@ int Process::Spawn(lua_State *l)
             }
         }
 
-        node._Status._NArg = (i - 3);
+        node._Status._NArg = (j);
         // put to schedule queue
 
 
@@ -370,7 +370,7 @@ void Process::Resume()
     //printf("Node(%d) Go To Here\n", _Id);
     //Status();
     Galaxy::GalaxyRT::CLockGuard _Gl(&_IntLock);
-    assert(_Status._NArg < 10);
+    assert(_Status._NArg < 20);
     //lua_pushstring(_Stack, "Resume!");
     _Status._State = ProcessStatus::RUNNING;
     _Status._Tick++;
