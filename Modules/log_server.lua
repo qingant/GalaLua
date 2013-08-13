@@ -44,12 +44,11 @@ end
 --         end
 --     end
 -- end
-function glrLoggerProcessor( targetPath,id,sizePerFile,Files)
+function glrLoggerProcessor( targetPath,sizePerFile,Files)
     local filepath = targetPath
     local size = sizePerFile
     local files = Files
     local fileid = 0
-    local tagid = id or 0
     local cache = memcached:new():init(1024)
     local fileHandle = io.open(filepath, "a")
     fileHandle:setvbuf("no")
@@ -59,8 +58,8 @@ function glrLoggerProcessor( targetPath,id,sizePerFile,Files)
         local msglen = #msg
         if filesize  >= size then
             fileid = fileid % files
-            local strpath = string.format("%s_%d_%d.%s",getFileNameWithoutExtension(filepath),
-	            tagid,fileid,getFileExtension(filepath))
+            local strpath = string.format("%s_%d.%s",getFileNameWithoutExtension(filepath),
+	            fileid,getFileExtension(filepath))
             fileHandle:close()
             os.rename(filepath,strpath)
             fileHandle = io.open(filepath, "a")
@@ -108,8 +107,10 @@ function GlrLoggerAppender:new()
     return o
 end
 
-function GlrLoggerAppender:init( path,id,size,copys )
-    local rt, pid = glr.spawn("log_server", "glrLoggerProcessor", path,id,size,copys)
+function GlrLoggerAppender:init( path,size,copys )
+    local size = size or 64*1024*1024
+    local copys = copys or 2000
+    local rt, pid = glr.spawn("log_server", "glrLoggerProcessor", path,size,copys)
     self._appender = pid
     self.isclosed = false
     return self

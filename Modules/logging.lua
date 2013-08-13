@@ -130,7 +130,7 @@ _logger.log = _logger.debug
 
 if ... == "__main__" then
     function test(  )
-        local log = logger:new():init(GlrLoggerAppender:new():init("test.log",1,64*1024*1024,2000))
+        local log = logger:new():init(GlrLoggerAppender:new():init("test.log",64*1024*1024,2000))
         log:debug("debug")
         log:trace("trace")
         log:info("info")
