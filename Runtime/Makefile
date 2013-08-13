@@ -1,6 +1,6 @@
 all:libGalaxyRT.so
 include ../mk.rules
-OBJS = Object.o Exception.o Handle.o Socket.o Sync.o Pipe.o Utils.o Event.o Logger.o Buffer.o Thread.o File.o IPC.o Process.o Dll.o Options.o  XML.o PQueue.o Timer.o   Zlib.o Router.o
+OBJS = Object.o Exception.o Handle.o Socket.o Sync.o Pipe.o Utils.o Event.o Logger.o Buffer.o Thread.o File.o IPC.o Process.o Dll.o Options.o  XML.o PQueue.o Timer.o    Router.o
 
 SUBCMPFLAG=$(CMPFLAG_)
 CMPFLAG_:=$(CMPFLAG_)
