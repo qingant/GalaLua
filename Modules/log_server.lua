@@ -44,35 +44,57 @@ end
 --         end
 --     end
 -- end
-function glrLoggerProcessor( targetPath)
+function glrLoggerProcessor( targetPath,id,sizePerFile,Files)
+    local filepath = targetPath
+    local size = sizePerFile
+    local files = Files
+    local fileid = 0
+    local tagid = id or 0
     local cache = memcached:new():init(1024)
-    local fileHandle = io.open(targetPath, "a")
+    local fileHandle = io.open(filepath, "a")
     fileHandle:setvbuf("no")
     while true do
+        local filesize = fSize(fileHandle)
         local msgType, addr, msg = glr.recv()
+        local msglen = #msg
+        if filesize  >= size then
+            fileid = fileid % files
+            local strpath = string.format("%s_%d_%d.%s",getFileNameWithoutExtension(filepath),
+	            tagid,fileid,getFileExtension(filepath))
+            fileHandle:close()
+            os.rename(filepath,strpath)
+            fileHandle = io.open(filepath, "a")
+            fileHandle:setvbuf("no")
+            fileid = fileid + 1
+        end
         if msg:sub(1,2) == "!!" or msg:sub(1,2) == "!#" then -- flush
             --fileHandle:flush()
-	    local cachedata = cache:get()
-	    for _, v in pairs(cachedata) do
-	        fileHandle:write(v)
-		fileHandle:write("\n")		
-	    end	    
-	    if msg:sub(1,2) == "!#" then
-	       return 
-	    end
-	    cache:clean()
+            local cachedata = cache:get()
+            for _, v in pairs(cachedata) do
+                fileHandle:write(v)
+                fileHandle:write("\n")
+            end
+            if msg:sub(1,2) == "!#" then
+                return
+            end
+            cache:clean()
         else
             --fileHandle:write(msg)
             --fileHandle:write("\n")
-	    if (cache:size() + #msg) >= cache:cap() then
-	        local cachedata = cache:get()
-	        for _, v in pairs(cachedata) do
-	            fileHandle:write(v)
-		    fileHandle:write("\n")		
-	        end   
-		cache:clean()
-	    end
-	    cache:put(msg)
+            if (cache:size() + msglen) >= cache:cap() then
+                local cachedata = cache:get()
+                for _, v in pairs(cachedata) do
+                    fileHandle:write(v)
+                    fileHandle:write("\n")
+                end
+                cache:clean()
+            end
+            if(msglen >= cache:cap()) then
+                fileHandle:write(msg)
+                fileHandle:write("\n")
+            else
+                cache:put(msg)
+            end
         end
     end
 end
@@ -86,10 +108,15 @@ function GlrLoggerAppender:new()
     return o
 end
 
-function GlrLoggerAppender:init( path )
-    local rt, pid = glr.spawn("log_server", "glrLoggerProcessor", path)
+function GlrLoggerAppender:init( path,id,size,copys )
+    local rt, pid = glr.spawn("log_server", "glrLoggerProcessor", path,id,size,copys)
     self._appender = pid
     self.isclosed = false
+    return self
+end
+function GlrLoggerAppender:reinit(pid,flag)
+    self._appender = pid
+    self.isclosed = flag
     return self
 end
 function GlrLoggerAppender:print( msg )
