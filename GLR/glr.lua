@@ -148,6 +148,7 @@ global = _glr.global
 get_global = _glr.get_global
 CLOSED = _glr.CLOSED
 KILL = _glr.KILL
+APP = _glr.APP
 AF_INET = _glr.AF_INET
 msg_available = _glr.msg_available
 set_options=_glr.set_options

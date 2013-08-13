@@ -293,6 +293,9 @@ void Process::InitNode(void)
     lua_pushinteger(_Stack, MSG_HEAD::CLOSED);
     lua_settable(_Stack, -3);
 
+    lua_pushstring(_Stack, "CLOSED");
+    lua_pushinteger(_Stack, MSG_HEAD::CLOSED);
+    lua_settable(_Stack, -3);
     //StackDump();
     //lua_pop(_Stack,1);
 
