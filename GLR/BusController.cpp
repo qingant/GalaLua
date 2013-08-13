@@ -379,6 +379,9 @@ void GLR::BusController::Request( lua_State *l )
     case NODE_GET_ALL_LINKS:
         GetAllLinks(l);
         break;
+    case NODE_CLOSE:
+        DoNodeClose(l);
+        break;
     default:
         break;
     }
@@ -484,4 +487,30 @@ void GLR::BusController::DoCheckReg( lua_State *l)
         return;
     }
     Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
+}
+
+void GLR::BusController::DoNodeClose( lua_State *l )
+{
+    lua_getglobal(l,"__id__");
+    int pid = luaL_checkinteger(l,-1);
+ 
+    const char* host = luaL_checkstring(l, 3);
+    int port = luaL_checkinteger(l, 4);
+    char id[64] = {0};
+    snprintf(id, sizeof(id), "%s::%d", host, port);
+    try
+    {
+        Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex);
+        int fd = _Router.find_ex(id);
+        _Poller.Remove(fd);
+        delete _LinkMap[fd];
+        _LinkMap[fd] = NULL;
+        Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
+    }
+    catch (const Galaxy::GalaxyRT::CException &e)
+    {
+        GALA_ERROR(e.what());
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, e.what() );
+    }
+
 }

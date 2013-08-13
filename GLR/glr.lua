@@ -41,6 +41,9 @@ end
 function connect(host, port, pid, timeout)
 	return _glr.int(2, 0, host, port, pid, timeout)
 end
+function close_node(host, port)
+    return _glr.int(2, 4, host, port)
+end
 
 local mailBox = {}
 function mailBox:new(  )
