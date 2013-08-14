@@ -4398,7 +4398,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $id_cv_lib_zlib_ok" >&5
 $as_echo "$id_cv_lib_zlib_ok" >&6; }
-if test "$id_cv_lib_zlib_ok" = "no"
+if test "$id_cv_lib_zlib_ok" = "yes"
 then
     as_fn_error $? "ZLIB version too old, please install at least v1.1.2" "$LINENO" 5
 fi

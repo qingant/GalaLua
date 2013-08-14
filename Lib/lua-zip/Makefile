@@ -29,7 +29,7 @@ else ifeq (${PLATFORM},AIX)
 endif
 
 libzip:
-	cd libzip-0.11.1 && chmod +x configure && ./configure CC=$(CC) && OBJECT_MODE=64 && $(MAKE) -C lib && cp -f lib/.libs/libzip.so* $(HOME)/lib/
+	cd libzip-0.11.1 &&chmod +x configure && ./configure CC=$(CC) && export OBJECT_MODE=64 && $(MAKE) -C lib && cp -f lib/.libs/libzip.so* $(HOME)/lib/
 
 
 minizip:
