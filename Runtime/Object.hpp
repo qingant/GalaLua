@@ -1,5 +1,5 @@
 /**
- * @file    Object.hpp 
+ * @file    Object.hpp
  * @author  Ma Tao <qingant@gmail.com>
  * @version 1.0
  *
@@ -16,9 +16,6 @@
 #define COBJECT_H
 
 #include "TypeInc.hpp"
-#ifndef __xlC__
-#include "prettyprint98.hpp"
-#endif
 #ifndef __PRETTY_FUNCTION__
 #define __PRETTY_FUNCTION__ __FUNCTION__
 #endif

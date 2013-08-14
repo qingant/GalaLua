@@ -14,7 +14,6 @@
  */
 
 #include "Event.hpp"
-#include "prettyprint98.hpp"
 #include "cstub.h"
 
 namespace Galaxy
@@ -59,7 +58,7 @@ namespace Galaxy
       static CBaseSelector::EV_TYPE ievents2events( uint32_t  iev )
       {
          CBaseSelector::EV_TYPE ev;
-         
+
          if (iev&EPOLLIN)
          {
             ev |= EV_IN;
@@ -90,17 +89,17 @@ namespace Galaxy
          return ev;
       }
 
-      /** 
+      /**
        * events转换成对应的字符串，方便debug
-       * 
+       *
        * @param ev 需要转换的事件
-       * 
-       * @return 
+       *
+       * @return
        */
       static std::string events2string( CBaseSelector::EV_TYPE ev )
       {
          std::string str;
-         
+
          if (ev&EV_IN)
          {
             str += "EV_IN ";
@@ -131,17 +130,17 @@ namespace Galaxy
          return str;
       }
 
-      /** 
+      /**
        * ievents转换成对应的字符串，方便debug
-       * 
+       *
        * @param iev 需要转换的事件
-       * 
-       * @return 
+       *
+       * @return
        */
       static std::string ievents2string( uint32_t iev )
       {
          std::string str;
-         
+
          if (iev&EPOLLIN)
          {
             str += "EPOLLIN ";
@@ -156,7 +155,7 @@ namespace Galaxy
             str += "EPOLLRDHUP ";
          }
 #endif
-         
+
          if (iev&EPOLLPRI)
          {
             str += "EPOLLPRI ";
@@ -372,15 +371,15 @@ namespace Galaxy
             GALA_DEBUG("Block");
             return;
          }
-      
+
       }
 //std::vector<POLLEVENT>
       CBaseSelector::EV_PAIRS CPollSelector::WaitEvent(SHORT timeout)
       {
          //CLockGuard _Gl(&_Mutex);
- 
+
          CBaseSelector::EV_PAIRS evs;
-     
+
         restart:
          std::vector<POLLEVENT> _events;
          {
@@ -388,7 +387,7 @@ namespace Galaxy
             _events =  m_events;
          }
 
-      
+
 
          //std::cout<<_events;
          //std::cout<<"\n";
@@ -458,7 +457,7 @@ namespace Galaxy
                   }
                   _events[i].revents = 0;
                   evs.push_back(std::make_pair(_events[i].fd, (CBaseSelector::EV_TYPE) newer));
-                
+
                }
             }
          }
@@ -516,7 +515,7 @@ namespace Galaxy
              evtmp |= POLLNVAL;
          }
          POLLEVENT ev = {fd, evtmp,};
-     
+
          CLockGuard _Gl(&_Mutex);
 
          for(std::vector<POLLEVENT>::iterator i = m_events.begin(); i!= m_events.end(); ++i)
@@ -530,7 +529,7 @@ namespace Galaxy
                return;
             }
          }
-          
+
          for(std::vector<POLLEVENT>::iterator i = m_events.begin(); i!= m_events.end(); ++i)
          {
             if (i->fd == -1 )
@@ -542,7 +541,7 @@ namespace Galaxy
                return;
             }
          }
-     
+
          m_events.push_back(ev);
          _Notify();
       }
@@ -591,9 +590,9 @@ namespace Galaxy
             if (i->fd == fd && (i->events & evtmp) != 0)
             {
                 //GALA_DEBUG("Iter %d %d", i->fd, i->events);
-        
 
-             
+
+
                i->events = i->events &~ (SHORT)evtmp;
 
 
@@ -632,10 +631,10 @@ namespace Galaxy
             if (rt == -1)
                THROW_SYSERROR();
          }
-         
+
          if( _fd2events.find( ev.data.fd ) != _fd2events.end( ) )
          {
-            _fd2events[ ev.data.fd ] |= ev.events;   
+            _fd2events[ ev.data.fd ] |= ev.events;
          }
          else
          {
@@ -646,7 +645,7 @@ namespace Galaxy
       void CEpollSelector::Register(INT fd, CBaseSelector::EV_TYPE ev)
       {
          epoll_event event = {0};
-         
+
          if (fd < 0)
          {
             THROW_GENERALERROR(CException, "INVALID FD");
@@ -679,7 +678,7 @@ namespace Galaxy
          {
             event.events |= EPOLLONESHOT;
          }
-     
+
          //event.events = ev;
          return Register(event);
       }
@@ -736,14 +735,14 @@ namespace Galaxy
                ev_wait.push_back(std::make_pair((INT)events[i].data.fd, ev));
             }
          }
-         
+
          return ev_wait;
       }
 
       void CEpollSelector::Remove(INT fd, CBaseSelector::EV_TYPE evi)
       {
          EPOLLEVENT ev = {0};
-         
+
          if (evi&EV_IN)
          {
             ev.events |= EPOLLIN;
@@ -787,7 +786,7 @@ namespace Galaxy
             //throw exception not exist fd
             THROW_GENERALERROR( CEpollNotExistFD, "delete events from fd, but fd is not exist" );
          }
-         
+
          GALA_DEBUG( "delete fd=%d from epoll fd = %d", fd, EpollFd );
          INT rt = CRT_epoll_ctl(EpollFd,EPOLL_CTL_MOD, fd, &ev);
          if (rt == -1)
@@ -805,7 +804,7 @@ namespace Galaxy
          EPOLLEVENT ev = {0};
          ev.events = EPOLLIN;
          ev.data.fd = fd;
-         //ev == NULL maybe bug,system unknow error 1024         
+         //ev == NULL maybe bug,system unknow error 1024
          INT rt = CRT_epoll_ctl(EpollFd, EPOLL_CTL_DEL, fd, &ev);
          --EventNo;
 
