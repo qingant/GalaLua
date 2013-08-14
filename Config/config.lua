@@ -46,6 +46,13 @@ function _Config:close()
     self._db:close()
 end
 
+function _Config:init_with_env(env)
+    local db = mdb:new():init(env)
+    self._db = db
+
+    return self
+end
+
 function _Config:init( path )
     local db = mdb:new():init(mdb.create_env(path))
     self._db = db

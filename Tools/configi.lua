@@ -132,8 +132,8 @@ end
 --path must be a valid configure xpath
 --can have a suffix / (only one)
 local function get_type(path)
-    local db=mdb:new():init(mdb.create_env(mdb_path))
-    return db:withReadOnly(function (db)
+    local db=mdb:new():init(mdb._create_env(mdb_path))
+    local ret=db:withReadOnly(function (db)
                                 local root=db:get_root(ROOT):get_child(ROOT2)
                                 local l=root:_xpath(remove_suffix_slash(path))
                                 local attr=l:get_attrib()
@@ -154,6 +154,8 @@ local function get_type(path)
                                 end
                            end
                           )
+      db:close()
+      return ret
 end
 
 --join two xpath like python's os.path.join
@@ -178,8 +180,8 @@ end
 -- return all children keys start with prefix 
 -- path: must without suffix '/'
 local function xpath_completion(path,prefix)
-    local db=mdb:new():init(mdb.create_env(mdb_path))
-    return db:withReadOnly(function (db)
+    local db=mdb:new():init(mdb._create_env(mdb_path))
+    local ret=db:withReadOnly(function (db)
                                 --Print("get:",path,">>",prefix)
                                 local ret={}
                                 local root=db:get_root(ROOT):get_child(ROOT2)
@@ -203,6 +205,8 @@ local function xpath_completion(path,prefix)
                                 return ret
                             end
                             )
+    db:close()
+    return ret
 end
 
 
@@ -432,7 +436,7 @@ function helper(argv)
     local cmd=argv[1] 
     table.remove(argv,1)
     if cmd then
-        local config=_Config:new():init(mdb_path)
+        local config=_Config:new():init_with_env(mdb._create_env(mdb_path))
         cmds[cmd](config,unpack(argv))
         config:close()
     else

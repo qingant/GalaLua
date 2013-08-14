@@ -11,9 +11,11 @@ local io=require "io"
 
 function get_supervisord_arg()
     local Config=(require "config").Config
+    local mdb=require "mdb".mdb
+
     local db_path=require "db_path"
 
-    local _conf= Config:new():init(db_path.config)
+    local _conf= Config:new():init_with_env(mdb._create_env(db_path.config))
     local host=_conf:get("CTR/Address/IP")
     local port=tonumber(_conf:get("CTR/Address/Port"))
 

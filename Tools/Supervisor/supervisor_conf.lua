@@ -26,7 +26,7 @@ function create_with_path(path)
     
     --FIXME::make it more elegant???
     os.execute("mkdir -p "..path)
-    return mdb.create_env(path) 
+    return mdb._create_env(path) 
 end
 
 function create()
@@ -34,7 +34,7 @@ function create()
     
     --FIXME::make it more elegant???
     os.execute("mkdir -p "..PATH)
-    return mdb.create_env(PATH) 
+    return mdb._create_env(PATH) 
 end
 
 local data={db_type="lmdb"}
@@ -207,7 +207,7 @@ function watchConf(env)
 
     function watch_conf:import()
         local mdb_path =db_path.config
-        local db=mdb:new():init(mdb.create_env(mdb_path))
+        local db=mdb:new():init(create_with_path(mdb_path))
 
         db:withReadOnly(function (db,_conf) 
             local root=db:get_root("Configure"):get_child("Contents")
