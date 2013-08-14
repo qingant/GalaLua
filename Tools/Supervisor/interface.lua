@@ -212,12 +212,42 @@ function config(name)
     return recv_from_supervisord()
 end
 
+local STATE_NAME={
+    "STOPPED",
+    "RUNNING",
+    "STOPPING",
+    "STARTING",
+    "FATAL",
+    "BACKOFF",
+    "EXITED",
+    "UNKNOWN",
+}
+
 
 function list()
+    function init()
+        local s={}
+        for i,v in pairs(STATE_NAME) do
+            s[v]=0
+        end
+        return s
+    end
     local err,msg=send_to_supervisord(cjson.encode({cmd="list"}))
     if not err then
         return  nil,msg
     end
     --XXX:waiting one reply.
-    return recv_from_supervisord()
+    local msg,errmsg=recv_from_supervisord()
+    if msg then
+        local statistics=init()
+        local process=msg[1].result or {}
+        for i=1,#process do
+            local state=STATE_NAME[process[i].state]
+            process[i].state=state
+
+            statistics[state]=statistics[state]+1
+        end
+        msg[1].result={status=statistics,process=process}
+    end
+    return msg,errmsg
 end
