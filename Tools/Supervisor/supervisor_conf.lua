@@ -57,6 +57,10 @@ function data:init()
 --    pprint.pprint(self)
 end
 
+function data:close()
+    self.db:close()
+end
+
 function data:to_xml()
     return self.db:with(function ()
                             return self.root:to_xml()
@@ -259,7 +263,7 @@ function watchConf(env)
             _conf:save(e)
             ]]
         end,self)
-
+        db:close()
     end
 
     return watch_conf
@@ -277,4 +281,5 @@ if ...=="__main__" then
     _conf:import()
 --    _conf:to_xml()
     _conf:show()
+    _conf:close()
 end

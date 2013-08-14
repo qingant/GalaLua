@@ -432,8 +432,9 @@ function helper(argv)
     local cmd=argv[1] 
     table.remove(argv,1)
     if cmd then
-        local config= _Config:new():init(mdb_path)
+        local config=_Config:new():init(mdb_path)
         cmds[cmd](config,unpack(argv))
+        config:close()
     else
         cmds.help()
     end

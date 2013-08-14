@@ -20,6 +20,7 @@ function get_supervisord_arg()
     --local host=_conf:get("SUP/Address/IP")
     --local port=tonumber(_conf:get("SUP/Address/Port"))
     local gar=_conf:get("SUP/GarName")
+    _conf:close()
     return host,port,gar
 end
 
