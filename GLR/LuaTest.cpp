@@ -156,43 +156,53 @@ int main( int argc, char* argv[] )
 
     //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
     //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
-    GLR::Runtime::Initialize(host, port, NULL, &_CProcess);
-    if (_CProcess.ExistOption("g"))
+    try
     {
-        GALA_DEBUG("RUNNING Gar package\n");
-        std::string file=_CProcess.GetOption("g");
-        
-        //not absolute path
-        if (file[0]!='/')
+
+        GLR::Runtime::Initialize(host, port, NULL, &_CProcess);
+        if (_CProcess.ExistOption("g"))
         {
-            if (cwd!=NULL)
+            GALA_DEBUG("RUNNING Gar package\n");
+            std::string file=_CProcess.GetOption("g");
+
+            //not absolute path
+            if (file[0]!='/')
             {
-                char path[256] = {};
-                snprintf(path,sizeof(path),"%s/bin/%s",cwd,file.c_str());
-                file=path;
+                if (cwd!=NULL)
+                {
+                    char path[256] = {};
+                    snprintf(path,sizeof(path),"%s/bin/%s",cwd,file.c_str());
+                    file=path;
+                }
             }
+            std::string module;
+            if (_CProcess.ExistOption("m"))
+            {
+                module=_CProcess.GetOption("m");
+            }
+            GLR::Runtime::GetInstance().Entry(file,module,entry);
         }
-        std::string module;
-        if (_CProcess.ExistOption("m"))
+        else if (_CProcess.ExistOption("m"))
         {
-            module=_CProcess.GetOption("m");
+            std::string file=_CProcess.GetOption("m");
+            GLR::Runtime::GetInstance().Entry(file,entry);
         }
-        GLR::Runtime::GetInstance().Entry(file,module,entry);
+        else
+        {
+            GLR::Runtime::GetInstance().EntryEx(_CProcess.Arguments[1]);
+        }
+        //_CProcess.SetArgument("What the hell? Do not work?");
+        while (true)
+        {
+            usleep(1024*1024*1024);
+        }
     }
-    else if (_CProcess.ExistOption("m"))
+    catch (...)
     {
-        std::string file=_CProcess.GetOption("m");
-        GLR::Runtime::GetInstance().Entry(file,entry);
+        Runtime::GetInstance()._ElegantExit();
+        return 0;
     }
-    else
-    {
-        GLR::Runtime::GetInstance().EntryEx(_CProcess.Arguments[1]);
-    }
-    //_CProcess.SetArgument("What the hell? Do not work?");
-    while (true)
-    {
-        usleep(1024*1024*1024);
-    }
+
     //printf("test\n");
     //scanf("%d",new int);
     return 0;
