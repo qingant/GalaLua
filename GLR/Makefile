@@ -46,7 +46,7 @@ glr:LuaTest.o
 glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/resxloader.c resource/cmodulepack.c
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++) -I./resource $(COMMINC) $^ $(STATIC_LIB_PATH)/lua/cjson.a $(STATIC_LIB_PATH)/lua/struct.a $(STATIC_LIB_PATH)/lua/iconv.a $(STATIC_LIB_PATH)/lua/minizip.a $(STATIC_LIB_PATH)/lua/_dir.a  $(STATIC_LIB_PATH)/lua/lxp.a $(STATIC_LIB_PATH)/libGalaxyStub.a $(STATIC_LIB_PATH)/libGalaxyRT.a $(SYTMLIB) $(STATIC_LIB_PATH)/libluajit.a -lc -lm -ldl -lpthread -lrt -lzip -lexpat -o $@
+	$(G++) -I./resource $(COMMINC) $^ $(STATIC_LIB_PATH)/lua/cjson.a $(STATIC_LIB_PATH)/lua/struct.a $(STATIC_LIB_PATH)/lua/iconv.a $(STATIC_LIB_PATH)/lua/minizip.a $(STATIC_LIB_PATH)/lua/_dir.a  $(STATIC_LIB_PATH)/lua/lxp.a $(STATIC_LIB_PATH)/libGalaxyStub.a $(STATIC_LIB_PATH)/libGalaxyRT.a $(SYTMLIB) $(STATIC_LIB_PATH)/libluajit.a $(STATIC_LIB_PATH)/libzip.a -lc -lm -ldl -lpthread -lrt -o $@ # -lzip -lexpat
 	mv $@ $(HOME)/bin/
 
 mkresx: resource/mkresx.c resource/resource.c resource/bswap.c
