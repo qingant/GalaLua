@@ -57,8 +57,9 @@ void resx_openlibs(lua_State * const state)
         lua_pushstring(state, ite->name);
         if (lua_pcall(state, 1, 1, 0) != LUA_OK)
         {
-            return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
+            luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
                     __FILE__, __FUNCTION__, __LINE__);
+            return;
         }
         if (!lua_toboolean(state, -2))
         {
