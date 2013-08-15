@@ -101,6 +101,7 @@ namespace GLR
     public:
         // Built In Ops
         static int Spawn(lua_State *l);
+        static int SpawnEx(lua_State *l);
         static int SendMsgToNode(lua_State *l);
         static int Recieve(lua_State *l);
         static int Debug(lua_State *l);
