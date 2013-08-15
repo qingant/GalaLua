@@ -24,7 +24,9 @@ local self_host, self_port = _glr.node_addr()
 function spawn(mod_name, entry, ...)
 	return _glr.spawn(mod_name, entry, ...)
 end
-
+function spawn_ex(bindPid, mod_name, entry, ...)
+    return _glr.spawn_ex(bindPid, mod_name, entry, ...)
+end
 
 function send(addr, msg)
 	if type(addr) == "table" then

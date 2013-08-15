@@ -249,6 +249,7 @@ void Process::InitNode(void)
     static const  luaL_Reg glr_reg[] =
     {
         { "spawn", Spawn },
+        { "spawn_ex", SpawnEx},
         { "send", SendMsgToNode },
         { "recv", Recieve },
         { "int", Interrupt },
@@ -925,6 +926,11 @@ GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
 
     Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
+    if (NodeMap[id] != NULL)
+    {
+        THROW_EXCEPTION_EX("Cannot Create Process");
+    }
+
     Process *node = new Process(id);
     printf("Node(%p:%d) Created!\n", node, node->_Id);
     //NodeMap.insert(std::make_pair(node->_Id, node));
@@ -944,6 +950,107 @@ bool GLR::Process::GetNodeExceptionHandle(LN_ID_TYPE pid)
     return false;
 
 }
+
+int GLR::Process::SpawnEx( lua_State *l )
+{
+    try
+    {
+
+
+        //int count = lua_gettop(l);
+        // Get Arguments From Caller State
+        int bindPid = lua_tointeger(l, 1);
+        if (!(bindPid < RESERVED_PID && bindPid >= 1))
+        {
+            THROW_EXCEPTION_EX("Bind Gpid out of range");
+        }
+
+        size_t len = 0;
+        const char *module = NULL;
+        module = lua_tolstring(l, 2, &len);
+        if (module == NULL)
+        {
+            THROW_EXCEPTION_EX("Extract Para Error");
+        }
+
+
+        const char *method = NULL;
+        method = lua_tolstring(l, 3, &len);
+
+        if (module == NULL)
+        {
+            THROW_EXCEPTION_EX("Extract Para Error");
+        }
+
+
+
+
+        // Create Lua Node
+        LN_ID_TYPE node_id = CreateNode(bindPid);
+        Process& node = GetNodeById(node_id);
+
+
+        // set node parent id(for supervisor tree)
+        lua_getglobal(l, "__id__");
+        int parentId = luaL_checkint(l, -1);
+        node._ParentId = parentId;
+
+
+        if (GLR::Runtime::_GarFile.empty())
+        {
+            node.Entry(module, method);
+        } else
+        {
+            node.EntryGar(GLR::Runtime::_GarFile, module, method);
+        }
+
+        int i = 4, j = 0;
+        for (; i <= lua_gettop(l); ++i, ++j)
+        {
+            int type = lua_type(l, i);
+            size_t len = 0;
+            const char *str = NULL;
+            switch (type)
+            {
+            case LUA_TSTRING:
+                str = luaL_checklstring(l, i, &len);
+                lua_pushlstring(node._Stack, str, len);
+                break;
+            case LUA_TBOOLEAN:
+                len = lua_toboolean(l, i);
+                lua_pushboolean(node._Stack, len);
+                break;
+            case LUA_TNUMBER:
+                len = luaL_checkinteger(l, i);
+                lua_pushinteger(node._Stack, len);
+                break;
+            default:
+                i = 1024;                    // Ìø³öÑ­»·
+                break;
+            }
+        }
+
+        node._Status._NArg = (j);
+        // put to schedule queue
+
+
+        // Return Value to Calling Lua Node
+        lua_pushboolean(l, 1);
+        lua_pushinteger(l, node_id);
+
+        node.Start(Schedule::GetInstance());
+        return 2;
+        // Op on Self State
+        //lua_getglobal(this->_Stack, buf);
+    }
+    catch (Galaxy::GalaxyRT::CException& e)
+    {
+        lua_pushnil(l);
+        lua_pushstring(l, e.what());
+        return 2;
+    }
+}
+
 
 
 
