@@ -55,7 +55,7 @@ function run_gar(gar)
                 local file=string.gsub(path,"%?",real_mod)
                 local f=zipfd:open(file)
                 if f then
-                    return assert(loadstring(f:read(zipfd:stat(file).size)))
+                    return assert(loadstring(f:read(zipfd:stat(file).size),string.format("@%s:%s",gar,file)))
                 end
             end
         end

@@ -123,6 +123,7 @@ namespace GLR
             NODE_SEND,
             NODE_CHECK_REG,
             NODE_GET_ALL_LINKS,
+            NODE_CLOSE,
         };
     public:
         BusController(); 
@@ -136,6 +137,7 @@ namespace GLR
         void DoIsReg(lua_State*);
         void DoNodeSend(lua_State*);
         void DoCheckReg(lua_State*);
+        void DoNodeClose(lua_State*);
     private:
         MLinkMap _LinkMap;
         Galaxy::GalaxyRT::CPthreadMutex _Mutex;

@@ -112,5 +112,5 @@ void Runtime::Entry( const std::string &path, const std::string &entry )
 void* GLR::Exiter::Run( const Galaxy::GalaxyRT::CThread & )
 {
     GLR::Runtime::GetInstance()._ElegantExit();
-    exit(0);
+    kill(getpid(), SIGINT);
 }

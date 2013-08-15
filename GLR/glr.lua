@@ -24,7 +24,9 @@ local self_host, self_port = _glr.node_addr()
 function spawn(mod_name, entry, ...)
 	return _glr.spawn(mod_name, entry, ...)
 end
-
+function spawn_ex(bindPid, mod_name, entry, ...)
+    return _glr.spawn_ex(bindPid, mod_name, entry, ...)
+end
 
 function send(addr, msg)
 	if type(addr) == "table" then
@@ -40,6 +42,9 @@ end
 
 function connect(host, port, pid, timeout)
 	return _glr.int(2, 0, host, port, pid, timeout)
+end
+function close_node(host, port)
+    return _glr.int(2, 4, host, port)
 end
 
 local mailBox = {}
@@ -148,6 +153,7 @@ global = _glr.global
 get_global = _glr.get_global
 CLOSED = _glr.CLOSED
 KILL = _glr.KILL
+APP = _glr.APP
 AF_INET = _glr.AF_INET
 msg_available = _glr.msg_available
 set_options=_glr.set_options

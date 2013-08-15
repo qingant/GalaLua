@@ -11,15 +11,18 @@ local io=require "io"
 
 function get_supervisord_arg()
     local Config=(require "config").Config
+    local mdb=require "mdb".mdb
+
     local db_path=require "db_path"
 
-    local _conf= Config:new():init(db_path.config)
+    local _conf= Config:new():init_with_env(mdb._create_env(db_path.config))
     local host=_conf:get("CTR/Address/IP")
     local port=tonumber(_conf:get("CTR/Address/Port"))
 
     --local host=_conf:get("SUP/Address/IP")
     --local port=tonumber(_conf:get("SUP/Address/Port"))
     local gar=_conf:get("SUP/GarName")
+    _conf:close()
     return host,port,gar
 end
 
@@ -182,7 +185,7 @@ function start_supervisord()
         local gar=""
         local run=""
         if DefaultGar and DefaultGar~="" then
-            gar="--gar="..DefaultGar
+--            gar="--gar="..DefaultGar
             run="-g "..DefaultGar
         end
 
@@ -209,12 +212,42 @@ function config(name)
     return recv_from_supervisord()
 end
 
+local STATE_NAME={
+    "STOPPED",
+    "RUNNING",
+    "STOPPING",
+    "STARTING",
+    "FATAL",
+    "BACKOFF",
+    "EXITED",
+    "UNKNOWN",
+}
+
 
 function list()
+    function init()
+        local s={}
+        for i,v in pairs(STATE_NAME) do
+            s[v]=0
+        end
+        return s
+    end
     local err,msg=send_to_supervisord(cjson.encode({cmd="list"}))
     if not err then
         return  nil,msg
     end
     --XXX:waiting one reply.
-    return recv_from_supervisord()
+    local msg,errmsg=recv_from_supervisord()
+    if msg then
+        local statistics=init()
+        local process=msg[1].result or {}
+        for i=1,#process do
+            local state=STATE_NAME[process[i].state]
+            process[i].state=state
+
+            statistics[state]=statistics[state]+1
+        end
+        msg[1].result={status=statistics,process=process}
+    end
+    return msg,errmsg
 end

@@ -287,19 +287,28 @@ local function config(name)
     end
 end
 
+local function show_supervisord(result)
+    local out=output()
+    out.add(("+"):rep(30))
+    local statistics=result.status
+    for k,v in pairs(statistics) do
+        out.add(string.format("%-10s%s",k,v))
+    end
+    out.add(("+"):rep(30))
+    for i,v in ipairs(result.process) do
+        local token=string.format("%s%.4d",v.module,tonumber(v.index) or -1)
+        out.add(string.format("%-10s[%s]",token,v.state))
+    end
+    out.write()
+
+end
 
 --list all processes that supervisord monitoring
 local function list()
     local out=cmd_output()
     local ret,errmsg=interface.list()
     if ret then
-        ret=ret[1]
-        if not (ret and ret.result and next(ret.result)) then 
-            return out.warn(string.format("No valid process"))
-        end
-        for i,c in ipairs(ret.result) do
-            show_config(c)
-        end
+        show_supervisord(ret[1].result)
     else
         out.error(errmsg)
     end

@@ -8,15 +8,15 @@ assert(require("tab_utils"),"Cannot Import tab_utils")
 local conf_path = os.getenv("HOME") .. "/var/conf/"
 
 local function interp(s, tab)
-	
+
 	return (s:gsub('%%%((%a[%w_,]*)%)([-0-9%.]*[cdeEfgGiouxXsq])',
-                   function(k, fmt) 
-                       
+                   function(k, fmt)
+
 
                        local ss = "(nil)"
                        if string.contains(k, ",") then
                            for i,v in ipairs(string.split(k, ",")) do
-                               
+
                                if tab[v] then
 
                                    ss = ("%"..fmt):format(tab[v])
@@ -24,9 +24,9 @@ local function interp(s, tab)
                                end
                            end
                        else
-                           ss = tab[k] and ("%"..fmt):format(tab[k]) or ss 
+                           ss = tab[k] and ("%"..fmt):format(tab[k]) or ss
                        end
-                       
+
                        return ss
                    end))
 end
@@ -62,6 +62,20 @@ function _logger:init( printer, level_func )
     self._printerHandle = printer
     self._get_level = level_func or function () return self.enum_DEBUG end
     return self
+end
+function _logger:reinit(applog,level_func)
+   local applog = applog
+   return self:init(GlrLoggerAppender:new():reinit(applog.Pid,applog.Flag),level_func)
+end
+function _logger:export()
+    local applog = {}
+    if getmetatable(self._printerHandle) == getmetatable(GlrLoggerAppender:new()) then
+        applog.Pid = self._printerHandle._appender
+        applog.Flag = self._printerHandle.isclosed
+    else
+        error("export type no match")
+    end
+    return applog
 end
 function _logger:flush( )
     self._printerHandle:flush()
@@ -116,7 +130,7 @@ _logger.log = _logger.debug
 
 if ... == "__main__" then
     function test(  )
-        local log = logger:new():init(GlrLoggerAppender:new():init("test.log"))
+        local log = logger:new():init(GlrLoggerAppender:new():init("test.log",64*1024*1024,2000))
         log:debug("debug")
         log:trace("trace")
         log:info("info")

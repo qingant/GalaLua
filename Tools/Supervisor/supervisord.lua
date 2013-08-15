@@ -62,8 +62,8 @@ local logdir=os.getenv("HOME").."/log"
 local DefaultGroup=conf.defaultGroup
 
 --default gar package search for module
-local DefaultGar=glr.get_option("gar")
-
+local DefaultGar=glr.__gar__
+print("DefaultGar:",DefaultGar)
 function execute(cmd)
     return os.execute(cmd)
 end
