@@ -11,7 +11,7 @@ else
 endif
 
 SQLITE_HOME = $(HOME)/
-DES = json struct libzip lfs linenoise md5 #luaxml cp sqlite dba
+DES = json struct libzip lfs linenoise md5 sigar #luaxml cp sqlite dba
 all:$(DES)
 .PHONY:$(DES) static clean
 
@@ -25,7 +25,7 @@ json:
 dba:
 	cd luadbi.0.5 && $(MAKE) sqlite3 && mv *.so $(HOME)/lib/lua/ && $(MAKE) clean
 struct:
-	cd lua-struct && $(MAKE) && cp struct.so structX.lua $(HOME)/lib/lua/ && $(MAKE) clean 
+	cd lua-struct && $(MAKE) && cp struct.so structX.lua $(HOME)/lib/lua/ && $(MAKE) clean
 libzip:
 	cd lua-zip && $(MAKE) && $(MAKE) clean
 luazip:
@@ -43,7 +43,8 @@ md5:
 	cd lua-encryption && $(MAKE) all
 resource:
 	cd resource && $(MAKE) all
-
+sigar:
+	cd lua-sigar/src && make && cd ../bindings/lua/ && make
 static:
 	cd lua-cjson-2.1.0 && $(MAKE) static && $(MAKE) clean
 	cd lua-struct && $(MAKE) static && $(MAKE) clean
