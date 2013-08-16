@@ -1,11 +1,10 @@
 module(..., package.seeall)
 local pprint = require("pprint")
 local debug = require("debug")
+local cjson = require("cjson")
 local printer = print
 assert(require("str_utils"), "Cannot Import str_utils")
 assert(require("tab_utils"),"Cannot Import tab_utils")
-
-local conf_path = os.getenv("HOME") .. "/var/conf/"
 
 local function interp(s, tab)
 
@@ -33,7 +32,7 @@ end
 
 --strMt.__mod = interp
 -- glr  printer
-GlrLoggerAppender = require("log_server").GlrLoggerAppender
+--GlrLoggerAppender = require("log_server").GlrLoggerAppender
 
 -- enum log level
 local DEBUG = 0
@@ -57,28 +56,24 @@ function _logger:new(o)
     self.__index = self
     return o
 end
-function _logger:init( printer, level_func )
-    self._printer = printer and function (...) printer.print(printer, ...) end or print
-    self._printerHandle = printer
+local logPid = 11
+function _logger:init(path,size,copys,level_func )
+    glr.spawn_ex(logPid, "log_server", "glrLogServerDispatch", "{}")
+    self._printer = print
     self._get_level = level_func or function () return self.enum_DEBUG end
+    local info = {}
+    info.path = path
+    info.size = size or (64*1024*1024)
+    info.copys = copys or 2000
+    glr.send(logPid,"!@"..cjson.encode(info))
+    local _,_,msg = glr.recv()
+    self._handler = cjson.decode(msg)
+    pprint.pprint(self._handler)
     return self
 end
-function _logger:reinit(applog,level_func)
-   local applog = applog
-   return self:init(GlrLoggerAppender:new():reinit(applog.Pid,applog.Flag),level_func)
-end
-function _logger:export()
-    local applog = {}
-    if getmetatable(self._printerHandle) == getmetatable(GlrLoggerAppender:new()) then
-        applog.Pid = self._printerHandle._appender
-        applog.Flag = self._printerHandle.isclosed
-    else
-        error("export type no match")
-    end
-    return applog
-end
+
 function _logger:flush( )
-    self._printerHandle:flush()
+    glr.send(self._handler,"!!")
 end
 function _logger:_log(level, format, ...)
     if self._get_level() <= level then
@@ -88,12 +83,11 @@ function _logger:_log(level, format, ...)
         else
             str = string.format(format, ...)
         end
-
         local info = debug.getinfo(3)
         info.level = _loggerFlag[level]
         info.msg = str
-        local log_str = ("[%(level)s] [File=%(short_src)s Function=%(name)s Line=%(currentline)s] : %(msg)s" % info)
-        self._printer(log_str)
+        local log_str = ("[%(level)s] [File=%(short_src)s  Line=%(currentline)s] : %(msg)s" % info)
+        glr.send(self._handler,log_str)
     end
 end
 function _logger:debug(format, ...)
@@ -113,24 +107,17 @@ function _logger:fatal(format, ...)
     self:_log(self.enum_FATAL, format, ...)
 end
 function _logger:close()
-    self._printerHandle:close()
+    glr.send(_handler,"!#")
 end
 _logger.log = _logger.debug
 
--- function log(msg, ...)
--- 	--local msg = pprint.format({...}, "msg")
--- 	local level = ...
--- 	level = level or DEBUG
--- 	local info = debug.getinfo(2)
--- 	info.msg = pprint.format(msg)
 
--- 	local log_str = ("File=%(short_src)s, Func=%(name,func)s, Line=%(currentline)s : %(msg)s" % info)
--- 	printer(log_str)
--- end
 
 if ... == "__main__" then
     function test(  )
-        local log = logger:new():init(GlrLoggerAppender:new():init("test.log",64*1024*1024,2000))
+        local log = logger:new():init("test.log")
+        local log = logger:new():init("test1.log")
+
         log:debug("debug")
         log:trace("trace")
         log:info("info")
