@@ -199,7 +199,10 @@ void GLR::MessageLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/
         if (_RecvTask.HeadCurrent == 4)
         {
             _RecvTask.Len = ntohl(_RecvTask.Len);
-            assert(_RecvTask.Len < 1024*1024);
+            if(_RecvTask.Len > 1024*1024*500)
+            {
+                THROW_EXCEPTION_EX("Recv Data Too Long");
+            }
             _RecvTask.Buffer.resize(_RecvTask.Len + 4, 0);
             *((uint32_t*)&_RecvTask.Buffer[0]) = _RecvTask.Len;
             _RecvTask.Current = 4;
