@@ -1,0 +1,14 @@
+# -*- Makefile -*-
+G++			= xlc++_r
+GCC			= xlc_r
+COMMINC		=  -I. -I../include/
+LNKFLAG 	= -qmkshrobj -q64
+COMPWARN    = #-qhalt=i -qwarn64 -qinfo=all
+CMPFLAG 	= -c -g -q64 -qcpluscmt -D_UNIX95_ -D_DEBUG_ -D_THREAD_SAFE -D__IBMCPP_TR1__ $(COMPWARN) $(COMMINC)  -D_ALL_SOURCE #-qinclude=config.h -D_BSD=44
+SYTMLIB 	= -q64 -ldl -lpthread -L/usr/local/lib/ -L/usr/lib -lperfstat -lodm -lcfg
+
+AR          = ar
+ARFLAGS     = -X64 -rcu
+RANLIB      = ranlib
+RANLIBFLAGS = -X64
+
