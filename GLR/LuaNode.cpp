@@ -6,7 +6,7 @@
 #include <algorithm>
 //defines of static data member
 using namespace GLR;
-std::vector<Process *> Process::NodeMap(10240);
+std::vector<Process *> Process::NodeMap(10240, NULL);
 //std::vector<Process*>(10240);
 Galaxy::GalaxyRT::CRWLock Process::ProcessMapLock;
 int32_t Process::NodeId;
@@ -14,8 +14,8 @@ int32_t Process::NodeCount = 0;
 #define RESERVED_PID (32)
 
 Process::Process(int id)
-   : _Stack(lua_open()),
-     _Id(id == 0 ? NodeId++ : id)
+    : _Stack(lua_open()),
+    _Id(id == 0 ? NodeId++ : id)
 {
     // step over supervisor binded pid
     if (NodeId == 1)
@@ -641,7 +641,7 @@ void Process::Destory(LN_ID_TYPE pid)
 
             NodeMap[pid] = NULL;
 
-            
+
             delete p;
             NodeCount--;
             if (NodeCount == 0)
@@ -926,10 +926,31 @@ GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
 
     Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
-    if (NodeMap[id] != NULL)
+    if (id != 0 && NodeMap[id] != NULL)
     {
+        GALA_ERROR("Cannot Create Process(id:%d)", id);
         THROW_EXCEPTION_EX("Cannot Create Process");
     }
+    else if (id == 0 && NodeId > NodeMap.size())
+    {
+        for (int i = RESERVED_PID; i != NodeMap.size(); ++i)
+        {
+            if (NodeMap[i] == NULL)
+            {
+                id = i;
+                break;
+            }
+
+        }
+        if (id==0)
+        {
+            GALA_ERROR("Cannot Spawn Process: cannot create more then %d processes", NodeMap.size());
+            THROW_EXCEPTION_EX("Cannot Spawn Process");
+        }
+
+
+    }
+
 
     Process *node = new Process(id);
     printf("Node(%p:%d) Created!\n", node, node->_Id);
