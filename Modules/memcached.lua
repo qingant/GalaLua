@@ -61,4 +61,7 @@ end
 function GlrBuffer:get()
     return self.cache
 end
+function GlrBuffer:empty()
+    return self.length == 0
+end
 
