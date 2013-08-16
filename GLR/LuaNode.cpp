@@ -931,9 +931,9 @@ GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
         GALA_ERROR("Cannot Create Process(id:%d)", id);
         THROW_EXCEPTION_EX("Cannot Create Process");
     }
-    else if (id == 0 && NodeId > NodeMap.size())
+    else if (id == 0 && (size_t)NodeId > NodeMap.size())
     {
-        for (int i = RESERVED_PID; i != NodeMap.size(); ++i)
+        for (size_t i = RESERVED_PID; i != NodeMap.size(); ++i)
         {
             if (NodeMap[i] == NULL)
             {
@@ -944,7 +944,7 @@ GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
         }
         if (id==0)
         {
-            GALA_ERROR("Cannot Spawn Process: cannot create more then %d processes", NodeMap.size());
+            GALA_ERROR("Cannot Spawn Process: cannot create more then %ld processes", NodeMap.size());
             THROW_EXCEPTION_EX("Cannot Spawn Process");
         }
 
