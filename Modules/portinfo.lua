@@ -21,7 +21,9 @@ local function readline(str)
     while true do
         ii = string.find(str,"\n",ii+1)
         if ii == nil then break end
-        states[#states+1] = string.sub(str,index,ii)
+        local value = string.sub(str,index,ii)
+        local key = string.match(value,"%s([^%s]+)%s*$")
+        states[key] = value
         index = ii+1
     end
     return states
@@ -77,10 +79,10 @@ local function getConnectedStatesLinux(port)
     local lsrstates = getListenStatesLinux(port)
     local states = getPortStatesLinux(port)
     local connstates = {}
-    for _, v in pairs(lsrstates) do
-        for _ , val in pairs(states) do
+    for k, v in pairs(lsrstates) do
+        for key, val in pairs(states) do
             if v ~= val then
-                connstates[#connstates + 1] =  val
+                connstates[key] =  val
             end
         end
     end
@@ -94,7 +96,7 @@ local function isListenPortAix(port)
     local cmd = "netstat -Aan  -f inet |grep -E '\\."..tostring(port).." '"
     local result = commondline(cmd)
     result = readline(result)
-    for _,v in pairs(result) do
+    for k,v in pairs(result) do
         if split(v)["LISTEN"] ~= nil then
             return true
         end
@@ -110,9 +112,9 @@ local function getListenStatesAix(port)
     local result = commondline(cmd)
     result = readline(result)
     local res = {}
-    for _,v in pairs(result) do
+    for k,v in pairs(result) do
         if split(v)["LISTEN"] ~= nil then
-            res[#res + 1] = v
+            res[k] = v
         end
     end
     return res
@@ -126,9 +128,9 @@ local function getConnectedStatesAix(port)
     local result = commondline(cmd)
     result = readline(result)
     local res = {}
-    for _,v in pairs(result) do
+    for k,v in pairs(result) do
         if split(v)["LISTEN"] ~= "LISTEN" then
-            res[#res + 1] = v
+            res[k] = v
         end
     end
     return res
