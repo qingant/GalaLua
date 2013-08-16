@@ -304,6 +304,11 @@ void Process::InitNode(void)
     lua_pushinteger(_Stack, _Id);
     lua_setglobal(_Stack, "__id__");
 
+    if (GLR::Runtime::_Initializer != NULL)
+    {
+        GLR::Runtime::_Initializer(_Stack);    //user defined initialize hook
+    }
+
 
     // getnid
 
@@ -317,11 +322,6 @@ void Process::InitNode(void)
         THROW_EXCEPTION_EX(msg);
     }
     lua_setglobal(_Stack, "glr");
-
-    if (GLR::Runtime::_Initializer != NULL)
-    {
-        GLR::Runtime::_Initializer(_Stack);    //user defined initialize hook
-    }
 
 
     _Status._State = ProcessStatus::CREATED;
