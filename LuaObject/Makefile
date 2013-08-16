@@ -31,7 +31,7 @@ cp:
 .PHONY: static clean
 
 
-static: _dir.a
+static: _dir.a xml.a
 
 
 _dir.a: LuaDir.o
@@ -39,6 +39,12 @@ _dir.a: LuaDir.o
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv _dir.a $(HOME)/share/static/lua
+
+xml.a: LuaXML.o
+	echo $(PLATFORM)
+	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $(RANLIBFLAGS) $@
+	mv xml.a $(HOME)/share/static/lua
 
 clean:
 	-rm -f *.o *.a *.so
