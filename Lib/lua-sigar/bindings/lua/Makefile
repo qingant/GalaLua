@@ -6,11 +6,11 @@ OBJ = sigar.o sigar-cpu.o sigar-disk.o sigar-fs.o sigar-mem.o sigar-netif.o \
       sigar-proc.o sigar-swap.o sigar-sysinfo.o sigar-who.o sigar-version.o
 sigar.so:$(OBJ)
 	$(GCC) $(LNKFLAG) $(SYTMLIB) -lsigar -L$(HOME)/lib -o $@ $?
-#	mv $@ $(HOME)/lib
+	mv $@ $(HOME)/lib
 static:sigar.a
 sigar.a:$(OBJ)
 	$(AR) $(ARFLAGS) $@ $(OBJ)
 	$(RANLIB) $(RANLIBFLAGS) $@
-	mv $@ $(HOME)/share/static
+	mv $@ $(HOME)/share/static/lua
 clean:
-	rm -rf *.o
+	-rm -rf *.o *.a *.so

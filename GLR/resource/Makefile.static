@@ -4,19 +4,30 @@ PREFIX      = $(GDK_HOME)
 OS          = $(shell uname)
 
 USER_AR_LIBS    = 
-USER_LUA_SCRIPT += $(PREFIX)/lib/lua/fake_ffi.lua $(PREFIX)/lib/lua/logging.lua $(PREFIX)/lib/lua/tab_utils.lua $(PREFIX)/lib/lua/str_utils.lua $(PREFIX)/lib/lua/pprint.lua $(PREFIX)/lib/lua/structX.lua $(PREFIX)/lib/lua/glr.lua
+USER_LUA_SCRIPT += $(PREFIX)/lib/lua/fake_ffi.lua $(PREFIX)/lib/lua/logging.lua \
+    $(PREFIX)/lib/lua/tab_utils.lua $(PREFIX)/lib/lua/str_utils.lua \
+    $(PREFIX)/lib/lua/pprint.lua $(PREFIX)/lib/lua/structX.lua $(PREFIX)/lib/lua/glr.lua
 
-LUA_PACKAGE_C_LIBS += $(PREFIX)/share/static/lua/cjson.a $(PREFIX)/share/static/lua/struct.a $(PREFIX)/share/static/lua/iconv.a $(PREFIX)/share/static/lua/minizip.a $(PREFIX)/share/static/lua/_dir.a $(PREFIX)/share/static/lua/lxp.a
+LUA_PACKAGE_C_LIBS += $(PREFIX)/share/static/lua/cjson.a \
+    $(PREFIX)/share/static/lua/struct.a \
+    $(PREFIX)/share/static/lua/minizip.a $(PREFIX)/share/static/lua/_dir.a \
+    $(PREFIX)/share/static/libzip.a $(PREFIX)/share/static/lua/iconv.a \
+    $(PREFIX)/share/static/libluajit.a \
+    # $(PREFIX)/share/static/lua/lxp.a
 
-GDK_AR_LIBS = $(PREFIX)/share/static/libGLR.a $(PREFIX)/share/static/libGalaxyStub.a $(PREFIX)/share/static/libGalaxyRT.a $(PREFIX)/share/static/libluajit.a $(PREFIX)/share/static/libexpat.a $(PREFIX)/share/static/libzip.a
+GDK_AR_LIBS = $(PREFIX)/share/static/libGLR.a \
+    $(PREFIX)/share/static/libGalaxyStub.a \
+    $(PREFIX)/share/static/libGalaxyRT.a $(PREFIX)/share/static/libzip.a \
+    $(PREFIX)/share/static/libluajit.a # $(PREFIX)/share/static/libexpat.a
 
 ifeq ($(OS), Linux)
 	CC          = gcc
 	CFLAGS      = -g -Wall
-	INPATH      = -I. -I$(PREFIX)/include -I$(PREFIX)/include/resource -I/usr/include/libxml2 -I$(PREFIX)/include/lua-5.1.5
+	INPATH      = -I. -I$(PREFIX)/include -I$(PREFIX)/include/resource \
+	       -I/usr/include/libxml2 -I$(PREFIX)/include/lua-5.1.5
 	LDPATH      = -L. -L$(PREFIX)/lib
 	LDFLAGS     =
-	SOLIBS      = -lc -lm -ldl -lpthread -lrt -lzip -lexpat
+	SOLIBS      = -lc -lm -ldl -lpthread -lrt -lz # -lzip -lexpat
 
 	CXX         = g++
 	CXXFLAGS    = -Wall -Wextra -Woverloaded-virtual
@@ -37,7 +48,8 @@ endif
 all: glr_s glr_sl
 
 glr_s: $(GDK_AR_LIBS) $(LUA_PACKAGE_C_LIBS) $(USER_AR_LIBS)
-	$(CXX) -o $@ $(CXXFLAGS) $(INPATH) $(LDPATH) $(LDFLAGS) $(GDK_AR_LIBS) $(LUA_PACKAGE_C_LIBS) $(USER_AR_LIBS) $(SOLIBS)
+	$(CXX) -o $@ $(CXXFLAGS) $(INPATH) $(LDPATH) $(LDFLAGS) $(USER_AR_LIBS) \
+	$(GDK_AR_LIBS) $(LUA_PACKAGE_C_LIBS) $(SOLIBS)
 
 glr_sl: glr_s $(USER_LUA_SCRIPT)
 	cp glr_s ./$@
