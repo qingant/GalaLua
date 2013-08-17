@@ -80,7 +80,7 @@ void resx_openlibs(lua_State * const state)
 
 int resx_loader(lua_State * const state)
 {
-//    fprintf(stderr, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
+    fprintf(stderr, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
     static bool initialized = false;
     static resx_environ_t resxenv;
     if (!initialized)
@@ -118,22 +118,22 @@ int resx_loader(lua_State * const state)
                 "malloc failed.\n", __FILE__, __FUNCTION__, __LINE__);
     }
     strncpy(buf, pathname, length);
-//    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
-//            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
+    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
+            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
     char *tmp = NULL;
     for (tmp = strchr(&buf[0], '.'); tmp != NULL; tmp = strchr(&buf[0], '.'))
     {
         *tmp = '/';
     }
-//    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
-//            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
+    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
+            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
     strncat(buf, ".lua", SUFFIX_LEN);
     buf[length -1] = '\0';
-//    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
-//            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
+    fprintf(stdout, "File %s, Function %s, Line %d, buf = %s.\n",
+            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
     int32_t retval = resx_environ_read(&resxenv, &buf[0]);
-//    fprintf(stdout, "File %s, Function %s, Line %d, retval = %d.\n",
-//             __FILE__, __FUNCTION__, __LINE__, retval);
+    fprintf(stdout, "File %s, Function %s, Line %d, retval = %d.\n",
+             __FILE__, __FUNCTION__, __LINE__, retval);
     free(buf);
     if (retval > 0)
     {
@@ -144,13 +144,13 @@ int resx_loader(lua_State * const state)
                     "failed.\n", __FILE__, __FUNCTION__, __LINE__);
         }
         char *cursor = buff;
-        if (resx_fstream_read(cursor, 1U, retval, resxenv.stream) < retval)
+        if (resx_fstream_read(cursor, 1U, retval, resxenv.stream) < (size_t) retval)
         {
             return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
                     __FILE__, __FUNCTION__, __LINE__);
         }
         cursor[retval] = '\0';
-//        fprintf(stdout, "File %s, Function %s, Line %d, {%s}\n", __FILE__, __FUNCTION__, 
+//        fprintf(stdout, "File %s, Function %s, Line %d, {%s}\n", __FILE__, __FUNCTION__,
 //                __LINE__, cursor);
         retval = luaL_loadbuffer(state, cursor, retval, pathname);
         free(buff);
