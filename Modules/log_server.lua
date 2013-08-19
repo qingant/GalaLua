@@ -38,9 +38,10 @@ function timedFlusher(timeVal, pid)
         glr.send(pid, "!!")     -- flush
     end
 end
+local timedFlushered = 12
 function glrLogServerDispatch(info)
     local info = cjson.decode(info)
-    local _, timer = glr.spawn("log_server", "timedFlusher", 30, __id__)
+    local _, timer = glr.spawn_ex(timedFlushered, "log_server", "timedFlusher", 30, __id__)
     local nameDict = {}
     local pidDict = {}
     while true do
