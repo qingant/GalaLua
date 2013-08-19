@@ -23,22 +23,28 @@ local function readline(str)
         if ii == nil then break end
         local value = string.sub(str,index,ii)
         local key = string.match(value,"%s([^%s]+)%s*$")
-        states[key] = value
+        if key == nil then
+            error("invalid key from parsering str")
+        end
+        if states[key] == nil then
+            states[key] = {}
+        end
+        table.insert(states[key],value)
         index = ii+1
     end
     return states
 end
 
-local function split(str)
-    if type(str) ~= "string" then
-       error("the param must be string type")
-    end
-    local res  = {}
-    for token in string.gmatch(str, "[^%s]+") do
-        res [token] = token
-    end
-    return res
-end
+--local function split(str)
+--    if type(str) ~= "string" then
+--       error("the param must be string type")
+--    end
+--    local res  = {}
+--    for token in string.gmatch(str, "[^%s]+") do
+--        res [token] = token
+--    end
+--    return res
+--end
 
 local function uname()
     return commondline("uname")
@@ -79,9 +85,9 @@ local function getConnectedStatesLinux(port)
     local lsrstates = getListenStatesLinux(port)
     local states = getPortStatesLinux(port)
     local connstates = {}
-    for k, v in pairs(lsrstates) do
+    for k, _ in pairs(lsrstates) do
         for key, val in pairs(states) do
-            if v ~= val then
+            if k ~= key then
                 connstates[key] =  val
             end
         end
@@ -96,12 +102,10 @@ local function isListenPortAix(port)
     local cmd = "netstat -Aan  -f inet |grep -E '\\."..tostring(port).." '"
     local result = commondline(cmd)
     result = readline(result)
-    for k,v in pairs(result) do
-        if split(v)["LISTEN"] ~= nil then
-            return true
-        end
+    if result["LISTEN"] == nil then
+        return false
     end
-    return false
+    return true
 end
 
 local function getListenStatesAix(port)
@@ -113,8 +117,9 @@ local function getListenStatesAix(port)
     result = readline(result)
     local res = {}
     for k,v in pairs(result) do
-        if split(v)["LISTEN"] ~= nil then
+        if k == "LISTEN" then
             res[k] = v
+            break
         end
     end
     return res
@@ -129,7 +134,7 @@ local function getConnectedStatesAix(port)
     result = readline(result)
     local res = {}
     for k,v in pairs(result) do
-        if split(v)["LISTEN"] ~= "LISTEN" then
+        if k ~= "LISTEN" then
             res[k] = v
         end
     end
