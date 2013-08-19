@@ -301,6 +301,12 @@ void Process::InitNode(void)
     lua_pushstring(_Stack, "APP");
     lua_pushinteger(_Stack, MSG_HEAD::APP);
     lua_settable(_Stack, -3);
+
+     lua_pushstring(_Stack, "EXIT");
+     lua_pushinteger(_Stack, MSG_HEAD::EXIT);
+     lua_settable(_Stack, -3);
+     
+
     //StackDump();
     //lua_pop(_Stack,1);
 
