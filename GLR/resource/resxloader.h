@@ -27,6 +27,8 @@ extern int luaopen_struct (lua_State *);
 extern int luaopen_iconv(lua_State *);
 extern int luaopen_minizip(lua_State *);
 extern int luaopen__dir(lua_State *);
+extern int luaopen_sigar(lua_State *);
+extern int luaopen_xml(lua_State *);
 /* extern int luaopen_lxp (lua_State *); */
 
 /* 将lua的c模块的入口函数和模块名加入到lualibrary数组中 */
@@ -36,6 +38,8 @@ const luaL_Reg lualibray[] = {
     { "iconv", luaopen_iconv },
     { "minizip", luaopen_minizip },
     { "_dir", luaopen__dir },
+    { "sigar", luaopen_sigar },
+    { "xml", luaopen_xml },
 /*    { "lxp", luaopen_lxp }, */
     { (const char *) NULL, (lua_CFunction) NULL }
 };

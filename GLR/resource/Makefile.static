@@ -4,21 +4,31 @@ PREFIX      = $(GDK_HOME)
 OS          = $(shell uname)
 
 USER_AR_LIBS    = 
-USER_LUA_SCRIPT += $(PREFIX)/lib/lua/fake_ffi.lua $(PREFIX)/lib/lua/logging.lua \
-    $(PREFIX)/lib/lua/tab_utils.lua $(PREFIX)/lib/lua/str_utils.lua \
-    $(PREFIX)/lib/lua/pprint.lua $(PREFIX)/lib/lua/structX.lua $(PREFIX)/lib/lua/glr.lua
+USER_LUA_SCRIPT += $(PREFIX)/lib/lua/fake_ffi.lua \
+    $(PREFIX)/lib/lua/logging.lua \
+    $(PREFIX)/lib/lua/tab_utils.lua \
+    $(PREFIX)/lib/lua/str_utils.lua \
+    $(PREFIX)/lib/lua/pprint.lua \
+    $(PREFIX)/lib/lua/structX.lua \
+    $(PREFIX)/lib/lua/glr.lua
 
 LUA_PACKAGE_C_LIBS += $(PREFIX)/share/static/lua/cjson.a \
     $(PREFIX)/share/static/lua/struct.a \
-    $(PREFIX)/share/static/lua/minizip.a $(PREFIX)/share/static/lua/_dir.a \
-    $(PREFIX)/share/static/libzip.a $(PREFIX)/share/static/lua/iconv.a \
+    $(PREFIX)/share/static/lua/minizip.a \
+    $(PREFIX)/share/static/lua/_dir.a \
+    $(PREFIX)/share/static/lua/iconv.a \
+    $(PREFIX)/share/static/lua/xml.a \
+    $(PREFIX)/share/static/lua/sigar.a \
+    $(PREFIX)/share/static/libsigar.a \
+    $(PREFIX)/share/static/libzip.a \
     $(PREFIX)/share/static/libluajit.a \
+    # $(PREFIX)/share/static/libexpat.a
     # $(PREFIX)/share/static/lua/lxp.a
 
 GDK_AR_LIBS = $(PREFIX)/share/static/libGLR.a \
     $(PREFIX)/share/static/libGalaxyStub.a \
-    $(PREFIX)/share/static/libGalaxyRT.a $(PREFIX)/share/static/libzip.a \
-    $(PREFIX)/share/static/libluajit.a # $(PREFIX)/share/static/libexpat.a
+    $(PREFIX)/share/static/libGalaxyRT.a \
+    $(PREFIX)/share/static/libluajit.a
 
 ifeq ($(OS), Linux)
 	CC          = gcc
@@ -39,7 +49,7 @@ ifeq ($(OS), AIX)
 	INPATH      = -I. -I$(PREFIX)/include -I$(PREFIX)/include/lua-5.1.5 -I$(PREFIX)/include/resource
 	LDPATH      = -L. -L/usr/local/lib/
 	LDFLAGS     = -q64 -brtl -brtllib
-	SOLIBS      = -lc -lm -ldl -lz -lpthread -lrt -liconv -lbsd -lC_r -ls
+	SOLIBS      = -lc -lm -ldl -lz -lpthread -lrt -liconv -lbsd -lC_r -ls -lperfstat -lodm
 
 	CXX         = xlc++_r
 	CXXFLAGS    = -g -q64 -qcpluscmt -D_UNIX95_ -D_DEBUG_ -D_THREAD_SAFE -D__IBMCPP_TR1__ -D_ALL_SOURCE -D_BSD=44
