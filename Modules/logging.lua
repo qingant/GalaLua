@@ -58,7 +58,9 @@ function _logger:new(o)
 end
 local logPid = 11
 function _logger:init(path,size,copys,level_func )
-    glr.spawn_ex(logPid, "log_server", "glrLogServerDispatch", "{}")
+    --glr.spawn_ex(logPid, "log_server", "glrLogServerDispatch", "{}")
+    pcall(glr.spawn_ex,logPid, "log_server", "glrLogServerDispatch", "{}")
+
     self._printer = print
     self._get_level = level_func or function () return self.enum_DEBUG end
     local info = {}
