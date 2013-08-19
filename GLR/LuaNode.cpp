@@ -6,7 +6,11 @@
 #include <algorithm>
 //defines of static data member
 using namespace GLR;
+#if defined(HAVE_SUSE)
+std::vector<Process *> Process::NodeMap(10240,(Process *)0);
+#else
 std::vector<Process *> Process::NodeMap(10240, NULL);
+#endif
 //std::vector<Process*>(10240);
 Galaxy::GalaxyRT::CRWLock Process::ProcessMapLock;
 int32_t Process::NodeId;
@@ -617,7 +621,7 @@ void Process::SendExitMsg()
     pExitMsg->Head.Type = MSG_HEAD::EXIT;
     pExitMsg->Head.GPid = _ParentId;
     pExitMsg->Source.Gpid = _Id;
-    SendMsgToNode(_ParentId, buffer, MSG_HEAD::EXIT); 
+    SendMsgToNode(_ParentId, buffer, MSG_HEAD::EXIT);
 }
 void Process::Destory(LN_ID_TYPE pid)
 {
@@ -636,7 +640,7 @@ void Process::Destory(LN_ID_TYPE pid)
             p->SendExitMsg();
 
             Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
-            Galaxy::GalaxyRT::CLockGuard _Gl(& _WL); 
+            Galaxy::GalaxyRT::CLockGuard _Gl(& _WL);
 
 
             NodeMap[pid] = NULL;

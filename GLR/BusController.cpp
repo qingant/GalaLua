@@ -35,7 +35,7 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
             MessageStack *ms = _LinkMap[ev.first];
             try
             {
-                if (ev.second&Galaxy::GalaxyRT::EV_ERR || 
+                if (ev.second&Galaxy::GalaxyRT::EV_ERR ||
                     ev.second&Galaxy::GalaxyRT::EV_HUP ||
                     ev.second&Galaxy::GalaxyRT::EV_NVALID ||
                     ev.second&Galaxy::GalaxyRT::EV_RDHUP
@@ -44,7 +44,7 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
                     ms->OnErr(ev, _Poller);
                     THROW_EXCEPTION_EX("");
 
-                } 
+                }
                 else if (ev.second&Galaxy::GalaxyRT::EV_IN)
                 {
                     ms->OnRecv(ev, _Poller);
@@ -68,7 +68,7 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
                 msg.Head.GPid = -1;
                 msg.Head.Len = sizeof(MSG_HEAD) - 4;
 
-                memcpy(msg.Source.Host, mls->_Id.c_str(), mls->_Id.size()); 
+                memcpy(msg.Source.Host, mls->_Id.c_str(), mls->_Id.size());
 
                 Runtime::GetInstance().GetBus().Send(mls->Gpid(), std::string((const char*)&msg, sizeof(msg)), MSG_HEAD::CLOSED);
                 Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex);
@@ -306,7 +306,11 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port, short
 }
 
 GLR::BusController::BusController()
+#if defined(HAVE_SUSE)
+    :_LinkMap(10240, (MessageStack *)0),
+#else
     :_LinkMap(10240, NULL),
+#endif
     _Worker(_Router, _LinkMap, _Mutex, _Poller)
 {
     const std::string &host = Runtime::GetInstance().Host();
@@ -410,7 +414,7 @@ void GLR::BusController::DoNodeReg( lua_State *l )
     }
     else
     {
-        std::auto_ptr<Galaxy::GalaxyRT::CTCPSocketClient> c(new Galaxy::GalaxyRT::CTCPSocketClient(host, port));  
+        std::auto_ptr<Galaxy::GalaxyRT::CTCPSocketClient> c(new Galaxy::GalaxyRT::CTCPSocketClient(host, port));
         int cFd = c->GetFD();
         std::auto_ptr<MessageLinkStack> ms(new MessageLinkStack(c.release(), _Router)); // as above
         try
@@ -496,7 +500,7 @@ void GLR::BusController::DoNodeClose( lua_State *l )
 {
     lua_getglobal(l,"__id__");
     int pid = luaL_checkinteger(l,-1);
- 
+
     const char* host = luaL_checkstring(l, 3);
     int port = luaL_checkinteger(l, 4);
     char id[64] = {0};
