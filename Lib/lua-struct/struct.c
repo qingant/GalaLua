@@ -185,7 +185,7 @@ static int b_pack (lua_State *L) {
         size_t l;
         const char *s = luaL_checklstring(L, arg++, &l);
         if (size == 0) size = l;
-        luaL_argcheck(L, l <= (size_t)size, arg, "string too short");
+        luaL_argcheck(L, l <= (size_t)size, arg,"string too long");
         luaL_addlstring(&b, s,l);
         int ii = 0 ;
         for(;ii < size - l;ii++)
