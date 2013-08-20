@@ -353,6 +353,7 @@ int Process::SendMsgToNode(lua_State *l)
     head->Head.GPid = id;
     head->Head.Len = len + sizeof(*head) - 4;
     head->Source.Gpid = self_id;
+    head->Source.Port = GLR::Runtime::GetInstance().NodeId();
     memcpy(head->Source.Host, GLR::Runtime::GetInstance().Host().c_str(), GLR::Runtime::GetInstance().Host().size());
     memcpy((void *)&pack_msg[sizeof(*head)], msg, len);
     //GetNodeById(id).SendMsg(pack_msg);
