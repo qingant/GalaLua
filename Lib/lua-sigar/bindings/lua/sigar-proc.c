@@ -61,7 +61,7 @@ static int lua_sigar_procs_get_pid(lua_State *L) {
 	lua_sigar_procs_t *procs = (lua_sigar_procs_t *)luaL_checkudata(L, 1, "sigar_procs");
 	int ndx = luaL_checkint(L, 2);
 
-	if (ndx - 1 < 0 || 
+	if (ndx - 1 < 0 ||
 	    ndx - 1 >= procs->procs.number) {
 		luaL_error(L, ".procs[%d] out of range: 1..%d", ndx, procs->procs.number);
 	}
@@ -208,6 +208,30 @@ static int lua_sigar_proc_get_exe(lua_State *L) {
 	return 1;
 }
 
+static int lua_sigar_proc_get_credname(lua_State *L)
+{
+    lua_sigar_proc_t *proc = (lua_sigar_proc_t *)luaL_checkudata(L, 1, "sigar_proc");
+    sigar_proc_cred_name_t user;
+    int err;
+
+    if (SIGAR_OK != (err = sigar_proc_cred_name_get(proc->sigar, proc->pid, &user))) {
+		lua_pushnil(L);
+		lua_pushstring(L, strerror(err));
+		return 2;
+	}
+
+	lua_newtable(L);
+#define DATA \
+	(&(user))
+
+	LUA_EXPORT_STR(DATA, user);
+	LUA_EXPORT_STR(DATA, group);
+
+#undef DATA
+
+	return 1;
+}
+
 int lua_sigar_proc_get(lua_State *L) {
 	sigar_t *s = *(sigar_t **)luaL_checkudata(L, 1, "sigar");
 	sigar_pid_t pid = luaL_checknumber(L, 2);
@@ -226,6 +250,8 @@ int lua_sigar_proc_get(lua_State *L) {
 		lua_setfield(L, -2, "exe");
 		lua_pushcfunction(L, lua_sigar_proc_get_state);
 		lua_setfield(L, -2, "state");
+		lua_pushcfunction(L, lua_sigar_proc_get_credname);
+		lua_setfield(L, -2, "cred");
 		lua_setfield(L, -2, "__index");
 		lua_pushcfunction(L, lua_sigar_proc_gc);
 		lua_setfield(L, -2, "__gc");
