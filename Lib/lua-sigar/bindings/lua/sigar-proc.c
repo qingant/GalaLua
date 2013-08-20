@@ -150,7 +150,33 @@ static int lua_sigar_proc_get_time(lua_State *L) {
 	LUA_EXPORT_INT(DATA, user);
 	LUA_EXPORT_INT(DATA, sys);
 	LUA_EXPORT_INT(DATA, total);
+#undef DATA
 
+	return 1;
+}
+
+static int lua_sigar_proc_get_cpu(lua_State *L) {
+	lua_sigar_proc_t *proc = (lua_sigar_proc_t *)luaL_checkudata(L, 1, "sigar_proc");
+	sigar_proc_cpu_t t;
+	int err;
+
+	if (SIGAR_OK != (err = sigar_proc_cpu_get(proc->sigar, proc->pid, &t))) {
+		lua_pushnil(L);
+		lua_pushstring(L, strerror(err));
+		return 2;
+		return 0;
+	}
+
+	lua_newtable(L);
+#define DATA \
+	(&(t))
+
+	LUA_EXPORT_INT(DATA, start_time);
+	LUA_EXPORT_INT(DATA, user);
+	LUA_EXPORT_INT(DATA, sys);
+	LUA_EXPORT_INT(DATA, total);
+	LUA_EXPORT_INT(DATA, last_time);
+	LUA_EXPORT_DOUBLE(DATA,percent);
 #undef DATA
 
 	return 1;
@@ -252,6 +278,8 @@ int lua_sigar_proc_get(lua_State *L) {
 		lua_setfield(L, -2, "state");
 		lua_pushcfunction(L, lua_sigar_proc_get_credname);
 		lua_setfield(L, -2, "cred");
+		lua_pushcfunction(L, lua_sigar_proc_get_cpu);
+		lua_setfield(L, -2, "cpu");
 		lua_setfield(L, -2, "__index");
 		lua_pushcfunction(L, lua_sigar_proc_gc);
 		lua_setfield(L, -2, "__gc");
