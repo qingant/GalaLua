@@ -33,6 +33,9 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
         {
             Galaxy::GalaxyRT::CSelector::EV_PAIR &ev = evs[i];
             MessageStack *ms = _LinkMap[ev.first];
+
+            if (ms==NULL) continue;
+
             try
             {
                 if (ev.second&Galaxy::GalaxyRT::EV_ERR ||
