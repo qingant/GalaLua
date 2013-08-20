@@ -25,17 +25,17 @@ function processes_info_get()
         if proc ~= nil then
             local item = {}
             local cred,msg = proc:cred()
-            item["user"] = cred.user
+            item["proc_user"] = cred.user
             item["pid"] = pids[i]
             local cpu = proc:cpu()
-            item["cpu"] = cpu.percent
+            item["cpu_usage"] = cpu.percent
             local mem,msg = proc:mem()
-            item["mem"] = mem.size / dvmem.total
+            item["mem_usage"] = mem.size / dvmem.total
             local time,msg = proc:time()
-            item["stime"] = os.date("%Y-%m-%d %H:%M:%S",time.start_time/1000)
-            item["time"] = osdatetime.gettimeofday().sec - (time.start_time/1000)
+            item["start_time"] = os.date("%Y-%m-%d %H:%M:%S",time.start_time/1000)
+            item["run_time"] = osdatetime.gettimeofday().sec - (time.start_time/1000)
             local stat = proc:state()
-            item["commond"] = stat.name
+            item["command"] = stat.name
             result[#result + 1] = item
         end
     end
