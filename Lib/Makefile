@@ -50,6 +50,7 @@ static:
 	cd lua-struct && $(MAKE) static && $(MAKE) clean
 	cd lua-zip && $(MAKE) static
 	cd lua-sigar/src && make static && cd ../bindings/lua/ && make static
+	$(MAKE) -C lua-xml/lua-iconv-7 static
 #	$(MAKE) -C lua-xml static
 
 clean:
