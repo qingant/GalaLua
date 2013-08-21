@@ -1,6 +1,6 @@
 --[[
 Athor: Ma Tao
-    
+
     Simple NXD(Native XML Database) for Gala
 
 ]]
@@ -12,6 +12,15 @@ local pprint = require "pprint"
 assert(require("str_utils"), "Cannot Import str_utils")
 assert(require("tab_utils"),"Cannot Import tab_utils")
 local logging = require("logging")
+
+local osxpcall = xpcall
+local function _xpcall(action,err,...)
+   local args = unpack{...}
+   return osxpcall(function() action(args) end,err)
+end
+
+xpcall = _xpcall
+
 --[[
     Node:
     a:key`value  attribute key -> value
@@ -59,7 +68,7 @@ local to_table_attrib_key = "@attr"
 
 function mdb.create_env(path)
     local path_id="@"..path
-    local e,err_msg=glr.get_global(path_id) 
+    local e,err_msg=glr.get_global(path_id)
     if not e then
         e=mdb._create_env(path)
         glr.global(path_id,e)
@@ -99,7 +108,7 @@ function mdb:close( ... )
 end
 
 function mdb:get_root(name)
-    local o = element:new{_db = self, 
+    local o = element:new{_db = self,
                        key = path_sep .. name,
                        is_root = true,
                        e_type = "regular"
@@ -188,7 +197,7 @@ end
 --                      key = key,
 --                      e_type = e_type,
 --                      })
-    
+
 -- end
 function element:get_root()
     return self._root
@@ -315,7 +324,7 @@ function element:_xpath_selector( tokens, idx )
             local k,v = unpack(string.split(string.sub(tok,4),"="))
 
             sel =  self:_xpath_attr_selector(all,k,v)
-            
+
         else
             sel = all
         end
@@ -375,16 +384,16 @@ function element:_get_dup(op)
     assert(type(self.key) == "string", "Key Cannot be of type other than string")
     local k,v = cur:get(self.key, flag)
 
-    
+
     local dict = {}
     if k == nil or v == nil then
         return dict
     end
     flag = lightningmdb.MDB_NEXT_DUP
     repeat
-    
+
         op(dict, k, v)
-        
+
         k,v = cur:get(self.key, flag)
     until k == nil
     cur:close()
@@ -401,13 +410,13 @@ function element:get_parent()
             -- print(xpath_split(self.key))
             -- print("eeeeeeeeee")
 
-            return element:new{_db = self._db, 
+            return element:new{_db = self._db,
                                key = parent,
                                e_type = "regular",
                                _root = self._root}
         else
             -- TODO: 判断新的real_key和key是否有交集，如果没有，则应该是该引用节点已经被删除
-            return element:new{_db = self._db, 
+            return element:new{_db = self._db,
                                key = xpath_split(self.key),
                                e_type = "ref",
                                real_key = parent,
@@ -428,7 +437,7 @@ function element:_remove_parent_refer()
     if parent.e_type == "regular" then
         local _, this = xpath_split(self.key)
         local map = {ref="s:", regular="c:"}
-        local this_key 
+        local this_key
         if self.e_type == "ref" then
             this_key = string.format("s:%s`%s" , this, self.key)
         else
@@ -451,7 +460,7 @@ function element:_remove()
         for i, v in ipairs(self:get_refers()) do
             v:_remove()
         end
-        -- remove all 
+        -- remove all
         self._db.txn:del(self._db.dbi, self.key, nil)
     else
         self._db.txn:del(self._db.dbi, self.key, string.format("r:%s", self.real_key))
@@ -541,7 +550,7 @@ function element:get_child(name)
                                          e_type = "ref"    -- ref
                                          real_key = string.format("%s%s%s", self.real_key or self.key, path_sep, name)
                                      else
-                                         e_type = "regular" -- regular 
+                                         e_type = "regular" -- regular
                                      end
                                      --print("Get", name)
                                      dict[name] = element:new{_db = self._db,
@@ -549,7 +558,7 @@ function element:get_child(name)
                                                               e_type = e_type,
                                                               real_key = real_key,
                                                               _root = self._root}
-                                                            
+
                                  end
                              end)
     end
@@ -560,7 +569,7 @@ function element:get_value()
                              if k and v  and k == self.key and string.sub(v, 1, 2) == "v:" then
                                  local value = string.sub(v, 3)
                                  dict[#dict+1] = value
-                             end 
+                             end
                          end)
 end
 
@@ -588,7 +597,7 @@ end
 function element:_raw_get( k )
     return self._db.txn:get(self._db.dbi, k)
 end
-function element:add_vector_node(k, itag)  
+function element:add_vector_node(k, itag)
 
     local o = self:add_node(k)
     o:add_attrib(vector_index_key, "1")
@@ -720,7 +729,7 @@ function element:to_table(args)
             result[k] = v:to_table(attr_flag)
         end
         if args and args.attr_flag==false then
-            
+
         else
         		result[to_table_attrib_key] = {}
         		local attrib = result[to_table_attrib_key]
@@ -806,7 +815,7 @@ function element:to_xml(str)
         str = ""
     end
     --local tmp = split(self.real_key or self.key, "/")
-    local root = self:tag() 
+    local root = self:tag()
     local values = self:get_value()
     local attrs = self:get_attrib()
     if #values == 0 then
@@ -829,13 +838,13 @@ function element:to_xml(str)
                 str = v:to_xml(str)
             end
         else
-            
+
             for k,v in pairs(childs) do
                 str = v:to_xml(str)
             end
         end
         str = str .. string.format("</%s>", root)
-        
+
     else
 
         for _,v in pairs(values) do
@@ -879,7 +888,7 @@ if ... == "__main__" then
     print("DONE")
 
     function test(db)
-        
+
         local e = db:get_root(root1)
         pprint.pprint(e, "Root")
         local e1 = e:add_node("Bank")
@@ -917,7 +926,7 @@ if ... == "__main__" then
 
         local host = branch:_xpath("Host1")
         host:show()
-        
+
     end
     function test_value(db)
         local e = db:get_root(root1)
@@ -932,7 +941,7 @@ if ... == "__main__" then
 
     end
     function test_xml(db)
-        
+
         local el = db:get_root(root1)
 
         pprint.pprint(el:to_xml())
@@ -952,7 +961,7 @@ if ... == "__main__" then
         r:show()
         print("symlink xml!")
         pprint.pprint(r:to_xml())
-        
+
         db:commit()
     end
     function test_more_sym(db)
@@ -1009,7 +1018,7 @@ if ... == "__main__" then
     end
     function test_walk( db )
         local r = db:get_root(root1)
-        local iter = 
+        local iter =
         function (e)
             if e:is_leaf() then
                 print(e:is_leaf())
@@ -1089,7 +1098,7 @@ if ... == "__main__" then
         node21 = node4:add_node("event")
         node21:add_pair("report","333")
         node21:add_pair("request","444")
-        
+
         local head = e:add_node("headbank")
         local host = head:add_node("host1")
         host:_add_ref("mem", node1)
@@ -1129,7 +1138,7 @@ if ... == "__main__" then
         db:with(test_remove_root_child)
         collectgarbage("collect")
 
-        db:withReadOnly(test_exist)    
+        db:withReadOnly(test_exist)
         db:with(test_vector)
         db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
         db:withReadOnly(test_merge)
