@@ -38,8 +38,9 @@ local function split(str,offset)
     end
     local cmd = ""
     for i=1,#splits do
-        items[keys[i]] = splits[i]
-        if i > 4 then
+        if i <= 4 then
+            items[keys[i]] = splits[i]
+        else
             cmd = cmd .. " " .. splits[i]
         end
     end
