@@ -23,7 +23,7 @@ endif
 
 libsigar.so:$(OBJTAG)
 	$(GCC) $(LNKFLAG) $(SYTMLIB) -o $@ $?
-#	mv $@ $(HOME)/lib
+	mv $@ $(HOME)/lib
 static:libsigar.a
 libsigar.a:$(OBJTAG)
 	$(AR) $(ARFLAGS) $@ $(OBJTAG)
