@@ -59,7 +59,7 @@ all: glr_s glr_sl
 
 glr_s: $(GDK_AR_LIBS) $(LUA_PACKAGE_C_LIBS) $(USER_AR_LIBS)
 	$(CXX) -o $@ $(CXXFLAGS) $(INPATH) $(LDPATH) $(LDFLAGS) $(USER_AR_LIBS) \
-	$(GDK_AR_LIBS) $(LUA_PACKAGE_C_LIBS) $(SOLIBS)
+	$(GDK_AR_LIBS) $(LUA_PACKAGE_C_LIBS) $(GDK_AR_LIBS) $(SOLIBS)
 
 glr_sl: glr_s $(USER_LUA_SCRIPT)
 	cp glr_s ./$@
