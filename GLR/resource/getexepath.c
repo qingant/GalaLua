@@ -68,7 +68,8 @@ static char *realpathname(const char * const pathname, char * const resolved,
     const char *src = pathname;
     const char * const sentinel = resolved + siz;
     if ((src[0] == '.')
-            && ((src[1] == '/') || ((src[1] == '.') && (src[2] == '/'))))
+            && (((src[1] == '/') || (src[1] == '\0'))
+                    || ((src[1] == '.') && ((src[2] == '/') || (src[2] == '\0')))))
     {
         if (getcwd(resolved, siz) == NULL)
         {
@@ -77,12 +78,12 @@ static char *realpathname(const char * const pathname, char * const resolved,
             return NULL;
         }
         dest = strchr(resolved, '\0');
-        if (src[1] == '/')
-        { /* (src[0] == '.') && (src[1] == '/') */
+        if (src[1] != '.')
+        { /* (src[0] == '.') && ((src[1] == '/') || (src[1] == '\0')) */
             src = &src[1];
         }
         else
-        { /* (src[0] == '.') && (src[1] == '.') && (src[2] == '/') */
+        { /* (src[0] == '.') && (src[1] == '.') && ((src[2] == '/') || (src[2] == '\0')) */
             src = &src[2];
             while ((dest > resolved) && (dest[0] != '/'))
             {
@@ -145,7 +146,7 @@ static char *realpathname(const char * const pathname, char * const resolved,
     }
     else if (dest > delimiter)
     { /* dest < sentinel */
-        dest[-1] = '\0';
+        dest[-1] = 0;
     }
     else
     { /* dest < sentinel */
@@ -172,13 +173,13 @@ static int path_resolving(const char * const pathname, char * const resolved,
     const char *cursor = buff;
     char * const sentinel = &buff[pathlength];
     char *delimiter = strchr(cursor, ':');
-    if (delimiter != NULL)
+    if (delimiter == NULL)
     {
-        delimiter[0] = '\0';
+        delimiter = sentinel;
     }
     else
     {
-        delimiter = sentinel;
+        delimiter[0] = '\0';
     }
 #ifdef PATH_MAX
     char fpath[PATH_MAX + 1] = {[sizeof(fpath) - 1] = '\0'};
@@ -189,52 +190,58 @@ static int path_resolving(const char * const pathname, char * const resolved,
     resolved[0] = '\0';
     while (cursor < sentinel)
     {
-        if (realpathname(cursor, &fpath[0], sizeof(fpath)) == NULL)
+        if (realpathname(cursor, &fpath[0], sizeof(fpath)) != NULL)
         {
-            fprintf(stderr, "Error: File %s, Function %s, Line %d.\n",
-                    __FILE__, __FUNCTION__, __LINE__);
-            break;
-        }
-        if ((length = strlcat(&fpath[0], "/", sizeof(fpath)))
-                >= sizeof(fpath))
-        {
-            fprintf(stderr, "Error: File %s, Function %s, Line %d, "
-                    "Truncation.\n", __FILE__, __FUNCTION__, __LINE__);
-            break;
-        }
-        if (strlcpy(&fpath[length], pathname, sizeof(fpath) - length)
-                >= sizeof(fpath) - length)
-        {
-            fprintf(stderr, "Error: File %s, Function %s, Line %d, "
-                    "Truncation.\n", __FILE__, __FUNCTION__, __LINE__);
-            break;
-        }
-        if (access(&fpath[0], R_OK) == 0)
-        {
-            if (strlcpy(resolved, &fpath[0], siz) >= siz)
+            if ((length = strlcat(&fpath[0], "/", sizeof(fpath)))
+                    >= sizeof(fpath))
             {
-                resolved[0] = '\0';
                 fprintf(stderr, "Error: File %s, Function %s, Line %d, "
                         "Truncation.\n", __FILE__, __FUNCTION__, __LINE__);
+                break;
             }
+            if (strlcpy(&fpath[length], pathname, sizeof(fpath) - length)
+                    < sizeof(fpath) - length)
+            {
+                if (access(&fpath[0], R_OK) == 0)
+                {
+                    if (strlcpy(resolved, &fpath[0], siz) >= siz)
+                    {
+                        resolved[0] = '\0';
+                        fprintf(stderr, "Error: File %s, Function %s, Line %d, "
+                                "Truncation.\n", __FILE__, __FUNCTION__,
+                                __LINE__);
+                    }
+                    break;
+                }
+            }
+            else
+            {
+                fprintf(stderr, "Error: File %s, Function %s, Line %d, "
+                        "Truncation.\n", __FILE__, __FUNCTION__, __LINE__);
+                break;
+            }
+        }
+        else if (errno != ENOENT)
+        {
+            fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                    __FILE__, __FUNCTION__, __LINE__, strerror(errno));
             break;
         }
-
         cursor = ++delimiter;
-        if ((delimiter = strchr(cursor, ':')) != NULL)
+        if ((delimiter = strchr(cursor, ':')) == NULL)
         {
-            delimiter[0] = '\0';
+            delimiter = sentinel;
         }
         else
         {
-            delimiter = sentinel;
+            delimiter[0] = '\0';
         }
     }
     free(buff);
     if (resolved[0] == '\0')
     {
-        fprintf(stderr, "Error: File %s, Function %s, Line %d, Not found.\n",
-                __FILE__, __FUNCTION__, __LINE__);
+        fprintf(stderr, "Error: File %s, Function %s, Line %d, "
+                "Not found.\n", __FILE__, __FUNCTION__, __LINE__);
         return -1;
     }
     return 0;
@@ -383,8 +390,8 @@ extern int getexepath(const char * const pathname, char * const resolved,
 #endif
         if (realpathname(pathname, &buff[0], sizeof(buff)) == NULL)
         {
-            fprintf(stderr, "Error: File %s, Function %s, Line %d.\n",
-                    __FILE__, __FUNCTION__, __LINE__);
+            fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                    __FILE__, __FUNCTION__, __LINE__, strerror(errno));
             return -1;
         }
         if (strlcpy(resolved, &buff[0], siz) >= siz)
