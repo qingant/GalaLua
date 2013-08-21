@@ -5,57 +5,99 @@ local osdatetime = require("osdatetime")
 
 local function trim(s)
     if type(s) == "string" then
-        return s:find'^%s*$' and '' or s:match'^%s*(.*%S)'
+        return s:match'^%s*(%S.*)'
     end
 end
 
-function processes_info_get()
-    local sig = sigar.new()
-    local pids = sig:procs()
-    local result = {}
-    local dvmem = sig:mem()
-    local cpus = sig:cpus()
-    --local cup_total = 0
-    --for i=1,#cpus do
-    --   local data = cpus[i]:data()
-    --   cpu_total = cup_total + data.total
-    --end
-    for i = 1,#pids do
-        local proc = sig:proc(pids[i])
-        if proc ~= nil then
-            local cpu = proc:cpu()
-            local item = {}
-            local cred,msg = proc:cred()
-            item["proc_user"] = cred.user
-            item["pid"] = pids[i]
-            cpu = proc:cpu()
-            item["cpu_usage"] = cpu.percent
-            local mem,msg = proc:mem()
-            item["mem_usage"] = mem.size / dvmem.total
-            local time,msg = proc:time()
-            item["start_time"] = os.date("%Y-%m-%d %H:%M:%S",time.start_time/1000)
-            item["run_time"] = osdatetime.gettimeofday().sec - (time.start_time/1000)
-            local stat = proc:state()
-            item["command"] = stat.name
-            result[#result + 1] = item
+local keys = {
+    "proc_user",
+    "pid",
+    "cpu_usage",
+    "mem_usage",
+    "start_time",
+    "run_time",
+    "command"
+}
+
+local function commondline(cmd)
+    local filehandle = io.popen(cmd)
+    local result = filehandle:read("*a")
+    filehandle:close()
+    return result
+end
+
+local function split(str,offset)
+    if type(str) ~= "string" then
+        error("invalid str ,must string type")
+    end
+    local items = {}
+    local index = 1
+    local splits = {}
+    for k,_ in string.gmatch(str,"%S+") do
+        splits[#splits+1] = k
+    end
+    local cmd = ""
+    for i=1,#splits do
+        items[keys[i]] = splits[i]
+        if i > 4 then
+            cmd = cmd .. " " .. splits[i]
         end
     end
-    return result
+    items["command"] = cmd
+    return items
+end
+
+local function readline(str)
+    if type(str) ~= "string" then
+        error("the readline para must be string type")
+    end
+    local states = {}
+    local ii = 0
+    local index = 1
+    while true do
+        ii = string.find(str,"\n",ii+1)
+        if ii == nil then break end
+        local value = string.sub(str,index,ii)
+        if string.find(value,"grep") == nil then
+            states[#states + 1] = split(value,#value)
+        end
+        index = ii+1
+    end
+    return states
 end
 
 function processes_info_by_name_get(name)
-    if name == nil then
-        error("name:invalid type")
+
+    local cmd = "ps -eo user,pid,pcpu,pmem,args "
+    if name == nil or name == "" then
+    elseif type(name)=="string" then
+        cmd = cmd .." | grep -E '"..name.."'"
+    elseif type(name)== "number" then
+        cmd = cmd .." | grep -E '"..tostring(name).."'"
+    elseif type(name) == "boolean" then
+        if name == true then
+            cmd = cmd.." |grep -E 'true'"
+        else
+            cmd = cmd.." |grep -E 'false'"
+        end
+    else
+        error("invalid type")
     end
-    local infos = processes_info_get()
-    local result = {}
-    for _,v in pairs(infos) do
-        for _,val in pairs(v) do
-            if trim(val) == trim(name) then
-                table.insert(result,v)
-                break
-            end
+    local res = commondline(cmd)
+    if res == nil or res == "" then
+        return {}
+    end
+    local procs = readline(res)
+    local sig = sigar.new()
+    for k,v in pairs(procs) do
+        local pid = v['pid']
+        local proc = sig:proc(pid)
+        local time,msg = proc:time()
+        if time ~= nil then
+            v['start_time'] = os.date("%Y-%m-%d %H:%M:%S",time.start_time/1000)
+            v['run_time'] = osdatetime.gettimeofday().sec - (time.start_time/1000)
         end
     end
-    return result
+    return procs
 end
+
