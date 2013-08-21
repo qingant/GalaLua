@@ -23,11 +23,12 @@ function processes_info_get()
     for i = 1,#pids do
         local proc = sig:proc(pids[i])
         if proc ~= nil then
+            local cpu = proc:cpu()
             local item = {}
             local cred,msg = proc:cred()
             item["proc_user"] = cred.user
             item["pid"] = pids[i]
-            local cpu = proc:cpu()
+            cpu = proc:cpu()
             item["cpu_usage"] = cpu.percent
             local mem,msg = proc:mem()
             item["mem_usage"] = mem.size / dvmem.total

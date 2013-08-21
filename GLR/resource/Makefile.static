@@ -16,12 +16,12 @@ LUA_PACKAGE_C_LIBS += $(PREFIX)/share/static/lua/cjson.a \
     $(PREFIX)/share/static/lua/struct.a \
     $(PREFIX)/share/static/lua/minizip.a \
     $(PREFIX)/share/static/lua/_dir.a \
-    $(PREFIX)/share/static/lua/iconv.a \
     $(PREFIX)/share/static/lua/xml.a \
     $(PREFIX)/share/static/lua/sigar.a \
     $(PREFIX)/share/static/libsigar.a \
     $(PREFIX)/share/static/libzip.a \
     $(PREFIX)/share/static/libluajit.a \
+    # $(PREFIX)/share/static/lua/iconv.a \
     # $(PREFIX)/share/static/libexpat.a
     # $(PREFIX)/share/static/lua/lxp.a
 
