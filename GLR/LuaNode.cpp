@@ -166,7 +166,7 @@ int Process::Spawn(lua_State *l)
                 lua_pushinteger(node._Stack, len);
                 break;
             default:
-                i = 1024;                    // Ìø³öÑ­»·
+                i = 1024;                    // ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½
                 break;
             }
         }
@@ -777,7 +777,7 @@ int GLR::Process::RegisterGlobal(lua_State *l)
     {
         return luaL_error(l, "userdata do not has metatable  %s %d", __func__, __LINE__);
     }
-    //!+ ÕâÒªÇóËù²Ù×÷ÀàÐÍ¾ßÓÐ"__my_name"ÊôÐÔ
+    //!+ ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¾ï¿½ï¿½ï¿½"__my_name"ï¿½ï¿½ï¿½ï¿½
     lua_getfield(l, -1, "__my_name");
 
     const char *type = luaL_checkstring(l, -1);
@@ -915,8 +915,8 @@ int GLR::Process::GLRStamp(lua_State *l)
 
 int GLR::Process::Exit(lua_State */*l*/)
 {
-    //TODO: ÅÐ¶Ïµ÷ÓÃ·½½ø³ÌºÅ£¬Ö»ÓÐÖ÷½ø³Ì£¨0ºÅ£©·½¿Éexit
-    //TODO: Ê¹ÓÃÆäËûÐÅºÅ£¬ÓÅÑÅ¿É¿ØµÄÍË³ö³ÌÐò
+    //TODO: ï¿½Ð¶Ïµï¿½ï¿½Ã·ï¿½ï¿½ï¿½ÌºÅ£ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì£ï¿½0ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½exit
+    //TODO: Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÅºÅ£ï¿½ï¿½ï¿½ï¿½Å¿É¿Øµï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½
     return kill(getpid(), SIGKILL);
 }
 
@@ -955,7 +955,7 @@ GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
         }
         if (id==0)
         {
-            GALA_ERROR("Cannot Spawn Process: cannot create more then %ld processes", NodeMap.size());
+            GALA_ERROR("Cannot Spawn Process: cannot create more then %zu processes", NodeMap.size());
             THROW_EXCEPTION_EX("Cannot Spawn Process");
         }
 
@@ -1057,7 +1057,7 @@ int GLR::Process::SpawnEx( lua_State *l )
                 lua_pushinteger(node._Stack, len);
                 break;
             default:
-                i = 1024;                    // Ìø³öÑ­»·
+                i = 1024;                    // ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½
                 break;
             }
         }
