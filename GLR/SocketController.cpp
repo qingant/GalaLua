@@ -414,7 +414,7 @@ void GLR::StreamLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev , PO
     Task &t = _SendTasks.Head();
     size_t len = _Sock->Send(&t.Buffer[t.Current], t.Buffer.size() - t.Current);
     t.Current += len;
-    GALA_ERROR("Current(%ld)", t.Current);
+    GALA_ERROR("Current(%zu)", t.Current);
     if (t.Current == t.Buffer.size())
     {
         int pid = t.Pid;
