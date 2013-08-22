@@ -45,10 +45,11 @@ local _logger = {
     enum_DEBUG = 1,
     enum_TRACE = 2,
     enum_INFO = 3,
-    enum_ERROR = 4,
-    enum_FATAL = 5,
+    enum_WARN =4,
+    enum_ERROR = 5,
+    enum_FATAL = 6,
 }
-local _loggerFlag ={"DEBUG", "TRACE", "INFO", "ERROR", "FATAL"}
+local _loggerFlag ={"DEBUG", "TRACE", "INFO","WARN", "ERROR", "FATAL"}
 logger = _logger
 function _logger:new(o)
     local o = o or {}
@@ -104,6 +105,10 @@ function _logger:info(format, ...)
 end
 function _logger:trace(format, ...)
     self:_log(self.enum_TRACE, format, ...)
+end
+
+function _logger:warn(format, ...)
+    self:_log(self.enum_WARN, format, ...)
 end
 function _logger:fatal(format, ...)
     self:_log(self.enum_FATAL, format, ...)
