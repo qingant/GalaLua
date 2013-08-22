@@ -18,6 +18,7 @@ LUA_PACKAGE_C_LIBS += $(PREFIX)/share/static/lua/cjson.a \
     $(PREFIX)/share/static/lua/_dir.a \
     $(PREFIX)/share/static/lua/xml.a \
     $(PREFIX)/share/static/lua/sigar.a \
+    $(PREFIX)/share/static/lua/osdatetime.a \
     $(PREFIX)/share/static/libsigar.a \
     $(PREFIX)/share/static/libzip.a \
     $(PREFIX)/share/static/libluajit.a \
@@ -49,7 +50,7 @@ ifeq ($(OS), AIX)
 	INPATH      = -I. -I$(PREFIX)/include -I$(PREFIX)/include/lua-5.1.5 -I$(PREFIX)/include/resource
 	LDPATH      = -L. -L/usr/local/lib/
 	LDFLAGS     = -q64 -brtl -brtllib
-	SOLIBS      = -lc -lm -ldl -lz -lpthread -lrt -liconv -lbsd -lC_r -ls -lperfstat -lodm
+	SOLIBS      = -lc -lm -ldl -lz -lpthread -lrt -liconv -lbsd -lC_r -ls -lperfstat -lodm -lcfg
 
 	CXX         = xlc++_r
 	CXXFLAGS    = -g -q64 -qcpluscmt -D_UNIX95_ -D_DEBUG_ -D_THREAD_SAFE -D__IBMCPP_TR1__ -D_ALL_SOURCE -D_BSD=44
@@ -59,7 +60,7 @@ all: glr_s glr_sl
 
 glr_s: $(GDK_AR_LIBS) $(LUA_PACKAGE_C_LIBS) $(USER_AR_LIBS)
 	$(CXX) -o $@ $(CXXFLAGS) $(INPATH) $(LDPATH) $(LDFLAGS) $(USER_AR_LIBS) \
-	$(GDK_AR_LIBS) $(LUA_PACKAGE_C_LIBS) $(SOLIBS)
+	$(GDK_AR_LIBS) $(LUA_PACKAGE_C_LIBS) $(GDK_AR_LIBS) $(SOLIBS)
 
 glr_sl: glr_s $(USER_LUA_SCRIPT)
 	cp glr_s ./$@
