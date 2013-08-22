@@ -16,7 +16,7 @@ local logging = require("logging")
 local osxpcall = xpcall
 local function _xpcall(action,err,...)
    local args = unpack{...}
-   return osxpcall(function() action(args) end,err)
+   return osxpcall(function() return action(args) end,err)
 end
 
 xpcall = _xpcall
