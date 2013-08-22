@@ -24,7 +24,7 @@ lua51:
 	$(MAKE) -C lua-5.1.5 && $(MAKE) -C lua-5.1.5 install
 luajit:
 	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 install
-glr:lua
+glr:lua lib
 	$(MAKE) -C GLR
 lobj:
 	$(MAKE) -C LuaObject
