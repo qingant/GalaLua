@@ -23,7 +23,7 @@ sqlite:
 json:
 	cd lua-cjson-2.1.0 && $(MAKE) all && mv cjson.so $(HOME)/lib/lua/ && $(MAKE) clean
 dba:
-	cd luadbi.0.5 && $(MAKE) sqlite3 && mv *.so $(HOME)/lib/lua/ && $(MAKE) clean
+	cd luasql/src && $(MAKE) all && mv *.so $(HOME)/lib/lua/ && $(MAKE) clean
 struct:
 	cd lua-struct && $(MAKE) && cp struct.so structX.lua $(HOME)/lib/lua/ && $(MAKE) clean
 libzip:
