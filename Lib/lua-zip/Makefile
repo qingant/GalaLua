@@ -73,8 +73,11 @@ LIBZIP_OBJECT=zip_add.o zip_add_dir.o zip_add_entry.o zip_close.o \
 	zip_unchange_all.o zip_unchange_archive.o zip_unchange_data.o zip_utf-8.o
 
 libzip.a:
-	cd libzip-0.11.1 && chmod +x configure && ./configure CC=$(CC) && OBJECT_MODE=64 && $(MAKE) -C lib
-	cd libzip-0.11.1/lib/.libs && $(AR) $(ARFLAGS) $@ $(LIBZIP_OBJECT) \
+	cd libzip-0.11.1 && chmod +x configure \
+			&& ./configure --enable-shared=no --enable-static=yes CC=$(CC) \
+			&& OBJECT_MODE=64 && $(MAKE) -C lib
+	cp libzip-0.11.1/lib/.libs/libzip.a $(HOME)/share/static
+#	cd libzip-0.11.1/lib/.libs && $(AR) $(ARFLAGS) $@ $(LIBZIP_OBJECT) \
 		&& $(RANLIB) $(RANLIBFLAGS) $@ && cp $@ $(HOME)/share/static
 
 clean:
