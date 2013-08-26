@@ -47,10 +47,10 @@ void daemonize(void)
     }
 
     /* Change the current working directory. */  
-    if ((chdir("/")) < 0)  
-    {  
-        exit(1);  
-    }  
+//    if ((chdir("/")) < 0)
+//    {
+//        exit(1);
+//    }
 
     fd = CRT_open("/dev/null",O_RDWR, 0);  
     if (fd != -1)  
