@@ -12,11 +12,12 @@ ifeq (${PLATFORM},Linux)
 	MAKE  = make
 	LDFLG = -shared
 	CFLAGS = -ansi -std=gnu99 -Wall -O2 -fPIC -I../../LuaJIT-2.0.0/src/
-	CC=gcc
+	CC= gcc -L../../zlib-1.2.6/ -I../../zlib-1.2.6
 	AR          = ar
 	ARFLAGS     = -rcu
 	RANLIB      = ranlib
 	RANLIBFLAGS =
+	LIBZIP_ZLIB = zlib_126
 else ifeq (${PLATFORM},AIX)
 	LDFLG = -qmkshrobj -q64 -bM:SRE -bnoentry -brtl -brtllib -berok
 	CFLAGS =  -q64 -O2 -I../../lua-5.1.5/src/ -L $(HOME)/lib -lm
@@ -26,10 +27,14 @@ else ifeq (${PLATFORM},AIX)
 	RANLIB      = ranlib
 	RANLIBFLAGS = -X64
 	MAKE        = gmake
+	LIBZIP_ZLIB = 
 endif
 
-libzip:
-	cd libzip-0.11.1 &&chmod +x configure && ./configure CC=$(CC) && export OBJECT_MODE=64 && $(MAKE) -C lib && cp -f lib/.libs/libzip.so* $(HOME)/lib/
+zlib_126:
+	cd zlib-1.2.6/ &&chmod +x configure && ./configure && make &&cp -a -f libz.so* $(HOME)/lib/
+	
+libzip:${LIBZIP_ZLIB}
+	cd libzip-0.11.1 &&chmod +x configure && ./configure CC="$(CC)" && export OBJECT_MODE=64 && $(MAKE) -C lib && cp -f lib/.libs/libzip.so* $(HOME)/lib/
 
 
 minizip:
