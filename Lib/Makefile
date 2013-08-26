@@ -11,19 +11,19 @@ else
 endif
 
 SQLITE_HOME = $(HOME)/
-DES = json struct libzip lfs linenoise md5 sigar time #luaxml cp sqlite dba
+DES = json struct libzip lfs linenoise md5 sigar time dba #luaxml cp sqlite
 all:$(DES)
 .PHONY:$(DES) static clean
 
 cp:
 	#cp -rf *.lua $(HOME)/lib/lua/
-	cp -rf luadbi.0.5/dbaccess.lua $(HOME)/lib/lua/
+	cp -rf luasql/src/dbaccess.lua $(HOME)/lib/lua/
 sqlite:
 	cd sqlite-src-3070900/sqlite-src-3070900 && ./configure --prefix=$(SQLITE_HOME) --disable-tcl --enable-shared --enable-threadsafe --enable-cross-thread-connections && $(MAKE) && $(MAKE) install && $(MAKE) clean
 json:
 	cd lua-cjson-2.1.0 && $(MAKE) all && mv cjson.so $(HOME)/lib/lua/ && $(MAKE) clean
 dba:
-	cd luasql/src && $(MAKE) all && mv *.so $(HOME)/lib/lua/ && $(MAKE) clean
+	cd luasql/src && $(MAKE) all && mv *.so $(HOME)/lib/lua/ && cp dbaccess.lua $(HOME)/lib/lua/ && $(MAKE) clean
 struct:
 	cd lua-struct && $(MAKE) && cp struct.so structX.lua $(HOME)/lib/lua/ && $(MAKE) clean
 libzip:
