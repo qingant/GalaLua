@@ -28,7 +28,7 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
 {
     while (true)
     {
-        Galaxy::GalaxyRT::CSelector::EV_PAIRS evs = _Poller.WaitEvent(-1);
+        Galaxy::GalaxyRT::CSelector::EV_PAIRS evs = _Poller.WaitEvent(30);
         for (size_t i = 0; i!= evs.size(); ++i)
         {
             Galaxy::GalaxyRT::CSelector::EV_PAIR &ev = evs[i];
@@ -161,6 +161,12 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
             _Sock->Close();
             return;
         }
+        if (_Router.has_key(id))
+        {
+            _Sock->Close();
+            return;
+        }
+        
         _Router.insert(std::make_pair(std::string(id), _Sock->GetFD()));
         GALA_DEBUG("%s registered", id);
         _Id = id;
@@ -512,10 +518,15 @@ void GLR::BusController::DoNodeClose( lua_State *l )
     {
         Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex);
         int fd = _Router.find_ex(id);
-        _Poller.Remove(fd);
-        delete _LinkMap[fd];
-        _LinkMap[fd] = NULL;
-        Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
+        if (_LinkMap[fd] != NULL)
+        {
+            _LinkMap[fd]->getSocket().Close();
+        }
+        else
+        {
+            _Router.erase(id);
+            GALA_ERROR("Fatal Error: Null Pointer");
+        }
     }
     catch (const Galaxy::GalaxyRT::CException &e)
     {

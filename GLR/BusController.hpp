@@ -32,6 +32,11 @@ namespace GLR
         virtual void OnErr(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&) = 0;
         virtual void OnRecv(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&) = 0;
         virtual void OnSend(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&) = 0;
+    public:
+        Galaxy::GalaxyRT::CSocket &getSocket()
+        {
+            return *_Sock;
+        }
     protected:
         std::auto_ptr<Galaxy::GalaxyRT::CSocket>  _Sock;
     };
