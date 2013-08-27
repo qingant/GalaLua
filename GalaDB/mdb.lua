@@ -211,7 +211,6 @@ end
 function element:walk(op, ...)
     op(self,...)
     for k,v in pairs(self:get_child()) do
-        print("WALK",k, v.key, v.real_key)
         v:walk(op, ...)
     end
 end
