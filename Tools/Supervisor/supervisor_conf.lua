@@ -208,8 +208,9 @@ function watchConf(env)
     function watch_conf:import()
         local mdb_path =db_path.config
         local db=mdb:new():init(create_with_path(mdb_path))
+        local _conf=self
 
-        db:withReadOnly(function (db,_conf) 
+        db:withReadOnly(function (db) 
             local root=db:get_root("Configure"):get_child("Contents")
             local lsr=root:get_child("LSRList")
 
@@ -262,7 +263,7 @@ function watchConf(env)
             stderr=stderr,stdout=stdout,group=group,entry=entry}
             _conf:save(e)
             ]]
-        end,self)
+        end)
         db:close()
     end
 
