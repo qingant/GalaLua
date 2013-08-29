@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include <sysexits.h>
+#include "SigleInstantiation.hpp"
 
 #include "resource/resource.h"
 #include "resource/resxloader.h"
@@ -104,12 +105,26 @@ int main( int argc, char* argv[] )
         Galaxy::GalaxyRT::CProcess _CProcess;
         GLR::Runtime::_pCProcess=&_CProcess;
 
-        _CProcess.Initialize(argc,argv,NULL,"m:?e:d:?h:?p:?c:?D");
+        _CProcess.Initialize(argc,argv,NULL,"m:?e:d:?h:?p:?c:?DS");
+
+        char *cwd = NULL;
+        char clib_path[256] = {};
+        cwd = getenv("HOME");
+        clib_path[sizeof(clib_path) - 1] = '\0';
+        strncpy(&clib_path[0], cwd, sizeof(clib_path) - 1);
+        strncat(&clib_path[0], "/glr_sl.pid", sizeof(clib_path) - 1);
+
+        if (_CProcess.ExistOption("S"))
+        {
+            DaemonProcTerm(&clib_path[0]);
+        }
 
         if (_CProcess.ExistOption("D"))
         {
             daemonize();
         }
+
+        SigleInstantiation sigledaemon("glr_sl", &clib_path[0]);
 
         std::string host;
         if (_CProcess.ExistOption("h"))
@@ -126,8 +141,6 @@ int main( int argc, char* argv[] )
             port = atoi(_CProcess.GetOption("p").c_str());
         }
         std::string cpath = "./\?.so;";
-        char *cwd = NULL;
-        char clib_path[256] = {};
 
         char lib_path[256] = {};
         cwd = getenv("GDK_HOME");
@@ -199,6 +212,11 @@ int main( int argc, char* argv[] )
         {
             usleep(1024*1024*1024);
         }
+    }
+    catch (const std::string &except)
+    {
+        std::cerr<<"exception: "<<except<<std::endl;
+        return 1;
     }
     catch (...)
     {

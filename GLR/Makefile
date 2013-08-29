@@ -14,10 +14,12 @@ libGLR.so:$(GLR_OBJ)
 static: res libGLR.a mkresx agent
 
 #libGLR.a: $(GLR_OBJ)
-libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/resxloader.o
+libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o \
+		resource/resxloader.o daemon.o SigleInstantiation.o
 	@echo $(PLATFORM)
 	rm -f $@
-	$(AR) $(ARFLAGS) $@ SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o resource/resxloader.o
+	$(AR) $(ARFLAGS) $@ SensorFrm.o $(GLR_OBJ) resource/bswap.o \
+		resource/resource.o resource/resxloader.o daemon.o SigleInstantiation.o
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static
 	mkdir -p $(HOME)/include/resource
