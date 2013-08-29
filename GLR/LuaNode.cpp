@@ -5,11 +5,12 @@
 #include "Process.hpp"
 #include <algorithm>
 //defines of static data member
+#define MAX_PROCESS_ID (1024*10)
 using namespace GLR;
 #if defined(HAVE_SUSE)
-std::vector<Process *> Process::NodeMap(10240,(Process *)0);
+std::vector<Process *> Process::NodeMap(MAX_PROCESS_ID,(Process *)0);
 #else
-std::vector<Process *> Process::NodeMap(10240, NULL);
+std::vector<Process *> Process::NodeMap(MAX_PROCESS_ID, NULL);
 #endif
 //std::vector<Process*>(10240);
 Galaxy::GalaxyRT::CRWLock Process::ProcessMapLock;
@@ -19,8 +20,9 @@ int32_t Process::NodeCount = 0;
 
 Process::Process(int id)
     : _Stack(lua_open()),
-    _Id(id == 0 ? NodeId++ : id)
+    _Id(id == 0 ? NodeId : id)
 {
+    ++NodeId;
     // step over supervisor binded pid
     if (NodeId == 1)
     {
@@ -640,19 +642,28 @@ void Process::Destory(LN_ID_TYPE pid)
     {
         if (p->_Status._State == Process::ProcessStatus::RECV_WAIT ||
             p->_Status._State == Process::ProcessStatus::INT_WAIT ||
-            p->_Status._State == Process::ProcessStatus::STOPED
+            p->_Status._State == Process::ProcessStatus::STOPED ||
+            p->_Status._State == Process::ProcessStatus::KILLED
             )
         {
             // Send Message To Parent Process
-            p->SendExitMsg();
+            try
+            {
+                p->SendExitMsg();
+            }
+            catch (const Galaxy::GalaxyRT::CException &e)
+            {
+                GALA_ERROR(e.what());
+            }
+
+            
 
             Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
-            Galaxy::GalaxyRT::CLockGuard _Gl(& _WL);
-
-
-            NodeMap[pid] = NULL;
-
-
+            Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
+            {
+                Galaxy::GalaxyRT::CLockGuard _GL1(& p->_IntLock); 
+                NodeMap[pid] = NULL;
+            }
             delete p;
             NodeCount--;
             if (NodeCount == 0)
@@ -666,8 +677,7 @@ void Process::Destory(LN_ID_TYPE pid)
         {
             p->_Status._Killed = true;
         }
-
-
+       
     }
 
 }
@@ -837,9 +847,17 @@ int GLR::Process::GetFilePath(lua_State *l)
 
 int GLR::Process::Kill(lua_State *l)
 {
-    int gpid = luaL_checkinteger(l, 1);
-    Destory(gpid);
-    return 0;
+    try
+    {
+        int gpid = luaL_checkinteger(l, 1);
+        Destory(gpid);
+        return 0;
+    }
+    catch (const Galaxy::GalaxyRT::CException &e)
+    {
+        GALA_ERROR(e.what());
+        return 0;
+    }
 }
 void GLR::Process::EntryGar(const std::string& Gar, const std::string& module, const std::string& entry, ...)
 {
@@ -942,17 +960,38 @@ GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
         GALA_ERROR("Cannot Create Process(id:%d)", id);
         THROW_EXCEPTION_EX("Cannot Create Process");
     }
-    else if (id == 0 && (size_t)NodeId > NodeMap.size())
+    else if (id == 0 && (size_t)NodeId >= NodeMap.size())
     {
-        for (size_t i = RESERVED_PID; i != NodeMap.size(); ++i)
+        size_t current = NodeId % NodeMap.size();
+        if (current == 0)
         {
+            NodeId += RESERVED_PID+1;
+            current += RESERVED_PID+1;
+        }
+
+        for (size_t i = current; i != NodeMap.size(); ++i)
+        {
+            GALA_DEBUG("ID: %d; Process: %p;", i, NodeMap[i]);
             if (NodeMap[i] == NULL)
             {
                 id = i;
                 break;
             }
-
         }
+        if (id == 0)
+        {
+            for (size_t i = RESERVED_PID + 1; i != current; ++i) 
+            {
+                if (NodeMap[i] == NULL)
+                {
+                    id = i;
+                    break;
+                }
+            }
+        }
+
+
+
         if (id==0)
         {
             GALA_ERROR("Cannot Spawn Process: cannot create more then %zu processes", NodeMap.size());

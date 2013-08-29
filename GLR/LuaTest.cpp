@@ -52,7 +52,7 @@ void daemonize(void)
     }  
 
     //close all useless fd(maybe invalid)
-    for (int i=0;i<fd;++i)
+    for (int i=3;i<fd;++i)
     {
         close(i);
     }

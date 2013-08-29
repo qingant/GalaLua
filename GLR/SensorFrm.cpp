@@ -4,9 +4,6 @@
  *  Created on: May 21, 2013
  *      Author: esuomyekcim
  */
- 
-
-
 
 #include "stdafx.h"
 #include "GLR.hpp"
@@ -17,8 +14,6 @@
 #include "resource/resxloader.h"
 
 using namespace GLR;
-
-
 
 void daemonize(void)  
 {  
@@ -47,10 +42,10 @@ void daemonize(void)
     }
 
     /* Change the current working directory. */  
-//    if ((chdir("/")) < 0)
-//    {
-//        exit(1);
-//    }
+    //    if ((chdir("/")) < 0)
+    //    {
+    //        exit(1);
+    //    }
 
     fd = CRT_open("/dev/null",O_RDWR, 0);  
     if (fd != -1)  
@@ -102,95 +97,111 @@ int main( int argc, char* argv[] )
     //{
     //    printf("Resume Error : %s\n", e.what());
     //}
-
-    Galaxy::GalaxyRT::CProcess _CProcess;
-    GLR::Runtime::_pCProcess=&_CProcess;
-
-    _CProcess.Initialize(argc,argv,NULL,"m:?e:d:?h:?p:?c:?D");
-
-    if (_CProcess.ExistOption("D"))
+    try
     {
-        daemonize();
-    }
+        Galaxy::GalaxyRT::CProcess _CProcess;
+        GLR::Runtime::_pCProcess=&_CProcess;
 
-    std::string host;
-    if (_CProcess.ExistOption("h"))
-    {
-        host = _CProcess.GetOption("h");
-    }
-    else
-    {
-        host = "0.0.0.0";
-    }
-    int port = 0;
-    if (_CProcess.ExistOption("p"))
-    {
-        port = atoi(_CProcess.GetOption("p").c_str());
-    }
-    std::string cpath = "./\?.so;";
-    char *cwd = NULL;
-    char clib_path[256] = {};
+        _CProcess.Initialize(argc,argv,NULL,"m:?e:d:?h:?p:?c:?D");
 
-    char lib_path[256] = {};
-    cwd = getenv("GDK_HOME");
-    if (cwd != NULL)
-    {
-        snprintf(clib_path, sizeof(clib_path), "%s/lib/lua/?.so;%s/lib/lua/?.so;", cwd, getenv("HOME"));
-        snprintf(lib_path, sizeof(lib_path), "%s/lib/lua/?.lua;%s/lib/lua/?.lua;", cwd, getenv("HOME"));
-    }
-
-    std::string path = "./\?.lua;";
-    path += lib_path;
-    if (_CProcess.ExistOption("d"))
-    {
-        path += _CProcess.GetOption("d");
-    }
-
-    setenv("LUA_PATH", path.c_str(), 1);
-
-
-    cpath += clib_path;
-    if (_CProcess.ExistOption("c"))
-    {
-        cpath += _CProcess.GetOption("c");
-    }
-
-    setenv("LUA_CPATH", cpath.c_str(), 1);
-
-    std::string entry = "main";
-    if (_CProcess.ExistOption("e"))
-    {
-        entry = _CProcess.GetOption("e");
-    }
-
-    //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
-    //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
-    GLR::Runtime::Initialize(host, port, GLR_initializer, &_CProcess);
-    if (_CProcess.ExistOption("g"))
-    {
-        GALA_DEBUG("RUNNING Gar package\n");
-        std::string file=_CProcess.GetOption("g");
-
-        std::string module;
-        if (_CProcess.ExistOption("m"))
+        if (_CProcess.ExistOption("D"))
         {
-            module=_CProcess.GetOption("m");
+            daemonize();
         }
-        GLR::Runtime::GetInstance().Entry(file,module,entry);
+
+        std::string host;
+        if (_CProcess.ExistOption("h"))
+        {
+            host = _CProcess.GetOption("h");
+        }
+        else
+        {
+            host = "0.0.0.0";
+        }
+        int port = 0;
+        if (_CProcess.ExistOption("p"))
+        {
+            port = atoi(_CProcess.GetOption("p").c_str());
+        }
+        std::string cpath = "./\?.so;";
+        char *cwd = NULL;
+        char clib_path[256] = {};
+
+        char lib_path[256] = {};
+        cwd = getenv("GDK_HOME");
+        if (cwd != NULL)
+        {
+            snprintf(clib_path, sizeof(clib_path), "%s/lib/lua/?.so;%s/lib/lua/?.so;", cwd, getenv("HOME"));
+            snprintf(lib_path, sizeof(lib_path), "%s/lib/lua/?.lua;%s/lib/lua/?.lua;", cwd, getenv("HOME"));
+        }
+
+        std::string path = "./\?.lua;";
+        path += lib_path;
+        if (_CProcess.ExistOption("d"))
+        {
+            path += _CProcess.GetOption("d");
+        }
+
+        setenv("LUA_PATH", path.c_str(), 1);
+
+
+        cpath += clib_path;
+        if (_CProcess.ExistOption("c"))
+        {
+            cpath += _CProcess.GetOption("c");
+        }
+
+        setenv("LUA_CPATH", cpath.c_str(), 1);
+
+        std::string entry = "main";
+        if (_CProcess.ExistOption("e"))
+        {
+            entry = _CProcess.GetOption("e");
+        }
+
+        //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
+        //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
+        GLR::Runtime::Initialize(host, port, GLR_initializer, &_CProcess);
+        if (_CProcess.ExistOption("g"))
+        {
+            GALA_DEBUG("RUNNING Gar package\n");
+            std::string file=_CProcess.GetOption("g");
+            //not absolute path
+            if (file[0]!='/')
+            {
+                if (cwd!=NULL)
+                {
+                    char path[256] = {};
+                    snprintf(path,sizeof(path),"%s/bin/%s",cwd,file.c_str());
+                    file=path;
+                }
+            }
+            std::string module;
+            if (_CProcess.ExistOption("m"))
+            {
+                module=_CProcess.GetOption("m");
+            }
+            GLR::Runtime::GetInstance().Entry(file,module,entry);
+        }
+        else if (_CProcess.ExistOption("m"))
+        {
+            std::string file=_CProcess.GetOption("m");
+            GLR::Runtime::GetInstance().Entry(file,entry);
+        }
+        else
+        {
+            GLR::Runtime::GetInstance().EntryEx(_CProcess.Arguments[1]);
+        }
+        //_CProcess.SetArgument("What the hell? Do not work?");
+        while (true)
+        {
+            usleep(1024*1024*1024);
+        }
     }
-    else if (_CProcess.ExistOption("m"))
+    catch (...)
     {
-        std::string file=_CProcess.GetOption("m");
-        GLR::Runtime::GetInstance().Entry(file,entry);
-    }
-    else
-    {
-        GLR::Runtime::GetInstance().EntryEx(_CProcess.Arguments[1]);
-    }
-    //_CProcess.SetArgument("What the hell? Do not work?");
-    while (true)
-    {
-        usleep(1024*1024*1024);
+        Runtime::GetInstance()._ElegantExit();
+        return 0;
     }
     //printf("test\n");
     //scanf("%d",new int);
