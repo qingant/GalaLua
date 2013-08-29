@@ -77,10 +77,10 @@ namespace Galaxy
             ParseOpt(optfmt);
 
             //clear for ps
-            for(int i=1; i<Argc; i++)
+            /*for(int i=1; i<Argc; i++)
             {
                 CRT_memset(Argv[i], 0x00, ArgPairs[i].first);
-            }
+            }*/
         }
 
         CProcess::~CProcess()
