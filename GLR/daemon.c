@@ -5,12 +5,6 @@
  *      Author: esuomyekcim
  */
 
-#include <stddef.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <sys/types.h>
-#include <stdbool.h>
-
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -21,12 +15,20 @@
 #include <sys/stat.h>
 #include <signal.h>
 
+#include "daemon.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+#ifndef PATH_DEVNULL
 #define PATH_DEVNULL    "/dev/null"
+#endif
+
+#ifndef NUMFD_TO_CLOSE
+#define NUMFD_TO_CLOSE  (4096)
+#endif
 
 /**
  * 将调用进程转为后台执行的daemon进程
@@ -81,34 +83,36 @@ extern int daemon(const int nochdir, const int noclose)
 
             if (noclose == 0)
             {
-                long int maxfd;
-                if ((maxfd = sysconf(_SC_OPEN_MAX)) == -1)
+                long int tmpfd = sysconf(_SC_OPEN_MAX);
+                if (tmpfd == -1)
                 {
-                    maxfd = MAXFD_TO_CLOSE;
+                    tmpfd = NUMFD_TO_CLOSE;
                 }
-                for (int fd = 0; fd < maxfd; ++ fd)
+                while ((--tmpfd) > -1)
                 {
-                    close(fd);
+                    close(tmpfd);
                 }
                 const int fd = open(PATH_DEVNULL, O_RDWR, 0);
-                if (fd != -1)
+                if (fd == -1)
                 {
-                    if (dup2(fd, STDIN_FILENO) != STDIN_FILENO)
-                    {
-                        return -1;
-                    }
-                    if (dup2(fd, STDOUT_FILENO) != STDOUT_FILENO)
-                    {
-                        return -1;
-                    }
-                    if (dup2(fd, STDERR_FILENO) != STDERR_FILENO)
-                    {
-                        return -1;
-                    }
-                    if (fd > STDERR_FILENO)
-                    {
-                        close(fd);
-                    }
+                    return -1;
+                }
+                if (dup2(fd, STDIN_FILENO) != STDIN_FILENO)
+                {
+                    return -1;
+                }
+                if (dup2(fd, STDOUT_FILENO) != STDOUT_FILENO)
+                {
+                    return -1;
+                }
+                if (dup2(fd, STDERR_FILENO) != STDERR_FILENO)
+                {
+                    return -1;
+                }
+                if ((fd != STDIN_FILENO) && (fd != STDOUT_FILENO)
+                        && (fd != STDERR_FILENO))
+                {
+                    close(fd);
                 }
             }
             return 0; /* grandchild returned */
@@ -170,6 +174,66 @@ extern pid_t lockfsegmentif(const int fd, const int type, const int whence,
         return (pid_t) -1;
     }
     return ((buff.l_type == F_UNLCK) ? (pid_t) 0 : buff.l_pid);
+}
+
+extern ssize_t writen(const int fd, const void * const buf, const size_t siz)
+{
+    ssize_t numWritten;
+    size_t totWritten = 0;
+    const char *buff = (const char *) buf;
+    while (totWritten < siz)
+    {
+        if((numWritten = write(fd, buff, siz - totWritten)) > 0)
+        {
+            buff += numWritten;
+            totWritten += numWritten;
+        }
+        else if (numWritten == 0)
+        {
+            return totWritten;
+        }
+        else if (errno != EINTR)
+        {
+            if (totWritten == 0)
+            {
+                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                        __FILE__, __FUNCTION__, __LINE__, strerror(errno));
+                return -1;
+            }
+            return totWritten;
+        }
+    }
+    return totWritten; /* 如果writen从此处返回，totWritten的值为siz */
+}
+
+extern ssize_t readn(const int fd, void * const buf, const size_t siz)
+{
+    ssize_t numRead;
+    size_t totRead = 0;
+    char *buff = (char *) buf;
+    while (totRead < siz)
+    {
+        if((numRead = read(fd, buff, siz - totRead)) > 0)
+        {
+            buff += numRead;
+            totRead += numRead;
+        }
+        else if (numRead == 0)
+        { /* 已读到文件结尾. */
+            return totRead; /* 如果这是第一次调用read函数，totRead的值可能为0 */
+        }
+        else if (errno != EINTR)
+        {
+            if (totRead == 0)
+            {
+                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                        __FILE__, __FUNCTION__, __LINE__, strerror(errno));
+                return -1;
+            }
+            return totRead;
+        }
+    }
+    return totRead; /* 如果readn从此处返回，totRead的值为siz */
 }
 
 /**

@@ -10,53 +10,55 @@
 #include "Process.hpp"
 #include <unistd.h>
 
+#include <sysexits.h>
+
 #include "resource/resource.h"
 #include "resource/resxloader.h"
 
 using namespace GLR;
 
-void daemonize(void)  
-{  
-    pid_t pid, sid;  
-    int fd;   
+void daemonize(void)
+{
+    pid_t pid, sid;
+    int fd;
 
-    /* Fork off the parent process */  
-    pid = CRT_fork();  
-    if (pid < 0)    
-    {     
-        exit(1);  
-    }     
-
-    if (pid > 0)    
-    {     
-        exit(0); /*Killing the Parent Process*/  
-    }     
-
-    /* At this point we are executing as the child process */  
-
-    /* Create a new SID for the child process */  
-    sid = setsid();  
-    if (sid < 0)    
-    {  
-        exit(1);  
+    /* Fork off the parent process */
+    pid = CRT_fork();
+    if (pid < 0)
+    {
+        exit(1);
     }
 
-    /* Change the current working directory. */  
+    if (pid > 0)
+    {
+        exit(0); /*Killing the Parent Process*/
+    }
+
+    /* At this point we are executing as the child process */
+
+    /* Create a new SID for the child process */
+    sid = setsid();
+    if (sid < 0)
+    {
+        exit(1);
+    }
+
+    /* Change the current working directory. */
     //    if ((chdir("/")) < 0)
     //    {
     //        exit(1);
     //    }
 
-    fd = CRT_open("/dev/null",O_RDWR, 0);  
-    if (fd != -1)  
-    {  
-        CRT_dup2 (fd,0);  
-        CRT_dup2 (fd,1);  
-        CRT_dup2 (fd,2);  
-    }  
+    fd = CRT_open("/dev/null",O_RDWR, 0);
+    if (fd != -1)
+    {
+        CRT_dup2 (fd,0);
+        CRT_dup2 (fd,1);
+        CRT_dup2 (fd,2);
+    }
 
     //close all useless fd(maybe invalid)
-    for (int i=0;i<fd;++i)
+    for (int i=3;i<fd;++i)
     {
         close(i);
     }
@@ -64,9 +66,9 @@ void daemonize(void)
     {
         close(i);
     }
-    /*resettign File Creation Mask */  
-    CRT_umask(027);  
-}  
+    /*resettign File Creation Mask */
+    CRT_umask(027);
+}
 
 int main( int argc, char* argv[] )
 {
@@ -201,7 +203,7 @@ int main( int argc, char* argv[] )
     catch (...)
     {
         Runtime::GetInstance()._ElegantExit();
-        return 0;
+        return EX_IOERR;
     }
     //printf("test\n");
     //scanf("%d",new int);
