@@ -34,7 +34,7 @@ extern "C"
  * @param noclose 等于零时，关闭当前进程已打开的文件描述符，并将标准输入、标准输出和标准错误重定向到/dev/null
  * @return 执行成功，返回0；否则，返回-1.
  */
-int daemonize(const int nochdir, const int noclose)
+extern int daemon(const int nochdir, const int noclose)
 {
     struct sigaction act;
     if (sigemptyset(&act.sa_mask) != 0)
@@ -51,7 +51,7 @@ int daemonize(const int nochdir, const int noclose)
     if (pid > 0)
     { /* parent process */
         _exit(EXIT_SUCCESS);
-        return EXIT_SUCCESS; /* non sense, but make Eclipse CDT happy. */
+        return EXIT_SUCCESS; /* senseless, but make Eclipse CDT happy. */
     }
     else if (pid == 0)
     { /* child process */
@@ -65,7 +65,7 @@ int daemonize(const int nochdir, const int noclose)
         if ((pid = fork()) > 0)
         { /* child process */
             _exit(EXIT_SUCCESS);
-            return EXIT_SUCCESS; /* non sense, but make Eclipse CDT happy. */
+            return EXIT_SUCCESS; /* senseless, but make Eclipse CDT happy. */
         }
         else if (pid == 0)
         { /* grandchild process */
@@ -84,7 +84,7 @@ int daemonize(const int nochdir, const int noclose)
                 long int maxfd;
                 if ((maxfd = sysconf(_SC_OPEN_MAX)) == -1)
                 {
-                    maxfd = 1024;
+                    maxfd = MAXFD_TO_CLOSE;
                 }
                 for (int fd = 0; fd < maxfd; ++ fd)
                 {
@@ -105,7 +105,7 @@ int daemonize(const int nochdir, const int noclose)
                     {
                         return -1;
                     }
-                    if (fd > 2)
+                    if (fd > STDERR_FILENO)
                     {
                         close(fd);
                     }
@@ -122,6 +122,140 @@ int daemonize(const int nochdir, const int noclose)
     { /* first fork() returned -1. */
         return -1;
     }
+}
+
+extern int lockfsegment(const int fd, const int type, const int whence,
+        const int start, const int len)
+{
+    struct flock buff = {
+            .l_type = type, .l_whence = whence,
+            .l_start = start, .l_len = len
+    };
+    if (fcntl(fd, F_SETLK, &buff) == -1)
+    {
+        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                __FILE__, __FUNCTION__, __LINE__, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+extern int lockfsegmentw(const int fd, const int type, const int whence,
+        const int start, const int len)
+{
+    struct flock buff = {
+            .l_type = type, .l_whence = whence,
+            .l_start = start, .l_len = len
+    };
+    if (fcntl(fd, F_SETLKW, &buff) == -1)
+    {
+        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                __FILE__, __FUNCTION__, __LINE__, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+extern pid_t lockfsegmentif(const int fd, const int type, const int whence,
+        const int start, const int len)
+{
+    struct flock buff = {
+            .l_type = type, .l_whence = whence,
+            .l_start = start, .l_len = len
+    };
+    if (fcntl(fd, F_GETLK, &buff) == -1)
+    {
+        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                __FILE__, __FUNCTION__, __LINE__, strerror(errno));
+        return (pid_t) -1;
+    }
+    return ((buff.l_type == F_UNLCK) ? (pid_t) 0 : buff.l_pid);
+}
+
+/**
+ *
+ * @param progname 程序名
+ * @param fpath progname.pid文件的路径
+ * @param flags 指定FD_CLOEXEC标志
+ * @return 成功，返回progname.pid文件的描述符；否则，返回-1.
+ */
+extern int uniqueness(const char * const progname, const char * const fpath,
+        int flags)
+{
+    const int fd = open(fpath, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    if (fd == -1)
+    {
+        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, "
+                "Could not open PID file %s.\n", __FILE__, __FUNCTION__,
+                __LINE__, strerror(errno), fpath);
+        return -1;
+    }
+    do {
+        if (flags & FD_CLOEXEC)
+        {
+            if ((flags = fcntl(fd, F_GETFD)) == -1)
+            {
+                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, "
+                        "Could not get flags for PID file %s.\n", __FILE__,
+                        __FUNCTION__, __LINE__, strerror(errno), fpath);
+                break;
+            }
+            flags |= FD_CLOEXEC;
+            if (fcntl(fd, F_SETFD, flags) == -1)
+            {
+                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, "
+                        "Could not set flags for PID file %s.\n", __FILE__,
+                        __FUNCTION__, __LINE__, strerror(errno), fpath);
+                break;
+            }
+        }
+        if (lockfsegment(fd, F_WRLCK, SEEK_SET, 0, 0) == -1)
+        {
+            if ((errno == EAGAIN) || (errno == EACCES))
+            {
+                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, "
+                        "PID file '%s' is locked, "
+                        "probably '%s' is already running.\n", __FILE__,
+                        __FUNCTION__, __LINE__, strerror(errno), fpath, progname);
+            }
+            else
+            {
+                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, "
+                        "Unable to lock PID file '%s'.\n", __FILE__, __FUNCTION__,
+                        __LINE__, strerror(errno), fpath);
+            }
+            break;
+        }
+        if (ftruncate(fd, 0) == -1)
+        {
+            fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                    __FILE__, __FUNCTION__, __LINE__, strerror(errno));
+            break;
+        }
+        char buff[64];
+        const int length = snprintf(&buff[0], sizeof(buff), "%" PRIuMAX "\n",
+                (uintmax_t) getpid());
+        if (length >= (int) sizeof(buff))
+        {
+            fprintf(stderr, "Error: File %s, Function %s, Line %d, Truncation.\n",
+                    __FILE__, __FUNCTION__, __LINE__);
+        }
+        /**
+         * 需要保证buff中的内容全写入文件中，也许需要writen函数。
+         */
+        if (writen(fd, &buff[0], length) == -1)
+        {
+            fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                    __FILE__, __FUNCTION__, __LINE__, strerror(errno));
+            break;
+        }
+        return fd;
+    } while (false);
+    while ((close(fd) == -1) && (errno == EINTR))
+    {
+        /* null sentence */
+    }
+    return -1;
 }
 
 #ifdef __cplusplus
