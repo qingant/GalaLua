@@ -20,8 +20,9 @@ int32_t Process::NodeCount = 0;
 
 Process::Process(int id)
     : _Stack(lua_open()),
-    _Id(id == 0 ? NodeId++ : id)
+    _Id(id == 0 ? NodeId : id)
 {
+    ++NodeId;
     // step over supervisor binded pid
     if (NodeId == 1)
     {
@@ -959,17 +960,38 @@ GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
         GALA_ERROR("Cannot Create Process(id:%d)", id);
         THROW_EXCEPTION_EX("Cannot Create Process");
     }
-    else if (id == 0 && (size_t)NodeId > NodeMap.size())
+    else if (id == 0 && (size_t)NodeId >= NodeMap.size())
     {
-        for (size_t i = RESERVED_PID; i != NodeMap.size(); ++i)
+        size_t current = NodeId % NodeMap.size();
+        if (current == 0)
         {
+            NodeId += RESERVED_PID+1;
+            current += RESERVED_PID+1;
+        }
+
+        for (size_t i = current; i != NodeMap.size(); ++i)
+        {
+            GALA_DEBUG("ID: %d; Process: %p;", i, NodeMap[i]);
             if (NodeMap[i] == NULL)
             {
                 id = i;
                 break;
             }
-
         }
+        if (id == 0)
+        {
+            for (size_t i = RESERVED_PID + 1; i != current; ++i) 
+            {
+                if (NodeMap[i] == NULL)
+                {
+                    id = i;
+                    break;
+                }
+            }
+        }
+
+
+
         if (id==0)
         {
             GALA_ERROR("Cannot Spawn Process: cannot create more then %zu processes", NodeMap.size());
