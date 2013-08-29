@@ -5,11 +5,12 @@
 #include "Process.hpp"
 #include <algorithm>
 //defines of static data member
+#define MAX_PROCESS_ID (1024*10)
 using namespace GLR;
 #if defined(HAVE_SUSE)
-std::vector<Process *> Process::NodeMap(10240,(Process *)0);
+std::vector<Process *> Process::NodeMap(MAX_PROCESS_ID,(Process *)0);
 #else
-std::vector<Process *> Process::NodeMap(10240, NULL);
+std::vector<Process *> Process::NodeMap(MAX_PROCESS_ID, NULL);
 #endif
 //std::vector<Process*>(10240);
 Galaxy::GalaxyRT::CRWLock Process::ProcessMapLock;
@@ -640,19 +641,28 @@ void Process::Destory(LN_ID_TYPE pid)
     {
         if (p->_Status._State == Process::ProcessStatus::RECV_WAIT ||
             p->_Status._State == Process::ProcessStatus::INT_WAIT ||
-            p->_Status._State == Process::ProcessStatus::STOPED
+            p->_Status._State == Process::ProcessStatus::STOPED ||
+            p->_Status._State == Process::ProcessStatus::KILLED
             )
         {
             // Send Message To Parent Process
-            p->SendExitMsg();
+            try
+            {
+                p->SendExitMsg();
+            }
+            catch (const Galaxy::GalaxyRT::CException &e)
+            {
+                GALA_ERROR(e.what());
+            }
+
+            
 
             Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
-            Galaxy::GalaxyRT::CLockGuard _Gl(& _WL);
-
-
-            NodeMap[pid] = NULL;
-
-
+            Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
+            {
+                Galaxy::GalaxyRT::CLockGuard _GL1(& p->_IntLock); 
+                NodeMap[pid] = NULL;
+            }
             delete p;
             NodeCount--;
             if (NodeCount == 0)
@@ -666,8 +676,7 @@ void Process::Destory(LN_ID_TYPE pid)
         {
             p->_Status._Killed = true;
         }
-
-
+       
     }
 
 }
@@ -837,9 +846,17 @@ int GLR::Process::GetFilePath(lua_State *l)
 
 int GLR::Process::Kill(lua_State *l)
 {
-    int gpid = luaL_checkinteger(l, 1);
-    Destory(gpid);
-    return 0;
+    try
+    {
+        int gpid = luaL_checkinteger(l, 1);
+        Destory(gpid);
+        return 0;
+    }
+    catch (const Galaxy::GalaxyRT::CException &e)
+    {
+        GALA_ERROR(e.what());
+        return 0;
+    }
 }
 void GLR::Process::EntryGar(const std::string& Gar, const std::string& module, const std::string& entry, ...)
 {
