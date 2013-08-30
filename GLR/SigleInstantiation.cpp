@@ -42,14 +42,28 @@ static ssize_t ExtraInfo(const int fd)
 }
 
 
-SigleInstantiation::SigleInstantiation(const char *const progname,
-        const char *const pathname):progname(progname), pathname(pathname)
+SigleInstantiation::SigleInstantiation(const char *const prog,
+        const char *const path):progname(prog), pathname(path)
 {
-    if ((fd = uniqueness(progname, pathname, 0)) == -1)
+    if ((fd = uniqueness(prog, path, 0)) == -1)
     {
         char buff[512];
         snprintf(&buff[0], sizeof(buff), "progname: %s, pathname: %s, %s",
-                progname, pathname, strerror(errno));
+                prog, path, strerror(errno));
+        std::string except(&buff[0]);
+        throw(except);
+    }
+    ExtraInfo(fd);
+}
+
+SigleInstantiation::SigleInstantiation(const std::string &prog,
+        const std::string &path):progname(prog), pathname(path)
+{
+    if ((fd = uniqueness(prog.c_str(), path.c_str(), 0)) == -1)
+    {
+        char buff[512];
+        snprintf(&buff[0], sizeof(buff), "progname: %s, pathname: %s, %s",
+                prog.c_str(), path.c_str(), strerror(errno));
         std::string except(&buff[0]);
         throw(except);
     }

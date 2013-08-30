@@ -25,7 +25,8 @@ extern "C"
 class SigleInstantiation
 {
 public:
-    SigleInstantiation(const char *const progname, const char *const pathname);
+    SigleInstantiation(const char *const prog, const char *const path);
+    SigleInstantiation(const std::string &prog, const std::string &path);
     ~SigleInstantiation();
 
 private:

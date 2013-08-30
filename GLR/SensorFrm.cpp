@@ -10,6 +10,7 @@
 #include "Process.hpp"
 #include <unistd.h>
 
+#include <string>
 #include <sysexits.h>
 #include "SigleInstantiation.hpp"
 
@@ -105,18 +106,34 @@ int main( int argc, char* argv[] )
         Galaxy::GalaxyRT::CProcess _CProcess;
         GLR::Runtime::_pCProcess=&_CProcess;
 
-        _CProcess.Initialize(argc,argv,NULL,"m:?e:d:?h:?p:?c:?DS");
-
-        char *cwd = NULL;
-        char clib_path[256] = {};
-        cwd = getenv("HOME");
-        clib_path[sizeof(clib_path) - 1] = '\0';
-        strncpy(&clib_path[0], cwd, sizeof(clib_path) - 1);
-        strncat(&clib_path[0], "/glr_sl.pid", sizeof(clib_path) - 1);
+        _CProcess.Initialize(argc,argv,NULL,"m:?e:d:?h:?p:?c:?DSw:");
+/**
+ * 处理pidfile（开始）
+ */
+        std::string pidpathname;
+        if (_CProcess.ExistOption("w"))
+        {
+            pidpathname = _CProcess.GetOption("w");
+            if (pidpathname.length() == 0)
+            {
+                std::cerr<<"Option 'w' require parameter."<<std::endl;
+                exit(EX_USAGE);
+            }
+            pidpathname += std::string("/glr_sl.pid");
+        }
+        else
+        {
+            std::cerr<<"No 'w' option, "
+                    "PLEASE ENTER THE CURRENT WORKING DIRECTORY!"<<std::endl;
+            exit(EX_USAGE);
+        }
+/**
+ * 处理pidfile（结束）
+ */
 
         if (_CProcess.ExistOption("S"))
         {
-            DaemonProcTerm(&clib_path[0]);
+            DaemonProcTerm(pidpathname.c_str());
         }
 
         if (_CProcess.ExistOption("D"))
@@ -124,7 +141,8 @@ int main( int argc, char* argv[] )
             daemonize();
         }
 
-        SigleInstantiation sigledaemon("glr_sl", &clib_path[0]);
+        SigleInstantiation sigledaemon(std::string("glr_sl"), pidpathname);
+        pidpathname.~string();
 
         std::string host;
         if (_CProcess.ExistOption("h"))
@@ -140,33 +158,35 @@ int main( int argc, char* argv[] )
         {
             port = atoi(_CProcess.GetOption("p").c_str());
         }
-        std::string cpath = "./\?.so;";
+//        std::string cpath = "./\?.so;";
+        char *cwd = NULL;
+//        char clib_path[256] = {};
 
-        char lib_path[256] = {};
-        cwd = getenv("GDK_HOME");
-        if (cwd != NULL)
-        {
-            snprintf(clib_path, sizeof(clib_path), "%s/lib/lua/?.so;%s/lib/lua/?.so;", cwd, getenv("HOME"));
-            snprintf(lib_path, sizeof(lib_path), "%s/lib/lua/?.lua;%s/lib/lua/?.lua;", cwd, getenv("HOME"));
-        }
+//        char lib_path[256] = {};
+//        cwd = getenv("GDK_HOME");
+//        if (cwd != NULL)
+//        {
+//            snprintf(clib_path, sizeof(clib_path), "%s/lib/lua/?.so;%s/lib/lua/?.so;", cwd, getenv("HOME"));
+//            snprintf(lib_path, sizeof(lib_path), "%s/lib/lua/?.lua;%s/lib/lua/?.lua;", cwd, getenv("HOME"));
+//        }
 
-        std::string path = "./\?.lua;";
-        path += lib_path;
-        if (_CProcess.ExistOption("d"))
-        {
-            path += _CProcess.GetOption("d");
-        }
-
-        setenv("LUA_PATH", path.c_str(), 1);
-
-
-        cpath += clib_path;
-        if (_CProcess.ExistOption("c"))
-        {
-            cpath += _CProcess.GetOption("c");
-        }
-
-        setenv("LUA_CPATH", cpath.c_str(), 1);
+//        std::string path = "./\?.lua;";
+//        path += lib_path;
+//        if (_CProcess.ExistOption("d"))
+//        {
+//            path += _CProcess.GetOption("d");
+//        }
+//
+//        setenv("LUA_PATH", path.c_str(), 1);
+//
+//
+//        cpath += clib_path;
+//        if (_CProcess.ExistOption("c"))
+//        {
+//            cpath += _CProcess.GetOption("c");
+//        }
+//
+//        setenv("LUA_CPATH", cpath.c_str(), 1);
 
         std::string entry = "main";
         if (_CProcess.ExistOption("e"))
