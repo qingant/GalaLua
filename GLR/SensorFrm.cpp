@@ -21,7 +21,7 @@
 
 using namespace GLR;
 
-void start(void)
+void start(int timeout=1,int retries=10)
 {
 again:
     int pid=fork();
@@ -35,8 +35,14 @@ again:
             {
                 throw "waitpid error ...\n";
             }
-            //TODO: wait some seconds before start agent??
-            goto again;
+            if ((retries--)>0){
+                printf("retry :%d\n",retries);
+                sleep(timeout);
+                goto again;
+            }
+            else{
+                exit(0);
+            }
         }
     }
 
