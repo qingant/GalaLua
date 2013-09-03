@@ -16,6 +16,7 @@
 #include <sys/select.h>
 
 #include <ctime>
+#include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <climits>
@@ -32,15 +33,23 @@ extern "C"
 }
 #endif
 
+/**
+ * pidfile.pid文件的内容
+ * 1. pid
+ * 2. ppid
+ * 3. uid
+ * 4. create time(time_t)
+ * 5. readable time
+ */
 static ssize_t ExtraInfo(const int fd)
 {
     const time_t current = time((time_t *) 0);
     char buff[256];
-    const int length = snprintf(&buff[0], sizeof(buff), "%lu\n%ld\n%s\n",
-            (unsigned long) getuid(), (long int) current, ctime(&current));
+    const int length = snprintf(&buff[0], sizeof(buff), "%lu\n%lu\n%ld\n%s\n",
+            (unsigned long) getppid(), (unsigned long) getuid(),
+            (long int) current, ctime(&current));
     return writen(fd, &buff[0], length);
 }
-
 
 SigleInstantiation::SigleInstantiation(const char *const prog,
         const char *const path):progname(prog), pathname(path)
@@ -75,7 +84,7 @@ SigleInstantiation::~SigleInstantiation()
     ftruncate(fd, 0);
     char buff[256];
     const time_t current = time((time_t *) 0);
-    const ssize_t length = snprintf(&buff[0], sizeof(buff), "0\n%lu\n%ld\n%s\n",
+    const ssize_t length = snprintf(&buff[0], sizeof(buff), "0\n0\n%lu\n%ld\n%s\n",
             (unsigned long) getuid(), (long int) current, ctime(&current));
     writen(fd, &buff[0], length);
     close(fd);
@@ -117,6 +126,7 @@ int DaemonProcTerm(const char * const pathname, const pid_t pidvar)
 {
     char buff[512];
     unsigned long pid = pidvar;
+    pid_t ppid = 0;
     if (pid == 0)
     {
         const int fd = open(pathname, O_RDONLY);
@@ -141,9 +151,15 @@ int DaemonProcTerm(const char * const pathname, const pid_t pidvar)
         {
             throw(std::string("pid failed"));
         }
+        ppid = strtoul(endptr, (char **)NULL, 10);
+        if ((errno == ERANGE && pid == ULONG_MAX) || (errno != 0 && pid != 0))
+        {
+            throw(std::string("pid failed"));
+        }
+        std::cerr<<"pid = "<<pid<<", ppid = "<<ppid<<std::endl;
     }
     pidcmdline(pid, &buff[0], sizeof(buff));
-    std::cerr<<"are you sure to close this process? (YES or NO)"<<std::endl;
+    std::cerr<<"are you sure to stop this process? (YES or NO)"<<std::endl;
     std::string tmp;
     std::cin>>tmp;
     if (strncmp(tmp.c_str(), "YES", 3) != 0)
@@ -157,6 +173,7 @@ int DaemonProcTerm(const char * const pathname, const pid_t pidvar)
         std::cerr<<pathname<<": pid not exist"<<std::endl;
         exit(EXIT_SUCCESS);
     }
+    kill(ppid, SIGTERM);
     kill((pid_t) pid, SIGTERM);
     std::cerr<<"glr_sl to be stopped"<<std::endl;
     struct timeval timeout;
@@ -165,6 +182,7 @@ int DaemonProcTerm(const char * const pathname, const pid_t pidvar)
     select(0, (fd_set *) 0, (fd_set *) 0, (fd_set *) 0, &timeout);
     if (kill((pid_t) pid, 0) == 0)
     {
+        kill(ppid, SIGKILL);
         kill((pid_t) pid, SIGKILL);
     }
     std::cerr<<"glr_sl has been stopped"<<std::endl;
