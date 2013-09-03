@@ -113,7 +113,7 @@ int DaemonProcTerm(const char * const pathname)
             exit(EXIT_SUCCESS);
         }
         kill((pid_t) pid, SIGTERM);
-        std::cerr<<"已发送进程终止信号"<<std::endl;
+        std::cerr<<"glr_sl to be stopped"<<std::endl;
         struct timeval timeout;
         timeout.tv_sec = 5;
         timeout.tv_usec = 0;
@@ -122,7 +122,7 @@ int DaemonProcTerm(const char * const pathname)
         {
             kill((pid_t) pid, SIGKILL);
         }
-        std::cerr<<"进程已终止"<<std::endl;
+        std::cerr<<"glr_sl has been stopped"<<std::endl;
     }
     exit(EXIT_SUCCESS);
 }
