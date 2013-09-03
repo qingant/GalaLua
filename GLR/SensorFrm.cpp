@@ -4,7 +4,7 @@
  *  Created on: May 21, 2013
  *      Author: esuomyekcim
  */
-
+ 
 #include "stdafx.h"
 #include "GLR.hpp"
 #include "Process.hpp"
@@ -17,90 +17,73 @@
 #include "resource/resource.h"
 #include "resource/resxloader.h"
 
+#include <sys/wait.h>
+
 using namespace GLR;
 
-void daemonize(void)
+void start(void)
 {
-    pid_t pid, sid;
-    int fd;
-
-    /* Fork off the parent process */
-    pid = CRT_fork();
-    if (pid < 0)
-    {
-        exit(1);
+again:
+    int pid=fork();
+    if (pid<0){
+        throw "fork error ..\n";
+    }
+    else if (pid>0){
+        while (true){
+            int ret=waitpid(pid,NULL,0);
+            if (ret<0)
+            {
+                throw "waitpid error ...\n";
+            }
+            //TODO: wait some seconds before start agent??
+            goto again;
+        }
     }
 
-    if (pid > 0)
-    {
-        exit(0); /*Killing the Parent Process*/
-    }
-
-    /* At this point we are executing as the child process */
-
-    /* Create a new SID for the child process */
-    sid = setsid();
-    if (sid < 0)
-    {
-        exit(1);
-    }
-
-    /* Change the current working directory. */
-    //    if ((chdir("/")) < 0)
-    //    {
-    //        exit(1);
-    //    }
-
-    fd = CRT_open("/dev/null",O_RDWR, 0);
-    if (fd != -1)
-    {
-        CRT_dup2 (fd,0);
-        CRT_dup2 (fd,1);
-        CRT_dup2 (fd,2);
-    }
-
-    //close all useless fd(maybe invalid)
-    for (int i=3;i<fd;++i)
-    {
-        close(i);
-    }
-    for (int i=fd+1;i<1024;++i)
-    {
-        close(i);
-    }
-    /*resettign File Creation Mask */
-    CRT_umask(027);
 }
+
+void daemonize(int argc,char **argv)  
+{  
+    pid_t pid, sid;  
+    int fd;   
+
+    /* Fork off the parent process */  
+    pid = CRT_fork();  
+    if (pid < 0){     
+        exit(1);  
+    }
+    else if (pid > 0){
+        exit(0);
+    }
+    else{
+        /* Create a new SID for the child process */  
+        sid = setsid();  
+        if (sid < 0){  
+            exit(1);
+        }
+
+        //close all useless fd(maybe invalid)
+        for (int i=0;i<1024;++i){
+            close(i);
+        }
+
+        fd = CRT_open("/dev/null",O_RDWR, 0);
+        if (fd != -1){  
+            CRT_dup2(fd,0);
+            CRT_dup2(fd,1);
+            CRT_dup2(fd,2);
+        }
+
+        /*resettign File Creation Mask */  
+        CRT_umask(027);
+    }
+
+    start();
+}
+
 
 int main( int argc, char* argv[] )
 {
-    //LN_ID_TYPE main_node_id = Process::CreateNode();
-    //Process &main_node = Process::GetNodeById(main_node_id);
-    //main_node.DoString("print(123)");
-    //main_node.DoString("print(nid)");
-    //main_node.DoString("print(node_spawn)");
-    ////main_node.DoString("function run(){node_spawn(\"run\");}");
-    //main_node.LoadFile("test.lua");
-    //Process::Status();
-    ////main_node.DoString("print(main)");
-    ////main_node.PushFun("main");
-    //try
-    //{
-    //    main_node.StackDump();
-    //    main_node.PushFun("main");
-    //    main_node.StackDump();
-    //   // main_node.Resume();
-    //   // main_node.Resume();
-    //    main_node.Start(Schedule::GetInstance());
-    //   /* LuaNode &node1 = LuaNode::GetNodeById(1);
-    //    node1.StackDump();
-    //    node1.Resume();
-    //    LuaNode::Status();*/
-    //}
-    //catch (const std::exception &e)
-    //{
-    //    printf("Resume Error : %s\n", e.what());
-    //}
     try
     {
         Galaxy::GalaxyRT::CProcess _CProcess;
@@ -147,7 +130,7 @@ int main( int argc, char* argv[] )
 
         if (_CProcess.ExistOption("D"))
         {
-            daemonize();
+            daemonize(argc,argv);
         }
 
         SigleInstantiation sigledaemon(std::string("glr_sl"), pidpathname);
@@ -166,35 +149,7 @@ int main( int argc, char* argv[] )
         {
             port = atoi(_CProcess.GetOption("p").c_str());
         }
-//        std::string cpath = "./\?.so;";
         char *cwd = NULL;
-//        char clib_path[256] = {};
-
-//        char lib_path[256] = {};
-//        cwd = getenv("GDK_HOME");
-//        if (cwd != NULL)
-//        {
-//            snprintf(clib_path, sizeof(clib_path), "%s/lib/lua/?.so;%s/lib/lua/?.so;", cwd, getenv("HOME"));
-//            snprintf(lib_path, sizeof(lib_path), "%s/lib/lua/?.lua;%s/lib/lua/?.lua;", cwd, getenv("HOME"));
-//        }
-
-//        std::string path = "./\?.lua;";
-//        path += lib_path;
-//        if (_CProcess.ExistOption("d"))
-//        {
-//            path += _CProcess.GetOption("d");
-//        }
-//
-//        setenv("LUA_PATH", path.c_str(), 1);
-//
-//
-//        cpath += clib_path;
-//        if (_CProcess.ExistOption("c"))
-//        {
-//            cpath += _CProcess.GetOption("c");
-//        }
-//
-//        setenv("LUA_CPATH", cpath.c_str(), 1);
 
         std::string entry = "main";
         if (_CProcess.ExistOption("e"))
@@ -202,8 +157,6 @@ int main( int argc, char* argv[] )
             entry = _CProcess.GetOption("e");
         }
 
-        //GLR::Runtime::Initialize(argv[1], atoi(argv[2]));
-        //GLR::Runtime::GetInstance().Entry(argv[3],argv[4]);
         GLR::Runtime::Initialize(host, port, GLR_initializer, &_CProcess);
         if (_CProcess.ExistOption("g"))
         {
@@ -257,8 +210,6 @@ int main( int argc, char* argv[] )
         Runtime::GetInstance()._ElegantExit();
         return EX_IOERR;
     }
-    //printf("test\n");
-    //scanf("%d",new int);
     return 0;
 }
 
