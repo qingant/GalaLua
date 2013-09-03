@@ -1,0 +1,15 @@
+# -*- Makefile -*-
+G++         = g++
+GCC         = gcc
+COMMINC     =  -I.
+LNKFLAG     = -shared
+COMPWARN    = -Wall
+CMPFLAG     = -c -g  -fPIC -pthread $(COMPWARN) $(COMMINC)  -D_UNIX95_
+SYTMLIB     = -lzz
+PLIBDIR     = -L$(HOME)/lib
+
+AR          = ar
+ARFLAGS     = -rcu
+RANLIB      = ranlib
+RANLIBFLAGS =
+

@@ -1,2 +1,0 @@
-if system /usr/include or /usr/local/include or /include not exist 
-(zlib.h and zconf.h) can copy them from 'lib/include' to 'lib'

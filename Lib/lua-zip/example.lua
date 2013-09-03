@@ -29,7 +29,7 @@ function main()
 
    -- 增加文件到zip文件中   
    zf:add("dir/add.txt", "string", "add.txt's context from here")
-   assert(zf:add("test_minizip.lua", "file", "test_minizip.lua", 0, -1))
+   --assert(zf:add("test_minizip.lua", "file", "test_minizip.lua", 0, -1))
 
    -- 增加zip中文件的comment
    local idx = zf:name_locate("dir/add.txt")
