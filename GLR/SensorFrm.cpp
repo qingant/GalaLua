@@ -4,12 +4,13 @@
  *  Created on: May 21, 2013
  *      Author: esuomyekcim
  */
- 
+
 #include "stdafx.h"
 #include "GLR.hpp"
 #include "Process.hpp"
 #include <unistd.h>
 
+#include <cstdio>
 #include <string>
 #include <sysexits.h>
 #include "SigleInstantiation.hpp"
@@ -48,23 +49,23 @@ again:
 
 }
 
-void daemonize(int argc,char **argv)  
-{  
-    pid_t pid, sid;  
-    int fd;   
+void daemonize(int argc,char **argv)
+{
+    pid_t pid, sid;
+    int fd;
 
-    /* Fork off the parent process */  
-    pid = CRT_fork();  
-    if (pid < 0){     
-        exit(1);  
+    /* Fork off the parent process */
+    pid = CRT_fork();
+    if (pid < 0){
+        exit(1);
     }
     else if (pid > 0){
         exit(0);
     }
     else{
-        /* Create a new SID for the child process */  
-        sid = setsid();  
-        if (sid < 0){  
+        /* Create a new SID for the child process */
+        sid = setsid();
+        if (sid < 0){
             exit(1);
         }
 
@@ -74,13 +75,13 @@ void daemonize(int argc,char **argv)
         }
 
         fd = CRT_open("/dev/null",O_RDWR, 0);
-        if (fd != -1){  
+        if (fd != -1){
             CRT_dup2(fd,0);
             CRT_dup2(fd,1);
             CRT_dup2(fd,2);
         }
 
-        /*resettign File Creation Mask */  
+        /*resettign File Creation Mask */
         CRT_umask(027);
     }
 

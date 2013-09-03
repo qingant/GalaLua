@@ -34,8 +34,7 @@ namespace Galaxy
         CThreadAttr::CThreadAttr(INT _DetachState,INT _InheritSched,UINT _StackSize)
             :_StackEntry(NULL),_Attr()
         {
-            _StackSize += (((_StackSize % 1024)==0) ? 0 : 1024);
-            _StackEntry = new CHAR[(_StackSize+1024)];
+#if !defined(_AIX)
             posix_memalign((void **)&_StackEntry,16,_StackSize);
             if(ISNULL(_StackEntry))
             {
@@ -43,7 +42,7 @@ namespace Galaxy
                 THROW_EXCEPTION_EX("");
 
             }
-
+#endif
             if (CRT_pthread_attr_init(&_Attr) != 0)
             {
                 THROW_EXCEPTION_EX("");
@@ -53,16 +52,17 @@ namespace Galaxy
             {
                 THROW_EXCEPTION_EX("");
             }
-#ifndef _AIX
+#if defined(_AIX)
+#if 0
             if(pthread_attr_setinheritsched(&_Attr,_InheritSched)!=0)
             {
                 THROW_EXCEPTION_EX("");
             }
-
             if(pthread_attr_setstack(&_Attr,_StackEntry,_StackSize)!=0)
             {
                 THROW_EXCEPTION_EX("");
             }
+#endif
 #else
             if(pthread_attr_setstackaddr(&_Attr,_StackEntry) !=0)
             {
@@ -84,7 +84,7 @@ namespace Galaxy
 
             if(_StackEntry!=NULL)
             {
-                delete [] _StackEntry;
+                CRT_free(_StackEntry);
                 _StackEntry = NULL;
             }
         }
