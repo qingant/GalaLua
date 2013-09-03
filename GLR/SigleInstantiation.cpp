@@ -81,49 +81,93 @@ SigleInstantiation::~SigleInstantiation()
     close(fd);
 }
 
-int DaemonProcTerm(const char * const pathname)
+static int pidcmdline(const pid_t pid, char * const buff, const size_t siz)
+{
+#if defined(linux) || defined(__linux) || defined(__linux__)
+//    snprintf(buff, siz, "/proc/%lu/cmdline", (unsigned long) pid);
+//    const int fd = open(&buff[0], O_RDONLY);
+//    if (fd == -1)
+//    {
+//        return -1;
+//    }
+//    const ssize_t length = readn(fd, buff, siz);
+//    if (length < 0)
+//    {
+//        return -1;
+//    }
+//    buff[length] = '\0';
+//    close(fd);
+//    std::cout<<"pid: "<<((unsigned long) pid)<<", cmdline: "<<buff<<std::endl;
+//    return 0;
+    snprintf(buff, siz, "ps -p %lu -o args", (unsigned long) pid);
+    std::cerr<<"pid: "<<((unsigned long) pid)<<", cmdline: ";
+    system(buff);
+    std::cerr<<std::endl;
+    return 0;
+#elif defined(_AIX)
+    snprintf(buff, siz, "ps -p %lu -o args", (unsigned long) pid);
+    std::cerr<<"pid: "<<((unsigned long) pid)<<", cmdline: ";
+    system(buff);
+    std::cerr<<std::endl;
+    return 0;
+#endif
+}
+
+int DaemonProcTerm(const char * const pathname, const pid_t pidvar)
 {
     char buff[512];
-    const int fd = open(pathname, O_RDONLY);
-    if (fd == -1)
+    unsigned long pid = pidvar;
+    if (pid == 0)
     {
-        snprintf(&buff[0], sizeof(buff), "pathname: %s, %s", pathname,
-                strerror(errno));
-        throw(std::string(&buff[0]));
-    }
-    ssize_t length = readn(fd, &buff[0], sizeof(buff));
-    close(fd);
-    if (length == -1)
-    {
-        snprintf(&buff[0], sizeof(buff), "pathname: %s, %s", pathname,
-                strerror(errno));
-        throw(std::string(&buff[0]));
-    }
-    char *endptr;
-    errno = 0;
-    const unsigned long pid = strtoul(&buff[0], &endptr, 10);
-    if ((errno == ERANGE && pid == ULONG_MAX) || (errno != 0 && pid != 0))
-    {
-        throw(std::string("pid failed"));
-    }
-    if (pid != 0)
-    {
-        if ((kill((pid_t) pid, 0) == -1) && (errno == ESRCH))
+        const int fd = open(pathname, O_RDONLY);
+        if (fd == -1)
         {
-            exit(EXIT_SUCCESS);
+            snprintf(&buff[0], sizeof(buff), "pathname: %s, %s", pathname,
+                    strerror(errno));
+            throw(std::string(&buff[0]));
         }
-        kill((pid_t) pid, SIGTERM);
-        std::cerr<<"glr_sl to be stopped"<<std::endl;
-        struct timeval timeout;
-        timeout.tv_sec = 5;
-        timeout.tv_usec = 0;
-        select(0, (fd_set *) 0, (fd_set *) 0, (fd_set *) 0, &timeout);
-        if (kill((pid_t) pid, 0) == 0)
+        ssize_t length = readn(fd, &buff[0], sizeof(buff));
+        close(fd);
+        if (length == -1)
         {
-            kill((pid_t) pid, SIGKILL);
+            snprintf(&buff[0], sizeof(buff), "pathname: %s, %s", pathname,
+                    strerror(errno));
+            throw(std::string(&buff[0]));
         }
-        std::cerr<<"glr_sl has been stopped"<<std::endl;
+        char *endptr;
+        errno = 0;
+        pid = strtoul(&buff[0], &endptr, 10);
+        if ((errno == ERANGE && pid == ULONG_MAX) || (errno != 0 && pid != 0))
+        {
+            throw(std::string("pid failed"));
+        }
     }
+    pidcmdline(pid, &buff[0], sizeof(buff));
+    std::cerr<<"are you sure to close this process? (YES or NO)"<<std::endl;
+    std::string tmp;
+    std::cin>>tmp;
+    if (strncmp(tmp.c_str(), "YES", 3) != 0)
+    {
+        std::cerr<<"pid "<<pid<<" won't be closed"<<std::endl;
+        exit(EXIT_SUCCESS);
+    }
+    std::cout<<"pid "<<pid<<" is to be closed"<<std::endl;
+    if ((kill((pid_t) pid, 0) == -1) && (errno == ESRCH))
+    {
+        std::cerr<<pathname<<": pid not exist"<<std::endl;
+        exit(EXIT_SUCCESS);
+    }
+    kill((pid_t) pid, SIGTERM);
+    std::cerr<<"glr_sl to be stopped"<<std::endl;
+    struct timeval timeout;
+    timeout.tv_sec = 5;
+    timeout.tv_usec = 0;
+    select(0, (fd_set *) 0, (fd_set *) 0, (fd_set *) 0, &timeout);
+    if (kill((pid_t) pid, 0) == 0)
+    {
+        kill((pid_t) pid, SIGKILL);
+    }
+    std::cerr<<"glr_sl has been stopped"<<std::endl;
     exit(EXIT_SUCCESS);
 }
 

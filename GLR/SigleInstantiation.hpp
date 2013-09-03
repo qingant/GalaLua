@@ -35,6 +35,6 @@ private:
     std::string pathname;
 };
 
-int DaemonProcTerm(const char * const pathname);
+int DaemonProcTerm(const char * const pathname, const pid_t pidvar);
 
 #endif /* SIGLEINSTANTIATION_HPP_ */

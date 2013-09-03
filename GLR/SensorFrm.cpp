@@ -137,7 +137,12 @@ int main( int argc, char* argv[] )
  */
         if (_CProcess.ExistOption("S"))
         {
-            DaemonProcTerm(pidpathname.c_str());
+            const std::string pidstring = _CProcess.GetOption("S");
+            const char * const cpidstring = pidstring.c_str();
+            char *endstr;
+            errno = 0;
+            const pid_t pid = (pid_t) strtoul(cpidstring, &endstr, 10);
+            DaemonProcTerm(pidpathname.c_str(), pid);
         }
 
         if (_CProcess.ExistOption("D"))
