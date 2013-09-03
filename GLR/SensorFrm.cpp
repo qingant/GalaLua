@@ -107,6 +107,11 @@ int main( int argc, char* argv[] )
         GLR::Runtime::_pCProcess=&_CProcess;
 
         _CProcess.Initialize(argc,argv,NULL,"m:?e:d:?h:?p:?c:?DSw:");
+        if (_CProcess.ExistOption("v"))
+        {
+            std::cerr<<"Build: "<<__DATE__<<" "<<__TIME__<<std::endl;
+            exit(EXIT_SUCCESS);
+        }
 /**
  * 处理pidfile（开始）
  */
@@ -130,7 +135,6 @@ int main( int argc, char* argv[] )
 /**
  * 处理pidfile（结束）
  */
-
         if (_CProcess.ExistOption("S"))
         {
             DaemonProcTerm(pidpathname.c_str());
@@ -142,7 +146,6 @@ int main( int argc, char* argv[] )
         }
 
         SigleInstantiation sigledaemon(std::string("glr_sl"), pidpathname);
-        pidpathname.~string();
 
         std::string host;
         if (_CProcess.ExistOption("h"))
@@ -237,6 +240,12 @@ int main( int argc, char* argv[] )
     {
         std::cerr<<"exception: "<<except<<std::endl;
         return 1;
+    }
+    catch (Galaxy::GalaxyRT::CException &except)
+    {
+        std::cerr<<except.what()<<std::endl;
+        Runtime::GetInstance()._ElegantExit();
+        return EX_IOERR;
     }
     catch (...)
     {
