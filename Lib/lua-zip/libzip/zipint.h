@@ -20,7 +20,7 @@
   3. The names of the authors may not be used to endorse or promote
      products derived from this software without specific prior
      written permission.
- 
+
   THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS
   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -51,6 +51,9 @@
 
 #include "zip.h"
 #include "config.h"
+#ifndef _WIN32
+#include<unistd.h>
+#endif
 
 #ifdef HAVE_MOVEFILEEXA
 #include <windows.h>
@@ -271,7 +274,7 @@ struct zip {
     unsigned int nfile;			/* number of opened files within archive */
     unsigned int nfile_alloc;		/* number of files allocated */
     struct zip_file **file;		/* opened files within archive */
-    
+
     char *tempdir;                      /* custom temp dir (needed e.g. for OS X sandboxing) */
 };
 
