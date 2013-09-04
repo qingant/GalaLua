@@ -11,7 +11,7 @@ else
 endif
 
 SQLITE_HOME = $(HOME)/
-DES = json struct libzip lfs linenoise md5 sigar time dba #luaxml cp sqlite
+DES = json struct libzip lfs linenoise md5 sigar time snappy #dba luaxml cp sqlite
 all:$(DES)
 .PHONY:$(DES) static clean
 
@@ -48,12 +48,17 @@ sigar:
 	$(MAKE) -C lua-sigar/bindings/lua/ all
 time:
 	$(MAKE) -C lua-time default
+snappy:
+	$(MAKE) -C lua-snappy/snappy all
+	$(MAKE) -C lua-snappy all
 static:
 	cd lua-cjson-2.1.0 && $(MAKE) static && $(MAKE) clean
 	cd lua-struct && $(MAKE) static && $(MAKE) clean
 	cd lua-zip && $(MAKE) static
 	cd lua-sigar/src && make static && cd ../bindings/lua/ && make static
 	cd lua-time/ && make static
+	cd lua-snappy/snappy/ && make static
+	cd lua-snappy && make static
 	$(MAKE) -C lua-time static
 #	$(MAKE) -C lua-xml/lua-iconv-7 static
 #	$(MAKE) -C lua-xml static

@@ -1,0 +1,15 @@
+# -*- Makefile -*-
+G++		   = g++
+GCC		   = gcc
+COMMINC		=  -I. -I../../lua-5.1.5/src -I../../LuaJIT-2.0.0/src
+LNKFLAG 		= -shared
+COMPWARN    	= -Wall #-Wextra -Woverloaded-virtual
+CMPFLAG 		= -c -g  -fPIC -pthread $(COMPWARN) $(COMMINC)  -D_UNIX95_
+PLIBDIR     = $(HOME)/lib
+SYTMLIB 	   = #-lc -lm -ldl -lpthread -Wl,-rpath -lrt
+
+AR          = ar
+ARFLAGS     = -rcu
+RANLIB      = ranlib
+RANLIBFLAGS =
+
