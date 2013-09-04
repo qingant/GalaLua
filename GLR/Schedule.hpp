@@ -5,8 +5,6 @@
 #include <string>
 #ifdef _AIX
 #include <unordered_map>
-#else
-#include <tr1/unordered_map>
 #endif
 #include "Runtime/Queue.hpp"
 #include "Runtime/Thread.hpp"

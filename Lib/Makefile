@@ -44,9 +44,10 @@ md5:
 resource:
 	cd resource && $(MAKE) all
 sigar:
-	cd lua-sigar/src && make && cd ../bindings/lua/ && make
+	$(MAKE) -C lua-sigar/src all
+	$(MAKE) -C lua-sigar/bindings/lua/ all
 time:
-	cd lua-time/ && make
+	$(MAKE) -C lua-time default
 static:
 	cd lua-cjson-2.1.0 && $(MAKE) static && $(MAKE) clean
 	cd lua-struct && $(MAKE) static && $(MAKE) clean

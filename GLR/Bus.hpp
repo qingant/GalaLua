@@ -7,8 +7,6 @@
 #include <exception>
 #ifdef _AIX
 #include <unordered_map>
-#else
-#include <tr1/unordered_map>
 #endif
 #include "Runtime/Queue.hpp"
 
@@ -68,7 +66,6 @@ namespace GLR
     {
     public:
         typedef std::vector<IController*> DEVICE_ARRAY;
-        typedef std::tr1::unordered_map<std::string, int> DEVICE_MAP;
     private:
         Bus(void);
     public:
