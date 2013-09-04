@@ -126,6 +126,9 @@ function ConsoleBase(o)
                 --parse cmdline
                 local argv=parse_opt(line)
                 --            pprint.pprint(argv)
+                if argv[1]=="exit" then
+                    break
+                end
                 cmds[argv[1]](argv)
 
             end
@@ -140,7 +143,7 @@ end
 function Console()
     local c=ConsoleBase()
     
-    c.register("exit",glr.exit,"")
+--    c.register("exit",glr.exit,"")
 
     local gar=require "pack_gar"
     local configi=require "configi"
