@@ -54,8 +54,7 @@ namespace Galaxy
             {
                 THROW_EXCEPTION_EX("");
             }
-#if defined(_AIX)
-#if 0
+#ifndef _AIX
             if(pthread_attr_setinheritsched(&_Attr,_InheritSched)!=0)
             {
                 THROW_EXCEPTION_EX("");
@@ -64,8 +63,8 @@ namespace Galaxy
             {
                 THROW_EXCEPTION_EX("");
             }
-#endif
 #else
+#if 0
             if(pthread_attr_setstackaddr(&_Attr,_StackEntry) !=0)
             {
                 THROW_EXCEPTION_EX("");
@@ -74,6 +73,7 @@ namespace Galaxy
             {
                 THROW_EXCEPTION_EX("");
             }
+#endif
 #endif
         }
 
