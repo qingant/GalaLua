@@ -1,0 +1,5 @@
+if Linux platform is suse and gcc version < 4.0
+define compile flag -DHAVE_SUSE
+
+if plarform build  has database and want to compile .
+please configure Lib/luadbi.0.5
