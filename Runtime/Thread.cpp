@@ -35,6 +35,8 @@ namespace Galaxy
             :_StackEntry(NULL),_Attr()
         {
 #if !defined(_AIX)
+            _StackSize += (_StackSize % 1024) ==0 ? 0: 1024 - (_StackSize%1024) ;
+            _StackSize += 1024;
             posix_memalign((void **)&_StackEntry,16,_StackSize);
             if(ISNULL(_StackEntry))
             {
