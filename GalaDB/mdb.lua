@@ -363,6 +363,21 @@ function element:xpath( path )
     local o = self:_xpath_selector(string.split(path, "/"),1)
     return o
 end
+
+-- TODO: use matched selector instead
+function element:xpath_match( path )
+    local items = self._root:xpath(path)
+    for k,v in pairs(items) do
+        if not self.real_key then
+            self.real_key = self.key
+        end
+        if v.key == self.real_key or v.real_key == self.real_key then
+            return true
+        end
+    end
+    return false
+end
+
 function element:xpath_set( xpath, value )
 
     local o = self:xpath(xpath, 1)
