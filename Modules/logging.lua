@@ -114,7 +114,7 @@ function _logger:fatal(format, ...)
     self:_log(self.enum_FATAL, format, ...)
 end
 function _logger:close()
-    glr.send(_handler,"!#")
+    glr.send(self._handler,"!#")
 end
 _logger.log = _logger.debug
 
