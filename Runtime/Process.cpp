@@ -79,7 +79,7 @@ namespace Galaxy
             //clear for ps
             /*for(int i=1; i<Argc; i++)
             {
-                CRT_memset(Argv[i], 0x00, ArgPairs[i].first);
+            CRT_memset(Argv[i], 0x00, ArgPairs[i].first);
             }*/
         }
 
@@ -141,7 +141,7 @@ namespace Galaxy
                 if ((strlen(item) == 2) && (item[0] == '-') && isalpha(item[1]))
                 {
                     tmp[0] = item[1];
-                    
+
                     const char *next = argv[argc+1];
                     if (((argc+1)<Argc) && (next[0] != '-'))
                     {
@@ -322,6 +322,18 @@ namespace Galaxy
         // pFile->Ftruncate(1024*1024);
         // CSHM shm(std::auto_ptr<CIOHandle>(pFile), 1024*1024);
         // }
+
+
+        IApp::IApp( INT argc, CHAR **argv, CHAR **envp, const std::string &optfmt )
+        {
+            _Process.reset(new Galaxy::GalaxyRT::CProcess());
+            _Process->Initialize(argc,argv,envp, optfmt);
+        }
+
+        IApp::~IApp()
+        {
+
+        }
 
     } /// namespace GalaxyRT
 } /// namespace Galaxy
