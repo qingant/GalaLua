@@ -1,6 +1,5 @@
 /* -*- C++ -*- */
 
-/* Time-stamp: <2012-04-17 09:59:14 星期二 by OCaml> */
 
 /**
  * @file Process.hpp
@@ -65,7 +64,16 @@ namespace Galaxy
          // std::auto_ptr<COptions> _COpts;
       };
 
+      class IApp : public CNonCopyAble
+      {
+      public:
+         IApp(INT argc, CHAR **argv, CHAR **envp, const std::string &optfmt);
+          ~IApp();
+          virtual void Run() = 0;
+      protected:
+         std::auto_ptr<CProcess>  _Process;
+      }; 
    } /// namespace GalaxyRT
 } /// namespace Galaxy
-	
+    
 #endif /* CPROCESS_H */
