@@ -304,10 +304,10 @@ void Process::InitNode(void)
     lua_pushinteger(_Stack, MSG_HEAD::APP);
     lua_settable(_Stack, -3);
 
-     lua_pushstring(_Stack, "EXIT");
-     lua_pushinteger(_Stack, MSG_HEAD::EXIT);
-     lua_settable(_Stack, -3);
-     
+    lua_pushstring(_Stack, "EXIT");
+    lua_pushinteger(_Stack, MSG_HEAD::EXIT);
+    lua_settable(_Stack, -3);
+
 
     //StackDump();
     //lua_pop(_Stack,1);
@@ -447,6 +447,13 @@ int Process::Recieve(lua_State *l)
         {
 
             self._Status._State = ProcessStatus::RECV_WAIT;
+            if (lua_isnumber(self._Stack,1))
+            {
+                int timeout = lua_tointeger(self._Stack, 1);
+                self.SetTimeOut(timeout);
+            }
+            
+
             //lua_pushstring(l, "SUSPEND");
             //return lua_yield(self._Stack, 0);
             GALA_DEBUG("No Msg %d", self_id);
@@ -656,7 +663,7 @@ void Process::Destory(LN_ID_TYPE pid)
                 GALA_ERROR(e.what());
             }
 
-            
+
 
             Galaxy::GalaxyRT::CRWLockAdapter _WL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::WRLOCK);
             Galaxy::GalaxyRT::CLockGuard _Gl(&_WL);
@@ -677,7 +684,7 @@ void Process::Destory(LN_ID_TYPE pid)
         {
             p->_Status._Killed = true;
         }
-       
+
     }
 
 }
@@ -1121,6 +1128,21 @@ int GLR::Process::SpawnEx( lua_State *l )
         return 2;
     }
 }
+
+void GLR::Process::SetTimeOut(int timeout)
+{
+    Process &self = *this;
+    while (lua_gettop(self._Stack) != 0)    
+    {
+        lua_pop(self._Stack,1);
+    }
+    lua_pushinteger(self._Stack, 0);
+    lua_pushinteger(self._Stack, 2);
+    lua_pushinteger(self._Stack, timeout);
+    lua_pushinteger(self._Stack, self._Status._Tick);
+    Runtime::GetInstance().GetBus().Interrupt(0,self._Stack);
+}
+
 
 
 

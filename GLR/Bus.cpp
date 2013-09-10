@@ -102,6 +102,38 @@ void GLR::Bus::Send( int pid, const std::string &msg, MSG_HEAD::MSG_TYPE type)
     Process::SendMsgToNode(pid, msg, type);
 }
 
+void GLR::Bus::TimerSignal( int pid, int tick )
+{
+    try
+    {
+        Process &nd = Runtime::GetInstance().GetProcess(pid);
+        printf("Now Tick: %d, Last Tick: %d\n", nd._Status._Tick, tick);
+        if (tick != nd._Status._Tick)
+        {
+            return;
+        }
+        Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock);
+        if (tick != nd._Status._Tick)
+        {
+            return;
+        }
+        GALA_ERROR("Pid(%d) Status(%d)", pid, nd._Status._State);
+        if (nd._Status._State != Process::ProcessStatus::INT_WAIT &&
+            nd._Status._State != Process::ProcessStatus::RECV_WAIT)
+        {
+            THROW_EXCEPTION_EX("Fatal Error");
+        }
+        nd._Status._NArg = 0;
+        nd._Status._State = Process::ProcessStatus::INT_RESP;  
+        nd.StackDump();
+        Runtime::GetInstance().GetSchedule().PutTask(nd);
+    }
+    catch (const Galaxy::GalaxyRT::CException &e)
+    {
+        return;
+    }
+}
+
 void Bus::Response( int pid, int narg, ...)
 {
 
@@ -109,9 +141,11 @@ void Bus::Response( int pid, int narg, ...)
     try
     {
         Process &nd = Runtime::GetInstance().GetProcess(pid);
+
         Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock);
         GALA_ERROR("Pid(%d) Status(%d)", pid, nd._Status._State);
-        if (nd._Status._State != Process::ProcessStatus::INT_WAIT)
+        if (nd._Status._State != Process::ProcessStatus::INT_WAIT &&
+            nd._Status._State != Process::ProcessStatus::RECV_WAIT)
         {
             THROW_EXCEPTION_EX("Fatal Error");
         }

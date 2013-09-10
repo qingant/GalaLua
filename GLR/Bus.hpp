@@ -81,6 +81,7 @@ namespace GLR
         void Interrupt(int device, lua_State*);
         void IntSuspend(int pid);
         void Response(int pid, int narg, ...);
+        void TimerSignal(int pid, int tick);
         //void Response(int pid, int narg){Response(pid,narg,NULL);}
         void Return(int pid, int narg,...);
         void Return( int pid, int narg,int type,std::map<std::string,int>m);

@@ -147,6 +147,7 @@ namespace GLR
         virtual ~Process(void);
     private:
         void SendExitMsg();
+        void SetTimeOut(int timeout);
     public:
         void StackDump();
         int32_t Id() const { return _Id; }

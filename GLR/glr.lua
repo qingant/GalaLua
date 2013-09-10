@@ -84,15 +84,15 @@ function mailBox:available(  )
     return (self._first <= self._last)
 end
 local cacheBox = mailBox:new()
-function recv()
+function recv(...)
     if cacheBox:available() then
         local result = cacheBox:pop()
         return unpack(result)
     else
-       return _glr.recv()
+       return _glr.recv(...)
    end
 end
-function recvByCondition( condition )
+function recvByCondition( condition , ...)
     local cache = {}
     function restore(  )
         while cacheBox:available() do
@@ -105,7 +105,10 @@ function recvByCondition( condition )
         cache = nil
     end
     while true do
-        local mType, mAddr, msg = recv()
+        local mType, mAddr, msg = recv(...)
+        if mType == nil then
+            return nil
+        end
         local err, flag = pcall(condition, {mType, mAddr, msg})
         if not err then
             restore()
@@ -119,17 +122,17 @@ function recvByCondition( condition )
         end
     end   
 end
-function recvByAddr( addr )
+function recvByAddr( addr, ... )
     return recvByCondition(function ( msg )
                                return (msg[2].host == addr.host and
                                        msg[2].port == addr.port and
                                        msg[2].gpid == addr.gpid)
-                           end)
+                           end, ...)
 end
-function recvByType( mType )
+function recvByType( mType, ... )
     return recvByCondition(function ( msg )
                                return (msg[1] == mType)
-                           end)
+                           end, ...)
 end
 function kill(gpid)
 	return _glr.kill(gpid)

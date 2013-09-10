@@ -10,12 +10,14 @@ namespace GLR
     public:
         enum REQTYPE
         {
-            GET_TIME,
-            DO_TIMEOUT,
+            GET_TIME = 0,
+            DO_TIMEOUT = 1,
+            DO_TIMEOUT_C = 2,
         };
         struct ClockEvent
         {
             int pid;
+            int tick;
         };
     public:
         static void OnTimeOut(const Galaxy::GalaxyRT::TIMEREVENT &);
