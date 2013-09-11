@@ -21,15 +21,16 @@ LUA_PACKAGE_C_LIBS += $(PREFIX)/share/static/lua/cjson.a \
     $(PREFIX)/share/static/lua/osdatetime.a \
     $(PREFIX)/share/static/libsigar.a \
     $(PREFIX)/share/static/libzip.a \
-    $(PREFIX)/share/static/libluajit.a \
-    # $(PREFIX)/share/static/lua/iconv.a \
+    $(PREFIX)/share/static/libluajit.a
+    # $(PREFIX)/share/static/lua/iconv.a
     # $(PREFIX)/share/static/libexpat.a
     # $(PREFIX)/share/static/lua/lxp.a
 
 GDK_AR_LIBS = $(PREFIX)/share/static/libGLR.a \
     $(PREFIX)/share/static/libGalaxyStub.a \
     $(PREFIX)/share/static/libGalaxyRT.a \
-    $(PREFIX)/share/static/libluajit.a
+    $(PREFIX)/share/static/libluajit.a \
+    $(PREFIX)/share/static/libzz.a
 
 ifeq ($(OS), Linux)
 	CC          = gcc
@@ -38,7 +39,7 @@ ifeq ($(OS), Linux)
 	       -I/usr/include/libxml2 -I$(PREFIX)/include/lua-5.1.5
 	LDPATH      = -L. -L$(PREFIX)/lib
 	LDFLAGS     =
-	SOLIBS      = -lc -lm -ldl -lpthread -lrt -lz # -lzip -lexpat
+	SOLIBS      = -lc -lm -ldl -lpthread -lrt # -lz -lzip -lexpat
 
 	CXX         = g++
 	CXXFLAGS    = -Wall -Wextra -Woverloaded-virtual
@@ -50,7 +51,7 @@ ifeq ($(OS), AIX)
 	INPATH      = -I. -I$(PREFIX)/include -I$(PREFIX)/include/lua-5.1.5 -I$(PREFIX)/include/resource
 	LDPATH      = -L. -L/usr/local/lib/
 	LDFLAGS     = -q64 -brtl -brtllib
-	SOLIBS      = -lc -lm -ldl -lz -lpthread -lrt -liconv -lbsd -lC_r -ls -lperfstat -lodm -lcfg
+	SOLIBS      = -lc -lm -ldl -lpthread -lrt -liconv -lbsd -lC_r -ls -lperfstat -lodm -lcfg # -lz
 
 	CXX         = xlc++_r
 	CXXFLAGS    = -g -q64 -qcpluscmt -D_UNIX95_ -D_DEBUG_ -D_THREAD_SAFE -D__IBMCPP_TR1__ -D_ALL_SOURCE -D_BSD=44
