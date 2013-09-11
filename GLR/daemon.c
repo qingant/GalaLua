@@ -137,7 +137,7 @@ extern int lockfsegment(const int fd, const int type, const int whence,
     };
     if (fcntl(fd, F_SETLK, &buff) == -1)
     {
-        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+        fprintf(stderr, "File %s, Function %s, Line %d, %s.\n",
                 __FILE__, __FUNCTION__, __LINE__, strerror(errno));
         return -1;
     }
@@ -153,7 +153,7 @@ extern int lockfsegmentw(const int fd, const int type, const int whence,
     };
     if (fcntl(fd, F_SETLKW, &buff) == -1)
     {
-        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+        fprintf(stderr, "File %s, Function %s, Line %d, %s.\n",
                 __FILE__, __FUNCTION__, __LINE__, strerror(errno));
         return -1;
     }
@@ -169,7 +169,7 @@ extern pid_t lockfsegmentif(const int fd, const int type, const int whence,
     };
     if (fcntl(fd, F_GETLK, &buff) == -1)
     {
-        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+        fprintf(stderr, "File %s, Function %s, Line %d, %s.\n",
                 __FILE__, __FUNCTION__, __LINE__, strerror(errno));
         return (pid_t) -1;
     }
@@ -196,7 +196,7 @@ extern ssize_t writen(const int fd, const void * const buf, const size_t siz)
         {
             if (totWritten == 0)
             {
-                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                fprintf(stderr, "File %s, Function %s, Line %d, %s.\n",
                         __FILE__, __FUNCTION__, __LINE__, strerror(errno));
                 return -1;
             }
@@ -226,7 +226,7 @@ extern ssize_t readn(const int fd, void * const buf, const size_t siz)
         {
             if (totRead == 0)
             {
-                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+                fprintf(stderr, "File %s, Function %s, Line %d, %s.\n",
                         __FILE__, __FUNCTION__, __LINE__, strerror(errno));
                 return -1;
             }
@@ -249,7 +249,7 @@ extern int uniqueness(const char * const progname, const char * const fpath,
     const int fd = open(fpath, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
     if (fd == -1)
     {
-        fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, "
+        fprintf(stderr, "File %s, Function %s, Line %d, %s, "
                 "Could not open PID file %s.\n", __FILE__, __FUNCTION__,
                 __LINE__, strerror(errno), fpath);
         return -1;
@@ -259,7 +259,7 @@ extern int uniqueness(const char * const progname, const char * const fpath,
         {
             if ((flags = fcntl(fd, F_GETFD)) == -1)
             {
-                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, "
+                fprintf(stderr, "File %s, Function %s, Line %d, %s, "
                         "Could not get flags for PID file %s.\n", __FILE__,
                         __FUNCTION__, __LINE__, strerror(errno), fpath);
                 break;
@@ -267,7 +267,7 @@ extern int uniqueness(const char * const progname, const char * const fpath,
             flags |= FD_CLOEXEC;
             if (fcntl(fd, F_SETFD, flags) == -1)
             {
-                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, "
+                fprintf(stderr, "File %s, Function %s, Line %d, %s, "
                         "Could not set flags for PID file %s.\n", __FILE__,
                         __FUNCTION__, __LINE__, strerror(errno), fpath);
                 break;
@@ -277,22 +277,22 @@ extern int uniqueness(const char * const progname, const char * const fpath,
         {
             if ((errno == EAGAIN) || (errno == EACCES))
             {
-                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, "
-                        "PID file '%s' is locked, "
-                        "probably '%s' is already running.\n", __FILE__,
-                        __FUNCTION__, __LINE__, strerror(errno), fpath, progname);
+                fprintf(stderr, "File %s, Function %s, Line %d, %s, "
+                        "PID file '%s' is locked, probably '%s' is already "
+                        "running.\n", __FILE__, __FUNCTION__, __LINE__,
+                        strerror(errno), fpath, progname);
             }
             else
             {
-                fprintf(stderr, "Error: File %s, Function %s, Line %d, %s, "
-                        "Unable to lock PID file '%s'.\n", __FILE__, __FUNCTION__,
-                        __LINE__, strerror(errno), fpath);
+                fprintf(stderr, "File %s, Function %s, Line %d, %s, "
+                        "Unable to lock PID file '%s'.\n", __FILE__,
+                        __FUNCTION__, __LINE__, strerror(errno), fpath);
             }
             break;
         }
         if (ftruncate(fd, 0) == -1)
         {
-            fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+            fprintf(stderr, "File %s, Function %s, Line %d, %s.\n",
                     __FILE__, __FUNCTION__, __LINE__, strerror(errno));
             break;
         }
@@ -301,7 +301,7 @@ extern int uniqueness(const char * const progname, const char * const fpath,
                 (uintmax_t) getpid());
         if (length >= (int) sizeof(buff))
         {
-            fprintf(stderr, "Error: File %s, Function %s, Line %d, Truncation.\n",
+            fprintf(stderr, "File %s, Function %s, Line %d, Truncation.\n",
                     __FILE__, __FUNCTION__, __LINE__);
         }
         /**
@@ -309,7 +309,7 @@ extern int uniqueness(const char * const progname, const char * const fpath,
          */
         if (writen(fd, &buff[0], length) == -1)
         {
-            fprintf(stderr, "Error: File %s, Function %s, Line %d, %s.\n",
+            fprintf(stderr, "File %s, Function %s, Line %d, %s.\n",
                     __FILE__, __FUNCTION__, __LINE__, strerror(errno));
             break;
         }

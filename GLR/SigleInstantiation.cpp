@@ -93,21 +93,6 @@ SigleInstantiation::~SigleInstantiation()
 static int pidcmdline(const pid_t pid, char * const buff, const size_t siz)
 {
 #if defined(linux) || defined(__linux) || defined(__linux__)
-//    snprintf(buff, siz, "/proc/%lu/cmdline", (unsigned long) pid);
-//    const int fd = open(&buff[0], O_RDONLY);
-//    if (fd == -1)
-//    {
-//        return -1;
-//    }
-//    const ssize_t length = readn(fd, buff, siz);
-//    if (length < 0)
-//    {
-//        return -1;
-//    }
-//    buff[length] = '\0';
-//    close(fd);
-//    std::cout<<"pid: "<<((unsigned long) pid)<<", cmdline: "<<buff<<std::endl;
-//    return 0;
     snprintf(buff, siz, "ps -p %lu -o args", (unsigned long) pid);
     std::cerr<<"pid: "<<((unsigned long) pid)<<", cmdline: ";
     system(buff);
