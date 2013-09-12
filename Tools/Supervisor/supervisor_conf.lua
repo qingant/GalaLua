@@ -21,6 +21,40 @@ Watch="Watch"
 defaultGroup="wg1"
 PATH=db_path.supervisor
 
+local function isvalid_ip(ip)
+    local ip=tostring(ip)
+    local a,b,c,d=string.match(ip,"^(%d+)%.(%d+)%.(%d+)%.(%d+)$") 
+    if a and tonumber(a)<=255 and tonumber(b)<=255 and 
+       tonumber(c)<=255 and tonumber(d)<=255 then
+
+       return true
+    end
+
+    return false
+end
+
+local function isvalid_port(port)
+    local port=tonumber(port)
+    if port and port>0 and port <65535 then
+        return true
+    end
+    return false
+end
+
+local function isvalid_addr(host,port)
+    function valid()
+        if isvalid_ip(host) and isvalid_port(port) then
+            return true
+        end
+    end
+
+    local ok,ret=pcall(valid)
+    if ok then
+        return ret
+    end
+end
+
+
 function create_with_path(path)
     --create and open env
     
@@ -112,6 +146,15 @@ function watchConf(env)
                             )
     end
 
+    function watch_conf:clear()
+        self.db:with(function ()
+                         self.ref_root:remove()
+                         self.root:remove()
+                         self.db:commit()
+                      end
+                     )
+    end
+
     --[[
     --@conf_entry: {
     --              host,
@@ -126,20 +169,23 @@ function watchConf(env)
     --
     --]]
     function watch_conf:save(conf_entry)
-        return self.db:with(function ()
-                                --TODO:default value
-                                local group=conf_entry.group or defaultGroup
-                                local host=conf_entry.host
-                                local port=conf_entry.port
-                                local module_name=conf_entry.module_name
-                                local index=conf_entry.index  or 0
-                                local stderr=conf_entry.stderr 
-                                local stdout=conf_entry.stdout
-                                local gar_path=conf_entry.gar or ""
-                                local valid=conf_entry.valid or true
+        --TODO:default value
+        local group=conf_entry.group or defaultGroup
+        local host=conf_entry.host
+        local port=conf_entry.port
+        local module_name=conf_entry.module_name
+        local index=conf_entry.index  or 0
+        local stderr=conf_entry.stderr 
+        local stdout=conf_entry.stdout
+        local gar_path=conf_entry.gar or ""
+        local valid=conf_entry.valid or true
 
-                                assert(host or port or module_name,
-                                        "Must pass host, port ,module_name")
+        if not (host and port and module_name) then 
+            print("Must pass host, port ,module_name")
+            return 
+        end
+
+        return self.db:with(function ()
 
                                 local group_node=self.root:add_node(group)
                                 local mod_node=group_node:add_node(module_name)
@@ -156,7 +202,7 @@ function watchConf(env)
                                 index_node:add_attrib("valid",valid)
                                 
                                 local ref_name=string.format("%s::%s",host,port)
-                                print(ref_name)
+--                                print(ref_name)
                                 self.ref_root:_add_ref(ref_name,index_node)
 
                                 self.db:commit()
@@ -205,7 +251,9 @@ function watchConf(env)
                            )
     end
 
-    function watch_conf:import()
+
+    function watch_conf:raw_import()
+
         local mdb_path =db_path.config
         local db=mdb:new():init(create_with_path(mdb_path))
         local _conf=self
@@ -218,18 +266,18 @@ function watchConf(env)
                 local host=ch:xpath("Address/IP")[1]:get_value()[1]
                 local port=ch:xpath("Address/Port")[1]:get_value()[1]
 
-                --local host=ch:xpath("Protocol/LSRSTREAM/Address/TCP/Port")[1]:get_value()[1]
-                --local port=ch:xpath("Protocol/LSRSTREAM/Address/TCP/IP")[1]:get_value()[1]
-                local index=i
-                local group=defaultGroup
-                local entry="main"
-                local module_name="lsr"
-                local stderr=string.format("%s%.4d-stderr.log",module_name,index)
-                local stdout=string.format("%s%.4d-stdout.log",module_name,index)
+                if isvalid_addr(host,port) then
+                    local index=i
+                    local group=defaultGroup
+                    local entry="main"
+                    local module_name="lsr"
+                    local stderr=string.format("%s%.4d-stderr.log",module_name,index)
+                    local stdout=string.format("%s%.4d-stdout.log",module_name,index)
 
-                local e={host=host,port=port,module_name=module_name,index=index,
-                stderr=stderr,stdout=stdout,group=group,entry=entry}
-                _conf:save(e)
+                    local e={host=host,port=port,module_name=module_name,index=index,
+                    stderr=stderr,stdout=stdout,group=group,entry=entry}
+                    _conf:save(e)
+                end
             end
             local svc=tonumber(root:xpath("Base/SVCLimits")[1]:get_value()[1])
             local svc_port=tonumber(root:xpath("Base/SVCPort")[1]:get_value()[1])
@@ -247,25 +295,17 @@ function watchConf(env)
                 stderr=stderr,stdout=stdout,group=group,entry=entry}
                 _conf:save(e)
             end
-          --[[ 
-            local ctr=root:get_child("CTR")
-
-            local host=ctr:xpath("Address/IP")[1]:get_value()[1]
-            local port=ctr:xpath("Address/Port")[1]:get_value()[1]
-            local index=0
-            local group=defaultGroup
-            local entry="main"
-            local module_name="ctr"
-            local stderr=string.format("%s%.4d-stderr.log",module_name,index)
-            local stdout=string.format("%s%.4d-stdout.log",module_name,index)
-
-            local e={host=host,port=port,module_name=module_name,index=index,
-            stderr=stderr,stdout=stdout,group=group,entry=entry}
-            _conf:save(e)
-            ]]
         end)
         db:close()
     end
+
+
+    function watch_conf:import()
+        --clear all supervisor configure before import 
+        self:clear()
+        self:raw_import()
+    end
+
 
     return watch_conf
 end
@@ -275,11 +315,14 @@ end
 if ...=="__main__" then
     local _env=create()
     _conf=watchConf(_env)
+--    _conf:show()
+    _conf:clear()
 
---    entry={host="127.0.0.1",port=2395,group=defaultGroup,module_name="sup",entry="main",index=0}
---    _conf:save(entry)
+    entry={host="-1.0.0.0",group=defaultGroup,module_name="lsr",entry="main",index=2}
+    _conf:save(entry)
+    print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
 
-    _conf:import()
+--    _conf:import()
 --    _conf:to_xml()
     _conf:show()
     _conf:close()
