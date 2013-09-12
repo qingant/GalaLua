@@ -447,8 +447,9 @@ int Process::Recieve(lua_State *l)
         {
 
             self._Status._State = ProcessStatus::RECV_WAIT;
-            if (lua_isnumber(self._Stack,1))
+            if (lua_gettop(self._Stack) == 2 && lua_isnumber(self._Stack,1))
             {
+                GALA_DEBUG("Call Timeout Version");
                 int timeout = lua_tointeger(self._Stack, 1);
                 self.SetTimeOut(timeout);
             }
