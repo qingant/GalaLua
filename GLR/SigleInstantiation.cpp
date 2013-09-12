@@ -172,5 +172,6 @@ int DaemonProcTerm(const char * const pathname, const pid_t pidvar)
     }
     std::cerr<<"glr_sl has been stopped"<<std::endl;
     exit(EXIT_SUCCESS);
+    return 0;
 }
 
