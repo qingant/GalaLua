@@ -84,6 +84,13 @@ function glrLogServerDispatch(info)
                     print("flush", pid, name)
                     glr.send(pid, "!!")
                 end
+            elseif msg:sub(1,2) == '!*' then
+                for pid,name in pairs(pidDict) do
+                    print("reset",pid,name)
+                    glr.send(pid,"!#")
+                end
+                nameDict = {}
+                pidDict = {}
             end
         until true
     end

@@ -2,6 +2,7 @@ module(..., package.seeall)
 local pprint = require("pprint")
 local debug = require("debug")
 local cjson = require("cjson")
+local datetime = require("datetime")
 local printer = print
 assert(require("str_utils"), "Cannot Import str_utils")
 assert(require("tab_utils"),"Cannot Import tab_utils")
@@ -89,8 +90,9 @@ function _logger:_log(level, format, ...)
         local info = debug.getinfo(3)
         info.level = _loggerFlag[level]
         info.msg = str
+        local timeformat = string.format("[%s] ",datetime:new():init():today():strtime())
         local log_str = ("[%(level)s] [File=%(short_src)s  Line=%(currentline)s] : %(msg)s" % info)
-        glr.send(self._handler,log_str)
+        glr.send(self._handler,timeformat..log_str)
     end
 end
 function _logger:debug(format, ...)
@@ -115,6 +117,12 @@ function _logger:fatal(format, ...)
 end
 function _logger:close()
     glr.send(self._handler,"!#")
+end
+function _logger:reset()
+   glr.send(logPid,"!*")
+end
+function _logger:dump(str)
+   return _dump(str)
 end
 _logger.log = _logger.debug
 
