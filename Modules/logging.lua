@@ -2,7 +2,8 @@ module(..., package.seeall)
 local pprint = require("pprint")
 local debug = require("debug")
 local cjson = require("cjson")
-local datetime = require("datetime")
+local osdatetime = require("osdatetime")
+local hexdump = require("hexdump")
 local printer = print
 assert(require("str_utils"), "Cannot Import str_utils")
 assert(require("tab_utils"),"Cannot Import tab_utils")
@@ -50,7 +51,7 @@ local _logger = {
     enum_ERROR = 5,
     enum_FATAL = 6,
 }
-local _loggerFlag ={"DEBUG", "TRACE", "INFO","WARN", "ERROR", "FATAL"}
+local _loggerFlag ={"DEBUG", "TRACE", "INFO ","WARN ", "ERROR", "FATAL"}
 logger = _logger
 function _logger:new(o)
     local o = o or {}
@@ -59,7 +60,7 @@ function _logger:new(o)
     return o
 end
 local logPid = 11
-function _logger:init(path,size,copys,level_func )
+function _logger:init(path,size,copys,level_func)
     --glr.spawn_ex(logPid, "log_server", "glrLogServerDispatch", "{}")
     pcall(glr.spawn_ex,logPid, "log_server", "glrLogServerDispatch", "{}")
 
@@ -72,10 +73,13 @@ function _logger:init(path,size,copys,level_func )
     glr.send(logPid,"!@"..cjson.encode(info))
     local _,_,msg = glr.recvByAddr({host=glr.sys.host,port=glr.sys.port,gpid=logPid})
     self._handler = cjson.decode(msg)
+    self.flag = flag or 0
     pprint.pprint(self._handler)
     return self
 end
-
+function _logger:turnOnProfile()
+   self.flag = 1
+end
 function _logger:flush( )
     glr.send(self._handler,"!!")
 end
@@ -90,8 +94,16 @@ function _logger:_log(level, format, ...)
         local info = debug.getinfo(3)
         info.level = _loggerFlag[level]
         info.msg = str
-        local timeformat = string.format("[%s] ",datetime:new():init():today():strtime())
-        local log_str = ("[%(level)s] [File=%(short_src)s  Line=%(currentline)s] : %(msg)s" % info)
+        info.gpid = self._handler.gpid
+        local timeformat
+        local log_str
+        if self.flag ~= 0 then
+            timeformat = string.format("[%s.%s] ",os.date("%m/%d %H:%M:%S",glr.time.now()),osdatetime.gettimeofday().msec)
+            log_str= ("[%(level)s] [%(short_src)s:%(currentline)s] [G:%(gpid)s]:%(msg)s" % info)
+        else
+            timeformat = string.format("[%s] ",os.date("%m/%d %H:%M:%S",glr.time.now()))
+            log_str= ("[%(level)s] [%(short_src)s:%(currentline)s] [G:%(gpid)s]:%(msg)s" % info)
+        end
         glr.send(self._handler,timeformat..log_str)
     end
 end
@@ -122,7 +134,7 @@ function _logger:reset()
    glr.send(logPid,"!*")
 end
 function _logger:dump(str)
-   return _dump(str)
+   return hexdump.dump(str)
 end
 _logger.log = _logger.debug
 

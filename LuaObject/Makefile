@@ -1,5 +1,5 @@
 
-all:router.so amq.so logger.so _dir.so xml.so osext.so cp
+all:router.so amq.so logger.so _dir.so xml.so osext.so hexdump.so cp
 
 include ../mk.rules
 amq:amq.so
@@ -27,7 +27,9 @@ osext.so:LuaOS.o
 	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@
 cp:
 	cp -rf *.so $(HOME)/lib/lua
-
+hexdump.so:Luadump.o imembase.o
+	@echo $(PLATFORM)
+	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@
 .PHONY: static clean
 
 
@@ -45,6 +47,10 @@ xml.a: LuaXML.o
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv xml.a $(HOME)/share/static/lua
-
+hexdump.a:Luadump.o imembase.o
+	echo $(PLATFORM)
+	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $(RANLIBFLAGS) $@
+	mv hexdump.a $(HOME)/share/static/lua
 clean:
 	-rm -f *.o *.a *.so
