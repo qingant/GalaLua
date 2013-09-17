@@ -5,6 +5,10 @@
 #include <string.h>
 #include <imembase.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static char *intl_b2hex(char pHex[2], char bVal)
 {
 
@@ -144,4 +148,8 @@ LUALIB_API int luaopen_hexdump(lua_State *L)
    lua_pop(L, 1);
    return 1;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
