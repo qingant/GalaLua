@@ -1,8 +1,11 @@
 
-all:router.so amq.so logger.so _dir.so xml.so osext.so hexdump.so cp
+all:router.so amq.so logger.so _dir.so xml.so osext.so hexdump.so platform.so cp
 
 include ../mk.rules
 amq:amq.so
+platform.so:LuaPlatform.o
+	$(G++) $? $(LNKFLAG)  $(SYTMLIB)  -o $@
+
 router.so:LuaRouter.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@

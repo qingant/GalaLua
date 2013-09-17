@@ -330,8 +330,11 @@ function element:_xpath_selector( tokens, idx )
     elseif string.sub(tok,1,1) == "*" then
         local all = self:get_child()
         if string.sub(tok,2,2) == "@" then
-            local k,v = string.split(string.sub(tok,3),"=")
-            sel = self:_xpath_attr_selector(all, k, v)
+            sel = all
+            for i,v in ipairs(string.split(string.sub(tok,3), "&")) do
+                local k,v = string.split(string.sub(v,3),"=")
+                sel = self:_xpath_attr_selector(sel,k,v)
+            end
         else
 
             sel = all
