@@ -28,7 +28,9 @@ extern int luaopen_minizip(lua_State *);
 extern int luaopen__dir(lua_State *);
 extern int luaopen_sigar(lua_State *);
 extern int luaopen_xml(lua_State *);
-extern int luaopen_osdatetime (lua_State *);
+extern int luaopen_osdatetime(lua_State *);
+extern int luaopen_hexdump(lua_State *);
+extern int luaopen_platform(lua_State *);
 /* extern int luaopen_lxp (lua_State *); */
 /* extern int luaopen_iconv(lua_State *); */
 
@@ -41,6 +43,8 @@ const luaL_Reg lualibray[] = {
     { "sigar", luaopen_sigar },
     { "xml", luaopen_xml },
     { "osdatetime", luaopen_osdatetime },
+    { "platform", luaopen_platform },
+    { "hexdump", luaopen_hexdump},
     /*    { "iconv", luaopen_iconv }, */
     /*    { "lxp", luaopen_lxp }, */
     { (const char *) NULL, (lua_CFunction) NULL }

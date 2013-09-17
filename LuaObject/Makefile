@@ -36,8 +36,12 @@ hexdump.so:Luadump.o imembase.o
 .PHONY: static clean
 
 
-static: _dir.a xml.a
+static: _dir.a xml.a platform.a hexdump.a
 
+platform.a: LuaPlatform.o
+	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $(RANLIBFLAGS) $@
+	mv $@ $(HOME)/share/static/lua
 
 _dir.a: LuaDir.o
 	echo $(PLATFORM)
@@ -50,10 +54,12 @@ xml.a: LuaXML.o
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv xml.a $(HOME)/share/static/lua
-hexdump.a:Luadump.o imembase.o
+
+hexdump.a: Luadump.o imembase.o
 	echo $(PLATFORM)
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv hexdump.a $(HOME)/share/static/lua
+
 clean:
 	-rm -f *.o *.a *.so
