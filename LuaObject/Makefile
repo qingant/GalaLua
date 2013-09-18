@@ -30,7 +30,7 @@ osext.so:LuaOS.o
 	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@
 cp:
 	cp -rf *.so $(HOME)/lib/lua
-hexdump.so:Luadump.o imembase.o
+hexdump.so:LuaDump.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@
 .PHONY: static clean
@@ -55,7 +55,7 @@ xml.a: LuaXML.o
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv xml.a $(HOME)/share/static/lua
 
-hexdump.a: Luadump.o imembase.o
+hexdump.a: LuaDump.o
 	echo $(PLATFORM)
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
