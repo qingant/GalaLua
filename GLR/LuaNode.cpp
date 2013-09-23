@@ -167,6 +167,9 @@ int Process::Spawn(lua_State *l)
                 len = luaL_checkinteger(l, i);
                 lua_pushinteger(node._Stack, len);
                 break;
+            case LUA_TNIL:
+                lua_pushnil(node._Stack);
+                break;
             default:
                 i = 1024;                    // ���ѭ��
                 break;
