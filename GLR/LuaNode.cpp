@@ -171,7 +171,7 @@ int Process::Spawn(lua_State *l)
                 lua_pushnil(node._Stack);
                 break;
             default:
-                i = 1024;                    // ���ѭ��
+                THROW_EXCEPTION_EX("not supported argument");
                 break;
             }
         }
