@@ -37,7 +37,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <IncludePath>C:\Users\matao\Desktop\Proj\GalaLua;C:\Users\matao\Desktop\Proj\GalaLua\Runtime;C:\Users\matao\Desktop\Proj\GalaLua\LuaJIT-2.0.0\src;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\matao\work\code\GalaLua;C:\Users\matao\work\code\GalaLua\Runtime;C:\Users\matao\work\code\GalaLua\LuaJIT-2.0.0\src;$(IncludePath)</IncludePath>
     <SourcePath>C:\Users\matao\Desktop\Proj\GalaLua;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
