@@ -1,6 +1,7 @@
 #include "LuaCPP.hpp"
 #include "cdtype.h"
 #include <string>
+#include <string.h>
 
 class CSTRDump
 {

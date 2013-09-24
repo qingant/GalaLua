@@ -14,6 +14,7 @@ class GlrApp:public Galaxy::GalaxyRT::IApp
 public:
     GlrApp(int argc, CHAR **argv, const std::string &optfmt):IApp(argc, argv, NULL, optfmt)
     {
+        
         GLR::Runtime::_pCProcess = _Process.get();
     }
     virtual void Run()
@@ -97,6 +98,7 @@ private:
         {
             host = "0.0.0.0";
         }
+        port = 0;
         if (_Process->ExistOption("p"))
         {
             port = atoi(_Process->GetOption("p").c_str());

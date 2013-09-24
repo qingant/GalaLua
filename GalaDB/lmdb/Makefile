@@ -1,6 +1,6 @@
 include ../mk.rules
 
-all: liblmdb.so
+all: liblmdb.so  mdb_copy
 
 clean:
 	rm -rf *so
@@ -22,6 +22,7 @@ mdb_stat: mdb_stat.o
 	$(GCC) -L$(HOME)/lib -L. -llmdb -o $@ $?
 mdb_copy: mdb_copy.o
 	$(GCC) -L$(HOME)/lib -L. -llmdb -o $@ $?
+	mv $@ $(HOME)/bin/
 mtest:mtest.o
 	$(GCC) -L$(HOME)/lib -L. -llmdb -o $@ $?
 mtest2:	mtest2.o

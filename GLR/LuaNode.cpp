@@ -429,6 +429,7 @@ void Process::Resume()
         lua_pcall(_Stack, 0, 1, 0);      // this call should never fail
         const char *msg = luaL_checkstring(_Stack, -1);
         GALA_DEBUG(msg);
+        _Status._State = ProcessStatus::STOPED;
         THROW_EXCEPTION_EX(msg);
 
     }
