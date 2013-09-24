@@ -106,15 +106,13 @@ int main( int argc, char* argv[] )
  * 处理pidfile（开始）
  */
         std::string pidpathname;
-        /* 是否需要临时保存一下HOME环境变量呢？*/
-        const char * const HOME = getenv("HOME");
-        if (HOME != NULL)
+        if (_CProcess.ExistOption("w"))
         {
-            pidpathname = std::string(HOME) + std::string("/glr_sl.pid");
+            pidpathname = _CProcess.GetOption("w") + std::string("/glr_sl.pid");
         }
         else
         {
-            std::cerr<<"NO 'HOME' environment variable"<<std::endl;
+            std::cerr<<"NO 'w' option"<<std::endl;
             exit(EX_USAGE);
         }
 /**
