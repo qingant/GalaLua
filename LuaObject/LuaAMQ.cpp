@@ -10,30 +10,30 @@
 //IMQueue::EMQCHL
 #define isValidChannel(chl) (chl>=0 && chl<=2)
 
+const int pageSize=8192;
 using namespace Galaxy::AMQ;
 
 class BlockBuffer:public IBlock
 {
 public:
-    BlockBuffer(const char *str,int len):size(len)
+    BlockBuffer(const char *str,int len=pageSize):
+        buf(str,len)
     {
-        assert(len<8196);
-        CRT_memcpy(buf,str,len);
     }
-    BlockBuffer():size(8196)
+    BlockBuffer(int len=pageSize):
+        buf(len,0)
     {
     }
     PBYTE RAWEntry() const
     {
-        return (PBYTE)buf;
+        return (PBYTE)&buf[0];
     }
     UINT RAWSize() const
     {
-        return size;
+        return buf.length();
     }
 private:
-    char buf[8196];
-    int size;
+    std::string buf;
 };
 
 class IMQView4Lua
@@ -199,7 +199,7 @@ public:
         size_t len;
         const char *buf=luaL_checklstring(L,2, &len);
 
-        BlockBuffer block(buf,len+1);
+        BlockBuffer block(buf,len);
         UINT id;
 
         CALL_CPP_FUNCTION(L,id=pMQ->Put(IMQueue::MQC_RTL,block,(UINT&)len)); 
@@ -386,7 +386,7 @@ public:
             if (access(path, F_OK) != 0)
             {
                 printf("Created\n");
-                Galaxy::AMQ::CGalaxyMQCreator _(std::string(path), std::string("who"), 1024*10, 8192, 32, 0, 0, 2500, 0, 0);
+                Galaxy::AMQ::CGalaxyMQCreator _(std::string(path), std::string("who"), 1024*10, pageSize, 32, 0, 0, 2500, 0, 0);
             }
             *mq=new Galaxy::AMQ::CGalaxyMQ(path);
             printf("%s\n",path);
