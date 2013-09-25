@@ -24,6 +24,7 @@ json:
 	cd lua-cjson-2.1.0 && $(MAKE) all && mv cjson.so $(HOME)/lib/lua/ && $(MAKE) clean
 dba:
 	cd luadbi.0.5/ && $(MAKE) all && $(MAKE) clean
+	mv dbaccess.lua $(HOME)/lib/lua
 struct:
 	cd lua-struct && $(MAKE) && cp struct.so structX.lua $(HOME)/lib/lua/ && $(MAKE) clean
 libzip:
