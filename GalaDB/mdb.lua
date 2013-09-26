@@ -404,6 +404,7 @@ function element:_get_dup(op)
 
     local dict = {}
     if k == nil or v == nil then
+        cur:close()
         return dict
     end
     flag = lightningmdb.MDB_NEXT_DUP
