@@ -31,6 +31,7 @@ public:
 
 private:
     int fd;
+    int logfd;
     std::string progname;
     std::string pathname;
 };

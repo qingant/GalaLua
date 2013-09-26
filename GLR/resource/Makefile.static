@@ -29,6 +29,7 @@ LUA_PACKAGE_C_LIBS += $(PREFIX)/share/static/lua/cjson.a \
     # $(PREFIX)/share/static/lua/lxp.a
 
 GDK_AR_LIBS = $(PREFIX)/share/static/libGLR.a \
+    $(PREFIX)/share/static/libSensorFrm.a \
     $(PREFIX)/share/static/libGalaxyStub.a \
     $(PREFIX)/share/static/libGalaxyRT.a \
     $(PREFIX)/share/static/libluajit.a \

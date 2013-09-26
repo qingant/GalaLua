@@ -11,15 +11,22 @@ libGLR.so:$(GLR_OBJ)
 	$(G++) $? $(LNKFLAG) $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lluajit -o $@
 	mv $@ $(HOME)/lib/
 
-static: res libGLR.a mkresx agent
+static: res libGLR.a mkresx agent libSensorFrm.a
 
 #libGLR.a: $(GLR_OBJ)
-libGLR.a: SensorFrm.o $(GLR_OBJ) resource/bswap.o resource/resource.o \
-		resource/resxloader.o daemon.o SigleInstantiation.o
+libGLR.a: $(GLR_OBJ)
 	@echo $(PLATFORM)
 	rm -f $@
-	$(AR) $(ARFLAGS) $@ SensorFrm.o $(GLR_OBJ) resource/bswap.o \
-		resource/resource.o resource/resxloader.o daemon.o SigleInstantiation.o
+	$(AR) $(ARFLAGS) $@ $(GLR_OBJ)
+	$(RANLIB) $(RANLIBFLAGS) $@
+	mv $@ $(HOME)/share/static
+
+libSensorFrm.a: SensorFrm.o resource/bswap.o resource/resource.o \
+             resource/resxloader.o daemon.o SigleInstantiation.o
+	@echo $(PLATFORM)
+	rm -f $@
+	$(AR) $(ARFLAGS) $@ SensorFrm.o resource/bswap.o resource/resource.o \
+		resource/resxloader.o daemon.o SigleInstantiation.o
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static
 	mkdir -p $(HOME)/include/resource
