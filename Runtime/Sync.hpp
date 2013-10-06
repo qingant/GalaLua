@@ -19,7 +19,7 @@ namespace Galaxy
 {
    namespace GalaxyRT
    {
-	
+    
 // Exceptions
 // CLockAcquired: exception used to indicate that a lock cannot be acquired
       class CLockAcquired:public CException
@@ -32,11 +32,11 @@ namespace Galaxy
       {
       public:
          CMutexBusyError(CPSTR file, CPSTR func, INT line, INT errcode, INT control, const std::string &msg) throw()
-			:CException(file, func, line, errcode, control, msg){}
+            :CException(file, func, line, errcode, control, msg){}
          ~CMutexBusyError() throw(){}
          std::string GetClassName() const
          {
-			return std::string("CMutexBusyError");
+            return std::string("CMutexBusyError");
          }
       };
 
@@ -44,11 +44,11 @@ namespace Galaxy
       {
       public:
          CSemTryWaitError(CPSTR file, CPSTR func, INT line, INT errcode, INT control, const std::string &msg) throw()
-			:CException(file, func, line, errcode, control, msg){}
+            :CException(file, func, line, errcode, control, msg){}
          ~CSemTryWaitError() throw(){}
          std::string GetClassName() const
          {
-			return std::string("CSemTryWaitError");
+            return std::string("CSemTryWaitError");
          }
       };
 
@@ -56,11 +56,11 @@ namespace Galaxy
       {
       public:
          CRwlockBusyError(CPSTR file, CPSTR func, INT line, INT errcode, INT control, const std::string &msg) throw()
-			:CException(file, func, line, errcode, control, msg){}
+            :CException(file, func, line, errcode, control, msg){}
          ~CRwlockBusyError() throw(){}
          std::string GetClassName() const
          {
-			return std::string("CRwlockBusyError");
+            return std::string("CRwlockBusyError");
          }
       };
 
@@ -107,7 +107,7 @@ namespace Galaxy
       {
       public:
          enum {
-			PERM_DEFAULT = (0400|0200),
+            PERM_DEFAULT = (0400|0200),
          };
 
       public:
@@ -131,7 +131,7 @@ namespace Galaxy
       class CLockGuard:public CNonCopyAble
       {
       public:
-         CLockGuard(const CMutex *lock);
+         CLockGuard(const CMutex *lock, bool isSync = true);
          ~CLockGuard();
       private:
          const CMutex *_lock;
@@ -173,8 +173,8 @@ namespace Galaxy
       {
       public:
          enum LOCK_TYPE {
-			RDLOCK,
-			WRLOCK
+            RDLOCK,
+            WRLOCK
          };
     
          virtual void ReadLock() const = 0;
@@ -238,8 +238,8 @@ namespace Galaxy
       {
       public:
          CFileLock(const std::string &file)
-			:CRWLockAdapter(*(new CFileRWLock(file)), CRWLockInterface::WRLOCK),
-			 _FLock((CFileRWLock*)&_Lock)
+            :CRWLockAdapter(*(new CFileRWLock(file)), CRWLockInterface::WRLOCK),
+             _FLock((CFileRWLock*)&_Lock)
          {}
          bool IsLocked(const pid_t &pid) const
          {
