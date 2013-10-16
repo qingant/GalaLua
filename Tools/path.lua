@@ -66,6 +66,20 @@ function ls(file,filter)
     return all
 end
 
+function replace(path,from,to)
+    local sep="/"
+    if path:sub(-#from)==from then
+        sep=""
+    end
+    local d=string.gsub(path,from,to..sep,1)
+    return pretty(d)
+end
+
+function pretty(path)
+    assert(type(path)=="string","must pass path")
+    return path:gsub("/+","/")
+end
+
 if ...=="__main__" then
     function test_split()
         print(split("test.lua"))

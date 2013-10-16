@@ -316,7 +316,7 @@ function gar:init(manifest_file,fname_func)
 
     self._manifest=manifest:new(manifest_file)
 
-    self._gar=Zip:new(self._manifest:gar_name())
+    self._gar=Zip:new(self._manifest:gar_name(),"w")
     self:add_manifest()
 end
 
@@ -324,7 +324,7 @@ function gar:close()
     self._gar:close()
 end
 
-function gar:name_in_gar(path)
+function gar:name_in_gar(path,file_type)
     return path
 end
 function gar:ignore_me(f)
@@ -341,16 +341,21 @@ end
 function gar:add2gar(file,not_recurse)
     self.in_path=file
     function add(file,not_recurse)
-        local zipfile=self:name_in_gar(file)
-        print("zipfile",zipfile)
-        if not self._gar:is_valid(zipfile)  then
-            return 
-        end
-
+        
         local ft=path.dir_type(file)
         if (ft=="reg") then
+            local zipfile=self:name_in_gar(file)
+            if not self._gar:is_valid(zipfile)  then
+                return 
+            end
+
             self._gar:add_file(zipfile,file)
         elseif (ft=="dir") then
+            local zipfile=self:name_in_gar(file,"d")
+            if not self._gar:is_valid(zipfile)  then
+                return 
+            end
+
             self._gar:add_dir(zipfile,file)
 
             --Zip sub-directory recursively 
@@ -380,20 +385,24 @@ function remove_prefix_slash(str)
     return  str:match("/*(.*)") 
 end
 
-function sub_root(self,in_path)
+function sub_root(self,in_path,file_type)
     print("sub_root:",in_path)
     local root=self._manifest:root()
     local as_path
     if root and root~="" then
+        local dir,base=path.split(in_path)
         if in_path==self.in_path then
-            as_path=root
+            if file_type~="d" then 
+                as_path=path.join(root,base)
+            else
+                as_path=root
+            end
         else
-            local dir,base=path.split(in_path)
             if startwith(base,".") then
                 return 
             end
 
-            as_path=in_path:gsub(self.in_path,root,1)
+            as_path=path.replace(in_path,self.in_path,root)
         end
     end
 
