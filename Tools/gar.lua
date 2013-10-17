@@ -372,9 +372,9 @@ function gar:add2gar(file,not_recurse)
 end
 
 function new(manifest_file,fname_func)
-    assert(type(manifest_file)=="string","argument error")
-
-    if string.sub(manifest_file,-4)==".gar" then
+    local t=type(manifest_file)
+    assert(t=="string" or t=="table","argument error")
+    if t=="string" and string.sub(manifest_file,-4)==".gar" then
         return  gar_reader:new(manifest_file)
     end
     return gar:new(manifest_file,fname_func)
