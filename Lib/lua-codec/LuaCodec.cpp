@@ -63,7 +63,7 @@ int Codec4Lua::Encode(lua_State *l)
     size_t len=0;
     const char *str=luaL_checklstring(l,2,&len);
     // unicode:4
-    size_t u_len=len/4; 
+    size_t u_len=len/4;
     //正常utf8应该4字节就够了
     int out_len=u_len*4;
     if (out_len>SIZE) {
@@ -91,29 +91,27 @@ int Codec4Lua::Decode(lua_State *l){
     const char *code=luaL_checkstring(l,1);
     size_t len=0;
     const char *str=luaL_checklstring(l,2,&len);
-    size_t u_len=0;
+    size_t u_len=len*4; 
 
     if ((strcmp(code,"utf8")==0)){
         codec=Utf8Codec::GetCodec();
-        u_len=len*4;
     }
     else if ((strcmp(code,"gb2312")==0)){
         codec = Gb2312Codec::GetCodec();
-        u_len=len*2;
     }
     else{
         return luaL_error(l,"not support!");
     }
-    
+
     if (u_len>SIZE){
         //unicode 4字节
         Buffer buffer(u_len);
-        int real_len=codec->decode(str,len,(unicode_str)buffer.get(),u_len);
+        int real_len=codec->decode(str,len,(unicode_str)buffer.get(),u_len/4);
         lua_pushlstring(l,buffer.get(),real_len*4);
     }
     else{
         char buf[SIZE]={0};
-        int real_len=codec->decode(str,len,(unicode_str)buf,SIZE);
+        int real_len=codec->decode(str,len,(unicode_str)buf,SIZE/4);
         lua_pushlstring(l,buf,real_len*4);
 
     }
