@@ -523,7 +523,7 @@ int Process::Recieve(lua_State *l)
                 int timeout = lua_tointeger(self._Stack, 1);
                 self.SetTimeOut(timeout);
             }
-            
+
 
             //lua_pushstring(l, "SUSPEND");
             //return lua_yield(self._Stack, 0);
@@ -678,11 +678,11 @@ int Process::Debug(lua_State *l)
     return 0;
 }
 
-void Process::Interrupt(int device)
+/*void Process::Interrupt(int device)
 {
-    Runtime::GetInstance().GetBus().Interrupt(device, _Stack);
+Runtime::GetInstance().GetBus().Interrupt(device, _Stack);
 
-}
+}*/
 
 int Process::Interrupt(lua_State *l)
 {
@@ -692,12 +692,27 @@ int Process::Interrupt(lua_State *l)
     Process& n = Process::GetNodeById(id);
     n._Status._State = ProcessStatus::GLR_CALL;
     int dev = luaL_checkinteger(l, 1);
-    //Galaxy::GalaxyRT::CLockGuard _Gl(&n._Lock);
-    Runtime::GetInstance().GetBus().Interrupt(dev, l);
+    int device;
+    short timeout;
+    device = (0xff000000&dev)>>24;
+    timeout = 0x0000ffff&dev;
+    timeout = timeout == 0?-1:timeout;
+    if (device > MAX_DEV_NUMBER)  // TODO: remove this 
+    {
+        luaL_error(l, "wrong int no.");
+    }
+
+    //lua_pushinteger(l, n._Status._Tick);   //在栈顶上推入中断序列号（超时返回时候判断之用）
+    Runtime::GetInstance().GetBus().Interrupt(device, n._Status._Tick, l);
     if (n._Status._State == ProcessStatus::INT_RESP)
     {
         return n._Status._NArg;
     }
+    if (timeout != -1)
+    {
+        n.SetTimeOut(timeout);
+    }
+
     printf("Yield\n");
     return n.Yield();
 }
@@ -1218,8 +1233,7 @@ void GLR::Process::SetTimeOut(int timeout)
     lua_pushinteger(self._Stack, 0);
     lua_pushinteger(self._Stack, 2);
     lua_pushinteger(self._Stack, timeout);
-    lua_pushinteger(self._Stack, self._Status._Tick);
-    Runtime::GetInstance().GetBus().Interrupt(0,self._Stack);
+    Runtime::GetInstance().GetBus().Interrupt(0, self._Status._Tick, self._Stack);
 }
 
 

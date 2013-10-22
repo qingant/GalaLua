@@ -50,7 +50,9 @@ namespace GLR
     {
     public:
         IController(void);
-        virtual void Request(lua_State*) = 0;
+        virtual void Request(lua_State*){THROW_EXCEPTION_EX("Not Impl");}
+        virtual void Request(lua_State*, int){THROW_EXCEPTION_EX("Not Impl");}
+        virtual int  Version() const {return 1;}   //1: Basic 2: With tick(Per-Process INT serial) 
         //void Response(int pid, int nargs);
         virtual ~IController(void);
     private:
@@ -78,10 +80,12 @@ namespace GLR
         //************************************
         static Bus &GetInstance();
         void RegisterDevice(IController*);
-        void Interrupt(int device, lua_State*);
+        void Interrupt(int device, int tick, lua_State*);
         void IntSuspend(int pid);
         void Response(int pid, int narg, ...);
+        bool ResponseEx(int pid, int tick, int narg, ...);
         void TimerSignal(int pid, int tick);
+        bool IsCanceled(int pid, int tick);
         //void Response(int pid, int narg){Response(pid,narg,NULL);}
         void Return(int pid, int narg,...);
         void Return( int pid, int narg,int type,std::map<std::string,int>m);

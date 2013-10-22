@@ -3,7 +3,7 @@
 #include "LuaNode.hpp"
 using namespace GLR;
 
-void Clock::Request( lua_State *l )
+void Clock::Request( lua_State *l, int tick )
 {
     int type = luaL_checkinteger(l, 2);
     lua_getglobal(l,"__id__");
@@ -27,7 +27,7 @@ void Clock::Request( lua_State *l )
     {
 
         int timeval = luaL_checkinteger(l, 3);
-        int tick = luaL_checkinteger(l, 4);
+        //int tick = luaL_checkinteger(l, 4);
 
         printf("timeout %d!\n", timeval);
         Galaxy::GalaxyRT::TIMEREVENT ev(timeval);

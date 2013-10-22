@@ -25,15 +25,8 @@ namespace GLR
 
         ~Clock();
 
-        //************************************
-        // Method:    Request
-        // FullName:  Clock::Request
-        // Access:    virtual public 
-        // Returns:   void
-        // Qualifier: 
-        // Parameter: lua_State * 
-        //************************************
-        virtual void Request( lua_State* );
+        virtual void Request( lua_State* , int);
+        virtual int  Version()const {return 2;}
 
     private:
         Galaxy::GalaxyRT::CTimer _Timer;

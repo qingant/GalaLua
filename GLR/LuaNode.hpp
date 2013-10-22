@@ -81,6 +81,10 @@ namespace GLR
             TIMER,
             SOCKET,
         };
+        enum 
+        {
+            MAX_DEV_NUMBER = 256
+        };
         static const int SpyerId = 1;
     private:
         Process(int id = 0);
