@@ -53,3 +53,9 @@ local function interp(s, tab)
 end
 
 strMt.__mod = interp
+
+local function trim(s)
+    return s:match "^%s*(.-)%s*$"
+end
+
+string.trim = trim
