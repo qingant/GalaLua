@@ -20,6 +20,10 @@ local print = print
 local unpack = unpack
 setfenv(1, M)
 local self_host, self_port = _glr.node_addr()
+local SOCK_INT_NO = 0x01000000
+local CLOK_INT_NO = 0x00000000
+local GBUS_INT_NO = 0x02000000
+
 
 function spawn(mod_name, entry, ...)
 	return _glr.spawn(mod_name, entry, ...)
@@ -33,7 +37,7 @@ function send(addr, msg)
 		if self_host == addr.host and self_port == addr.port then
 			return _glr.send(addr.gpid, msg)
 		else
-			return _glr.int(2, 1, addr.host, addr.port, msg, addr.gpid) -- node send
+			return _glr.int(GBUS_INT_NO, 1, addr.host, addr.port, msg, addr.gpid) -- node send
 		end
 	else
 		return _glr.send(addr, msg)
@@ -41,10 +45,10 @@ function send(addr, msg)
 end
 
 function connect(host, port, pid, timeout)
-	return _glr.int(2, 0, host, port, pid, timeout)
+	return _glr.int(GBUS_INT_NO, 0, host, port, pid, timeout)
 end
 function close_node(host, port)
-    return _glr.int(2, 4, host, port)
+    return _glr.int(GBUS_INT_NO, 4, host, port)
 end
 
 local mailBox = {}
@@ -165,12 +169,19 @@ msg_available = _glr.msg_available
 set_options=_glr.set_options
 glr_stamp = _glr.glr_stamp
 exit = _glr.exit
+
+
 time = {
-	now = function () return _glr.int(0,0) end;
-	sleep = function (sec)  return _glr.int(0,1,sec) end
+	now = function () return _glr.int(CLOK_INT_NO,0) end;
+	sleep = function (sec)  return _glr.int(CLOK_INT_NO,1,sec) end
 }
-
-
+local function int_arg(no, timeout)
+    if timeout == nil or timeout == -1 then
+        return no+0x0000ffff
+    else
+        return no+timeout
+    end    
+end
 net = {
 
 	-- const viarible --
@@ -182,7 +193,7 @@ net = {
 	-- interface -- 
 	tcp_server =  function (host, port)
 		
-		return _glr.int(1,     
+		return _glr.int(int_arg(SOCK_INT_NO),     
 						-- Interrupt ID
 						0,   
 						-- Operation Type: make server
@@ -196,7 +207,7 @@ net = {
 	end;
 
     un_server = function (path)
-		return _glr.int(1,       
+		return _glr.int(int_arg(SOCK_INT_NO),       
 						-- Interrupt ID
 						0, 
 						-- Operation Type: make server
@@ -207,9 +218,9 @@ net = {
 		)
 	end;
 
-	tcp_conn = function (host, port)
-		
-		return _glr.int(1,     
+	tcp_conn = function (host, port, timeout)
+
+		return _glr.int(int_arg(SOCK_INT_NO, timeout),     
 						-- Interrupt ID
 						1,   
 						-- Operation Type: connect to server
@@ -222,8 +233,8 @@ net = {
 		)
 	end;
 
-	un_conn = function (path)
-		return _glr.int(1,       
+	un_conn = function (path, timeout)
+		return _glr.int(int_arg(SOCK_INT_NO, timeout),       
 						-- Interrupt ID
 						1, 
 						-- Operation Type: connect
@@ -233,11 +244,11 @@ net = {
 						-- Path
 		)
 	end;
-	accept = function (fd)
-		return _glr.int(1, 4, fd)
+	accept = function (fd, timeout)
+		return _glr.int(int_arg(SOCK_INT_NO, timeout), 4, fd)
 	end;
-	recv =  function (fd, len)
-		return _glr.int(1,     
+	recv =  function (fd, len, timeout)
+		return _glr.int(int_arg(SOCK_INT_NO, timeout),     
 						-- Interrupt ID
 						2,       
 						-- Operation Type: recv 
@@ -247,13 +258,21 @@ net = {
 						-- length
 		)           
 	end;
-
+    get_line =  function (fd, timeout)
+		return _glr.int(int_arg(SOCK_INT_NO, timeout),     
+						-- Interrupt ID
+						7,       
+						-- Operation Type: recv 
+						fd         
+						-- fd
+		)           
+	end;
 	send = function (fd, buf)
-		return _glr.int(1, 3, fd, buf)
+		return _glr.int(SOCK_INT_NO, 3, fd, buf)
 	end;
 
 	close = function (fd)
-		return _glr.int(1, 5, fd)
+		return _glr.int(SOCK_INT_NO, 5, fd)
 	end;
 }
 

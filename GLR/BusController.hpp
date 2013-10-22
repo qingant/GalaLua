@@ -131,6 +131,7 @@ namespace GLR
             NODE_CLOSE,
         };
     public:
+        using IController::Request;
         BusController(); 
         ~BusController();
         virtual void Request(lua_State *);
