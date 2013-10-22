@@ -143,7 +143,6 @@ void Bus::Response( int pid, int narg, ...)
         Process &nd = Runtime::GetInstance().GetProcess(pid);
 
         Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock);
-        GALA_ERROR("Pid(%d) Status(%d)", pid, nd._Status._State);
         if (nd._Status._State != Process::ProcessStatus::INT_WAIT &&
             nd._Status._State != Process::ProcessStatus::RECV_WAIT)
         {
