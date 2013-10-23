@@ -810,16 +810,16 @@ int Process::Status(lua_State *l)
 
         lua_pushinteger(l, nd._Channel.Size());
         lua_setfield(l, -2, "msg_num");
-
-        lua_getglobal(nd._Stack,"__info__");
-        if (lua_istable(nd._Stack,-1)){
-            move_table(nd._Stack,l,lua_gettop(nd._Stack));
-            lua_setfield(l,-2,"info");
-        }
-        else{
-            lua_pop(nd._Stack,1);
-        }
-
+//XXX:thread unsafe
+//        lua_getglobal(nd._Stack,"__info__");
+//        if (lua_istable(nd._Stack,-1)){
+//            move_table(nd._Stack,l,lua_gettop(nd._Stack));
+//            lua_setfield(l,-2,"info");
+//        }
+//        else{
+//            lua_pop(nd._Stack,1);
+//        }
+//
         
         return 2;
     }
