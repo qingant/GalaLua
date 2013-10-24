@@ -43,9 +43,9 @@ public:
     {
         IMQView *view=lua_checkIMQView(L,1);
    //     int chl=luaL_checkint(L,2);
-         
+
         int size=0;
-        
+
         CALL_CPP_FUNCTION(L,size=view->Total(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
@@ -55,9 +55,9 @@ public:
     {
         IMQView *view=lua_checkIMQView(L,1);
   //      int chl=luaL_checkint(L,2);
-         
+
         int size=0;
-        
+
 //        CALL_CPP_FUNCTION(L,view->Head((IMQueue::EMQCHL)chl));
         CALL_CPP_FUNCTION(L,size=view->Head(IMQueue::MQC_BAT));
 
@@ -68,9 +68,9 @@ public:
     {
         IMQView *view=lua_checkIMQView(L,1);
 //        int chl=luaL_checkint(L,2);
-         
+
         int size=0;
-        
+
         CALL_CPP_FUNCTION(L,size=view->Tail(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
@@ -80,14 +80,14 @@ public:
     {
         IMQView *view=lua_checkIMQView(L,1);
  //       int chl=luaL_checkint(L,2);
-         
+
         int size=0;
-        
+
         CALL_CPP_FUNCTION(L,size=view->LurkersInGet(IMQueue::MQC_BAT));
 
         lua_pushnumber(L,size);
         return 1;
-    }    
+    }
     static int LurkersInPut(lua_State *L)
     {
         IMQView *view=lua_checkIMQView(L,1);
@@ -127,7 +127,7 @@ public:
 const char *IMQView4Lua::METATABLE="IMQView";
 
 
-class IMQueue4Lua    
+class IMQueue4Lua
 {
 public:
     static int View(lua_State *L)
@@ -136,7 +136,7 @@ public:
 
         const Galaxy::AMQ::IMQView **v=(const Galaxy::AMQ::IMQView **)lua_newuserdata(L,sizeof(Galaxy::AMQ::IMQView *));
         *v=&(m->View());
-        
+
         luaL_getmetatable(L, IMQView4Lua::METATABLE);
         lua_setmetatable(L,-2);
 
@@ -152,7 +152,7 @@ public:
         UINT id;
 
         CALL_CPP_FUNCTION(L,id=pMQ->Get(IMQueue::MQC_BAT,block,len));
-        
+
         lua_pushlstring(L,(const char *)block.RAWEntry(),len);    //it's not the zero-terminated string
         return 1;
     }
@@ -167,18 +167,18 @@ public:
         UINT id;
 
         CALL_CPP_FUNCTION(L,id=pMQ->TimedGet(IMQueue::MQC_BAT,block,len,timeout));
-        
+
         lua_pushlstring(L,(const char *)block.RAWEntry(),len);    //it's not the zero-terminated string
-        
+
         return 1;
     }
 
     static int PutEx(lua_State *L)
     {
         IMQueue *pMQ=lua_checkMQ(L,1);
-        
+
         const char *buf=luaL_checkstring(L,2);
-        
+
         if (lua_type(L,3)!=LUA_TBOOLEAN)
         {
             return luaL_error(L,"not a boolean %s   %d",__func__,__LINE__);
@@ -202,7 +202,7 @@ public:
         BlockBuffer block(buf,len);
         UINT id;
 
-        CALL_CPP_FUNCTION(L,id=pMQ->Put(IMQueue::MQC_RTL,block,(UINT&)len)); 
+        CALL_CPP_FUNCTION(L,id=pMQ->Put(IMQueue::MQC_RTL,block,(UINT&)len));
 
         return 0;
     }
@@ -212,7 +212,7 @@ public:
         IMQueue *pMQ=lua_checkMQ(L,1);
 
         const char *buf=luaL_checkstring(L,2);
-        
+
         int timeout=luaL_checkint(L,3);
         if (timeout>SHRT_MAX)
         {
@@ -232,7 +232,7 @@ public:
         IMQueue *pMQ=lua_checkMQ(L,1);
 
         const char *buf=luaL_checkstring(L,2);
-        
+
         if (lua_type(L,3)!=LUA_TBOOLEAN)
         {
             return luaL_error(L,"not a boolean %s   %d",__func__,__LINE__);
@@ -267,11 +267,11 @@ public:
     static int SetMaxDepth(lua_State *L)
     {
         IMQueue *pMQ=lua_checkMQ(L,1);
-        
+
         int depth=luaL_checkint(L,2);
         pMQ->SetMaxDepth(depth);
 
-        return 0;   //nothing return 
+        return 0;   //nothing return
     }
 
     static int Reset(lua_State *L)
@@ -279,7 +279,7 @@ public:
         IMQueue *pMQ=lua_checkMQ(L,1);
 
         pMQ->Reset();
-        return 0;   //nothing return 
+        return 0;   //nothing return
     }
 
 private:
@@ -371,6 +371,77 @@ public:
 const char *IMQueueArray4Lua::METATABLE="IMQueueArray";
 
 
+class IMPoolView4Lua
+{
+public:
+    static int Size(lua_State *L)
+    {
+        IPoolerView *v=lua_checkMPV(L,1);
+
+        lua_pushnumber(L,v->Pages());
+
+        return 1;
+    }
+    static int Total(lua_State *L)
+    {
+        IPoolerView *v=lua_checkMPV(L,1);
+
+        lua_pushnumber(L,v->Total());
+
+        return 1;
+    }
+    static int Head(lua_State *L)
+    {
+        IPoolerView *v=lua_checkMPV(L,1);
+
+        lua_pushnumber(L,v->Head());
+
+        return 1;
+    }
+    static int Tail(lua_State *L)
+    {
+        IPoolerView *v=lua_checkMPV(L,1);
+
+        lua_pushnumber(L,v->Tail());
+
+        return 1;
+    }
+    static int Lurkers(lua_State *L)
+    {
+        IPoolerView *v=lua_checkMPV(L,1);
+
+        lua_pushnumber(L,v->Lurkers());
+
+        return 1;
+    }
+private:
+    static IPoolerView * lua_checkMPV(lua_State *L,int n)
+    {
+        return *(IPoolerView **)luaL_checkudata(L,n,METATABLE);
+    }
+public:
+    static void register_IMPoolView(lua_State *L)
+    {
+        struct luaL_Reg m[]={
+            {"size",Size},
+            {"total",Total},
+            {"tail",Tail},
+            {"lurkers",Lurkers},
+            {NULL,NULL}
+        };
+
+        luaL_newmetatable(L,METATABLE);
+
+        luaL_register(L,NULL,m);
+
+        lua_pushvalue(L,-1);
+        lua_setfield(L,-2,"__index");
+    }
+public:
+    static const char *METATABLE;
+};
+const char *IMPoolView4Lua::METATABLE="IMPoolView";
+
 
 class CGalaxyMQ4Lua
 {
@@ -405,7 +476,7 @@ public:
 
         return 1;
     }
- 
+
     static int finalizer(lua_State *L)
     {
         CGalaxyMQ **mq=(CGalaxyMQ **)luaL_checkudata(L,-1,METATABLE);
@@ -417,15 +488,26 @@ public:
     {
         CGalaxyMQ *p=lua_checkCGalaxyMQ(L,1);
         const Galaxy::AMQ::IMQueueArray **pp=(const Galaxy::AMQ::IMQueueArray **)lua_newuserdata(L,sizeof(Galaxy::AMQ::IMQueueArray*));
-         
+
         CALL_CPP_FUNCTION(L,*pp=&(p->NQArray()));
-        
+
         luaL_getmetatable(L,IMQueueArray4Lua::METATABLE);
         lua_setmetatable(L,-2);
 
         return 1;
     }
+    static int PoolView(lua_State *L)
+    {
+        CGalaxyMQ *p=lua_checkCGalaxyMQ(L,1);
+        const Galaxy::AMQ::IPoolerView **pp=(const Galaxy::AMQ::IPoolerView **)lua_newuserdata(L,sizeof(Galaxy::AMQ::IPoolerView*));
 
+        CALL_CPP_FUNCTION(L,*pp=&(p->PoolerView()));
+
+        luaL_getmetatable(L,IMPoolView4Lua::METATABLE);
+        lua_setmetatable(L,-2);
+
+        return 1;
+    }
 private:
     static CGalaxyMQ *lua_checkCGalaxyMQ(lua_State *L,int n)
     {
@@ -443,6 +525,7 @@ extern "C" int luaopen_amq(lua_State *L)
     IMQueueArray4Lua::register_IMQueueArray(L);
     IMQueue4Lua::register_IMQueue(L);
     IMQView4Lua::register_IMQView(L);
+    IMPoolView4Lua::register_IMPoolView(L);
 
     struct luaL_Reg f[]={
         {"new",CGalaxyMQ4Lua::init},
@@ -452,7 +535,8 @@ extern "C" int luaopen_amq(lua_State *L)
     struct luaL_Reg m[]={
         {"__gc",CGalaxyMQ4Lua::finalizer},
         {"finalizer",CGalaxyMQ4Lua::finalizer},
-        {"NQArray",CGalaxyMQ4Lua::NQArray}, 
+        {"NQArray",CGalaxyMQ4Lua::NQArray},
+        {"PoolView",CGalaxyMQ4Lua::PoolView},
         {NULL,NULL}
     };
 
