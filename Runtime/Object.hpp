@@ -24,7 +24,7 @@
 #include <assert.h>
 
 
-#define GALA_ERROR(args...)   \
+#define GALA_ERROR(args,...)   \
     do                    \
     {                     \
        fprintf(stderr,"[ FILE=%s FUNC=%s LINE=%d ] [", __FILE__, __PRETTY_FUNCTION__, __LINE__); \
@@ -43,7 +43,7 @@
    }while(false)
 
 #else
-#define GALA_DEBUG(msg...) (void)0;
+#define GALA_DEBUG(msg,...) (void)0;
 #endif
 
 namespace Galaxy
