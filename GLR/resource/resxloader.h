@@ -31,6 +31,7 @@ extern int luaopen_xml(lua_State *);
 extern int luaopen_osdatetime(lua_State *);
 extern int luaopen_hexdump(lua_State *);
 extern int luaopen_platform(lua_State *);
+extern int luaopen_codec(lua_State *L);
 /* extern int luaopen_lxp (lua_State *); */
 /* extern int luaopen_iconv(lua_State *); */
 
@@ -44,7 +45,8 @@ const luaL_Reg lualibray[] = {
     { "xml", luaopen_xml },
     { "osdatetime", luaopen_osdatetime },
     { "platform", luaopen_platform },
-    { "hexdump", luaopen_hexdump},
+    { "hexdump", luaopen_hexdump },
+    { "codec", luaopen_codec },
     /*    { "iconv", luaopen_iconv }, */
     /*    { "lxp", luaopen_lxp }, */
     { (const char *) NULL, (lua_CFunction) NULL }
