@@ -16,6 +16,6 @@ clean:
 static: codec.a
 
 codec.a: LuaCodec.o $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJTAG)
+	$(AR) $(ARFLAGS) $@ LuaCodec.o $(OBJS)
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static/lua
