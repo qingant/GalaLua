@@ -12,3 +12,10 @@ codec.so:LuaCodec.o
 
 clean:
 	rm -rf *.o *.so
+
+static: codec.a
+
+codec.a: LuaCodec.o $(OBJS)
+	$(AR) $(ARFLAGS) $@ $(OBJTAG)
+	$(RANLIB) $(RANLIBFLAGS) $@
+	mv $@ $(HOME)/share/static/lua
