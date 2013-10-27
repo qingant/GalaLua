@@ -144,8 +144,7 @@ function manifest:resource_path()
     if root==nil or root=="" then
         root=""
     end
-    local res=string.format("%s%s",root,self.m_t.Resource)
-    return res
+    return path.join(root,self.m_t.Resource)
 end
 
 function manifest:root()
