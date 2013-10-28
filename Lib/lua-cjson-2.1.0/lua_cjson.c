@@ -36,6 +36,8 @@
  *       difficult to know object/array sizes ahead of time.
  */
 
+#include <stddef.h>
+#include <errno.h>
 #include <assert.h>
 #include <string.h>
 #include <math.h>
@@ -654,10 +656,17 @@ static void json_append_object(lua_State *l, json_config_t *cfg,
     strbuf_append_char(json, '}');
 }
 
+int empty_array_to_json(lua_State * const L, const int idx,
+        strbuf_t * const json);
+
 /* Serialise Lua data into JSON string. */
 static void json_append_data(lua_State *l, json_config_t *cfg,
                              int current_depth, strbuf_t *json)
 {
+    if (empty_array_to_json(l, -1, json) != 0)
+    {
+        return;
+    }
     int len;
 
     switch (lua_type(l, -1)) {
@@ -1338,9 +1347,82 @@ static int json_protect_conversion(lua_State *l)
     return luaL_error(l, "Memory allocation error in CJSON protected call");
 }
 
+#ifndef EMPTY_ARRAY_METATABLE
+#define EMPTY_ARRAY_METATABLE    "metatable_empty_array"
+#endif
+
+#ifndef EMPTY_ARRAY_NAME
+#define EMPTY_ARRAY_NAME    "empty_array"
+#endif
+
+#ifndef EMPTY_ARRAY_DEADBEEF
+#define EMPTY_ARRAY_DEADBEEF    (0xdeadbeef)
+#endif
+
+static int empty_array_tostring(lua_State * const L)
+{
+    lua_pushstring(L, EMPTY_ARRAY_NAME);
+    return 1;
+}
+
+static void json_empty_array_metatable(lua_State * const L)
+{
+    const luaL_Reg metatable[] = {
+            {.name = "__tostring", .func = empty_array_tostring},
+            {.name = (const char *) NULL, .func = (lua_CFunction) NULL}
+    };
+    luaL_newmetatable(L, EMPTY_ARRAY_METATABLE);
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -2, "__index");
+#if LUA_VERSION_NUM == 501
+    luaL_register(L, (const char *) NULL, &metatable[0]);
+#elif LUA_VERSION_NUM == 502
+    luaL_setfuncs(L, &metatable[0], 0);
+#endif
+}
+
+static void json_empty_array(lua_State * const L)
+{
+    static const void *empty_array = NULL;
+    if (empty_array == NULL)
+    {
+        int * const buff = (int * const) lua_newuserdata(L, sizeof(int));
+        if (buff == NULL) {
+            luaL_error(L, "%s: %s", EMPTY_ARRAY_NAME, strerror(ENOMEM));
+        }
+        *buff = EMPTY_ARRAY_DEADBEEF;
+        empty_array = buff;
+    }
+    else
+    {
+        lua_pushlightuserdata(L, (void *) empty_array);
+    }
+    luaL_getmetatable(L, EMPTY_ARRAY_METATABLE);
+    lua_setmetatable(L, -2);
+    lua_setfield(L, -2, EMPTY_ARRAY_NAME);
+}
+
+/* 处理empty_array */
+int empty_array_to_json(lua_State * const L, const int idx, strbuf_t * const json)
+{
+    const int type = lua_type(L, idx);
+    if ((type == LUA_TLIGHTUSERDATA) || (type == LUA_TUSERDATA))
+    {
+        const int * const buff = (const int *) lua_touserdata(L, idx);
+        if (*buff == EMPTY_ARRAY_DEADBEEF)
+        {
+            strbuf_append_mem(json, "[]", 2);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /* Return cjson module table */
 static int lua_cjson_new(lua_State *l)
 {
+    json_empty_array_metatable(l);
+
     luaL_Reg reg[] = {
         { "encode", json_encode },
         { "decode", json_decode },
@@ -1368,6 +1450,9 @@ static int lua_cjson_new(lua_State *l)
     /* Set cjson.null */
     lua_pushlightuserdata(l, NULL);
     lua_setfield(l, -2, "null");
+
+    /* Set cjson.empty_array */
+    json_empty_array(l);
 
     /* Set module name / version fields */
     lua_pushliteral(l, CJSON_MODNAME);

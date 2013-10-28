@@ -51,22 +51,48 @@ end
 ]]
 function manifest:init(manifest_file)
     local _t=type(manifest_file)
+    local xml_str
+    local xml_table
     if _t=="string" then
         if startwith(manifest_file,"<?xml") then
-            self.manifest=manifest_file
+            xml_str=manifest_file
         else
-            self.manifest=io.open(manifest_file):read("*a")
+            xml_str=io.open(manifest_file):read("*a")
         end
+        xml_table=self:xmltotable(xml_str)
     elseif _t=="table" then
-        self.manifest=self:build(manifest_file)
+        xml_table=manifest_file
     else
         error("invalid manifest")
     end
 
-    self.manifest_t=self:totable()
+    self:build(xml_table)
 end
 
+
 function manifest:build(t)
+    self.m_t={}
+    self.m_t.Version=t.Version
+    self.m_t.Name=t.Name
+    self.m_t.Author=t.Author or "agree"
+    self.m_t.Resource=t.Resource or "Resource"
+    self.m_t.Catagory=t.Catagory or "Executable"
+    self.m_t.Compatibility=t.Compatibility or "0.0.0"
+    self.m_t.Path=t.Path or "?.lua"
+    self.m_t.Root=t.Root or ""
+
+    assert(self.m_t.Name,"invalid Manifest file")
+    assert(self.m_t.Version,"invalid Manifest file")
+end
+
+function manifest:output()
+    if self.m_str==nil then
+        self.m_str=self:_output()
+    end
+    return self.m_str
+end
+
+function manifest:_output()
     local xml=[[
 <?xml version="1.0" encoding="uft8"?>
 <Manifest>
@@ -79,26 +105,24 @@ function manifest:build(t)
        <Date>%s</Date> 
        <Catagory>%s</Catagory>
        <Path>%s</Path>
+       <Root>%s</Root>
 </Manifest>
 ]]
-
-    local ver=t.Version
-    local name=t.Name 
-    local author=t.Author or "agree"
-    local res=t.Resource or "Resource"
-    local catagory=t.Catagory or "Executable"
-    local compatibility=t.Compatibility or "0.0.0"
-    local path=t.Path or "?.lua"
+    local ver=self.m_t.Version
+    local name=self.m_t.Name
+    local author=self.m_t.Author
+    local res=self.m_t.Resource
+    local compatibility=self.m_t.Compatibility
     local date=os.date('%F %H:%M')
+    local catagory=self.m_t.Catagory
+    local path=self.m_t.Path
+    local root=self.m_t.Root
 
-    return string.format(xml,ver,name,author,res,compatibility,date,catagory,path)
+    return string.format(xml,ver,name,author,res,compatibility,date,catagory,path,root)
 end
 
-function manifest:tostr()
-    return self.manifest
-end
-function manifest:totable()
-    local doc=xml.cxml_reader(self.manifest,#self.manifest)
+function manifest:xmltotable(xml_str)
+    local doc=xml.cxml_reader(xml_str,#xml_str)
     local root=doc:document()
     local ret={}
     for i,elm in pairs(root:sub_elements()) do 
@@ -108,20 +132,23 @@ function manifest:totable()
 end
 
 function manifest:gar_name()
-    local name=assert(self.manifest_t.Name,"invalid Manifest file")
-    local ver=assert(self.manifest_t.Version,"invalid Manifest file")
-    return string.format("%s-%s.gar",name,ver)
+    return string.format("%s-%s.gar",self.m_t.Name,self.m_t.Version)
 end
 
 function manifest:gar_path()
-    return self.manifest_t.Path
+    return self.m_t.Path
 end
+
 function manifest:resource_path()
-    return self.manifest_t.Resource
+    local root=self.m_t.Root
+    if root==nil or root=="" then
+        root=""
+    end
+    return path.join(root,self.m_t.Resource)
 end
 
 function manifest:root()
-    return self.manifest_t.Root
+    return self.m_t.Root
 end
 
 
@@ -283,9 +310,8 @@ function gar_reader:read_resource(file)
     if startwith(file,"/") then
         error("file path must not be asbolute path")
     end
-    local p=string.format("%s/%s/%s",self._manifest:root(),self._manifest:resource_path(),file)
-    print(p)
-    return self._gar:read_file(p)
+    local p=string.format("%s/%s",self._manifest:resource_path(),file)
+    return self:read_file(p)
 end
 
 
@@ -334,7 +360,7 @@ function gar:ignore_me(f)
 end
 
 function gar:add_manifest()
-    self._gar:add_string(self.Manifest,self._manifest:tostr())
+    self._gar:add_string(self.Manifest,self._manifest:output())
 end
 
 

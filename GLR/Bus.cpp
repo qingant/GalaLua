@@ -107,7 +107,7 @@ void GLR::Bus::TimerSignal( int pid, int tick )
     try
     {
         Process &nd = Runtime::GetInstance().GetProcess(pid);
-        printf("Now Tick: %d, Last Tick: %d\n", nd._Status._Tick, tick);
+        GALA_DEBUG("Now Tick: %d, Last Tick: %d\n", nd._Status._Tick, tick);
         if (tick != nd._Status._Tick)
         {
             return;

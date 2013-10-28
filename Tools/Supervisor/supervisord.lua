@@ -13,6 +13,14 @@ local conf=require "supervisor_conf"
 local db_path=require "db_path"
 local path=require "path"
 
+
+function init_logger()
+    local log=require("logging")
+    local file =string.format("%s/log/supervisord.log",os.getenv("HOME"))
+    return log.logger:new():init(file)
+end
+
+
 --[[
 process state
 
@@ -63,7 +71,6 @@ local DefaultGroup=conf.defaultGroup
 
 --default gar package search for module
 local DefaultGar=glr.__gar__
-print("DefaultGar:",DefaultGar)
 function execute(cmd)
     return os.execute(cmd)
 end
@@ -187,6 +194,7 @@ function process(entry,max)
     local MAX_TIMES=max or 3
     local pid
     local startcmd
+    local log=init_logger()
 
     --maybe run module from gar package
     function Process:get_run_gar_arg()
@@ -231,6 +239,7 @@ function process(entry,max)
             self:update_state(STATE.STOPPING)
             local addr={host=self.entry.host,port=self.entry.port,gpid=1}
 
+            log:info("send msg to %s",pprint.format(addr))
             local ret=glr.send(addr,cjson.encode({Type="NODE",Action="EXEC",Cmd="kill"})) 
             if ret then  --send "kill" command success
                 --FIXME: some time delay before get_state?
@@ -241,6 +250,7 @@ function process(entry,max)
                 -- just kill -9 it
                 pprint.pprint(self.entry,"stop")
                 local stopcmd=string.format("kill -9 %d",pid)
+                log:info("Not stopped, Now %s",stopcmd)
                 execute(stopcmd)
             end
             self:update_state(STATE.STOPPED)
@@ -355,7 +365,7 @@ function process(entry,max)
         if (state~=STATE.RUNNING) and (state~=STATE.STARTING) then
             self:update_state(STATE.STARTING)
 
-            print(startcmd)
+            log:info(startcmd)
             local ret=execute(startcmd)
 --            if ret==0 then    --XXX:useless, because "glr" always return 0 when run with "-D".
 --                print("execute success")
@@ -639,7 +649,7 @@ end
 
 
 
-function cmds(sup)
+function cmds(sup,log)
     local sup=assert(sup,"must pass valid supervisor")
 
     local Cmds={}
@@ -647,8 +657,7 @@ function cmds(sup)
     function unknown(msg_table,toaddr)
         rest_message_number(msg_table.cmd,1,toaddr)
         local msg=cjson.encode(msg_table)
-        print("unknown command:",msg_table.cmd)
-        pprint.pprint(toaddr)
+        log:warn("unknown command:%s",msg_table.cmd)
         glr.send(toaddr,cjson.encode({error="unkown cmd:"..msg}))
     end
 
@@ -729,7 +738,8 @@ function cmds(sup)
     function Cmds.auto_restart(msg_table)
         local proc=sup:get_processes_by_id(msg_table.name)
         if proc then
-            pprint.pprint(proc,"RESTART")
+            log:warn("process:%s is stopped unexpected!",msg_table.name)
+            log:info("restart it now:%s",msg_table.name)
             local err,id=glr.spawn("supervisord","run_ctrl_cmd",
                                    cjson.encode(proc:export()),"restart_if_exited",__id__)
         end
@@ -768,6 +778,8 @@ end
 function run_ctrl_cmd(proc,cmd,main_gpid,addr)
     local proc=cjson.decode(proc) 
     local _p=process(proc)
+    local log=init_logger()
+    log:info("cmd:%s %s%.4d",cmd,proc.module,proc.index)
 
     _p[cmd](_p)
 
@@ -792,7 +804,8 @@ function run_ctrl_cmd(proc,cmd,main_gpid,addr)
         local msg=cjson.encode(ret)
         glr.send(cjson.decode(addr),msg)   --to supervisord client
     end
-    print("run_ctrl_cmd over")
+    log:info("ctrl cmd done")
+    log:close()
 end
 
 --[[
@@ -813,8 +826,10 @@ end
 --
 ]]
 function run_info_cmd(proc,cmd,addr)
+    local log=init_logger()
     local addr=assert(addr,"must pass addr")
     local proc=cjson.decode(proc) 
+    log:info("cmd:%s %s%.4d",cmd,proc.module,proc.index)
     local _p=process(proc)
 
     local ret=_p[cmd](_p)
@@ -831,30 +846,33 @@ function run_info_cmd(proc,cmd,addr)
 
     local msg=cjson.encode(msg_table)
     glr.send(cjson.decode(addr),msg)   --to supervisord client
-
-    print("run_info_cmd over")
+    
+    log:info("info cmd done")
+    log:close()
 end
 
 function main()
-    print("supervisor running.............")
+    local log=init_logger()
+    log:info("supervisor running.............")
     local node=supervisor()
-    local command=cmds(node)
+    local command=cmds(node,log)
     while true do
         local msg_type, addr, msg = glr.recv()
 
         if msg_type == glr.CLOSED then
+            log:warn("get CLOSED msg:%s",addr.host)
             command.auto_restart({name=addr.host})
         elseif MSG_TYPE.APP==msg_type then
+            log:info("get msg:%s",msg)
             local msg_table=cjson.decode(msg)
             command[msg_table.cmd](msg_table,addr)
         else
-            glr.send(addr,cjson.encode({error="unkown message:"..msg}))
+            log:warn("unknown msg:%s,%s,%s",msg_type,pprint.format(addr),msg)
         end
     end
 end
 
 
 if ...=="__main__" then
-    print("supervisord is running...")
     main()
 end
