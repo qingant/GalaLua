@@ -19,9 +19,11 @@ local keys = {
     "command"
 }
 
-local function commondline(cmd)
+local function commondline(cmd, ignoreFirstLine)
     local filehandle = io.popen(cmd)
-    filehandle:read("*l")
+    if ignoreFirstLine then
+        filehandle:read("*l")
+    end
     local result = filehandle:read("*a")
     filehandle:close()
     return result
@@ -104,7 +106,7 @@ function processes_info_by_name_get(name)
     local pidlist = getpidlist(res)
     pidlist = table.concat(pidlist, ",")
     cmd = "ps -o \"user,pid,pcpu,pmem,args\" -p \"" .. pidlist .. "\""
-    res = commondline(cmd)
+    res = commondline(cmd, true)
 
     local procs = readline(res)
     local sig = sigar.new()
