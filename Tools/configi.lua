@@ -235,7 +235,7 @@ completion.put=configure_completion
 completion.get=configure_completion
 completion.import=xml_file_completion
 completion.export=xml_file_completion
-completion.help=nil
+completion.help=""
 
 --return true if path is a valid xpath
 function xpath_check(path)
@@ -246,9 +246,9 @@ function xpath_check(path)
 end
 
 
-
-local cmds={}
-function cmds.put(config,path,value)
+local cmd=require "cmd"
+local _cmds=cmd.init_cmd("config")
+function put(config,path,value)
     
     --return its mapping value if argument value is expected,return nil otherwise
     function isvalid_string(attr,value)
@@ -370,7 +370,7 @@ function cmds.put(config,path,value)
 
     Print("put",path,value)
     if not xpath_check(path) then
-        cmds.help("put")
+        cmd.cmd_error("put <xpath> [value]")
         return 
     end
     local attr=get_type(path)
@@ -380,11 +380,11 @@ function cmds.put(config,path,value)
 end
 
 
-function cmds.get(config,path)
+function get(config,path)
 
     Print("get",path)
     if not xpath_check(path) then
-        cmds.help("get")
+        cmd.cmd_error("get: must specify xpath")
         return 
     end
     if string.endwith(path,"/") then
@@ -394,58 +394,54 @@ function cmds.get(config,path)
     io.write(string.format("%s:%s \n",path,value))
 end
 
-
-function cmds.help(arg)
-    local help_msg={
-            put="put <xpath> [value]",
-            get="get <xpath> ",
-            help="help [cmd] ",
-            export="export xxx.xml",
-            import="import xxx.xml",
-         }
-    local arg=arg or "all"
-    local prompt=help_msg[arg] or table.concat(help_msg,"\n")
-    io.write(prompt,"\n")
-end
-
-function cmds.import(config,xml_path)
-    if xml_path then
-        config:import(xml_path)
-    else
-        cmds.help("import")
+function import(config,xml_path)
+    if type(xml_path)~="string" then
+        cmd.cmd_error("must specify xml file to be imported")
     end
+    config:import(xml_path)
 end
 
+local cmd_list={}
+cmd_list.put={put,"put value","put value, put <xpath> [value]"}
+cmd_list.get={get,"get value","get value, get <xpath> "}
+cmd_list.export={export,"export config","export config to file, config export [xml],default: config-$DATE.xml"}
+cmd_list.import={import,"import config","import config, import <xml>"}
 
-function cmds.export(config,xml_path)
+function export(config,xml_path)
     local xml_path=xml_path or string.format("config-%s.xml",os.date("%Y%m%d"))
     io.write("export to ",xml_path,"\n")
     config:export(xml_path)
 end
 
-
-local mt={__index=function (t,key) io.write("config ",key,":command not found\n") return cmds.help end }
-setmetatable(cmds,mt)
+for name,cmd in pairs(cmd_list) do
+    _cmds:add(name,cmd[1],cmd[2],cmd[3])
+end
 
 function helper(argv)
-    pprint.pprint(argv)
-    pprint.pprint(cmds)
-
     table.remove(argv,1)
-    pprint.pprint(argv)
     local cmd=argv[1] 
     table.remove(argv,1)
-    if cmd then
-        local config=_Config:new():init_with_env(mdb._create_env(mdb_path))
-        cmds[cmd](config,unpack(argv))
-        config:close()
-    else
-        cmds.help()
+    if cmd~=nil  then
+        local func=_cmds:get_cmd(cmd)
+        if func~=nil then
+            if cmd=="help" then
+                return func(unpack(argv))
+            end
+
+            local config=_Config:new():init_with_env(mdb._create_env(mdb_path))
+            local ok,err=pcall(func,config,unpack(argv))
+            config:close()
+            if not ok then
+                error(err)
+            end
+            return 
+        end
     end
+    return _cmds:help()
 end
 
 function info()
-    return "instance operation tool"
+    return "config operation tool"
 end
 
 if ...=="__main__" then

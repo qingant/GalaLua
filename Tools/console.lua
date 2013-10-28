@@ -9,6 +9,7 @@ local os=require "os"
 local string=require "string"
 local pprint=require "pprint"
 local L = require 'linenoise'
+local cmd=require "cmd"
 
 function parse_opt(line)
     local opt={}
@@ -18,29 +19,23 @@ function parse_opt(line)
     return opt
 end
 
+function writef(fmt,...)
+    if type(fmt)=="string" then
+        io.write(string.format(fmt,...))
+    end
+end
 
 function ConsoleBase(o)
 
     local console_base={}
-
+    
     --completions:{command_name=completion_func}
     --cmds:{command_name=command_func}
-    local cmds={}
-    function cmds.help(cmd)
-        io.write("available commands: \n")
-        for i in pairs(cmds) do
-            io.write("\t",i,"\n")
-            --FIXME:better help information
-            --io.write("\t",i,":",i.info(),"\n")
-        end
-    end
-
-    local mt={__index=function (t,key) io.write(key,": Command not found!\n") return cmds.help end}
-    setmetatable(cmds,mt)
+    local cmds=cmd.init_cmd()
     local completions={help=""}
 
-    local history,prompt=os.getenv("HOME").."/log/console.log",">"
-
+    local history,prompt=os.getenv("HOME").."/log/console.log","gdkshell> "
+    local header='--------- GDK Console ----------\n\n'
     function console_base.set_history(file)
         history=file or history
     end
@@ -48,14 +43,15 @@ function ConsoleBase(o)
     function console_base.set_prompt(s)
         prompt=s or prompt
     end
-
-    function console_base:new(o)
-        local o=o or {}
-        setmetatable(o,self)
-        self.__index=self
-        return o
+    
+    function console_base.set_header(s)
+        header=s or header
     end
 
+    function console_base.show_header()
+        L.clearscreen()
+        writef(header)
+    end
 
     --[[
     -- register command and completion  
@@ -64,10 +60,12 @@ function ConsoleBase(o)
     -- @helper: command function
     -- @completion: completion function
     --]]
-    function console_base.register(name,helper,completion)
-        cmds[name]=helper
+    function console_base.register(name,helper,completion,info,more_info)
+        cmds:add(name,helper,info or "",more_info)
         completions[name]=completion
     end
+
+    console_base.register("clear",console_base.show_header,"","clear screen","clear clean")
 
     --command completion
     local function cmd_completion(compl,s,prefix)
@@ -110,14 +108,22 @@ function ConsoleBase(o)
         end
     end
 
+    function console_base.safe_run(func,...)
+        local arg={...}
+        if type(func)=="function" then
+            --local ok,errmsg=xpcall(function () return func(unpack(arg)) end,debug.traceback)
+            local ok,errmsg=pcall(func,unpack(arg))
+            if not ok then
+                cmd.perror(errmsg)
+            end
+        end
+    end
+
     function console_base.main()
         L.historyload(history) -- load existing history
         L.setcompletion(addcompletion)
 
-        L.clearscreen()
-        print '----- Testing lua-linenoise! ------'
-        pprint.pprint(L)
-        print '----- Welcome! have a nice day! ------\n'
+        console_base.show_header()        
         local line = L.linenoise(prompt)
         while line do
             if #line > 0 then
@@ -125,35 +131,34 @@ function ConsoleBase(o)
                 L.historysave(history) -- save every new line
                 --parse cmdline
                 local argv=parse_opt(line)
-                --            pprint.pprint(argv)
-                if argv[1]=="exit" then
+                local cmd=argv[1]
+
+                if cmd=="exit" then
                     break
                 end
-                cmds[argv[1]](argv)
+                console_base.safe_run(cmds:get_cmd(cmd),argv)
 
             end
-            --L.clearscreen()
             line = L.linenoise(prompt)
         end
     end
 
-    return console_base:new(o)
+    return console_base
 end
+
 
 function Console()
     local c=ConsoleBase()
     
---    c.register("exit",glr.exit,"")
-
     local gar=require "pack_gar"
     local configi=require "configi"
-    local supervisor=require "supervisor"
+    local sup=require "supervisor"
     local mdb_copy=require "mdb_copy"
 
-    c.register("supervisor",supervisor.helper,supervisor.completion)
-    c.register("gar",gar.helper,gar.completion)
-    c.register("config",configi.helper,configi.completion)
-    c.register("mdb_copy",mdb_copy.helper,mdb_copy.completion)
+    c.register("supervisor",sup.helper,sup.completion,sup.info)
+    c.register("gar",gar.helper,gar.completion,gar.info)
+    c.register("config",configi.helper,configi.completion,configi.info)
+    c.register("mdb_copy",mdb_copy.helper,mdb_copy.completion,mdb_copy.info)
 
     return c
 end
