@@ -21,6 +21,7 @@ local keys = {
 
 local function commondline(cmd)
     local filehandle = io.popen(cmd)
+    filehandle:read("*l")
     local result = filehandle:read("*a")
     filehandle:close()
     return result
@@ -67,9 +68,20 @@ local function readline(str)
     return states
 end
 
-function processes_info_by_name_get(name)
+local getpidlist = function (res)
+    local retval = {}
+    local capture = nil
+    local start, sentinel = nil, 0
+    repeat
+        start, sentinel, capture = string.find(res, 
+                "^%s*[%w%_]+%s+(%d+)%s+.-[\r\n]+", sentinel + 1)
+        retval[ #retval + 1 ] = capture
+    until not start
+    return retval
+end
 
-    local cmd = "ps -eo user,pid,pcpu,pmem,args "
+function processes_info_by_name_get(name)
+    local cmd = "ps -ef "
     if name == nil or name == "" then
     elseif type(name)=="string" then
         cmd = cmd .." | grep -E '"..name.."'"
@@ -88,6 +100,12 @@ function processes_info_by_name_get(name)
     if res == nil or res == "" then
         return {}
     end
+    -- 获取满足条件的进程的pid
+    local pidlist = getpidlist(res)
+    pidlist = table.concat(pidlist, ",")
+    cmd = "ps -o \"user,pid,pcpu,pmem,args\" -p \"" .. pidlist .. "\""
+    res = commondline(cmd)
+
     local procs = readline(res)
     local sig = sigar.new()
     for k,v in pairs(procs) do
@@ -101,4 +119,3 @@ function processes_info_by_name_get(name)
     end
     return procs
 end
-
