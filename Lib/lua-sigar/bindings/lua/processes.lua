@@ -1,123 +1,100 @@
-module(...,package.seeall)
+module(..., package.seeall)
 
 local sigar = require("sigar")
 local osdatetime = require("osdatetime")
 
-local function trim(s)
-    if type(s) == "string" then
-        return s:match'^%s*(%S.*)'
-    end
-end
+local io = require("io")
+local string = require("string")
 
-local keys = {
-    "proc_user",
-    "pid",
-    "cpu_usage",
-    "mem_usage",
-    "start_time",
-    "run_time",
-    "command"
-}
+local type = type
+local tostring = tostring
 
-local function commondline(cmd, ignoreFirstLine)
-    local filehandle = io.popen(cmd)
-    if ignoreFirstLine then
-        filehandle:read("*l")
-    end
-    local result = filehandle:read("*a")
-    filehandle:close()
-    return result
-end
-
-local function split(str,offset)
-    if type(str) ~= "string" then
-        error("invalid str ,must string type")
-    end
-    local items = {}
-    local index = 1
-    local splits = {}
-    for k,_ in string.gmatch(str,"%S+") do
-        splits[#splits+1] = k
-    end
-    local cmd = ""
-    for i=1,#splits do
-        if i <= 4 then
-            items[keys[i]] = splits[i]
-        else
-            cmd = cmd .. " " .. splits[i]
-        end
-    end
-    items["command"] = cmd
-    return items
-end
-
-local function readline(str)
-    if type(str) ~= "string" then
-        error("the readline para must be string type")
-    end
-    local states = {}
-    local ii = 0
-    local index = 1
-    while true do
-        ii = string.find(str,"\n",ii+1)
-        if ii == nil then break end
-        local value = string.sub(str,index,ii)
-        if string.find(value,"grep") == nil then
-            states[#states + 1] = split(value,#value)
-        end
-        index = ii+1
-    end
-    return states
-end
-
-local getpidlist = function (res)
+local getotherinfo = function ()
+    local pattern = {
+        [1] = "(%d+)%s*",
+        [2] = "([%w%_%-%.]+)",
+        [3] = "([%d%.%-%%]+)",
+        [4] = "([%d%.%-%%]+)",
+        [5] = "([^%s]+)",
+    }
+    local keyword = {
+        [1] = "pid",
+        [2] = "proc_user",
+        [3] = "cpu_usage",
+        [4] = "mem_usage",
+        [5] = "command"
+    }
+    local start, sentinel, capture, pid = nil, nil, nil, nil
     local retval = {}
-    local capture = nil
-    local start, sentinel = nil, 0
-    repeat
-        start, sentinel, capture = string.find(res, 
-                "^%s*[%w%_]+%s+(%d+)%s+.-[\r\n]+", sentinel + 1)
-        retval[ #retval + 1 ] = capture
-    until not start
+    local command = "ps -e -o 'pid=' -o 'user=' -o 'pcpu=' -o 'pmem=' -o 'args='"
+    local handle = io.popen(command, "r")
+    for content in handle:lines() do
+        start, sentinel, pid = string.find(content, pattern[1], 1)
+        if start then
+            retval[pid] = {[keyword[1]] = pid}
+            for idx = 2, #pattern - 1, 1 do
+                start, sentinel, capture = string.find(content, pattern[idx],
+                        sentinel + 1)
+                if start then
+                    retval[pid][keyword[idx]] = capture
+                end
+            end
+            start, sentinel, capture = string.find(content, pattern[5], sentinel + 1)
+            if start then
+                retval[pid][keyword[5]] = string.sub(content, start,
+                        start + 64)
+            end
+        end
+    end
+    handle:close()
     return retval
 end
 
-function processes_info_by_name_get(name)
-    local cmd = "ps -ef "
-    if name == nil or name == "" then
-    elseif type(name)=="string" then
-        cmd = cmd .." | grep -E '"..name.."'"
-    elseif type(name)== "number" then
-        cmd = cmd .." | grep -E '"..tostring(name).."'"
-    elseif type(name) == "boolean" then
-        if name == true then
-            cmd = cmd.." |grep -E 'true'"
+local getprocbyname = function (procname)
+    local procname = procname
+    if type(procname) == "boolean" then
+        if procname then
+            procname = "true"
         else
-            cmd = cmd.." |grep -E 'false'"
+            procname = "false"
         end
     else
-        error("invalid type")
+        procname = tostring(procname)
     end
-    local res = commondline(cmd)
-    if res == nil or res == "" then
-        return {}
-    end
-    -- 获取满足条件的进程的pid
-    local pidlist = getpidlist(res)
-    pidlist = table.concat(pidlist, ",")
-    cmd = "ps -o \"user,pid,pcpu,pmem,args\" -p \"" .. pidlist .. "\""
-    res = commondline(cmd, true)
-
-    local procs = readline(res)
-    local sig = sigar.new()
-    for k,v in pairs(procs) do
-        local pid = v['pid']
-        local proc = sig:proc(pid)
-        local time,msg = proc:time()
-        if time ~= nil then
-            v['start_time'] = os.date("%Y-%m-%d %H:%M:%S",time.start_time/1000)
-            v['run_time'] = osdatetime.gettimeofday().sec - (time.start_time/1000)
+    local otherinfo = getotherinfo()
+    local start, sentinel, capture = nil, nil, nil
+    local retval = {}
+    local pattern = "^%s*[%w%_%-%.]+%s+(%d+)"
+    local command = "ps -ef | grep -E '" .. procname .. "'"
+    local handle = io.popen(command, "r")
+    handle:read("*l")
+    for content in handle:lines() do
+        start, sentinel, capture = string.find(content, pattern, 1)
+        if otherinfo[capture] then
+            start, sentinel = string.find(content,
+                    otherinfo[capture]["command"], sentinel + 1, true)
+            otherinfo[capture]["command"] = string.sub(content, start)
+            retval[#retval + 1] = otherinfo[capture]
         end
     end
-    return procs
+    handle:close()
+    return retval
+end
+
+function processes_info_by_name_get(procname)
+    local retval = getprocbyname(procname)
+    local sigar = sigar.new()
+    local proc = nil
+    local time, msg = nil, nil
+    for idx, record in ipairs(retval) do
+        proc = sigar:proc(record["pid"])
+        time, msg = proc:time()
+        if time then
+            record["start_time"] = os.date("%Y-%m-%d %H:%M:%S",
+                    time.start_time / 1000)
+            record["run_time"] = osdatetime.gettimeofday().sec
+                    - (time.start_time / 1000)
+        end
+    end
+    return retval
 end
