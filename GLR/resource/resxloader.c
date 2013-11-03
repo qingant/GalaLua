@@ -300,16 +300,15 @@ int resx_require(const char * const pathname, lua_State * const state)
 
 void resx_setloader(lua_State * const state, int (*func)(lua_State *))
 {
-    lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME);
-    lua_getfield(state, -1, "loaders");
-    if (!lua_istable(state, -1))
-    {
-        luaL_error(state, "package.loaders must be a table");
-    }
-    lua_pushinteger(state, lua_objlen(state, -1) + 1);
+    int top=lua_gettop(state);
+    lua_getglobal(state,LUA_LOADLIBNAME);
+    lua_newtable(state);
     lua_pushcfunction(state, func);
-    lua_settable(state, -3);
-    lua_pop(state, 2);
+    lua_rawseti(state,-2,1);
+    
+    lua_setfield(state,-2,"loaders");
+
+    lua_settop(state, top);
 }
 
 int resx_main_execute(lua_State * const state, const char *name)
