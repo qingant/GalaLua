@@ -15,6 +15,7 @@ end
 
 --TODO:ensure all process open mdb must be stopped
 local function available(p)
+    return true
 end
 
 local function mdb_copy(src,bak)

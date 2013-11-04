@@ -99,7 +99,6 @@ int resx_loader(lua_State * const state)
 
 static int _resx_loader(lua_State * const state)
 {
-    fprintf(stderr, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
     static bool initialized = false;
     static resx_environ_t resxenv;
     if (!initialized)
@@ -150,11 +149,7 @@ static int _resx_loader(lua_State * const state)
 //            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
     strncat(buf, ".lua", SUFFIX_LEN);
     buf[length -1] = '\0';
-    fprintf(stderr, "File %s, Function %s, Line %d, buf = %s.\n",
-            __FILE__, __FUNCTION__, __LINE__, &buf[0]);
     int32_t retval = resx_environ_read(&resxenv, &buf[0]);
-    fprintf(stderr, "File %s, Function %s, Line %d, retval = %d.\n",
-             __FILE__, __FUNCTION__, __LINE__, retval);
     free(buf);
     if (retval > 0)
     {
@@ -225,9 +220,6 @@ static int _resx_loader(lua_State * const state)
 int resx_require(const char * const pathname, lua_State * const state)
 {
     const int initialdepth = lua_gettop(state);
-
-    fprintf(stderr, "File %s, Function %s, Line %d, pathname = %s, initial depth = %d\n",
-            __FILE__, __FUNCTION__, __LINE__, pathname, initialdepth);
 
     lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME); /* 'package' */
     lua_getfield(state, -1, "loaded"); /* package.loaded */
@@ -302,31 +294,25 @@ int resx_require(const char * const pathname, lua_State * const state)
         }
     }
     const int currentdepth = lua_gettop(state);
-    fprintf(stderr, "File %s, Function %s, Line %d, current depth = %d\n",
-            __FILE__, __FUNCTION__, __LINE__, currentdepth);
     lua_pop(state, currentdepth - initialdepth);
     return 0;
 }
 
 void resx_setloader(lua_State * const state, int (*func)(lua_State *))
 {
-    fprintf(stderr, "File %s, Function %s, Line %d, gettop() = %d.\n", __FILE__, __FUNCTION__, __LINE__, lua_gettop(state));
-    lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME);
-    lua_getfield(state, -1, "loaders");
-    if (!lua_istable(state, -1))
-    {
-        luaL_error(state, "package.loaders must be a table");
-    }
-    lua_pushinteger(state, lua_objlen(state, -1) + 1);
+    int top=lua_gettop(state);
+    lua_getglobal(state,LUA_LOADLIBNAME);
+    lua_newtable(state);
     lua_pushcfunction(state, func);
-    lua_settable(state, -3);
-    lua_pop(state, 2);
-    fprintf(stderr, "File %s, Function %s, Line %d, gettop() = %d.\n", __FILE__, __FUNCTION__, __LINE__, lua_gettop(state));
+    lua_rawseti(state,-2,1);
+    
+    lua_setfield(state,-2,"loaders");
+
+    lua_settop(state, top);
 }
 
 int resx_main_execute(lua_State * const state, const char *name)
 {
-    fprintf(stderr, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
     resx_require(name, state);
     const int initialdepth = lua_gettop(state);
     lua_getfield(state, LUA_GLOBALSINDEX, LUA_LOADLIBNAME);
@@ -341,7 +327,6 @@ int resx_main_execute(lua_State * const state, const char *name)
         return luaL_error(state, "Error: File %s, Function %s, Line %d.\n",
                 __FILE__, __FUNCTION__, __LINE__);
     }
-    fprintf(stderr, "File %s, Function %s, Line %d.\n", __FILE__, __FUNCTION__, __LINE__);
     return lua_gettop(state) - initialdepth;
 }
 
