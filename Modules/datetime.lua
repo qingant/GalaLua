@@ -1,5 +1,11 @@
 module(...,package.seeall)
 
+local function isleap(year)
+    return ((year) % 4 == 0 and ((year) % 100 ~= 0 or (year) % 400 == 0))
+end
+
+local months = {31,28,31,30,31,30,31,31,30,31,30,31}
+
 local osdatetime = require("osdatetime")
 local floor = math.floor
 local ceil  = math.ceil
@@ -86,23 +92,35 @@ local function add(a,b)
       error("not support type")
    end
    if getmetatable(a)== getmetatable(b) then
-      for k,v in pairs(a) do
-         a[k] = a[k] + b[k]
-      end
       if getmetatable(a) == getmetatable(tempobj2) then
+         for k,v in pairs(a) do
+            a[k] = a[k] + b[k]
+         end
          return __retimedelta__(a);
       end
-      return __redatetime__(a,true)
+      local astr = string.format("%d-%d-%d %d:%d:%d",a.year,a.month,a.day,a.hour,a.minute,a.second)
+      local asec = osdatetime.mktime(astr,"%Y-%m-%d %H:%M:%S")
+      local bstr = string.format("%d-%d-%d %d:%d:%d",b.year,b.month,b.day,b.hour,b.minute,b.second)
+      local bsec = osdatetime.mktime(bstr,"%Y-%m-%d %H:%M:%S")
+      local sum =  asec + bsec
+      local tm = osdatetime.strptime(os.date("%Y-%m-%d %H:%M:%S",sum),"%Y-%m-%d %H:%M:%S")
+
+      return datetime:new():init(tm.year,tm.month,tm.day,tm.hour,tm.min,tm.sec)
    elseif (getmetatable(a) == getmetatable(tempobj1)) then
-      a.day = a.day + b.days
-      a.second = a.second + b.seconds
-      a.microseconds = a.microseconds + b.microseconds
-      return __redatetime__(a,false)
+      local astr = string.format("%d-%d-%d %d:%d:%d",a.year,a.month,a.day,a.hour,a.minute,a.second)
+      local asec = osdatetime.mktime(astr,"%Y-%m-%d %H:%M:%S")
+      local bsec = b:tosecond()
+      local sum =  asec + bsec
+      local tm = osdatetime.strptime(os.date("%Y-%m-%d %H:%M:%S",sum),"%Y-%m-%d %H:%M:%S")
+
+      return datetime:new():init(tm.year,tm.month,tm.day,tm.hour,tm.min,tm.sec)
    else
-      b.day = a.days + b.day
-      b.second = a.seconds + b.second
-      b.microsecond = a.microseconds + b.microsecond
-      return __redatetime__(b,false)
+      local bstr = string.format("%d-%d-%d %d:%d:%d",b.year,b.month,b.day,b.hour,b.minute,b.second)
+      local bsec = osdatetime.mktime(bstr,"%Y-%m-%d %H:%M:%S")
+      local asec = a:tosecond()
+      local sum =  asec + bsec
+      local tm = osdatetime.strptime(os.date("%Y-%m-%d %H:%M:%S",sum),"%Y-%m-%d %H:%M:%S")
+      return datetime:new():init(tm.year,tm.month,tm.day,tm.hour,tm.min,tm.sec)
    end
 end
 
@@ -118,23 +136,35 @@ local function sub(a,b)
       error("not support type")
    end
    if getmetatable(a)== getmetatable(b) then
-      for k,v in pairs(a) do
-         a[k] = a[k] - b[k]
-      end
       if getmetatable(a) == getmetatable(tempobj2) then
+         for k,v in pairs(a) do
+            a[k] = a[k] - b[k]
+         end
          return __retimedelta__(a);
       end
-      return __redatetime__(a,true)
+      local astr = string.format("%d-%d-%d %d:%d:%d",a.year,a.month,a.day,a.hour,a.minute,a.second)
+      local asec = osdatetime.mktime(astr,"%Y-%m-%d %H:%M:%S")
+      local bstr = string.format("%d-%d-%d %d:%d:%d",b.year,b.month,b.day,b.hour,b.minute,b.second)
+      local bsec = osdatetime.mktime(bstr,"%Y-%m-%d %H:%M:%S")
+      local sum =  asec - bsec
+      local tm = osdatetime.strptime(os.date("%Y-%m-%d %H:%M:%S",sum),"%Y-%m-%d %H:%M:%S")
+
+      return datetime:new():init(tm.year,tm.month,tm.day,tm.hour,tm.min,tm.sec)
    elseif (getmetatable(a) == getmetatable(tempobj1)) then
-      a.day = a.day - b.days
-      a.second = a.second + b.seconds
-      a.microseconds = a.microseconds + b.microseconds
-      return __redatetime__(a,false)
+      local astr = string.format("%d-%d-%d %d:%d:%d",a.year,a.month,a.day,a.hour,a.minute,a.second)
+      local asec = osdatetime.mktime(astr,"%Y-%m-%d %H:%M:%S")
+      local bsec = b:tosecond()
+      local sum =  asec - bsec
+      local tm = osdatetime.strptime(os.date("%Y-%m-%d %H:%M:%S",sum),"%Y-%m-%d %H:%M:%S")
+
+      return datetime:new():init(tm.year,tm.month,tm.day,tm.hour,tm.min,tm.sec)
    else
-      b.day = a.days - b.day
-      b.second = a.seconds - b.second
-      b.microsecond = a.microseconds + b.microsecond
-      return __redatetime__(b,false)
+      local bstr = string.format("%d-%d-%d %d:%d:%d",b.year,b.month,b.day,b.hour,b.minute,b.second)
+      local bsec = osdatetime.mktime(bstr,"%Y-%m-%d %H:%M:%S")
+      local asec = a:tosecond()
+      local sum =  asec - bsec
+      local tm = osdatetime.strptime(os.date("%Y-%m-%d %H:%M:%S",sum),"%Y-%m-%d %H:%M:%S")
+      return datetime:new():init(tm.year,tm.month,tm.day,tm.hour,tm.min,tm.sec)
    end
 end
 
@@ -149,13 +179,43 @@ function datetime:new()
 end
 
 function datetime:init(year,month,day,hour,minute,second,microseconds)
-   self.year = year or 0
-   self.month = month or 0
-   self.day = day or 0
+
+   if year and year < 1970 then
+       error("year invalid")
+   end
+   self.year = year or 1970
+   if month and (month < 1 or month > 12) then
+       error("moth invalid")
+   end
+   self.month = month or 1
+   if day and (day < 1 or day > 31) then
+       error("day invalid")
+   end
+   self.day = day or 1
+   local szmonth = months[self.month]
+   if self.month == 2 and isleap(self.year) then
+       szmonth = szmonth + 1
+   end
+   if self.day > szmonth then
+       error("day overflow")
+   end
+   if hour and (hour < 0 or hour > 24) then
+       error("hour invalid")
+   end
    self.hour = hour or 0
+   if minute and (minute < 0 or minute > 60) then
+       error("minute invalid")
+   end
    self.minute = minute or 0
+   if second and (second < 0 or second > 60) then
+       error("second invalid")
+   end
    self.second = second or 0
+   if microseconds and (microseconds < 0 or microseconds >1000000) then
+       error("microseconds invalid")
+   end
    self.microseconds = microseconds or 0
+
    return self
 end
 
@@ -282,4 +342,32 @@ function timedelta:tostring()
    local hour = minute / 60
    minute = minute % 60
    return string.format("%d days %02d:%02d:%02d %d",self.days,hour,minute,second,self.microseconds)
+end
+
+function timedelta:tosecond()
+    return (self.days * 24 * 60 * 60 + self.seconds + (self.microseconds + 999999)/1000000)
+end
+
+if ... == "__main__" then
+    --初始化时指定日期2013-10-21 23:45:38
+    local date = datetime:new():init(2013,10,21,23,45,38)
+    print(date:strtime())
+    --当前时间
+    date = datetime:new():init():now()
+    print(date:strtime())
+    --时间字符串转换
+    date = date:strptime("2013-10-21 23:45:38","%Y-%m-%d %H:%M:%S")
+    print(date:strtime())
+    --时间差：指定时间的前一天
+    delta = timedelta:new():init(-1)
+    local diff = date + delta
+    print(diff:strtime())
+    --时间差：指定时间的后一天
+    delta = timedelta:new():init(1)
+    diff = date + delta
+    print(diff:strtime())
+    --时间差：指定时间的前一个秒
+    delta = timedelta:new():init(_,-1)
+    diff = date + delta
+    print(diff:strtime())
 end
