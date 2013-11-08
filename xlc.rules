@@ -7,6 +7,7 @@ LNKFLAG     = -qmkshrobj -q64 -bM:SRE -bnoentry -brtl -brtllib -berok
 COMPWARN    = # -qhalt=i -qwarn64 -qinfo=all
 CMPFLAG     = -c -g -q64 -qcpluscmt -D_UNIX95_ -D_THREAD_SAFE \
               -D__IBMCPP_TR1__ $(COMPWARN) $(COMMINC) -D_ALL_SOURCE \
+              -D__NOLOCK_ON_INPUT -D__NOLOCK_ON_OUTPUT \
               # -D_DEBUG_ -qinclude=config.h -D_BSD=44
 PLIBDIR     = -lGalaxyStub -L$(HOME)/lib/ -L$(HOME)/lua5.1.5/lib \
               -L$(HOME)/share/static
