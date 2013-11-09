@@ -205,10 +205,12 @@ mdb_sem_wait(sem_t *sem)
 	 *	Only a single write transaction is allowed at a time. Other writers
 	 *	will block waiting for this mutex.
 	 */
-#define LOCK_MUTEX_W(env)	pthread_mutex_lock(&(env)->me_txns->mti_wmutex)
-	/** Unlock the writer mutex.
+static int check_and_lock(MDB_env *env);
+#define LOCK_MUTEX_W(env)	check_and_lock(env)
+    /** Unlock the writer mutex.
 	 */
 #define UNLOCK_MUTEX_W(env)	pthread_mutex_unlock(&(env)->me_txns->mti_wmutex)
+
 #endif	/* MDB_USE_POSIX_SEM */
 
 	/** Get the error code for the last failed system function.
@@ -574,6 +576,8 @@ typedef struct MDB_txninfo {
 #endif
 		char pad[(MNAME_LEN+CACHELINE-1) & ~(CACHELINE-1)];
 	} mt2;
+    pid_t           wlck_process;
+    time_t          wlck_stamp;
 	MDB_reader	mti_readers[1];
 } MDB_txninfo;
 
@@ -2111,6 +2115,12 @@ mdb_reader_pid(MDB_env *env, enum Pidlock_op op, pid_t pid)
 		return rc;
 	}
 #endif
+}
+
+static int
+mdb_writer_pid(MDB_env *env, enum Pidlock_op op, pid_t pid)
+{
+    return mdb_writer_pid(env,op,pid);
 }
 
 /** Common code for #mdb_txn_begin() and #mdb_txn_renew().
@@ -3881,6 +3891,10 @@ mdb_env_setup_locks(MDB_env *env, char *lpath, int mode, int *excl)
 		env->me_txns->mti_format = MDB_LOCK_FORMAT;
 		env->me_txns->mti_txnid = 0;
 		env->me_txns->mti_numreaders = 0;
+        
+        //for writer 
+		env->me_txns->wlck_process = 0;
+		env->me_txns->wlck_stamp = 0;
 
 	} else {
 		if (env->me_txns->mti_magic != MDB_MAGIC) {
@@ -4043,6 +4057,11 @@ mdb_env_open(MDB_env *env, const char *path, unsigned int flags, mdb_mode_t mode
 		if (excl > 0) {
 			rc = mdb_env_share_locks(env, &excl);
 		}
+        rc = mdb_reader_pid(env, Pidset, env->me_pid);
+        if (rc) {
+            goto leave;
+        }
+
 	}
 
 leave:
@@ -8333,4 +8352,24 @@ int mdb_reader_check(MDB_env *env, int *dead)
 		*dead = count;
 	return MDB_SUCCESS;
 }
+
+static int check_and_lock(MDB_env *env){
+    pid_t pid=env->me_txns->wlck_process;
+    
+    //@pid can't be 0 or env->me_pid, because @mdb_reader_pid 
+    //will always return 0.
+    if(pid>0 && pid!=env->me_pid && 
+       (mdb_reader_pid(env, Pidcheck,pid ) == 0)){
+
+        UNLOCK_MUTEX_W(env);
+    }
+
+    int rc = pthread_mutex_lock(&(env)->me_txns->mti_wmutex);
+    env->me_txns->wlck_process = env->me_pid;
+    env->me_txns->wlck_stamp = time(NULL);
+    return rc;
+}
+
+
+
 /** @} */
