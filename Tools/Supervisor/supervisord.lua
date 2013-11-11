@@ -12,7 +12,7 @@ local conf=require "supervisor_conf"
 
 local db_path=require "db_path"
 local path=require "path"
-local mdb=require "mdb"
+local mdb=(require "mdb").mdb
 
 
 function init_logger()
@@ -778,10 +778,9 @@ end
 --  }
 --
 --]]
-function run_ctrl_cmd(proc,cmd,main_gpid,addr)
+function _run_ctrl_cmd(proc,cmd,main_gpid,addr,log)
     local proc=cjson.decode(proc) 
     local _p=process(proc)
-    local log=init_logger()
     log:info("cmd:%s %s%.4d",cmd,proc.module,proc.index)
 
     _p[cmd](_p)
@@ -808,6 +807,14 @@ function run_ctrl_cmd(proc,cmd,main_gpid,addr)
         glr.send(cjson.decode(addr),msg)   --to supervisord client
     end
     log:info("ctrl cmd done")
+end
+
+function run_ctrl_cmd(proc,cmd,main_gpid,addr)
+    local log=init_logger()
+    local ok,errmsg=xpcall(function () _run_ctrl_cmd(proc,cmd,main_gpid,addr,log) end,debug.traceback)
+    if not ok then
+        log:error("run_ctrl_cmd error:%s",errmsg)
+    end
     log:close()
 end
 
@@ -828,8 +835,7 @@ end
 --  }
 --
 ]]
-function run_info_cmd(proc,cmd,addr)
-    local log=init_logger()
+function _run_info_cmd(proc,cmd,addr,log)
     local addr=assert(addr,"must pass addr")
     local proc=cjson.decode(proc) 
     log:info("cmd:%s %s%.4d",cmd,proc.module,proc.index)
@@ -851,6 +857,13 @@ function run_info_cmd(proc,cmd,addr)
     glr.send(cjson.decode(addr),msg)   --to supervisord client
     
     log:info("info cmd done")
+end
+function run_info_cmd(proc,cmd,addr)
+    local log=init_logger()
+    local ok,errmsg=xpcall(function () _run_info_cmd(proc,cmd,addr,log) end,debug.traceback)
+    if not ok then
+        log:error("run_ctrl_cmd error:%s",errmsg)
+    end
     log:close()
 end
 
