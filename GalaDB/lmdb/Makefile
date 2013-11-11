@@ -1,14 +1,13 @@
 include ../mk.rules
 
-all: liblmdb.so  mdb_copy
+all: liblmdb.so  
 
 clean:
 	rm -rf *so
 	rm -rf *.o
 
-test:	all mtest mdb_stat
+test1:	all test 
 	mkdir testdb
-	./mtest && ./mdb_stat testdb
 
 liblmdb.a:	mdb.o midl.o
 	$(AR) $(ARFLAGS) $@ mdb.o midl.o

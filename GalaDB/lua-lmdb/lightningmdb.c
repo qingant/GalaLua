@@ -256,6 +256,17 @@ static int env_dbi_close(lua_State* L) {
     return 0;
 }
 
+static int env_reader_check(lua_State* L) {
+    MDB_env* env = check_env(L,1);
+
+    int dead=0;
+    int err=mdb_reader_check(env,&dead);
+    if ( err ) {
+        return error_and_out(L,err);
+    }
+    lua_pushnumber(L,dead);
+    return 1;
+}
 
 static const luaL_Reg env_methods[] = {
     //{"__gc",env_close},  you should never need this
@@ -274,6 +285,7 @@ static const luaL_Reg env_methods[] = {
     {"set_maxdbs",env_set_maxdbs},
     {"txn_begin",env_txn_begin},
     {"dbi_close",env_dbi_close},
+    {"reader_check",env_reader_check},
     {0,0}
 };
 

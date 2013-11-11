@@ -151,6 +151,9 @@ function manifest:root()
     return self.m_t.Root
 end
 
+function manifest:version()
+    return self.m_t.Version
+end
 
 
 local Zip={}
@@ -313,7 +316,9 @@ function gar_reader:read_resource(file)
     local p=string.format("%s/%s",self._manifest:resource_path(),file)
     return self:read_file(p)
 end
-
+function gar_reader:get_version()
+    return self._manifest:version()
+end
 
 
 
