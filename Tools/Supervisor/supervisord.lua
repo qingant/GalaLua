@@ -12,6 +12,7 @@ local conf=require "supervisor_conf"
 
 local db_path=require "db_path"
 local path=require "path"
+local mdb=require "mdb"
 
 
 function init_logger()
@@ -318,6 +319,8 @@ function process(entry,max)
         restart process when it exited accidentally
     ]]
     function Process:restart_if_exited()
+        mdb.lock_clear(db_path.router)
+        mdb.reader_free(db_path.router)
         local state=self:get_state()
         if state==STATE.EXITED then
             self:start()
