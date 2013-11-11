@@ -84,6 +84,20 @@ function mdb._create_env(path)
     return e
 end
 
+function mdb.reader_free(path,e)
+    if type(path)=="string" then
+        local e=e or mdb.create_env(path)
+        e:reader_check()
+    end
+end
+function mdb.lock_clear(path,e)
+    if type(path)=="string" then
+        local e=e or mdb.create_env(path)
+        local t = e:txn_begin(nil,0)
+        t:abort()
+    end
+end
+
 function mdb:new()
 --    local e = lightningmdb.env_create()
 --    e:set_mapsize(num_pages*4096)
