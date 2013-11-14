@@ -14,7 +14,10 @@ function socket:init(fd)
     self._fd = fd
     return self
 end
-
+function socket:connect(host, port)
+    self._fd = assert(glr.net.tcp_conn(host, port, 30))
+    return self
+end
 function socket:accept(timeout)
     return glr.net.accept(self._fd, timeout)
 end
