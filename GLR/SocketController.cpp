@@ -565,7 +565,7 @@ bool GLR::StreamLinkStack::FastRecvReturn(int pid, TaskType taskType, size_t len
     Galaxy::GalaxyRT::CQEmptyGuard<TaskQueue> _GL(_RecvTasks);
     if (taskType == LinkStack::RECV)
     {
-        if (_Cache.DataSize() > len)
+        if (_Cache.DataSize() >= len)
         {
             Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TSTRING, _Cache.Get(), len);
             _Cache.Eat(len);
