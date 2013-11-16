@@ -27,7 +27,7 @@ xml.so:LuaXML.o
 
 osext.so:LuaOS.o
 	@echo $(PLATFORM)
-	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@
+	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) -o $@
 cp:
 	cp -rf *.so $(HOME)/lib/lua
 hexdump.so:LuaDump.o
