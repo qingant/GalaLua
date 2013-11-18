@@ -1,6 +1,7 @@
 module(...,package.seeall)
 
 local socket  = require("glr.socket")
+local strUtils = require("str_utils")
 
 httpRequest = {}
 
@@ -48,17 +49,17 @@ end
 function httpRequest:toString(...)
     local lines = {}
     lines[#lines+1] = string.format("%s %s %s\r\n", self._type, self._path, self.version)
-    lines[#lines+1] = string.format("HOST %s\r\n", self._host)
+    lines[#lines+1] = string.format("HOST:%s\r\n", self._host)
     local content = {}
-    table.foreachi(self._params, function (idx)
-                                       local item = self._params[idx]
-                                       content[#content + 1] = string.format("%s=%s",item[1], item[2])
-                                   end)
-    content = table.concat(content, "&")
-    print(content)
-    lines[#lines+1] = string.format("Content-Length:%d", content:len())
+    -- table.foreachi(self._params, function (idx)
+    --                                    local item = self._params[idx]
+    --                                    content[#content + 1] = string.format("%s=%s",item[1], item[2])
+    --                                end)
+    -- content = table.concat(content, "&")
+    -- print(content)
+    -- lines[#lines+1] = string.format("Content-Length:%d", content:len())
     lines[#lines+1] = "\r\n"
-    lines[#lines+1] = content
+    -- lines[#lines+1] = content
     pprint.pprint(lines)
     return table.concat(lines)
 end
@@ -82,24 +83,28 @@ function httpClient:get(req)
     assert(self._socket:connect(req._host, req._port))
     print("Connected!")
     self._socket:send(req:toString())
-    local err,msg = pcall(self._getResponse, self, 30)
+    local err,msg = pcall(httpClient._getResponse, self, 30)
     self._socket:close()
     assert(err, msg)
     return err
 end
 
 function httpClient:_getResponse(timeout)
+    print("GetResponse")
     local timeout = timeout or 30
     local response = {}
     local initLine = assert(self._socket:recvLine(timeout)):trim()
+    
     print(initLine)
     local header = {}
     while true do
         local line = assert(self._socket:recvLine(timeout)):trim()
-        if line == "\r\n" then
+        if line == "" then
             break
         end
         -- header[#header+1] = line
+        print("LINE",line)
+        pprint.pprint(line)
         local key, value = unpack(string.split(line, ":"))
         response[string.upper(key)] = value:trim()
         print(key, value)
@@ -107,6 +112,8 @@ function httpClient:_getResponse(timeout)
     if response["CONTENT-LENGTH"] then
         local content = assert(self._socket:recv(tonumber(response["CONTENT-LENGTH"]), timeout))
         response.content = content
+    elseif response["TRANSFER-ENCODING"] == "chuncked" then
+        
     end
     pprint.pprint(response, "response")
     return response
@@ -119,8 +126,12 @@ if ... == "__main__" then
     _parseUri("www.google.com:80/login")
     _parseUri("www.google.com/login")
     _parseUri("http://www.google.com/login")
-    local req = httpRequest:new():init("GET", "http://www.google.com", {{"name","matao"}})
+    local uri = "http://joncraton.org/blog/46/netcat-for-windows"
+    local req = httpRequest:new():init("GET", uri)
     print(req:toString())
     local cli = httpClient:new()
+    --while true do
     cli:get(req)
+    --end
+    
 end
