@@ -46,8 +46,21 @@ typedef void(linenoiseCompletionCallback)(const char *, linenoiseCompletions *);
 void linenoiseSetCompletionCallback(linenoiseCompletionCallback *);
 void linenoiseAddCompletion(linenoiseCompletions *, char *);
 
+/*TIME_LEN: the length that time format(@TIME_FMT) represent*/
+#define TIME_FMT "[%d/%m %H:%M]"
+#define TIME_LEN 13
+struct history_item{
+    char datetime[TIME_LEN+1];
+    char *cmd;
+};
+void set_history(struct history_item *h,const char *datetime,char *cmd);
+void free_history(struct history_item *h);
+int getftime(const char *fmt,char *outstr,int len);
+
+
 char *linenoise(const char *prompt);
 int linenoiseHistoryAdd(const char *line);
+int linenoiseHistoryAdd2(struct history_item *);
 int linenoiseHistorySetMaxLen(int len);
 int linenoiseHistorySave(char *filename);
 int linenoiseHistoryLoad(char *filename);

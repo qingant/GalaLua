@@ -96,7 +96,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include "linenoise.h"
-
+#include <time.h>
 #define LINENOISE_DEFAULT_HISTORY_MAX_LEN 100
 #define LINENOISE_MAX_LINE 4096
 static char *unsupported_term[] = {"dumb","cons25",NULL};
@@ -107,10 +107,11 @@ static int rawmode = 0; /* for atexit() function to check if restore is needed*/
 static int atexit_registered = 0; /* register atexit just 1 time */
 static int history_max_len = LINENOISE_DEFAULT_HISTORY_MAX_LEN;
 static int history_len = 0;
-char **history = NULL;
+
+const char *time_fmt=TIME_FMT; 
+struct history_item *history=NULL;
 
 static void linenoiseAtExit(void);
-int linenoiseHistoryAdd(const char *line);
 
 static int isUnsupportedTerm(void) {
     char *term = getenv("TERM");
@@ -127,7 +128,7 @@ static void freeHistory(void) {
         int j;
 
         for (j = 0; j < history_len; j++)
-            free(history[j]);
+            free(history[j].cmd);
         free(history);
     }
 }
@@ -301,7 +302,8 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
 
     /* The latest history entry is always our current buffer, that
      * initially is just an empty string. */
-    linenoiseHistoryAdd("");
+    if (!linenoiseHistoryAdd(""))
+        return -1;
     
     if (write(fd,prompt,plen) == -1) return -1;
     while(1) {
@@ -326,7 +328,7 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
         switch(c) {
         case 13:    /* enter */
             history_len--;
-            free(history[history_len]);
+            free_history(history+history_len);
             return (int)len;
         case 3:     /* ctrl-c */
             errno = EAGAIN;
@@ -349,7 +351,7 @@ static int linenoisePrompt(int fd, char *buf, size_t buflen, const char *prompt)
                 refreshLine(fd,prompt,buf,len,pos,cols);
             } else if (len == 0) {
                 history_len--;
-                free(history[history_len]);
+                free_history(history+history_len);
                 return -1;
             }
             break;
@@ -395,8 +397,9 @@ up_down_arrow:
                 if (history_len > 1) {
                     /* Update the current history entry before to
                      * overwrite it with tne next one. */
-                    free(history[history_len-1-history_index]);
-                    history[history_len-1-history_index] = strdup(buf);
+                    free_history(history+history_len-1-history_index);
+                    set_history(history+history_len-1-history_index,NULL,strdup(buf));
+                    
                     /* Show the new entry */
                     history_index += (seq[1] == 65) ? 1 : -1;
                     if (history_index < 0) {
@@ -406,7 +409,7 @@ up_down_arrow:
                         history_index = history_len-1;
                         break;
                     }
-                    strncpy(buf,history[history_len-1-history_index],buflen);
+                    strncpy(buf,history[history_len-1-history_index].cmd,buflen);
                     buf[buflen] = '\0';
                     len = pos = strlen(buf);
                     refreshLine(fd,prompt,buf,len,pos,cols);
@@ -548,38 +551,50 @@ void linenoiseAddCompletion(linenoiseCompletions *lc, char *str) {
 }
 
 /* Using a circular buffer is smarter, but a bit more complex to handle. */
-int linenoiseHistoryAdd(const char *line) {
+int linenoiseHistoryAdd(const char *cmd) {
+    struct history_item h;
+    if (getftime(time_fmt,h.datetime,sizeof(h.datetime))!=0) 
+    {
+        return 0;
+    }
+    h.cmd=(char *)cmd;
+    return linenoiseHistoryAdd2(&h);
+}
+
+int linenoiseHistoryAdd2(struct history_item *h) {
     char *linecopy;
 
     if (history_max_len == 0) return 0;
     if (history == NULL) {
-        history = malloc(sizeof(char*)*history_max_len);
+        history = malloc(sizeof(struct history_item)*history_max_len);
         if (history == NULL) return 0;
-        memset(history,0,(sizeof(char*)*history_max_len));
+        memset(history,0,(sizeof(struct history_item)*history_max_len));
     }
-    linecopy = strdup(line);
+    linecopy = strdup(h->cmd);
     if (!linecopy) return 0;
     if (history_len == history_max_len) {
-        free(history[0]);
-        memmove(history,history+1,sizeof(char*)*(history_max_len-1));
+        free_history(history+0);
+
+        memmove(history,history+1,sizeof(struct history_item)*(history_max_len-1));
         history_len--;
     }
-    history[history_len] = linecopy;
+
+    set_history(history+history_len,h->datetime,linecopy);
     history_len++;
     return 1;
 }
 
 int linenoiseHistorySetMaxLen(int len) {
-    char **new;
+    struct history_item *new;
 
     if (len < 1) return 0;
     if (history) {
         int tocopy = history_len;
 
-        new = malloc(sizeof(char*)*len);
+        new = malloc(sizeof(struct history_item)*len);
         if (new == NULL) return 0;
         if (len < tocopy) tocopy = len;
-        memcpy(new,history+(history_max_len-tocopy), sizeof(char*)*tocopy);
+        memcpy(new,history, sizeof(struct history_item)*tocopy);
         free(history);
         history = new;
     }
@@ -587,6 +602,24 @@ int linenoiseHistorySetMaxLen(int len) {
     if (history_len > history_max_len)
         history_len = history_max_len;
     return 1;
+}
+
+int getftime(const char *fmt,char *outstr,int len)
+{
+    time_t t;
+    struct tm *tmp;
+
+    t = time(NULL);
+    tmp = localtime(&t);
+    if (tmp == NULL) {
+        return -1;
+    }
+
+    if (strftime(outstr,len,fmt,tmp) == 0) {
+        return -1;
+    }
+
+    return 0;
 }
 
 /* Save the history in the specified file. On success 0 is returned
@@ -597,10 +630,13 @@ int linenoiseHistorySave(char *filename) {
     
     if (fp == NULL) return -1;
     for (j = 0; j < history_len; j++)
-        fprintf(fp,"%s\n",history[j]);
+    {
+        fprintf(fp,"%s%s\n",history[j].datetime,history[j].cmd);
+    }
     fclose(fp);
     return 0;
 }
+
 
 /* Load the history from the specified file. If the file does not exist
  * zero is returned and no operation is performed.
@@ -609,7 +645,8 @@ int linenoiseHistorySave(char *filename) {
  * on error -1 is returned. */
 int linenoiseHistoryLoad(char *filename) {
     FILE *fp = fopen(filename,"r");
-    char buf[LINENOISE_MAX_LINE];
+    char buf[TIME_LEN+LINENOISE_MAX_LINE];
+    struct history_item h;
     
     if (fp == NULL) return -1;
 
@@ -619,8 +656,35 @@ int linenoiseHistoryLoad(char *filename) {
         p = strchr(buf,'\r');
         if (!p) p = strchr(buf,'\n');
         if (p) *p = '\0';
-        linenoiseHistoryAdd(buf);
+        if (buf[0]!='[')
+        {
+            continue;
+        }
+        set_history(&h,buf,buf+TIME_LEN);
+
+        linenoiseHistoryAdd2(&h);
     }
     fclose(fp);
     return 0;
+}
+
+void set_history(struct history_item *h,const char *datetime,char *cmd)
+{
+    if (datetime==NULL)
+    {
+        getftime(time_fmt,h->datetime,sizeof(h->datetime));
+    }
+    else{
+
+        memcpy(h->datetime,datetime,TIME_LEN);
+    }
+    h->datetime[TIME_LEN]=0;
+    h->cmd=cmd;
+}
+
+void free_history(struct history_item *h)
+{
+    memset(h->datetime,0,sizeof(h->datetime));
+    free(h->cmd);
+    h->cmd=NULL;
 }

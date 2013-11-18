@@ -1,4 +1,0 @@
-help
-halt
-= 1
-ls
