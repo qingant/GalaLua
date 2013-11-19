@@ -401,7 +401,7 @@ void GLR::StreamLinkStack::PutRecvTask( int pid, size_t len, int tick )
 
 GLR::StreamLinkStack::StreamLinkStack( Galaxy::GalaxyRT::CSocket *sock )
     :LinkStack(sock),
-    _Cache(PAGE_SIZE, STEP_SIZE)
+    _Cache(GLR_PAGE_SIZE, GLR_STEP_SIZE)
 {
 
 }
