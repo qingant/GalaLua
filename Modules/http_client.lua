@@ -137,7 +137,8 @@ end
 
 
 function getStatusCode(line)
-    return tonumber(string.match(line," (%d%d%d) "))
+    local s=assert(string.match(line,"^%s*HTTP/%d%.%d%s+(%d%d%d)%s+.+$"),"not status line")
+    return tonumber(s)
 end
 
 function httpClient:_getResponse2(timeout)
@@ -162,13 +163,12 @@ function httpClient:_getResponse2(timeout)
             break
         end
     end
-
     return pcall(getStatusCode,initLine)
 end
 
 if ... == "__main__" then
     local uri = "http://joncraton.org/blog/46/netcat-for-windows"
-    uri="127.0.0.1:8888"
+    uri="192.188.150.119:8888"
     local req = httpRequest:new():init("GET", uri)
     local cli = httpClient:new()
     --while true do
@@ -176,3 +176,4 @@ if ... == "__main__" then
     --end
     
 end
+
