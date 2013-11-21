@@ -120,7 +120,7 @@ function httpClient:_getResponse(timeout)
 
 end
 
-function httpClient:get2(req)
+function httpClient:get2(req,timeout)
     self._socket = socket.socket:new()
     local ok,errmsg=self._socket:connect(req._host, req._port)
     if not ok then
@@ -130,7 +130,7 @@ function httpClient:get2(req)
     if not ok then
         return false,errmsg
     end
-    local ok,msg = self:_getResponse2(30)
+    local ok,msg = self:_getResponse2(timeout)
     self._socket:close()
     return ok,msg
 end
@@ -142,7 +142,7 @@ function getStatusCode(line)
 end
 
 function httpClient:_getResponse2(timeout)
-    local timeout = timeout or 30
+    local timeout = timeout or 5
     local response = {}
     local initLine,errmsg = self._socket:recvLine(timeout)
 
@@ -152,7 +152,6 @@ function httpClient:_getResponse2(timeout)
 
     initLine=initLine:trim()
     
-    local header = {}
     while true do
         local line,errmsg = self._socket:recvLine(timeout)
         if not line then
@@ -163,6 +162,7 @@ function httpClient:_getResponse2(timeout)
             break
         end
     end
+    
     return pcall(getStatusCode,initLine)
 end
 
@@ -172,7 +172,7 @@ if ... == "__main__" then
     local req = httpRequest:new():init("GET", uri)
     local cli = httpClient:new()
     --while true do
-    print("xxxx:",cli:get2(req))
+    print("xxxx:",cli:get2(req,20))
     --end
     
 end
