@@ -113,14 +113,20 @@ function init_cmd(name)
     return cmd:new(name)
 end
 
-function cmd_error(str)
+
+function cmd_error(str,...)
     assert(type(str)=="string","must be string") 
-    local s=string.format("@#%s",str)
+    local str2=string.format(str,...)
+    local s=string.format("@#%s",str2)
     error(s)
 end
 
 function perror(str)
     assert(type(str)=="string","must be string") 
     local err=string.match(str,"@#(.*)")
+    if err==nil then
+        err=str
+    end
     return writef("Error:%s\n",err)
 end
+
