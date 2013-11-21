@@ -248,7 +248,7 @@ end
 
 local cmd=require "cmd"
 local _cmds=cmd.init_cmd("config")
-function put(config,path,value)
+function _put(config,path,value)
     
     --return its mapping value if argument value is expected,return nil otherwise
     function isvalid_string(attr,value)
@@ -380,7 +380,7 @@ function put(config,path,value)
 end
 
 
-function get(config,path)
+function _get(config,path)
 
     Print("get",path)
     if not xpath_check(path) then
@@ -394,11 +394,37 @@ function get(config,path)
     io.write(string.format("%s:%s \n",path,value))
 end
 
-function import(config,xml_path)
+function _import(config,xml_path)
     if type(xml_path)~="string" then
-        cmd.cmd_error("must specify xml file to be imported")
+        return cmd.cmd_error("must specify xml file to be imported")
     end
     config:import(xml_path)
+end
+
+function _export(config,xml_path)
+    local xml_path=xml_path or string.format("config-%s.xml",os.date("%Y%m%d"))
+    io.write("export to ",xml_path,"\n")
+    config:export(xml_path)
+end
+
+function wrap(func,...)
+    local config=_Config:new():init_with_env(mdb._create_env(mdb_path))
+    local ok,err=pcall(func,config,...)
+    config:close()
+    assert(ok,err)
+end
+
+function put(...)
+    return wrap(_put,...)
+end
+function get(...)
+    return wrap(_get,...)
+end
+function import(...)
+    return wrap(_import,...)
+end
+function export(...)
+    return wrap(_export,...)
 end
 
 local cmd_list={}
@@ -407,37 +433,13 @@ cmd_list.get={get,"get value","get value, get <xpath> "}
 cmd_list.export={export,"export config","export config to file, config export [xml],default: config-$DATE.xml"}
 cmd_list.import={import,"import config","import config, import <xml>"}
 
-function export(config,xml_path)
-    local xml_path=xml_path or string.format("config-%s.xml",os.date("%Y%m%d"))
-    io.write("export to ",xml_path,"\n")
-    config:export(xml_path)
-end
 
 for name,cmd in pairs(cmd_list) do
     _cmds:add(name,cmd[1],cmd[2],cmd[3])
 end
 
 function helper(argv)
-    table.remove(argv,1)
-    local cmd=argv[1] 
-    table.remove(argv,1)
-    if cmd~=nil  then
-        local func=_cmds:get_cmd(cmd)
-        if func~=nil then
-            if cmd=="help" then
-                return func(unpack(argv))
-            end
-
-            local config=_Config:new():init_with_env(mdb._create_env(mdb_path))
-            local ok,err=pcall(func,config,unpack(argv))
-            config:close()
-            if not ok then
-                error(err)
-            end
-            return 
-        end
-    end
-    return _cmds:help()
+    _cmds:helper(argv)
 end
 
 function info()

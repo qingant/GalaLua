@@ -7,6 +7,7 @@ function pack_aim(manifest_file,_in)
     assert(manifest_file and _in,"invalid argument")
     local _in=_in
     local g=gar.new(manifest_file,gar.sub_root)
+    local name=g:file_name()
     if type(_in)=="string" then
         _in[#_in+1]=_in
     end
@@ -14,6 +15,7 @@ function pack_aim(manifest_file,_in)
         g:add2gar(in_path)
     end
     g:close()
+    return name
 end
 
 
@@ -34,7 +36,8 @@ function pack(...)
         return cmd.cmd_error("gar pack <Manifest> <path1> [path2]...")
     end
     
-    pack_aim(gar,path)
+    local name=pack_aim(gar,path)
+    io.write(string.format("Done! package:'%s' is in current directory.\n",name))
 end
 
 
