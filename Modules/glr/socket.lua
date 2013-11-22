@@ -15,9 +15,9 @@ function socket:init(fd)
     return self
 end
 function socket:connect(host, port)
-    local ok,fd=glr.net.tcp_conn(host, port, 10)
-    if not ok then
-        return false,fd
+    local fd,errmsg=glr.net.tcp_conn(host, port, 10)
+    if not fd then
+        return false,errmsg
     end
     self._fd =fd 
     return self
