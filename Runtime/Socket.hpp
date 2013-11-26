@@ -133,11 +133,11 @@ namespace Galaxy
       class CTCPSocketClient:public CTCPSocket
       {
       private:
-         void ConnectToServer(bool bind,/*bool ReuseAddr,*/int Linger);
+         void ConnectToServer(bool bind,/*bool ReuseAddr,*/int Linger,SHORT timeout=-1);
       public:
-         CTCPSocketClient(const CSocketAddrIn &Remote,/*bool ReuseAddr=true,*/int Linger=10);
-         CTCPSocketClient(const CSocketAddrIn &Remote,const CSocketAddrIn &Local,/*bool ReuseAddr=true,*/int Linger=10);
-         CTCPSocketClient(std::string host,short port,/*bool ReuseAddr=true,*/int Linger=10);
+         CTCPSocketClient(const CSocketAddrIn &Remote,/*bool ReuseAddr=true,*/int Linger=10,SHORT timeout=-1);
+         CTCPSocketClient(const CSocketAddrIn &Remote,const CSocketAddrIn &Local,/*bool ReuseAddr=true,*/int Linger=10,SHORT timeout=-1);
+         CTCPSocketClient(std::string host,short port,/*bool ReuseAddr=true,*/int Linger=10,SHORT timeout=-1);
          virtual ~CTCPSocketClient();
       };
 

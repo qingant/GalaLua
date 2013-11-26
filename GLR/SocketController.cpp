@@ -214,9 +214,13 @@ void GLR::SocketController::DoConn( lua_State *l )
     }
     else
     {
+        int dev = luaL_checkinteger(l, 1);
+        short timeout;
+        timeout = 0x0000ffff&dev;
+        timeout = timeout == 0?-1:timeout;
         const char *host = luaL_checkstring(l, 4);
         int port = luaL_checkinteger(l, 5);
-        Galaxy::GalaxyRT::CTCPSocketClient *c = new Galaxy::GalaxyRT::CTCPSocketClient(host, port);
+        Galaxy::GalaxyRT::CTCPSocketClient *c = new Galaxy::GalaxyRT::CTCPSocketClient(host, port,10,timeout);
         LinkStack *ls =  new StreamLinkStack(c);
         _LinkMap[c->GetFD()] = ls;
 

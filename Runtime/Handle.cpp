@@ -16,6 +16,23 @@ namespace Galaxy
    namespace GalaxyRT
    {
 
+       FlagGuard::FlagGuard(int fd,int flag):
+           _fd(fd)
+       {
+           _flags =fcntl(_fd, F_GETFL, 0);
+
+           int rt= fcntl(_fd, F_SETFL, _flags | flag);
+           if (rt == -1)
+           {
+               THROW_SYSERROR( );
+           }
+       }
+
+       FlagGuard::~FlagGuard()
+       {
+           fcntl(_fd, F_SETFL, _flags);
+       }
+
 #define IOHandle_THROW() (throw CIOError(__FILE__, __PRETTY_FUNCTION__, __LINE__) )
 
 
@@ -428,6 +445,24 @@ namespace Galaxy
          }
 
          return (rc);
+      }
+
+
+      void CSocketHandle::Connect(const struct sockaddr *serv_addr, socklen_t addrlen,SHORT timeout)
+      {
+
+          if(GetFD()==-1)
+          {
+              IOHandle_THROW();
+          }
+
+          FlagGuard f(GetFD(),O_NONBLOCK);
+          ssize_t rc = this->connect(serv_addr,addrlen);
+          int err=errno;
+          if(rc==-1 && err==EINPROGRESS)
+          {
+              RecvWait(timeout);
+          }
       }
 
       bool CSocketHandle::Connect(const struct sockaddr *serv_addr, socklen_t addrlen)
