@@ -84,6 +84,20 @@ function mdb._create_env(path)
     return e
 end
 
+function mdb.reader_free(path,e)
+    if type(path)=="string" then
+        local e=e or mdb.create_env(path)
+        e:reader_check()
+    end
+end
+function mdb.lock_clear(path,e)
+    if type(path)=="string" then
+        local e=e or mdb.create_env(path)
+        local t = e:txn_begin(nil,0)
+        t:abort()
+    end
+end
+
 function mdb:new()
 --    local e = lightningmdb.env_create()
 --    e:set_mapsize(num_pages*4096)
@@ -367,18 +381,86 @@ function element:xpath( path )
     return o
 end
 
+
+function table_slice (values,i1,i2)
+    local res = {}
+    local n = #values
+    -- default values for range
+    i1 = i1 or 1
+    i2 = i2 or n
+    if i2 < 0 then
+        i2 = n + i2 + 1
+    elseif i2 > n then
+        i2 = n
+    end
+    if i1 < 1 or i1 > n then
+        return {}
+    end
+    local k = 1
+    for i = i1,i2 do
+        res[k] = values[i]
+        k = k + 1
+    end
+    return res
+end
 -- TODO: use matched selector instead
 function element:xpath_match( path )
-    local items = self._root:xpath(path)
-    for k,v in pairs(items) do
-        if not self.real_key then
-            self.real_key = self.key
+
+    local tokens = string.split(path, "/")
+    local self_tokens = string.split(self.real_key or self.key, "/")
+
+    local cursor = 1
+    for i,v in ipairs(tokens) do
+
+        if cursor == #self_tokens then
+            return false
         end
-        if v.key == self.real_key or v.real_key == self.real_key then
+        cursor = cursor + 1
+        if v:sub(1,2) == "**" then
+            cursor = #self_tokens
+            if v:sub(3,3) == "@" then
+                for i1,v1 in ipairs(string.split(v:sub(4, #v), "&")) do
+                    local k2, v2 = unpack(string.split(v1, "="))
+
+                    if self:get_attrib(k2) then
+                        if v2 then
+                            if self:get_attrib(k2) ~= v2 then
+                                return false
+                            end
+                        end
+                    else
+                        return false
+                    end
+                end
+            end
             return true
+        elseif v:sub(1,1) == "*" then
+            if v:sub(2,2) == "@" then
+                local tags = table_slice(self_tokens, 2, cursor)
+                local c_xpath = table.concat(tags, "/") -- current xpath
+                -- print("Current Path:", c_xpath)         -- 
+                local element = self._root:_xpath(c_xpath)
+                for i1,v1 in ipairs(string.split(v:sub(3, #v), "&")) do
+                    local k2, v2 = unpack(string.split(v1, "="))
+                    if element:get_attrib(k2) then
+                        if v2 then
+                            if element:get_attrib(k2) ~= v2 then
+                                return false
+                            end
+                        end
+                    else
+                        return false
+                    end
+                end
+            end
+            return true
+        else
+            if v ~= self_tokens[cursor] then
+                return false
+            end
         end
     end
-    return false
+    return true
 end
 
 function element:xpath_set( xpath, value )
@@ -1138,31 +1220,71 @@ if ... == "__main__" then
         pprint.pprint(node:to_table(), "node")
         db:commit()
     end
+    function test_xpath_match( db )
+        local domain_root =  db:get_root(root1)
+        local node = domain_root:create_xpath("Test/Test1/Ok")
+        node:add_attrib("abc","def")
+        local node1 = node:add_node("NoOk")
+        local node2 = node:add_node("WangBaDan")
+
+        local ref = node2:add_ref(node1)
+        assert(node:xpath_match("Test/Test1/*"), "Easy One Star Match Failed")
+        print("Example 1 Succ")
+        assert(node:xpath_match("**"), "Easy Two Star Match Failed")
+        print("Example 2 Succ")
+        assert(node:xpath_match("**@abc"), "Easy Two Star with attr Match Failed")
+        print("Example 3 Succ")
+        assert(node:xpath_match("**@abc=def"), "Easy Two Star with attr equals Match Failed")
+        print("Example 4 Succ")
+        assert(node:xpath_match("**@abc=def1") == false, "Easy Two Star with attr equals Match Failed")
+        print("Example 5 Succ")
+        assert(node1:xpath_match("Test/Test1/*@abc/NoOk"))
+        assert(node1:xpath_match("Test/Test1/*@abc=def/NoOk"))
+        assert(node1:xpath_match("Test/Test1/*@abc=def1/NoOk")==false)
+        assert(node1:xpath_match("Test/Test1/*@abc=def1")==false)
+        print("Example OneStarWithCondition Succ")
+
+        assert(ref:xpath_match("Test/Test1/Ok/WangBaDan/NoOk"))
+        assert(ref:xpath_match("Test/Test1/*@abc/WangBaDan/NoOk"))
+        assert(ref:xpath_match("Test/Test1/*@abc=def/WangBaDan/NoOk"))
+        assert(ref:xpath_match("Test/Test1/*@abcd/WangBaDan/NoOk") == false)
+        assert(ref:xpath_match("Test/Test1/*@abc=def1/WangBaDan/NoOk") == false)
+
+        ref:add_attrib("aa", "bb")
+        assert(ref:xpath_match("**@aa"))
+        assert(ref:xpath_match("**@aa=bb"))
+        assert(ref:xpath_match("**@aaaa") == false)
+        assert(ref:xpath_match("**@aa=bbb") == false)
+        assert(ref:xpath_match("**@aaaa=bb") == false)
+        print("Example Ref Succ")
+
+    end
 
     local limit = 1
     for i=1,limit do
         db:with(test)
 
-        db:with(test1)
-        db:with(test_xquery_xpath)
-        db:withReadOnly(test_xpath)
-        db:withReadOnly(test_value)
-        db:with(test_xml)
-        db:with(test_symlink)
-        db:with(test_more_sym)
-        db:with(test_more_xpath)
-        db:withReadOnly(test_more_more_xpath)
-        db:withReadOnly(test_walk)
-        db:with(test5)
-        db:with(test_remove_root_child)
-        collectgarbage("collect")
+        -- db:with(test1)
+        -- db:with(test_xquery_xpath)
+        -- db:withReadOnly(test_xpath)
+        -- db:withReadOnly(test_value)
+        -- db:with(test_xml)
+        -- db:with(test_symlink)
+        -- db:with(test_more_sym)
+        -- db:with(test_more_xpath)
+        -- db:withReadOnly(test_more_more_xpath)
+        -- db:withReadOnly(test_walk)
+        -- db:with(test5)
+        -- db:with(test_remove_root_child)
+        -- collectgarbage("collect")
 
-        db:withReadOnly(test_exist)
-        db:with(test_vector)
-        db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
-        db:withReadOnly(test_merge)
-        db:withReadOnly(test_xquery_xpath)
-        db:with(test_create_xpath)
+        -- db:withReadOnly(test_exist)
+        -- db:with(test_vector)
+        -- db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
+        -- db:withReadOnly(test_merge)
+        -- db:withReadOnly(test_xquery_xpath)
+        -- db:with(test_create_xpath)
+        db:with(test_xpath_match)
     end
 
 end

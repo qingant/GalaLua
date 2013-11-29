@@ -23,8 +23,10 @@ sqlite:
 json:
 	cd lua-cjson-2.1.0 && $(MAKE) all && mv cjson.so $(HOME)/lib/lua/ && $(MAKE) clean
 dba:
-	cd luadbi.0.5/ && $(MAKE) all && $(MAKE) clean
-	cd luadbi.0.5/ && mv dbaccess.lua $(HOME)/lib/lua
+	#cd luadbi.0.5/ && $(MAKE) all && $(MAKE) clean
+	#cd luadbi.0.5/ && mv dbaccess.lua $(HOME)/lib/lua
+	cd luasql/src && $(MAKE) all && $(MAKE) clean
+	cd luasql/src && mv dbaccess.lua $(HOME)/lib/lua
 struct:
 	cd lua-struct && $(MAKE) && cp struct.so structX.lua $(HOME)/lib/lua/ && $(MAKE) clean
 libzip:
@@ -63,6 +65,7 @@ static:
 	cd lua-snappy/snappy/ && make static
 	cd lua-snappy && make static
 	$(MAKE) -C lua-time static
+	$(MAKE) -C lua-codec static
 #	$(MAKE) -C lua-xml/lua-iconv-7 static
 #	$(MAKE) -C lua-xml static
 

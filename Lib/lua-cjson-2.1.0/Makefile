@@ -22,7 +22,7 @@ ifeq ($(PLATFORM),AIX)
 	RANLIBFLAGS = -X64
 else
 	CC          = gcc
-	CFLAGS      = -O3 -Wall -pedantic -DNDEBUG
+	CFLAGS      = -std=gnu99 -O3 -Wall -pedantic -DNDEBUG
 	CJSON_LDFLAGS = -shared -L$(HOME)/lib
 	AR          = ar
 	ARFLAGS     = -rcu

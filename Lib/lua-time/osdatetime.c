@@ -43,10 +43,10 @@ static int os_strptime(lua_State *L)
    {
       return luaL_error(L, "invalid args");
    }
-   struct timeval tv;
-   gettimeofday(&tv,NULL);
+   /*struct timeval tv;
+   gettimeofday(&tv,NULL);*/
    lua_createtable(L, 0, 10);
-   setfield(L, "msec", tv.tv_usec);
+   setfield(L, "msec", 0);
    setfield(L, "sec", stm.tm_sec);
    setfield(L, "min", stm.tm_min);
    setfield(L, "hour", stm.tm_hour);
@@ -71,9 +71,29 @@ static int os_gettimeofday(lua_State *L)
    return 1;
 }
 
+static int os_mktime(lua_State *L)
+{
+   const char *date_str = luaL_checkstring(L, 1);
+   const char *format = luaL_checkstring(L, 2);
+   if(NULL == date_str||!strlen(date_str)|| NULL == format||!strlen(format))
+   {
+      return luaL_error(L, "must be pass #2 args,type is string");
+   }
+   struct tm stm;
+   if(NULL == strptime(date_str, format, &stm))
+   {
+      return luaL_error(L, "invalid args");
+   }
+   time_t msec = mktime(&stm);
+   lua_pushnumber(L,msec);
+
+   return 1;
+}
+
 static const luaL_Reg systime[] = {
   {"strptime",      os_strptime},
   {"gettimeofday",  os_gettimeofday},
+  {"mktime",        os_mktime},
   {NULL, NULL}
 };
 

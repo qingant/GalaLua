@@ -33,8 +33,7 @@ function getFileExtension(filename)
 end
 function timedFlusher(timeVal, pid)
     while true do
-        print("flusher")
-        glr.time.sleep(5)
+        glr.time.sleep(timeVal or 5)
         glr.send(pid, "!!")     -- flush
     end
 end
@@ -58,11 +57,11 @@ function glrLogServerDispatch(info)
                 break
             end
             if msg:sub(1,2) == "!@" then -- open logger
-                print(msg)
+--                print(msg)
                 -- local len = #msg - 2
                 local entry = string.sub(msg, 3, #msg)
                 local info = cjson.decode(entry)
-                pprint.pprint(info)
+--                pprint.pprint(info)
                 if info.path == nil or info.path == "" then
                     info.path = "stdout"
                     if nameDict["stdout"] == nil then
@@ -81,12 +80,12 @@ function glrLogServerDispatch(info)
                 glr.send(addr,cjson.encode(childaddr))
             elseif msg:sub(1,2) == "!!" then -- flush
                 for pid, name in pairs(pidDict) do
-                    print("flush", pid, name)
+--                    print("flush", pid, name)
                     glr.send(pid, "!!")
                 end
             elseif msg:sub(1,2) == '!*' then
                 for pid,name in pairs(pidDict) do
-                    print("reset",pid,name)
+--                    print("reset",pid,name)
                     glr.send(pid,"!#")
                 end
                 nameDict = {}
@@ -103,7 +102,7 @@ function glrStdLoggerProcessor()
         end
         if msg:sub(1,2) == "!!" then
         else
-            print(msg)
+--            print(msg)
         end
     end
 end
@@ -131,7 +130,7 @@ function glrFileLoggerProcessor( targetPath,sizePerFile,Files)
             fileid = fileid + 1
         end
         if msg:sub(1,2) == "!!" or msg:sub(1,2) == "!#" then -- flush
-            print("flush!")
+--            print("flush!")
             --fileHandle:flush()
             local cachedata = cache:get()
             for _, v in pairs(cachedata) do

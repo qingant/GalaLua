@@ -20,6 +20,7 @@ LUA_PACKAGE_C_LIBS += $(PREFIX)/share/static/lua/cjson.a \
     $(PREFIX)/share/static/lua/hexdump.a \
     $(PREFIX)/share/static/lua/xml.a \
     $(PREFIX)/share/static/lua/sigar.a \
+    $(PREFIX)/share/static/lua/codec.a \
     $(PREFIX)/share/static/lua/osdatetime.a \
     $(PREFIX)/share/static/libsigar.a \
     $(PREFIX)/share/static/libzip.a \

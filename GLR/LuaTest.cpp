@@ -21,7 +21,18 @@ public:
     {
         if (_Process->ExistOption("D"))
         {
-            daemonize();
+            std::string err_log("/dev/null"),out_log("/dev/null");
+            if (_Process->ExistOption("E"))
+            {
+                err_log = _Process->GetOption("E");
+            }
+
+            if (_Process->ExistOption("O"))
+            {
+                out_log = _Process->GetOption("O");
+            }
+
+            daemonize(out_log.c_str(),err_log.c_str());
         }
         initGlrSettings();
         _Run();
@@ -141,7 +152,7 @@ private:
 
 
     }
-    static void daemonize(void)
+    static void daemonize(const char *out_log,const char *err_log)
     {
         pid_t pid, sid;  
         int fd;   
@@ -173,22 +184,27 @@ private:
             exit(1);  
         }  
 
-        fd = CRT_open("/dev/null",O_RDWR, 0);  
-        if (fd != -1)  
-        {  
-            CRT_dup2 (fd,0);  
-            CRT_dup2 (fd,1);  
-            CRT_dup2 (fd,2);  
-        }  
-
-        //close all useless fd(maybe invalid)
-        for (int i=3;i<fd;++i)
+        for (int i=0;i<1024;++i)
         {
             close(i);
         }
-        for (int i=fd+1;i<1024;++i)
+
+        fd = CRT_open("/dev/null",O_RDWR,0);
+        if (fd == -1)
         {
-            close(i);
+            exit(1);
+        }
+        
+        fd = CRT_open(out_log,O_WRONLY|O_CREAT|O_APPEND, 0644);  
+        if (fd == -1 && (fd=dup2(0,1))==-1)
+        {
+            exit(1); 
+        }
+
+        fd = CRT_open(err_log,O_WRONLY|O_CREAT|O_APPEND, 0644);
+        if (fd == -1 && (fd=dup2(0,2))==-1)
+        {
+            exit(1);
         }
         /*resettign File Creation Mask */  
         CRT_umask(027);  

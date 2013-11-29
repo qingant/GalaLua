@@ -75,10 +75,37 @@ function replace(path,from,to)
     return pretty(d)
 end
 
+--[[
+@return 
+]]
 function pretty(path)
     assert(type(path)=="string","must pass path")
     return path:gsub("/+","/")
 end
+
+function abs(path)
+    assert(type(path)=="string","must pass path")
+    local pwd=os.getenv("PWD")
+    return join(pwd,path)
+end
+
+--[[
+@return absolute path, deal with "." and "..", no suffix "/"
+]]
+function pretty2(path)
+    assert(type(path)=="string","must pass path")
+    local path=abs(path)
+    local ret={}
+    for i,v in path:gmatch("[^/]+") do
+        if i==".." then
+            ret[#ret]=nil
+        elseif i~="." then
+            ret[#ret+1]=i
+        end
+    end
+    return "/"..table.concat(ret,"/")
+end
+
 
 if ...=="__main__" then
     function test_split()
@@ -96,7 +123,10 @@ if ...=="__main__" then
         print(join("/","/ss"))
         print(join(".","."))
     end
-    test_join()
+--    test_join()
 
-    test_split()
+ --   test_split()
+print(pretty2("/xx///xxx/xx/cc/"))
+print(pretty2("./xx///xxx/xx/cc/../../../"))
+print(pretty2("../..//"))
 end

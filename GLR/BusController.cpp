@@ -491,7 +491,8 @@ void GLR::BusController::DoCheckReg( lua_State *l)
     snprintf(id, sizeof(id), "%s::%d", host, port);
     if (!_Router.has_key(id))
     {
-        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 0);
+        const char *errmsg="not connected";
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 0,LUA_TSTRING,errmsg,strlen(errmsg));
         return;
     }
 
@@ -499,7 +500,8 @@ void GLR::BusController::DoCheckReg( lua_State *l)
     MessageLinkStack *ms = (MessageLinkStack*)(_LinkMap[fd]);
     if (ms == NULL)
     {
-        Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 0, "Connetion Closed", 0);
+        const char *errmsg= "Connetion Closed";
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TBOOLEAN, 0,LUA_TSTRING,errmsg,strlen(errmsg));
         return;
     }
     Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
@@ -531,7 +533,7 @@ void GLR::BusController::DoNodeClose( lua_State *l )
     catch (const Galaxy::GalaxyRT::CException &e)
     {
         GALA_ERROR(e.what());
-        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, e.what() );
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, e.what(),strlen(e.what()));
     }
 
 }
