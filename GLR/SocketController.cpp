@@ -422,13 +422,13 @@ void GLR::StreamLinkStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/, 
     {
         Task t = ls->_RecvTasks.Get();
         std::string errmsg = "IO Error";
-        Runtime::GetInstance().GetBus().Response(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        Runtime::GetInstance().GetBus().ResponseEx(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
     }
     while (!ls->_SendTasks.Empty())
     {
         Task t = ls->_SendTasks.Get();
         std::string errmsg = "IO Error";
-        Runtime::GetInstance().GetBus().Response(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        Runtime::GetInstance().GetBus().ResponseEx(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
     }
 }
 
