@@ -121,17 +121,61 @@ function httpClient:_getResponse(timeout)
 end
 
 
+function httpClient:get2(req,timeout)
+    self._socket = socket.socket:new()
+    local ok,errmsg=self._socket:connect(req._host, req._port)
+    if not ok then
+        return false,errmsg
+    end
+    local ok,errmsg=self._socket:send(req:toString())
+    if not ok then
+        return false,errmsg
+    end
+    local ok,msg = self:_getResponse2(timeout)
+    self._socket:close()
+    return ok,msg
+end
+
+
+function getStatusCode(line)
+    local s=assert(string.match(line,"^%s*HTTP/%d%.%d%s+(%d%d%d)%s+.+$"),"not status line")
+    return tonumber(s)
+end
+
+function httpClient:_getResponse2(timeout)
+    local timeout = timeout or 5
+    local response = {}
+    local initLine,errmsg = self._socket:recvLine(timeout)
+
+    if not initLine then
+        return false,errmsg or "timeout"
+    end
+
+    initLine=initLine:trim()
+    
+    while true do
+        local line,errmsg = self._socket:recvLine(timeout)
+        if not line then
+            return false,errmsg or "timeout"
+        end
+        line=line:trim()
+        if line == "" then
+            break
+        end
+    end
+    
+    return pcall(getStatusCode,initLine)
+end
+
 if ... == "__main__" then
-    _parseUri("http://www.google.com:80/login/test")
-    _parseUri("www.google.com:80/login")
-    _parseUri("www.google.com/login")
-    _parseUri("http://www.google.com/login")
     local uri = "http://joncraton.org/blog/46/netcat-for-windows"
+    uri="192.188.150.119:8888"
     local req = httpRequest:new():init("GET", uri)
-    print(req:toString())
     local cli = httpClient:new()
     --while true do
-    cli:get(req)
+    print("xxxx:",cli:get2(req,20))
     --end
     
 end
+
+

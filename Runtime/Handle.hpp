@@ -124,6 +124,7 @@ namespace Galaxy
 
          ssize_t Accept(struct sockaddr *addr, socklen_t *addrlen);
          bool Connect(const struct sockaddr *serv_addr, socklen_t addrlen);
+         void Connect(const struct sockaddr *serv_addr, socklen_t addrlen,SHORT timeout);
          bool Bind(struct sockaddr *my_addr, socklen_t addrlen);
          bool Listen(INT backlog);
 
@@ -131,6 +132,15 @@ namespace Galaxy
          bool SetSockOpt(INT level, INT optname, const void *optval, socklen_t optlen);
       };
 
+      class FlagGuard
+      {
+      public:
+          FlagGuard(int fd,int flag);
+          ~FlagGuard();
+      private:
+          int _fd;
+          int _flags;
+      };
 /*
   class CFileHandle:public CIOHandle
   {

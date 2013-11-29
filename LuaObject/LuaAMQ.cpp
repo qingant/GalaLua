@@ -10,7 +10,8 @@
 //IMQueue::EMQCHL
 #define isValidChannel(chl) (chl>=0 && chl<=2)
 
-const int pageSize=8192;
+//32*1024
+const int pageSize=32768;
 using namespace Galaxy::AMQ;
 
 class BlockBuffer:public IBlock

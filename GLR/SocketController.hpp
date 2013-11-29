@@ -24,8 +24,8 @@
 namespace GLR
 {
     typedef Galaxy::GalaxyRT::CPollSelector POLLERTYPE;
-    const   size_t PAGE_SIZE = 4096;
-    const   size_t STEP_SIZE = 4096 / 4;
+    const   size_t GLR_PAGE_SIZE = 4096;
+    const   size_t GLR_STEP_SIZE = 4096 / 4;
     class   TcpCache
     {
     public:

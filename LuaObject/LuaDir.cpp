@@ -1,6 +1,6 @@
 #include "LuaCPP.hpp"
-#include "Runtime/Logger.hpp"
-
+#include <cstub.h>
+#include "Object.hpp"
 
 static int LUA_dir(lua_State *l)
 {

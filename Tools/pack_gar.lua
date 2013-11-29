@@ -7,6 +7,7 @@ function pack_aim(manifest_file,_in)
     assert(manifest_file and _in,"invalid argument")
     local _in=_in
     local g=gar.new(manifest_file,gar.sub_root)
+    local name=g:file_name()
     if type(_in)=="string" then
         _in[#_in+1]=_in
     end
@@ -14,66 +15,50 @@ function pack_aim(manifest_file,_in)
         g:add2gar(in_path)
     end
     g:close()
+    return name
 end
 
 
 
 -- {{ for command console
 
-local cmds={}
+local cmd=require "cmd"
+local _cmds=cmd.init_cmd("gar")
 
 --FIXME: not support assign output path 
-function cmds.pack(...)
+function pack(...)
     local gar=...
     local path={}
     for i=2,select("#",...) do
         path[#path+1]=select(i,...)
     end
     if not (gar and next(path))  then
-        io.write("gar pack manifest_file  path1 [path2]...\n")
-        return 
+        return cmd.cmd_error("gar pack <Manifest> <path1> [path2]...")
     end
     
-    pack_aim(gar,path)
+    local name=pack_aim(gar,path)
+    io.write(string.format("Done! package:'%s' is in current directory.\n",name))
 end
 
-function cmds.edit(gar)
-    if not gar then
-        io.write("gar edit xxx.gar\n")
-        return 
-    end
-    io.write("TODO\n")
-end
 
 --FIXME:better show format
-function cmds.show(gar)
+function show(gar)
     if not gar then
-        io.write("gar show xxx.gar\n")
-        return 
+        return cmd.cmd_error("gar show xxx.gar")
     end
     io.write("TODO \n")
---    local zipfd=zip.open(gar)
 end
 
-function cmds.help()
-    io.write("gar :\n")
-    io.write("available commands:\n")
-    for i in pairs(cmds) do
-        io.write("\t",i,"\n")
-    end
+local cmd_list={}
+cmd_list.pack={pack,"pack aim package","gar pack <Manifest> <path1> [path2]..."}
+cmd_list.show={show,"show aim package","gar show xxx.gar"}
+for name,cmd in pairs(cmd_list) do
+    _cmds:add(name,cmd[1],cmd[2],cmd[3])
 end
 
-local mt={__index=function (t,key) io.write(key,":command not founded!\n") return cmds.help  end }
-setmetatable(cmds,mt)
 
 function helper(argv)
-    pprint.pprint(argv)
-
-    table.remove(argv,1)
-    local cmd=argv[1] 
-    table.remove(argv,1)
-
-    cmds[cmd](unpack(argv))
+    return _cmds:helper(argv)
 end
 
 function info()
@@ -95,7 +80,7 @@ function dir_completion(s,prefix)
     return _completion.path_completion(arg,prefix..pre)
 end
 
-completion={}
+completion={help=""}
 completion.pack=dir_completion
 completion.show=gar_completion
 

@@ -519,22 +519,24 @@ namespace Galaxy
         }
 
 /*CTCPSocketClient*/
-        CTCPSocketClient::CTCPSocketClient(const CSocketAddrIn &Remote,/*bool ReuseAddr,*/int Linger)
+        CTCPSocketClient::CTCPSocketClient(const CSocketAddrIn &Remote,/*bool ReuseAddr,*/int Linger,SHORT timeout)
             :CTCPSocket(Remote)
         {
-            ConnectToServer(false,/*ReuseAddr,*/Linger);
+            ConnectToServer(false,/*ReuseAddr,*/Linger,timeout);
         }
 
-        CTCPSocketClient::CTCPSocketClient(const CSocketAddrIn &Remote,const CSocketAddrIn &Local,/*bool ReuseAddr,*/int Linger)
+        CTCPSocketClient::CTCPSocketClient(const CSocketAddrIn &Remote,const CSocketAddrIn &Local,/*bool ReuseAddr,*/int Linger,SHORT timeout)
             :CTCPSocket(Remote,Local)
         {
-            ConnectToServer(true,/*ReuseAddr,*/Linger);
+            ConnectToServer(true,/*ReuseAddr,*/Linger,timeout);
         }
 
-        CTCPSocketClient::CTCPSocketClient(std::string host,short port,/*bool ReuseAddr,*/int Linger)
+
+        CTCPSocketClient::CTCPSocketClient(std::string host,short port,/*bool ReuseAddr,*/int Linger,SHORT timeout)
             :CTCPSocket(CSocketAddrIn(host,port))
         {
-            ConnectToServer(false,/*ReuseAddr,*/Linger);
+
+            ConnectToServer(false,/*ReuseAddr,*/Linger,timeout);
         }
 
         CTCPSocketClient::~CTCPSocketClient()
@@ -542,7 +544,7 @@ namespace Galaxy
 
         }
 
-        void CTCPSocketClient::ConnectToServer(bool bind,/*bool ReuseAddr,*/int Linger)
+        void CTCPSocketClient::ConnectToServer(bool bind,/*bool ReuseAddr,*/int Linger,SHORT timeout)
         {
             UINT            opt;
             struct linger   lgr;
@@ -564,7 +566,15 @@ namespace Galaxy
                 Bind((struct sockaddr *)LocalAddr()->Get(),LocalAddr()->Length());
             }
 
-            Connect((struct sockaddr *)RemoteAddr()->Get(),RemoteAddr()->Length());
+
+            if (timeout<=0)
+            {
+                Connect((struct sockaddr *)RemoteAddr()->Get(),RemoteAddr()->Length());
+            }
+            else{
+                Connect((struct sockaddr *)RemoteAddr()->Get(),RemoteAddr()->Length(),timeout);
+            }
+
         }
 
 

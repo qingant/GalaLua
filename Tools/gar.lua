@@ -231,7 +231,7 @@ function Zip:add_dir(zipfile,file)
         zipfile=zipfile.."/"
     end
 
-    print("add_dir:",file,zipfile)
+    --print("add_dir:",file,zipfile)
     local id=self.fd:name_locate(zipfile)
     if not id then
         self.fd:add_dir(zipfile)
@@ -346,13 +346,17 @@ function gar:init(manifest_file,fname_func)
     self.Manifest="Manifest"
 
     self._manifest=manifest:new(manifest_file)
-
-    self._gar=Zip:new(self._manifest:gar_name(),"w")
+    self.filename=self._manifest:gar_name()
+    self._gar=Zip:new(self.filename,"w")
     self:add_manifest()
 end
 
 function gar:close()
     self._gar:close()
+end
+
+function gar:file_name()
+    return self.filename
 end
 
 function gar:name_in_gar(path,file_type)
@@ -417,7 +421,7 @@ function remove_prefix_slash(str)
 end
 
 function sub_root(self,in_path,file_type)
-    print("sub_root:",in_path)
+    --print("sub_root:",in_path)
     local root=self._manifest:root()
     local as_path
     if root and root~="" then
@@ -440,7 +444,7 @@ function sub_root(self,in_path,file_type)
     if (not as_path) or (as_path=="") then
         as_path=remove_prefix_slash(in_path)
     end
-    print("as_path:",as_path)
+    --print("as_path:",as_path)
     return as_path
 end
 

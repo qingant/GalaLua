@@ -45,7 +45,11 @@ namespace GLR
         MSG_HEAD Head;
         GLR_ADDR Source;
     };
+#ifdef _AIX
+#pragma pack(pop)
+#else
 #pragma pack()
+#endif
     class IController
     {
     public:

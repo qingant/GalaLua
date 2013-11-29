@@ -65,7 +65,7 @@ function _Config:prepairPath( xpath )
 end
 function _Config:get( xpath )
     local path = self:prepairPath(xpath)
-    print(path)
+    --print(path)
     return self._db:withReadOnly(function (db)
                                  local root = db:get_root("Configure"):get_child("Contents")
                                  local vs = root:xpath(path)[1]:get_value()
@@ -77,7 +77,7 @@ function _Config:_put( xpath, value )
     local path = self:prepairPath(xpath)
     local db = self._db
     local root = db:get_root("Configure"):get_child("Contents")
-    print("P",path, value)
+    --print("P",path, value)
     local node = root:xpath(path)[1]
     assert(node, "The path " .. path .. "not in schema")
     for k,v in pairs(node:get_value()) do
@@ -100,7 +100,7 @@ function _Config:import( path )
             contents = conf_node:add_node("Contents")
         end
         local t=io.open(path,"r"):read("*a")
-        print(t)
+        --print(t)
         local reader = xml.cxml_reader(t,#t)
         local xRoot = reader:document()
 
@@ -155,7 +155,7 @@ function _Config:schemaGen( ... )
         function doSchema( sNode, cNode )
 
             local meta = sNode:get_attrib()["meta"]
-            print("DoSchema", sNode:tag(), cNode:tag(), meta)
+            --print("DoSchema", sNode:tag(), cNode:tag(), meta)
             if meta == "entry" then
                 local eType = sNode:get_child("type"):get_value()[1]
                 cNode:add_attrib("type", eType)
@@ -244,7 +244,7 @@ function _Importer:importFromXMLBuffer( buf, root, xpath )
                       end
                       self._dRoot = dRoot
                       self:_import(xRoot, dRoot)
-                      pprint.pprint(dRoot:to_xml(), "dbroot")
+--                      pprint.pprint(dRoot:to_xml(), "dbroot")
                       db:commit()
                   end
                   ) 
@@ -303,7 +303,7 @@ if ... == "__main__" then
     config:schemaGen()
     config:put("Base/AMQToken", "test")
     local tk = config:get("Base/AMQToken")
-    print(tk)
+--    print(tk)
     -- config:put("Monitor/Base/AMQToken", "testABC")
     -- print(config:get("Monitor/Base/AMQToken"))
     config:export("exp.xml")
