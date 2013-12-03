@@ -37,11 +37,8 @@ namespace GLR
             return &_Buf[_End];
         }
         inline void Grow(size_t len){
-            if (len <= (_Buf.size() - _End))
-            {
-                _End += len;
-            } else
-            {
+            _End += len;
+            if (Reserved() == 0){
                 if ((_End - _Begin) > (_Buf.size() - _Step))
                 {
                     _Buf.resize(_Buf.size() * 2);

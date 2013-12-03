@@ -32,11 +32,11 @@ void * GLR::SocketWorker::Run( const Galaxy::GalaxyRT::CThread & )
 {
     while (true)
     {
-        Galaxy::GalaxyRT::CSelector::EV_PAIRS evs = _Poller.WaitEvent(-1);
+        Galaxy::GalaxyRT::CSelector::EV_PAIRS evs = _Poller.WaitEvent(5*1000);
         for (size_t i = 0; i!= evs.size(); ++i)
         {
             Galaxy::GalaxyRT::CSelector::EV_PAIR &ev = evs[i];
-            GALA_ERROR("Fd(%d) EVent(%d)", ev.first, ev.second);
+            //GALA_ERROR("Fd(%d) EVent(%d)", ev.first, ev.second);
             if (ev.second&Galaxy::GalaxyRT::EV_ERR ||
                 ev.second&Galaxy::GalaxyRT::EV_HUP ||
                 ev.second&Galaxy::GalaxyRT::EV_NVALID ||
@@ -220,7 +220,7 @@ void GLR::SocketController::DoConn( lua_State *l )
         timeout = timeout == 0?-1:timeout;
         const char *host = luaL_checkstring(l, 4);
         int port = luaL_checkinteger(l, 5);
-        Galaxy::GalaxyRT::CTCPSocketClient *c = new Galaxy::GalaxyRT::CTCPSocketClient(host, port,10,timeout);
+        Galaxy::GalaxyRT::CTCPSocketClient *c = new Galaxy::GalaxyRT::CTCPSocketClient(host, port,10);
         LinkStack *ls =  new StreamLinkStack(c);
         _LinkMap[c->GetFD()] = ls;
 
