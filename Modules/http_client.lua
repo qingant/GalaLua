@@ -50,6 +50,7 @@ function httpRequest:toString(...)
     local lines = {}
     lines[#lines+1] = string.format("%s %s %s\r\n", self._type, self._path, self.version)
     lines[#lines+1] = string.format("HOST:%s\r\n", self._host)
+    lines[#lines+1] = "Connection:Closed\r\n"
     local content = {}
     -- table.foreachi(self._params, function (idx)
     --                                    local item = self._params[idx]
@@ -159,9 +160,21 @@ function httpClient:_getResponse2(timeout)
             return false,errmsg or "timeout"
         end
         line=line:trim()
+        
         if line == "" then
             break
         end
+        pprint.pprint(line)
+        local key, value = unpack(string.split(line, ":"))
+        response[string.upper(key)] = value:trim()
+    end
+    if response["CONTENT-LENGTH"] then
+        print(response["CONTENT-LENGTH"])
+        local content = assert(self._socket:recv(tonumber(response["CONTENT-LENGTH"]), timeout))
+        print(content)
+        response.content = content
+    elseif response["TRANSFER-ENCODING"] == "chuncked" then
+        
     end
     
     return pcall(getStatusCode,initLine)
@@ -169,11 +182,18 @@ end
 
 if ... == "__main__" then
     local uri = "http://joncraton.org/blog/46/netcat-for-windows"
-    uri="192.188.150.119:8888"
-    local req = httpRequest:new():init("GET", uri)
-    local cli = httpClient:new()
+    -- uri="192.188.150.119:8888"
+    uri = "www.google.com"
+    uri = "www.baidu.com"
+    -- uri = "http://qt-project.org/doc/qt-5.0/qtmultimedia/audiooverview.html"
+    -- uri = "http://dlang.org/phobos/std_container.html"
+    -- uri = "http://www.iteye.com"
+    while true do
+        local req = httpRequest:new():init("GET", uri)
+        local cli = httpClient:new()
     --while true do
-    print("xxxx:",cli:get2(req,20))
+        print("xxxx:",cli:get2(req,30))
+    end
     --end
     
 end
