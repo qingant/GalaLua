@@ -33,6 +33,7 @@ namespace Galaxy
 
 #define THROW_SYSTIMEOUT() (throw CSysTimeOut(__FILE__, __PRETTY_FUNCTION__, __LINE__, errno) )
 #define THROW_SYSERROR() (throw CSysError(__FILE__, __PRETTY_FUNCTION__, __LINE__, errno) )
+#define THROW_SYSERROR2(err) (throw CSysError(__FILE__, __PRETTY_FUNCTION__, __LINE__, err) )
 #define THROW_CONTROL(control) (throw CSysError(__FILE__, __PRETTY_FUNCTION__, __LINE__, errno, control) )
 #define THROW_EXCEPTION(control, msg) (throw CException(__FILE__, __PRETTY_FUNCTION__, __LINE__, errno, control, msg) )
 #define THROW_EXCEPTION_EX(msg) (throw Galaxy::GalaxyRT::CException(__FILE__, __PRETTY_FUNCTION__, __LINE__, errno, 0, msg) )
