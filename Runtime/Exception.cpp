@@ -212,7 +212,7 @@ namespace Galaxy
 		CHAR    sztmp[2048];
 		CHAR    szerror[1024];
 		//INT     err = errno;
-		CRT_strerror_r(errno, szerror, sizeof(szerror));
+		CRT_strerror_r(errcode, szerror, sizeof(szerror));
 		::CRT_snprintf(sztmp,sizeof(sztmp),"SYSERR:(%d) - %s",(INT)errno, szerror);
 		this->mMsg = sztmp;
 		errno = 0;
@@ -236,7 +236,7 @@ namespace Galaxy
 	{
 		CHAR    sztmp[2048];
 		CHAR    szerror[1024];
-		CRT_strerror_r(errno, szerror, sizeof(szerror));
+		CRT_strerror_r(errcode, szerror, sizeof(szerror));
 		::CRT_snprintf(sztmp,sizeof(sztmp),"SYSERR:(%d) - %s",(INT)errno, szerror);
 		this->mMsg = sztmp;
 		errno = 0;
@@ -260,7 +260,7 @@ namespace Galaxy
 	{
 		CHAR    sztmp[2048];
 		CHAR    szerror[1024];
-		CRT_strerror_r(errno, szerror, sizeof(szerror));
+		CRT_strerror_r(errcode, szerror, sizeof(szerror));
 		::CRT_snprintf(sztmp,sizeof(sztmp),"SYSERR:(%d) - %s",(INT)errno, szerror);
 
 		this->mMsg = sztmp;
