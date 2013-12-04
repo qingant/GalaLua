@@ -462,6 +462,13 @@ namespace Galaxy
           if(rc==-1 && err==EINPROGRESS)
           {
               SendWait(timeout);
+              int val=0;
+              int len=sizeof(val);
+              rc=getsockopt(GetFD(),SOL_SOCKET,SO_ERROR,&val,(socklen_t *)&len);
+              if (!(rc==0 && val==0) )
+              {
+                  THROW_SYSERROR2(val);
+              }
           }
       }
 
