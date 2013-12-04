@@ -461,7 +461,7 @@ namespace Galaxy
           int err=errno;
           if(rc==-1 && err==EINPROGRESS)
           {
-              RecvWait(timeout);
+              SendWait(timeout);
           }
       }
 
