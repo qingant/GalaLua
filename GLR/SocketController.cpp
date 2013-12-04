@@ -79,8 +79,9 @@ void GLR::SocketWorker::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev )
     }
     ls->OnErr(ev, _Poller);
     _Poller.Remove(ev.first);
+    _LinkMap[ev.first] = NULL; 
     delete ls;
-    _LinkMap[ev.first] = NULL;
+ 
 }
 
 void GLR::SocketWorker::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev )
@@ -220,7 +221,8 @@ void GLR::SocketController::DoConn( lua_State *l )
         timeout = timeout == 0?-1:timeout;
         const char *host = luaL_checkstring(l, 4);
         int port = luaL_checkinteger(l, 5);
-        Galaxy::GalaxyRT::CTCPSocketClient *c = new Galaxy::GalaxyRT::CTCPSocketClient(host, port,10);
+        Galaxy::GalaxyRT::CTCPSocketClient *c = new Galaxy::GalaxyRT::CTCPSocketClient(host, port,10, timeout);
+        Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex); 
         LinkStack *ls =  new StreamLinkStack(c);
         _LinkMap[c->GetFD()] = ls;
 

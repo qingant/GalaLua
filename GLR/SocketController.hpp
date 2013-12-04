@@ -162,7 +162,7 @@ namespace GLR
         } 
     protected:
         std::auto_ptr<Galaxy::GalaxyRT::CSocket>  _Sock;
-        int                                   _Stamp;
+        const int                                   _Stamp;
 
     };
     class StreamLinkStack: public LinkStack
