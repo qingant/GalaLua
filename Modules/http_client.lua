@@ -61,7 +61,7 @@ function httpRequest:toString(...)
     -- lines[#lines+1] = string.format("Content-Length:%d", content:len())
     lines[#lines+1] = "\r\n"
     -- lines[#lines+1] = content
-    pprint.pprint(lines)
+--    pprint.pprint(lines)
     return table.concat(lines)
 end
 
@@ -164,14 +164,14 @@ function httpClient:_getResponse2(timeout)
         if line == "" then
             break
         end
-        pprint.pprint(line)
         local key, value = unpack(string.split(line, ":"))
         response[string.upper(key)] = value:trim()
     end
     if response["CONTENT-LENGTH"] then
-        print(response["CONTENT-LENGTH"])
-        local content = assert(self._socket:recv(tonumber(response["CONTENT-LENGTH"]), timeout))
-        print(content)
+        local content,errmsg = self._socket:recv(tonumber(response["CONTENT-LENGTH"]), timeout)
+        if not content then
+            return false,errmsg or "timeout"
+        end
         response.content = content
     elseif response["TRANSFER-ENCODING"] == "chuncked" then
         
@@ -185,14 +185,15 @@ if ... == "__main__" then
     -- uri="192.188.150.119:8888"
     uri = "www.google.com"
     uri = "www.baidu.com"
+    uri = "www.youtube.com"
+    uri = "127.0.0.1:880"
     -- uri = "http://qt-project.org/doc/qt-5.0/qtmultimedia/audiooverview.html"
     -- uri = "http://dlang.org/phobos/std_container.html"
     -- uri = "http://www.iteye.com"
     while true do
         local req = httpRequest:new():init("GET", uri)
         local cli = httpClient:new()
-    --while true do
-        print("xxxx:",cli:get2(req,30))
+        print("\nxxxx:",cli:get2(req,20))
     end
     --end
     
