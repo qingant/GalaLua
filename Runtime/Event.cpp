@@ -23,7 +23,7 @@ namespace Galaxy
 #ifdef __linux__
         static uint32_t events2ievents( CBaseSelector::EV_TYPE ev )
         {
-            uint32_t iev;
+            uint32_t iev=0;
 
             if (ev&EV_IN)
             {
@@ -57,7 +57,7 @@ namespace Galaxy
 
         static CBaseSelector::EV_TYPE ievents2events( uint32_t  iev )
         {
-            CBaseSelector::EV_TYPE ev;
+            CBaseSelector::EV_TYPE ev=0;
 
             if (iev&EPOLLIN)
             {
