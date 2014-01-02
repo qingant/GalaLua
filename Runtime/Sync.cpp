@@ -480,7 +480,7 @@ namespace Galaxy
             }
             return locked;	
         }
-        bool CFileRWLock::IsLock(pid_t  lockedpid)const
+        bool CFileRWLock::IsLock(pid_t  &lockedpid)const
         {
             struct flock lock;
             lock.l_type = F_WRLCK;

@@ -215,7 +215,7 @@ namespace Galaxy
          void TryWriteLock()const;
          void UnLock()const;
          bool IsLock()const;
-         bool IsLock(pid_t  lockedpid)const;
+         bool IsLock(pid_t  &lockedpid)const;
          virtual ~CFileRWLock();
       private:
          INT _Fd;
@@ -241,7 +241,7 @@ namespace Galaxy
             :CRWLockAdapter(*(new CFileRWLock(file)), CRWLockInterface::WRLOCK),
              _FLock((CFileRWLock*)&_Lock)
          {}
-         bool IsLocked(const pid_t &pid) const
+         bool IsLocked(pid_t &pid) const
          {
             return _FLock->IsLock(pid);
          }
