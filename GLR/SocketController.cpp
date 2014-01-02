@@ -122,9 +122,9 @@ void GLR::SocketWorker::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev )
 
 GLR::SocketController::SocketController()
 #if defined(HAVE_SUSE)
-    :_LinkMap(10240, (LinkStack *)0),_Worker(_LinkMap, _RWLock, _Poller),_Mutex(_RWLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK)
+    :_LinkMap(10240, (LinkStack *)0),_Mutex(_RWLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK),_Worker(_LinkMap, _RWLock, _Poller)
 #else
-    :_LinkMap(10240, NULL),_Worker(_LinkMap, _RWLock, _Poller),_Mutex(_RWLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK)
+    :_LinkMap(10240, NULL),_Mutex(_RWLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK),_Worker(_LinkMap, _RWLock, _Poller)
 #endif
 {
     Galaxy::GalaxyRT::CThread *t = new Galaxy::GalaxyRT::CThread(_Worker, 1);
@@ -505,6 +505,7 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
 }
 void GLR::StreamLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLLERTYPE &_Poller )
 {
+    (void)ev;
     _Sock->SetNonBlocking();
     GALA_DEBUG("Recv");
     //int fd = ev.first;
@@ -632,6 +633,8 @@ void GLR::StreamServerStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/
 
 void GLR::StreamServerStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLLERTYPE &_Poller)
 {
+    (void)ev;
+
     while (!_RecvTasks.Empty())
     {
         StreamLinkStack::Task &t = _RecvTasks.Head();

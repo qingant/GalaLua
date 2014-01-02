@@ -1,6 +1,6 @@
 # -*- Makefile -*-
-CLANG_EXIST   =  $(shell which clang++)
-GCC_EXIST     =  $(shell which g++)
+CLANG_EXIST   =  $(shell which clang++ 2>/dev/null)
+GCC_EXIST     =  $(shell which g++ 2>/dev/null)
 PLATFORM      =  $(shell uname)
 clang =
 CMPFLAG_ = $(CMPFLAG)

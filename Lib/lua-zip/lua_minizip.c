@@ -382,6 +382,8 @@ static struct zip_source* S_create_source_string(lua_State* L, struct zip* ar) {
 
     lua_pushstring(L, zip_strerror(ar));
     lua_error(L);
+    //will not get here!
+    return NULL ; 
 }
 
 static struct zip_source* S_create_source_file(lua_State* L, struct zip* ar) {
@@ -394,6 +396,8 @@ static struct zip_source* S_create_source_file(lua_State* L, struct zip* ar) {
 
     lua_pushstring(L, zip_strerror(ar));
     lua_error(L);
+    //will not get here!
+    return NULL ; 
 }
 
 static struct zip_source* S_create_source_zip(lua_State* L, struct zip* ar) {
@@ -404,7 +408,7 @@ static struct zip_source* S_create_source_zip(lua_State* L, struct zip* ar) {
     int                len      = lua_gettop(L) < 8 ? -1 : luaL_checkint(L, 8);
     struct zip_source* src      = NULL;
 
-    if ( ! *other_ar ) return;
+    if ( ! *other_ar ) return NULL;
 
     lua_getfenv(L, 1);
     lua_pushvalue(L, 4);
@@ -412,6 +416,7 @@ static struct zip_source* S_create_source_zip(lua_State* L, struct zip* ar) {
     if ( ! lua_isnil(L, -1) ) {
         lua_pushliteral(L, "Circular reference of zip sources is not allowed");
         lua_error(L);
+        return NULL;
     }
     lua_pop(L, 1);
 
@@ -428,6 +433,8 @@ static struct zip_source* S_create_source_zip(lua_State* L, struct zip* ar) {
 
     lua_pushstring(L, zip_strerror(ar));
     lua_error(L);
+    //will not get here!
+    return NULL ; 
 }
 
 typedef struct zip_source* (S_src_t)(lua_State*, struct zip*);

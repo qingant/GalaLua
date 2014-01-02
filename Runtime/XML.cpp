@@ -382,11 +382,16 @@ namespace Galaxy
     
     long CXMLString::Seek(long offset, int fromwhere)
     {
+        //XXX:get rid of warning
+        offset=offset,fromwhere=fromwhere;
+        return -1;
     }
 
     int CXMLString::Read(void *buf ,size_t count)
     {
-
+        //XXX:get rid of warning
+        buf=buf,count=count;
+        return -1;
     }
     int CXMLString::Write(const void *buf ,size_t count)
     {

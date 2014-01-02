@@ -2117,12 +2117,6 @@ mdb_reader_pid(MDB_env *env, enum Pidlock_op op, pid_t pid)
 #endif
 }
 
-static int
-mdb_writer_pid(MDB_env *env, enum Pidlock_op op, pid_t pid)
-{
-    return mdb_writer_pid(env,op,pid);
-}
-
 /** Common code for #mdb_txn_begin() and #mdb_txn_renew().
  * @param[in] txn the transaction handle to initialize
  * @return 0 on success, non-zero on failure.
@@ -3281,6 +3275,8 @@ mdb_env_map(MDB_env *env, void *addr, int newsize)
 	if (rc)
 		return rc;
 #else
+    //XXX:suppress warning
+    (void)newsize;
 	int prot = PROT_READ;
 	if (flags & MDB_WRITEMAP) {
 		prot |= PROT_WRITE;
@@ -8225,6 +8221,8 @@ int mdb_set_relctx(MDB_txn *txn, MDB_dbi dbi, void *ctx)
 
 int mdb_env_get_maxkeysize(MDB_env *env)
 {
+    //XXX:suppress warning
+    (void)env;
 	return MDB_MAXKEYSIZE;
 }
 

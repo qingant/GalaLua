@@ -65,7 +65,7 @@ int Codec4Lua::Encode(lua_State *l)
     // unicode:4
     size_t u_len=len/4;
     //正常utf8应该4字节就够了
-    int out_len=u_len*4;
+    unsigned int out_len=u_len*4;
     if (out_len>SIZE) {
         Buffer buffer(out_len);
         int real_len=codec->encode((unicode_str)str,u_len,buffer.get(),out_len);

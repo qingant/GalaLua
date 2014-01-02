@@ -429,6 +429,7 @@ public:
     // XXX:CXMLWriter is only a function now
     static void CXMLWriter_register(lua_State *L)
     {
+        (void)L;
 //        int ret=0;
 //        struct luaL_Reg f[]={
 //            {"cxml_writer",CXMLWriter4Lua::init},

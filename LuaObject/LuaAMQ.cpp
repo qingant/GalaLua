@@ -150,9 +150,8 @@ public:
 
         BlockBuffer block;
         UINT len;
-        UINT id;
 
-        CALL_CPP_FUNCTION(L,id=pMQ->Get(IMQueue::MQC_BAT,block,len));
+        CALL_CPP_FUNCTION(L,pMQ->Get(IMQueue::MQC_BAT,block,len));
 
         lua_pushlstring(L,(const char *)block.RAWEntry(),len);    //it's not the zero-terminated string
         return 1;
@@ -165,9 +164,8 @@ public:
 
         BlockBuffer block;
         UINT len;
-        UINT id;
 
-        CALL_CPP_FUNCTION(L,id=pMQ->TimedGet(IMQueue::MQC_BAT,block,len,timeout));
+        CALL_CPP_FUNCTION(L,pMQ->TimedGet(IMQueue::MQC_BAT,block,len,timeout));
 
         lua_pushlstring(L,(const char *)block.RAWEntry(),len);    //it's not the zero-terminated string
 
@@ -188,9 +186,8 @@ public:
 
         BlockBuffer block(buf,strlen(buf)+1);
         UINT len;
-        UINT id;
 
-        id=pMQ->PutEx(IMQueue::MQC_RTL,block,len,_ExPosHead);
+        pMQ->PutEx(IMQueue::MQC_RTL,block,len,_ExPosHead);
 
         return 0;
     }
@@ -201,9 +198,8 @@ public:
         const char *buf=luaL_checklstring(L,2, &len);
 
         BlockBuffer block(buf,len);
-        UINT id;
 
-        CALL_CPP_FUNCTION(L,id=pMQ->Put(IMQueue::MQC_RTL,block,(UINT&)len));
+        CALL_CPP_FUNCTION(L,pMQ->Put(IMQueue::MQC_RTL,block,(UINT&)len));
 
         return 0;
     }
@@ -222,9 +218,8 @@ public:
 
         BlockBuffer block(buf,strlen(buf)+1);
         UINT len;
-        UINT id;
 
-        CALL_CPP_FUNCTION(L,id=pMQ->TimedPut(IMQueue::MQC_RTL,block,len,timeout));
+        CALL_CPP_FUNCTION(L,pMQ->TimedPut(IMQueue::MQC_RTL,block,len,timeout));
 
         return 0;
     }
@@ -247,9 +242,8 @@ public:
 
         BlockBuffer block(buf,strlen(buf)+1);
         UINT len;
-        UINT id;
 
-        CALL_CPP_FUNCTION(L,id=pMQ->TimedPutEx(IMQueue::MQC_RTL,block,len,_ExPosHead,timeout));
+        CALL_CPP_FUNCTION(L,pMQ->TimedPutEx(IMQueue::MQC_RTL,block,len,_ExPosHead,timeout));
 
         return 0;
     }

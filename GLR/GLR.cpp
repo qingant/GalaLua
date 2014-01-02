@@ -113,4 +113,5 @@ void* GLR::Exiter::Run( const Galaxy::GalaxyRT::CThread & )
 {
     GLR::Runtime::GetInstance()._ElegantExit();
     kill(getpid(), SIGINT);
+    return NULL;
 }
