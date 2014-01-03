@@ -121,6 +121,51 @@ function httpClient:_getResponse(timeout)
 
 end
 
+function httpClient:get2(req)
+    self._socket = socket.socket:new()
+    local ok,errmsg=self._socket:connect(req._host, req._port)
+    if not ok then
+        return false,errmsg
+    end
+    local ok,errmsg=self._socket:send(req:toString())
+    if not ok then
+        return false,errmsg
+    end
+    local ok,msg = self:_getResponse2(30)
+    self._socket:close()
+    return ok,msg
+end
+
+
+function getStatusCode(line)
+    return tonumber(string.match(line," (%d%d%d) "))
+end
+
+function httpClient:_getResponse2(timeout)
+    local timeout = timeout or 30
+    local response = {}
+    local initLine,errmsg = self._socket:recvLine(timeout)
+
+    if not initLine then
+        return false,errmsg or "timeout"
+    end
+
+    initLine=initLine:trim()
+    
+    local header = {}
+    while true do
+        local line,errmsg = self._socket:recvLine(timeout)
+        if not line then
+            return false,errmsg or "timeout"
+        end
+        line=line:trim()
+        if line == "" then
+            break
+        end
+    end
+
+    return pcall(getStatusCode,initLine)
+end
 
 function httpClient:get2(req,timeout)
     self._socket = socket.socket:new()
@@ -198,5 +243,3 @@ if ... == "__main__" then
     --end
     
 end
-
-
