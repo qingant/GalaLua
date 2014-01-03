@@ -473,7 +473,7 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
         } 
         else if (t.Type == RECV_LINE)
         {
-            size_t lineCursor = _Cache.GetLine();
+            ssize_t lineCursor = _Cache.GetLine();
             GALA_DEBUG("LineCusor: %ld Str: %s", lineCursor, _Cache.Get());
             if (lineCursor != -1)
             {
@@ -581,7 +581,7 @@ bool GLR::StreamLinkStack::FastRecvReturn(int pid, TaskType taskType, size_t len
 
     }else if (taskType == LinkStack::RECV_LINE)
     {
-        size_t lineCursor = _Cache.GetLine();
+        ssize_t lineCursor = _Cache.GetLine();
         if (lineCursor != -1)
         {
             Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TSTRING, _Cache.Get(), lineCursor);
