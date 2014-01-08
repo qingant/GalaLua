@@ -8,6 +8,7 @@ PLAT= none
 
 CC= gcc
 CFLAGS= -O2 -Wall -DLUA_COMPAT_ALL $(SYSCFLAGS) $(MYCFLAGS)
+
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 
@@ -24,11 +25,25 @@ MYLDFLAGS=
 MYLIBS=
 MYOBJS=
 
+_PLATFORM =  $(shell uname)
+ifeq ($(_PLATFORM),AIX)
+AR= ar -X64 rcs
+MYLDFLAGS = -q64 -qmkshrobj -q64 -brtl -brtllib -berok -lm
+PLAT=aix
+else
+PLAT=linux
+AR= ar rcs
+MYLDFLAGS = -shared 
+MYCFLAGS+= -fPIC
+endif
+
 # == END OF USER SETTINGS -- NO NEED TO CHANGE ANYTHING BELOW THIS LINE =======
 
 PLATS= aix ansi bsd freebsd generic linux macosx mingw posix solaris
 
-LUA_A=	liblua.a
+LUA_A=	libluajit.a
+LUA_SO = libluajit.so
+
 CORE_O=	lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o \
 	lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o \
 	ltm.o lundump.o lvm.o lzio.o
@@ -43,7 +58,7 @@ LUAC_T=	luac
 LUAC_O=	luac.o
 
 ALL_O= $(BASE_O) $(LUA_O) $(LUAC_O)
-ALL_T= $(LUA_A) $(LUA_T) $(LUAC_T)
+ALL_T= $(LUA_A) $(LUA_SO) $(LUA_T) $(LUAC_T)
 ALL_A= $(LUA_A)
 
 # Targets start here.
@@ -58,6 +73,10 @@ a:	$(ALL_A)
 $(LUA_A): $(BASE_O)
 	$(AR) $@ $(BASE_O)
 	$(RANLIB) $@
+
+$(LUA_SO):$(CORE_O) $(LIB_O)
+	$(CC) $(LDFLAGS) -o $@ $?
+	mv $@ $(HOME)/lib
 
 $(LUA_T): $(LUA_O) $(LUA_A)
 	$(CC) -o $@ $(LDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
