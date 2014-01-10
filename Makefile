@@ -1,14 +1,15 @@
-DES = pre stub rt amq cfg lua lobj lib glr mod db conf tool #pyo #app sup
-all:$(DES)
-.PHONY:$(DES) static clean
-PLATFORM      =  $(shell uname)
+WHICH_LUA=lua
+PLATFORM = $(shell uname)
 ifeq ($(PLATFORM), Linux)
-lua:luajit
-MAKE = make
+	MAKE = make
+	WHICH_LUA=luajit
 else
-lua:lua51
-MAKE = gmake
+	MAKE = gmake
 endif
+
+DES = pre $(WHICH_LUA) stub rt amq cfg lobj lib glr mod db conf tool 
+
+all:$(DES)
 
 pre:
 	mkdir -p $(HOME)/bin
@@ -16,20 +17,18 @@ pre:
 	mkdir -p $(HOME)/share/static/lua
 stub:
 	$(MAKE) -C Stub all
-rt:
+rt:stub
 	$(MAKE) -C Runtime
 amq:
 	$(MAKE) -C AMQ
-lua51:
-	$(MAKE) -C lua-5.1.5 && $(MAKE) -C lua-5.1.5 install
+lua:
+	$(MAKE) -C lua-5.2.3 && $(MAKE) -C lua-5.2.3 install
 luajit:
 	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 install
-glr:lua lib
+glr:$(WHICH_LUA) rt mod
 	$(MAKE) -C GLR
 lobj:
 	$(MAKE) -C LuaObject
-# pyo:
-# 	$(MAKE) -C PyObject
 lib:
 	$(MAKE) -C Lib all
 mod:
@@ -44,7 +43,7 @@ static: pre
 ifeq ($(PLATFORM), Linux)
 	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 static
 else
-	$(MAKE) -C lua-5.1.5 && $(MAKE) -C lua-5.1.5 install
+	$(MAKE) -C lua-5.2.3 && $(MAKE) -C lua-5.2.3 install
 endif
 	$(MAKE) -C Stub static
 	$(MAKE) -C Runtime static
@@ -56,12 +55,11 @@ clean:
 	$(MAKE) -C Stub clean
 	$(MAKE) -C Runtime clean
 	$(MAKE) -C AMQ clean
-ifeq ($(PLATFORM), Linux)
 	$(MAKE) -C LuaJIT-2.0.0 clean
-else
-	$(MAKE) -C lua-5.1.5 clean
-endif
+	$(MAKE) -C lua-5.2.3 clean
 	$(MAKE) -C GLR clean
 	$(MAKE) -C LuaObject clean
 	$(MAKE) -C Lib clean
 	$(MAKE) -C GalaDB clean
+
+.PHONY:$(DES) static clean

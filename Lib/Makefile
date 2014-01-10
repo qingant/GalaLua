@@ -3,13 +3,6 @@ MakeMe:all
 
 include ../mk.rules
 
-OS=$(shell uname)
-ifeq ($(OS),AIX)
-	MAKE = gmake
-else
-	MAKE = make
-endif
-
 SQLITE_HOME = $(HOME)/
 DES = json struct libzip lfs linenoise md5 sigar time snappy codec #dba luaxml cp sqlite
 all:$(DES)
@@ -74,5 +67,7 @@ clean:
 	$(MAKE) -C lua-struct clean
 	$(MAKE) -C lua-zip clean
 	$(MAKE) -C luafilesystem clean
-	$(MAKE) -C lua-xml clean
+#	$(MAKE) -C lua-xml clean
 	$(MAKE) -C lua-codec clean
+	$(MAKE) -C lua-linenoise clean
+	$(MAKE) -C lua-encryption clean

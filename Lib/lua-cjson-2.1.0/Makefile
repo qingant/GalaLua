@@ -9,30 +9,11 @@
 ## IEEE_BIG_ENDIAN:         Required on big endian architectures.
 ## MULTIPLE_THREADS:        Must be set when Lua CJSON may be used in a
 ##                          multi-threaded application. Requries _pthreads_.
-
+include  ../../mk.rules
 ##### Build defaults #####
-PLATFORM      =  $(shell uname)
-ifeq ($(PLATFORM),AIX)
-	CC  = xlc_r
-	CFLAGS =            -q64 -DNDEBUG
-	CJSON_LDFLAGS =     -qmkshrobj -q64 -bM:SRE -bnoentry -L$(HOME)/lib -brtl -brtllib -berok -lm
-	AR          = ar
-	ARFLAGS     = -X64 -rc
-	RANLIB      = ranlib
-	RANLIBFLAGS = -X64
-else
-	CC          = gcc
-	CFLAGS      = -std=gnu99 -O3 -Wall -pedantic -DNDEBUG
-	CJSON_LDFLAGS = -shared -L$(HOME)/lib
-	AR          = ar
-	ARFLAGS     = -rcu
-	RANLIB      = ranlib
-	RANLIBFLAGS =
-endif
-
-LUA_VERSION =       5.1
+LUA_VERSION=$(LUA_VERSION)
 TARGET =            cjson.so
-PREFIX =            ../../lua-5.1.5
+PREFIX =            ../../lua-5.2.3
 #CFLAGS =            -g -Wall -pedantic -fno-inline
 CJSON_CFLAGS =      -fPIC
 PLATFORM      =  $(shell uname)
@@ -104,7 +85,7 @@ OBJS =              lua_cjson.o strbuf.o $(FPCONV_OBJS)
 .SUFFIXES: .html .txt
 
 .c.o:
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(BUILD_CFLAGS) -o $@ $<
+	$(CC) -c $(CFLAGS)  $(BUILD_CFLAGS) -o $@ $<
 
 .txt.html:
 	$(ASCIIDOC) -n -a toc $<

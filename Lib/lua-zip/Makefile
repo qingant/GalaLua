@@ -11,7 +11,7 @@ CFLAGS  =
 ifeq (${PLATFORM},Linux)
 	MAKE        = make
 	LDFLG       = -shared
-	COMMINC     =  -I. -I./libzip -I./zlib -I../../LuaJIT-2.0.0/src/
+	COMMINC     =  -I. -I./libzip -I./zlib -I$(HOME)/include
 	CFLAGS      = -ansi -std=gnu99 -Wall -O2 -fPIC $(COMMINC)
 	PLIBDIR     = -L$(HOME)/lib/
 	CC          = gcc
@@ -23,7 +23,7 @@ ifeq (${PLATFORM},Linux)
 endif
 ifeq (${PLATFORM},AIX)
 	LDFLG = -qmkshrobj -q64 -bM:SRE -bnoentry -brtl -brtllib -berok
-	COMMINC     =  -I. -I./libzip -I./zlib -I../../lua-5.1.5/src/
+	COMMINC     =  -I. -I./libzip -I./zlib -I$(HOME)/include
 	CFLAGS =  -q64 -O2 -lm $(COMMINC)
 	PLIBDIR     = -L$(HOME)/lib/
 	CC=xlc_r

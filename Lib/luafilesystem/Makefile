@@ -4,7 +4,7 @@ T= lfs
 
 #CONFIG= ./config
 
-include ../mk.rules
+include ../../mk.rules
 
 SRCS= src/$T.c
 OBJS= src/$T.o

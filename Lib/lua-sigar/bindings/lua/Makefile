@@ -1,6 +1,8 @@
-include ./mk.rules
+include ../../../../mk.rules
 all:sigar.so
 .PHONY:all static clean
+
+COMMINC += -I../../include/
 
 OBJ = sigar.o sigar-cpu.o sigar-disk.o sigar-fs.o sigar-mem.o sigar-netif.o \
       sigar-proc.o sigar-swap.o sigar-sysinfo.o sigar-who.o sigar-version.o

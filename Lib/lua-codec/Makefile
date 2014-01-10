@@ -1,5 +1,5 @@
 all: libcodec.so codec.so
-include ../mk.rules
+include ../../mk.rules
 OBJS=codec_cn.o codec_utf8.o
 libcodec.so:$(OBJS)
 	@echo $(PLATFORM)
