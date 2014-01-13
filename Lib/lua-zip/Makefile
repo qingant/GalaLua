@@ -1,38 +1,16 @@
 OBJ=lua_minizip.o
 
+
 all:zip minizip
 
-AR          = ar
-ARFLAGS     = -rcu $(ARFLAG)
-RANLIB      = ranlib
-PLATFORM=$(shell uname)
-LDFLG   =
-CFLAGS  =
-ifeq (${PLATFORM},Linux)
-	MAKE        = make
-	LDFLG       = -shared
-	COMMINC     =  -I. -I./libzip -I./zlib -I$(HOME)/include
-	CFLAGS      = -ansi -std=gnu99 -Wall -O2 -fPIC $(COMMINC)
-	PLIBDIR     = -L$(HOME)/lib/
-	CC          = gcc
-	AR          = ar
-	ARFLAGS     = -rcu
-	RANLIB      = ranlib
-	RANLIBFLAGS =
-	LIBZIP_ZLIB =
-endif
-ifeq (${PLATFORM},AIX)
-	LDFLG = -qmkshrobj -q64 -bM:SRE -bnoentry -brtl -brtllib -berok
-	COMMINC     =  -I. -I./libzip -I./zlib -I$(HOME)/include
-	CFLAGS =  -q64 -O2 -lm $(COMMINC)
-	PLIBDIR     = -L$(HOME)/lib/
-	CC=xlc_r
-	AR          = ar
-	ARFLAGS     = -X64 -rcu
-	RANLIB      = ranlib
-	RANLIBFLAGS = -X64
-	MAKE        = gmake
-	LIBZIP_ZLIB =
+include ../../mk.rules
+
+LDFLG   = $(LNKFLAG)
+COMMINC += -I./libzip -I./zlib 
+LIBZIP_ZLIB =
+
+ifeq ($(PLATFORM),Linux)
+	CFLAGS     += -ansi -std=gnu99  $(COMMINC)
 endif
 
 zip:
@@ -40,13 +18,9 @@ zip:
 	$(MAKE) -Clibzip all
 
 
-minizip:
-	$(CC) $(LDFLG) $(CFLAGS) lua_minizip.c  -o minizip.so -lzip $(PLIBDIR)
+minizip:lua_minizip.o
+	$(CC) $(LDFLG) $<  -o minizip.so -lzip $(PLIBDIR)
 	cp -rf minizip.so $(HOME)/lib/lua
-
-
-%.o: %.c
-	$(CC) $(CFLAGS) -c $<
 
 static: libzip.a minizip.a
 

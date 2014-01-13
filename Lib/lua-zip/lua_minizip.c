@@ -1,6 +1,7 @@
 #include <lauxlib.h>
 #include <lua.h>
 #include <zip.h>
+#include "lua_compat.h"
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
