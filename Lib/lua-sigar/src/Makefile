@@ -1,5 +1,5 @@
-include ./mk.rules
 all:libsigar.so
+include ./mk.rules
 .PHONY:all static clean
 OBJTAG =
 OBJ = sigar.o sigar_cache.o sigar_fileinfo.o sigar_format.o  sigar_ptql.o \
@@ -29,5 +29,6 @@ libsigar.a:$(OBJTAG)
 	$(AR) $(ARFLAGS) $@ $(OBJTAG)
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static
+
 clean:
 	rm -rf *.o *.a *.so

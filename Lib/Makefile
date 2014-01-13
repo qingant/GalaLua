@@ -71,3 +71,5 @@ clean:
 	$(MAKE) -C lua-codec clean
 	$(MAKE) -C lua-linenoise clean
 	$(MAKE) -C lua-encryption clean
+	$(MAKE) -C lua-snappy clean
+	$(MAKE) -C lua-sigar clean

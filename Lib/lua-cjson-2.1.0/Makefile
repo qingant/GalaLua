@@ -84,9 +84,6 @@ OBJS =              lua_cjson.o strbuf.o $(FPCONV_OBJS)
 
 .SUFFIXES: .html .txt
 
-.c.o:
-	$(CC) -c $(CFLAGS)  $(BUILD_CFLAGS) -o $@ $<
-
 .txt.html:
 	$(ASCIIDOC) -n -a toc $<
 

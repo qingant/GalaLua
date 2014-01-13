@@ -1,6 +1,6 @@
-include ../../mk.rules
 
 all: liblmdb.so  
+include ../../mk.rules
 
 clean:
 	rm -rf *so

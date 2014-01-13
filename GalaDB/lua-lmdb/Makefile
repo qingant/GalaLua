@@ -3,6 +3,7 @@
 
 # change these to reflect your Lua installation
 
+all:lightningmdb.so
 include ../../mk.rules
 
 PLATFORM=$(shell uname)
@@ -10,7 +11,6 @@ ifeq ($(PLATFORM),Darwin)
   LDFLAGS += -undefined dynamic_lookup
 endif
 COMMINC+=-I../lmdb
-all:lightningmdb.so
 
 lightningmdb.so:lightningmdb.o ../lmdb/mdb.o ../lmdb/midl.o
 	$(GCC) $(LNKFLAG) -L$(HOME)/lib -lm -o $@ $?

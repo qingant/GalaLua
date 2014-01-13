@@ -1,5 +1,5 @@
-include ../../../../mk.rules
 all:sigar.so
+include ../../../../mk.rules
 .PHONY:all static clean
 
 COMMINC += -I../../include/
