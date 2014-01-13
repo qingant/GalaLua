@@ -7,7 +7,7 @@ clang =
 CMPFLAG_ = $(CMPFLAG)
 CFLAGS_  = $(CFLAGS)
 
-COMMINC= -I. -I$(HOME)/include -I$(HOME)/include/Stub -I../Runtime #-I../lua-5.2.3/src -I../LuaJIT-2.0.0/src 
+COMMINC= -I. -I$(HOME)/include -I$(HOME)/include/Stub -I../Runtime -I../include -I../../include
 
 LUA_VERSION     = 5.1
 LUA_CMODULE_DIR = $(HOME)/lib/lua/

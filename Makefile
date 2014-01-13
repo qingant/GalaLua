@@ -7,7 +7,7 @@ else
 	MAKE = gmake
 endif
 
-DES = pre $(WHICH_LUA) stub rt amq cfg lobj lib glr mod db conf tool 
+DES = pre header $(WHICH_LUA) stub rt amq cfg lobj lib glr mod db conf tool 
 
 all:$(DES)
 
@@ -15,6 +15,9 @@ pre:
 	mkdir -p $(HOME)/bin
 	mkdir -p $(HOME)/lib/lua
 	mkdir -p $(HOME)/share/static/lua
+	mkdir -p $(HOME)/include
+header:
+	cp -rf include/* $(HOME)/include
 stub:
 	$(MAKE) -C Stub all
 rt:stub
