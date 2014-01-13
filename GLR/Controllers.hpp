@@ -24,7 +24,7 @@ namespace GLR
         Clock(void);
 
         ~Clock();
-
+        using IController::Request;
         virtual void Request( lua_State* , int);
         virtual int  Version()const {return 2;}
 

@@ -210,6 +210,8 @@ void GLR::MessageLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/
             _RecvTask.Len = ntohl(_RecvTask.Len);
             if(_RecvTask.Len > 1024*1024*500)
             {
+                const char *rejectMessage = "GLR: you are invalid visitor, rejected!\n";
+                _Sock->Send(rejectMessage, strlen(rejectMessage));
                 THROW_EXCEPTION_EX("Recv Data Too Long");
             }
             _RecvTask.Buffer.resize(_RecvTask.Len + 4, 0);
