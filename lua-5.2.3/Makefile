@@ -4,7 +4,13 @@
 # == CHANGE THE SETTINGS BELOW TO SUIT YOUR ENVIRONMENT =======================
 
 # Your platform. See PLATS for possible values.
-PLAT= linux
+_PLAT=$(shell uname)
+ifeq ($(_PLAT),Linux)
+	PLAT= linux
+endif
+ifeq ($(_PLAT),AIX)
+	PLAT=aix
+endif
 
 # Where to install. The installation starts in the src and doc directories,
 # so take care if INSTALL_TOP is not an absolute path. See the local target.
@@ -56,7 +62,6 @@ $(PLATS) clean:
 
 test:	dummy
 	src/lua -v
-
 install: dummy
 	cd src && $(MKDIR) $(INSTALL_BIN) $(INSTALL_INC) $(INSTALL_LIB) $(INSTALL_MAN) $(INSTALL_LMOD) $(INSTALL_CMOD)
 	cd src && $(INSTALL_EXEC) $(TO_BIN) $(INSTALL_BIN)

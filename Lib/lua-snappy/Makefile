@@ -14,4 +14,4 @@ snappy.a:$(OBJTAG)
 	mv $@ $(HOME)/share/static
 clean:
 	rm -rf *.o *.a *.so
-	make -C snappy/ clean
+	$(MAKE) -C snappy/ clean

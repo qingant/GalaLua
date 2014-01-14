@@ -58,7 +58,9 @@ clean:
 	$(MAKE) -C Stub clean
 	$(MAKE) -C Runtime clean
 	$(MAKE) -C AMQ clean
+ifeq ($(PLATFORM),Linux)
 	$(MAKE) -C LuaJIT-2.0.0 clean
+endif
 	$(MAKE) -C lua-5.2.3 clean
 	$(MAKE) -C GLR clean
 	$(MAKE) -C LuaObject clean

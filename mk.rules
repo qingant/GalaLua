@@ -9,25 +9,20 @@ CFLAGS_  = $(CFLAGS)
 
 COMMINC= -I. -I$(HOME)/include -I$(HOME)/include/Stub -I../Runtime -I../include -I../../include
 
-LUA_VERSION     = 5.1
-LUA_CMODULE_DIR = $(HOME)/lib/lua/
-LUA_MODULE_DIR  = $(HOME)/lib/lua/
-
-
 ifeq ($(PLATFORM),Linux)
 
     MAKE        = make 
-    G++		    = g++
-    GCC		    = gcc
+    G++         = g++
+    GCC         = gcc
     LNKFLAG     = -shared 
     COMPWARN    = -Wall -Wextra -Woverloaded-virtual
     CMPFLAG     = -c -g  -fPIC -pthread $(COMPWARN) $(COMMINC) -DLUA_COMPAT_ALL -D_UNIX95_ \
                   -Wno-write-strings  -fno-strict-aliasing  -Wno-missing-field-initializers #-D_DEBUG_
 
-    PLIBDIR		= -lGalaxyStub  -L$(HOME)/lib
-    LIBDIR		= -L$(HOME)/lib
-    STUBLIB		= -lGalaxyStub
-    SYTMLIB 	= -lc -lm -ldl -lpthread  -L$(HOME)/lib -Wl,-rpath $(HOME)/lib  -lrt #-ltcmalloc_minimal
+    PLIBDIR     = -lGalaxyStub  -L$(HOME)/lib
+    LIBDIR      = -L$(HOME)/lib
+    STUBLIB     = -lGalaxyStub
+    SYTMLIB     = -lc -lm -ldl -lpthread  -L$(HOME)/lib -Wl,-rpath $(HOME)/lib  -lrt #-ltcmalloc_minimal
 
     AR          = ar
     ARFLAGS     = -rcu
@@ -50,19 +45,17 @@ ifeq ($(PLATFORM),AIX)
     MAKE        = gmake
     G++         = xlc++_r
     GCC         = xlc_r
-    COMMINC     = -I. -I../lua-5.2.3/src/ -I../Stub -I/usr/local/include/libxml2/ \
-                  -I.. -I../Runtime
     LNKFLAG     = -qmkshrobj -q64 -bM:SRE -bnoentry -brtl -brtllib -berok
     COMPWARN    = # -qhalt=i -qwarn64 -qinfo=all
-    CMPFLAG     = -c -g -q64 -qcpluscmt -D_UNIX95_ -D_THREAD_SAFE \
+    CMPFLAG     = -c -g -q64 -qcpluscmt -D_UNIX95_ -D_THREAD_SAFE  -DLUA_COMPAT_ALL \
                   -D__IBMCPP_TR1__ $(COMPWARN) $(COMMINC) -D_ALL_SOURCE \
                   -D__NOLOCK_ON_INPUT -D__NOLOCK_ON_OUTPUT \
                   -qrtti=type\
                   # -D_DEBUG_ -qinclude=config.h -D_BSD=44
-    PLIBDIR     = -lGalaxyStub -L$(HOME)/lib/ -L$(HOME)/lua5.1.5/lib \
+    PLIBDIR     = -lGalaxyStub -L$(HOME)/lib/\
                   -L$(HOME)/share/static
     STUBLIB     = -lGalaxyStub
-    SYTMLIB     = -q64 -brtl -brtllib -berok -lz -lc -lm -ldl -lpthread -liconv \
+    SYTMLIB     = -q64 -brtl -brtllib -berok -lc -lm -ldl -lpthread -liconv \
                   -lrt $(PLIBDIR) -L/usr/local/lib/ -lbsd -lC_r -ls
 
     AR          = ar
@@ -71,7 +64,7 @@ ifeq ($(PLATFORM),AIX)
     RANLIBFLAGS = -X64
 
     LDFLAGS     = $(LNKFLAG)
-    CFLAGS      = $(COMPFLAG)
+    CFLAGS      = $(CMPFLAG)
     CC          = $(GCC)
 endif
 
@@ -89,6 +82,9 @@ endif
 
 .cpp.o:
 	$(G++) $(CMPFLAG_) -o $@ $<
+
+.cc.o:
+	$(GCC) $(CMPFLAG_) -o $@ $<
 
 .c.o:
 	$(GCC) $(CFLAGS_) -o $@ $<

@@ -6,36 +6,24 @@
 # Your platform. See PLATS for possible values.
 PLAT= none
 
-CC= gcc
-CFLAGS= -O2 -Wall -DLUA_COMPAT_ALL $(SYSCFLAGS) $(MYCFLAGS)
-
-LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
-LIBS= -lm $(SYSLIBS) $(MYLIBS)
-
-AR= ar rcu
+CFLAGS= -O2 -Wall -DLUA_COMPAT_ALL $(MYCFLAGS)
+PLATFORM      =  $(shell uname)
+ifeq ($(PLATFORM),AIX)
+	AR= ar -X64 rcs
+	CC= xlc_r
+	LDFLAGS += -q64 -qmkshrobj -q64 -brtl -brtllib -berok -lm
+else
+	AR= ar rcs
+	CC= gcc
+	LDFLAGS += -shared
+endif
 RANLIB= ranlib
 RM= rm -f
-
-SYSCFLAGS=
-SYSLDFLAGS=
-SYSLIBS=
-
+LIBS= -lm $(MYLIBS)
 MYCFLAGS=
 MYLDFLAGS=
 MYLIBS=
-MYOBJS=
 
-_PLATFORM =  $(shell uname)
-ifeq ($(_PLATFORM),AIX)
-AR= ar -X64 rcs
-MYLDFLAGS = -q64 -qmkshrobj -q64 -brtl -brtllib -berok -lm
-PLAT=aix
-else
-PLAT=linux
-AR= ar rcs
-MYLDFLAGS = -shared 
-MYCFLAGS+= -fPIC
-endif
 
 # == END OF USER SETTINGS -- NO NEED TO CHANGE ANYTHING BELOW THIS LINE =======
 
@@ -79,10 +67,10 @@ $(LUA_SO):$(CORE_O) $(LIB_O)
 	mv $@ $(HOME)/lib
 
 $(LUA_T): $(LUA_O) $(LUA_A)
-	$(CC) -o $@ $(LDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
+	$(CC) -o $@ $(MYLDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
 
 $(LUAC_T): $(LUAC_O) $(LUA_A)
-	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
+	$(CC) -o $@ $(MYLDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
 
 clean:
 	$(RM) $(ALL_T) $(ALL_O)
@@ -108,8 +96,7 @@ none:
 	@echo "   $(PLATS)"
 
 aix:
-	$(MAKE) $(ALL) CC="xlc" CFLAGS="-O2 -DLUA_USE_POSIX -DLUA_USE_DLOPEN" SYSLIBS="-ldl" SYSLDFLAGS="-brtl -bexpall"
-
+	$(MAKE) $(ALL) CC="xlc_r" CFLAGS="-q64 -O2 -DLUA_COMPAT_ALL -DLUA_USE_POSIX -DLUA_USE_DLOPEN" MYLIBS="-ldl" MYLDFLAGS="-q64 -brtl -bexpall"
 ansi:
 	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_ANSI"
 

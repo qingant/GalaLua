@@ -72,4 +72,5 @@ clean:
 	$(MAKE) -C lua-linenoise clean
 	$(MAKE) -C lua-encryption clean
 	$(MAKE) -C lua-snappy clean
-	$(MAKE) -C lua-sigar clean
+	$(MAKE) -C lua-sigar/src clean
+	$(MAKE) -C lua-sigar/bindings/lua/ clean
