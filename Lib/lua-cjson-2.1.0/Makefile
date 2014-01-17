@@ -92,5 +92,3 @@ cjson.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 	$(RANLIB) $(RANLIBFLAGS) $@
 	cp $@ $(HOME)/share/static/lua
-clean:
-	-rm -f *.o *.a $(TARGET) $(OBJS)

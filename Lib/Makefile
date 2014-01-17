@@ -62,7 +62,7 @@ static:
 #	$(MAKE) -C lua-xml/lua-iconv-7 static
 #	$(MAKE) -C lua-xml static
 
-clean:
+clean::
 	$(MAKE) -C lua-cjson-2.1.0 clean
 	$(MAKE) -C lua-struct clean
 	$(MAKE) -C lua-zip clean
@@ -74,3 +74,4 @@ clean:
 	$(MAKE) -C lua-snappy clean
 	$(MAKE) -C lua-sigar/src clean
 	$(MAKE) -C lua-sigar/bindings/lua/ clean
+	$(MAKE) -C lua-time/ clean

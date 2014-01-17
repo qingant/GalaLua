@@ -1,3 +1,4 @@
+all:default
 include ../../mk.rules
 
 OBJ=osdatetime.o
@@ -13,8 +14,4 @@ osdatetime.a: $(OBJ)
 	$(AR) $(ARFLAGS) osdatetime.a $(OBJ)
 	$(RANLIB) $(RANLIBFLAGS) osdatetime.a
 	cp osdatetime.a $(HOME)/share/static/lua
-
-clean:
-	rm -f $(OBJ)
-	rm -f osdatetime.so osdatetime.a
 

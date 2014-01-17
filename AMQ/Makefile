@@ -41,7 +41,5 @@ test_block:Sample/test_block.o
 	mv $@ $(HOME)/bin/
 	rm -f $?
 
-.PHONY: clean
-
-clean:
-	-rm -f $(OBJS) libGalaxyQueue.so Sample/*.o Test* test_block
+clean::
+	-rm -f Sample/*.o Test* test_block

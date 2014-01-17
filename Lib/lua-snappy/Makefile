@@ -12,6 +12,5 @@ snappy.a:$(OBJTAG)
 	$(AR) $(ARFLAGS) $@ $(OBJTAG)
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static
-clean:
-	rm -rf *.o *.a *.so
+clean::
 	$(MAKE) -C snappy/ clean

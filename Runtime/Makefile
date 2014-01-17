@@ -25,7 +25,4 @@ libGalaxyRT.a: $(OBJS)
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static
 
-clean:
-	-rm -f $(OBJS) libGalaxyRT.so libGalaxyRT.a
-
 CMPFLAG_:=$(SUBCMPFLAG)

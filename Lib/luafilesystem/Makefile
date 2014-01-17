@@ -20,5 +20,5 @@ install:
 
 .PHONY: clean
 
-clean:
+clean::
 	-rm -f $(OBJS) src/*.so

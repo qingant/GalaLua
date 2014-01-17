@@ -10,9 +10,6 @@ codec.so:LuaCodec.o
 	$(G++) $? $(LNKFLAG) $(SYTMLIB) -lcodec -o $@
 	mv $@ $(HOME)/lib/lua/
 
-clean:
-	rm -rf *.o *.so
-
 static: codec.a
 
 codec.a: LuaCodec.o $(OBJS)

@@ -34,8 +34,7 @@ libzip.a:
 	$(MAKE) -C zlib static
 	$(MAKE) -C libzip static
 
-clean:
-	-rm -f *.o *.a *.so
+clean::
 	-rm -rf libzip-0.11.1/autom4te.cache
 	@if [ -f libzip-0.11.1/Makefile ]; then \
 		$(MAKE) -C libzip-0.11.1 clean; \

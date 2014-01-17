@@ -1,6 +1,6 @@
 all:sigar.so
 include ../../../../mk.rules
-.PHONY:all static clean
+.PHONY:all static 
 
 COMMINC += -I../../include/
 
@@ -16,5 +16,3 @@ sigar.a:$(OBJ)
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static/lua
 	cp *.lua $(HOME)/lib/lua
-clean:
-	-rm -rf *.o *.a *.so

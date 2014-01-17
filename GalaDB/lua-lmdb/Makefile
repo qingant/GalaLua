@@ -16,8 +16,4 @@ lightningmdb.so:lightningmdb.o ../lmdb/mdb.o ../lmdb/midl.o
 	$(GCC) $(LNKFLAG) -L$(HOME)/lib -lm -o $@ $?
 	mv $@  $(HOME)/lib/lua
 
-clean:
-	rm -rf *.so
-	rm -rf *.o
-
-.PHONY: all clean
+.PHONY: all 
