@@ -89,8 +89,10 @@ endif
 .c.o:
 	$(GCC) $(CFLAGS_) -o $@ $<
 
-.PHONY: clean
+
+default:all
 
 clean::
 	rm -f *.o *.so *.a
 
+.PHONY: clean default all
