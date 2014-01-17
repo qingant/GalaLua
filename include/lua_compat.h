@@ -3,13 +3,14 @@
 
 #if LUA_VERSION_NUM==502
 
-    #define lua_setfenv(L,i)   lua_setuservalue(L,i)
-    #define lua_getfenv(L,i)   lua_getuservalue(L,i)
+    #define lua_setfenv(L,i)   lua_setuservalue((L),(i))
+    #define lua_getfenv(L,i)   lua_getuservalue((L),(i))
 
 #elif LUA_VERSION_NUM==501
 
-    #define lua_getuservalue(L,i)   lua_getfenv(L,i)
-    #define lua_setuservalue(L,i)   lua_setfenv(L, i)
+    #define lua_getuservalue(L,i)   lua_getfenv((L),(i))
+    #define lua_setuservalue(L,i)   lua_setfenv((L), (i))
+    #define lua_rawlen(L,i)         lua_objlen((L),(i))
 
 static void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup) {
     luaL_checkstack(L, nup, "too many upvalues");
@@ -26,7 +27,7 @@ static void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup) {
 
 #else
 
-    #error "noly support lua 5.1 or 5.2"
+    #error "Only support lua 5.1 or 5.2"
 
 #endif
 
