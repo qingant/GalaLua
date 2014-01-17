@@ -6,7 +6,7 @@
 #
 all:libmd5.so md5.so test_md5
 
-include ../mk.rules
+include ../../mk.rules
 
 libmd5.so:md5.o
 	$(GCC) $? $(LNKFLAG) -o $@

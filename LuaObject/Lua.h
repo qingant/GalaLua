@@ -8,6 +8,7 @@ extern "C" {
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
+#include "lua_compat.h"
 
 #ifdef __cplusplus
 }
@@ -33,5 +34,6 @@ extern "C" {
         lua_setfield((L), -2, (k));         \
     } while (0)
 #endif
+
 
 #endif   //__GALA_LUA_H__

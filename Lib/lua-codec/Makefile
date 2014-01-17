@@ -1,5 +1,5 @@
 all: libcodec.so codec.so
-include ../mk.rules
+include ../../mk.rules
 OBJS=codec_cn.o codec_utf8.o
 libcodec.so:$(OBJS)
 	@echo $(PLATFORM)
@@ -9,9 +9,6 @@ libcodec.so:$(OBJS)
 codec.so:LuaCodec.o
 	$(G++) $? $(LNKFLAG) $(SYTMLIB) -lcodec -o $@
 	mv $@ $(HOME)/lib/lua/
-
-clean:
-	rm -rf *.o *.so
 
 static: codec.a
 

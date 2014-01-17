@@ -67,6 +67,6 @@ agent:
 	cp resource/Makefile.static $(HOME)/share
 	cp resource/makeagent.lua $(HOME)/bin
 
-clean:
-	-rm -f $(GLR_OBJ) glr glr_s resource.h *.o *.a resource/*.o resource/mkresx
+clean::
+	-rm -f glr glr_s resource.h *.o *.a resource/*.o resource/mkresx
 

@@ -1,6 +1,5 @@
-include ../mk.rules
-
 all: libGalaxyStub.so
+include ../mk.rules
 
 libGalaxyStub.so: cstub.c
 	$(GCC) $(CMPFLAG) -o cstub.o $<
@@ -9,7 +8,7 @@ libGalaxyStub.so: cstub.c
 	mkdir -p $(HOME)/include/Stub/
 	cp *.h $(HOME)/include/Stub/
 
-.PHONY: static clean
+.PHONY: static 
 
 static: libGalaxyStub.a
 	
@@ -18,7 +17,4 @@ libGalaxyStub.a: cstub.c
 	$(AR) $(ARFLAGS) $@ cstub.o
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv $@ $(HOME)/share/static
-
-clean:
-	-rm -f *.o libGalaxyStub.so libGalaxyStub.a
 

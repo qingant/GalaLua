@@ -107,7 +107,7 @@ void node_info(lua_State *l,const char *module,const char *method,int n)
 
 
 Process::Process(int id)
-    : _Stack(lua_open()),
+    : _Stack(luaL_newstate()),
     _Id(id == 0 ? NodeId : id)
 {
     ++NodeId;
@@ -457,7 +457,13 @@ void Process::Resume()
     //lua_pushstring(_Stack, "Resume!");
     _Status._State = ProcessStatus::RUNNING;
     _Status._Tick++;
+
+#if LUA_VERSION_NUM==501
     rt = lua_resume(_Stack, _Status._NArg);
+#elif  LUA_VERSION_NUM==502
+    rt = lua_resume(_Stack, NULL,_Status._NArg);
+#endif
+
     if (_Status._Killed)
     {
         _Status._State = Process::ProcessStatus::KILLED;
