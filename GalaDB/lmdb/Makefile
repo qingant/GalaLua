@@ -1,10 +1,6 @@
-include ../mk.rules
 
 all: liblmdb.so  
-
-clean:
-	rm -rf *so
-	rm -rf *.o
+include ../../mk.rules
 
 test1:	all test 
 	mkdir testdb

@@ -200,7 +200,6 @@ static struct luaL_Reg md5lib[] = {
 
 
 LUALIB_API int luaopen_md5_core(lua_State *L) {
-	printf("come on baby\n");
 	luaL_openlib(L, "md5", md5lib, 0);
 	set_info(L);
 	return 1;

@@ -1,4 +1,4 @@
-include ../mk.rules
+include ../../mk.rules
 AR          = ar
 ARFLAGS     = rcs
 

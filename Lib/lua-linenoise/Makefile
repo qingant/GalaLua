@@ -1,18 +1,18 @@
 
 OS=$(shell uname)
-include ../mk.rules
+include ../../mk.rules
 
 OBJECTS=linenoise.o
 BUILDOBJ = none
 ifeq ($(LIBLINENOISE),)
-  OBJECTS+=linenoiselib.o
+	OBJECTS+=linenoiselib.o
 else
-  OPT_LIB=$(LIBLINENOISE)
+	OPT_LIB=$(LIBLINENOISE)
 endif
 ifeq ($(OS),Darwin)
-BUILDOBJ = linenoise.dylib
+	BUILDOBJ = linenoise.dylib
 else
-BUILDOBJ = linenoise.so
+	BUILDOBJ = linenoise.so
 endif
 all:$(BUILDOBJ)
 ifeq ($(OS),Darwin)

@@ -167,7 +167,7 @@ static void set_info (lua_State *L) {
 }
 
 
-static const struct luaL_reg sigarlib[] = {
+static const struct luaL_Reg sigarlib[] = {
 	{"new", lua_sigar_new},
 	{NULL, NULL}
 };

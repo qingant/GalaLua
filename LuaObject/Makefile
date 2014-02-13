@@ -24,7 +24,7 @@ cp:
 hexdump.so:LuaDump.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@
-.PHONY: static clean
+.PHONY: static 
 
 
 static: _dir.a xml.a platform.a hexdump.a
@@ -51,6 +51,3 @@ hexdump.a: LuaDump.o
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv hexdump.a $(HOME)/share/static/lua
-
-clean:
-	-rm -f *.o *.a *.so

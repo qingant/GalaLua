@@ -18,7 +18,13 @@ local pcall = pcall
 local error = error
 local print = print
 local unpack = unpack
-setfenv(1, M)
+
+if _VERSION== "Lua 5.2" then
+    _ENV=M
+else
+    setfenv(1, M)
+end
+
 local self_host, self_port = _glr.node_addr()
 local SOCK_INT_NO = 0x01000000
 local CLOK_INT_NO = 0x00000000

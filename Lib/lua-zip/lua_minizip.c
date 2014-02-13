@@ -1,6 +1,7 @@
 #include <lauxlib.h>
 #include <lua.h>
 #include <zip.h>
+#include "lua_compat.h"
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
@@ -681,7 +682,7 @@ static int S_OR(lua_State* L) {
 }
 
 LUALIB_API int luaopen_minizip(lua_State* L) {
-    static luaL_reg fns[] = {
+    static luaL_Reg fns[] = {
         { "open",     S_archive_open },
         { "OR",       S_OR },
         { NULL, NULL }
