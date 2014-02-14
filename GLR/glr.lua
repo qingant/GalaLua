@@ -331,6 +331,13 @@ end
 local gar=require "gar_loader"
 run_gar=gar.run_gar
 
+function unittest(...)
+    if get_option("unittest") then
+        local unit=require "unittest"
+        return unit.unittest(...)
+    end
+end
+
 function run_spyer( ... )
     local spyerModuleName = get_option("spyer") or "spyer"
     local spyerModule = require(spyerModuleName)
