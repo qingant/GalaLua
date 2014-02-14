@@ -8,6 +8,11 @@ PLAT= none
 
 CFLAGS= -O2 -Wall -DLUA_COMPAT_ALL $(MYCFLAGS)
 PLATFORM      =  $(shell uname)
+RANLIB= ranlib
+RM= rm -f
+LIBS= -lm $(MYLIBS)
+MYLDFLAGS=
+MYLIBS=
 ifeq ($(PLATFORM),AIX)
 	AR= ar -X64 rcs
 	CC= xlc_r
@@ -16,13 +21,9 @@ else
 	AR= ar rcs
 	CC= gcc
 	LDFLAGS += -shared
+	MYCFLAGS= -fPIC
 endif
-RANLIB= ranlib
-RM= rm -f
-LIBS= -lm $(MYLIBS)
-MYCFLAGS=
-MYLDFLAGS=
-MYLIBS=
+
 
 
 # == END OF USER SETTINGS -- NO NEED TO CHANGE ANYTHING BELOW THIS LINE =======
