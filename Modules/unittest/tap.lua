@@ -1,10 +1,6 @@
 module(...,package.seeall)
-local io=require "io"
-local string=require "string"
-
-function writel(...)
-    io.write(string.format(...),"\n")
-end
+local out=require "out"
+local writel=out.writel
 
 local TAP={}
 function TAP:new(result)
@@ -15,31 +11,37 @@ function TAP:new(result)
     return o
 end
 
-function TAP:init(result)
-    self.result=result
+function TAP:init(results)
+    self.info=results.info
+    self.results=results.result
+    self.total_cases=#self.results
 end
 
 function TAP:output()
-    all=#self.result
-    writel("1..%d",all)
+    writel("1..%d",self.total_cases)
     local fail=0
     local line=""
-    local sep=" - "
-    for i,l in ipairs(self.result) do
-        local name=l[2]
+    for i,l in ipairs(self.results) do
+        local sep=" - "
+        local name=l.name or ""
         if name=="" then
             sep=""
         end
-        line=string.format("ok %d%s%s",i,sep,name)
-        if not l[1] then
+        if not l.status then
             fail=fail+1
-            line="not "..line 
+            writel("not ok %d%s%s",i,sep,name)
+            local msg=l.msg or ""
+            if msg ~="" then
+                writel("#%s", msg)
+            end
+            --writel("#test failed at line:%d",l.line)
+        else
+            writel("ok %d%s%s",i,sep,name)
         end
-        writel(line)
     end
-    if fail>0 then
-        writel("# Looks like you failed %d test of %d.",fail,all)
-    end
+    --if fail>0 then
+    --    writel("# Looks like you failed %d test of %d.",fail,all)
+    --end
 end
 
 

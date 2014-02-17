@@ -1,44 +1,87 @@
 module(...,package.seeall)
 local TAP=require "tap"
+
+local TAP=require "harness"
 local string=require "string"
 
 local Asserts={}
 
-function Asserts.ok(exp,name)
+function Asserts.ok1(exp)
     return (exp)
 end
 
-function Asserts.is3(exp,val,name)
+function Asserts.is2(exp,val)
     if exp==val then
         return true
     end
     return false
 end
 
-function Asserts.is_3(var,type_name,name)
-    if type(var)==string.lower(type_name) then
+function Asserts.fail()
+    return false
+end
+
+function Asserts.pass()
+    return true
+end
+
+function Asserts.is_2(var,type_name)
+    local var_type=type(var)
+    local expect_type=string.lower(type_name)
+    if var_type==expect_type then
         return true
     end
-    return false
+    return false,string.format('expected type is "%s", but get "%s".',expect_type,var_type)
+end
+
+function Asserts.is_deeply2(actual,expected)
+    local actual_t=type(actual)
+    local expected_t=type(expected)
+
+    if actual_t~=expected_t then
+        return false
+    end
+
+    if actual_t=="table" then
+        for k1,v1 in pairs(actual) do
+            local v=expected[k1]
+            if v==nil or not Asserts.is_deeply2(v1,v) then
+                return false
+            end
+        end
+        for k2 in pairs(expected) do
+            local v=actual[k2]
+            if v==nil then
+                return false
+            else
+                --It's compared when travelling `actual` and must be EQUAL if `v` is not nil.
+            end
+        end
+        return true
+    else
+        return Asserts.is2(actual,expected)
+    end
 end
 
 local Types={"nil","string","userdata","number","function","table","boolean","thread"}
 
 for i,n in pairs(Types) do
-    Asserts["is_"..n] = function (var,name) 
-        return Asserts.is_3(var,n,name) 
+    Asserts["is_"..n.."1"] = function (var) 
+        return Asserts.is_2(var,n)
     end
 end
 
 local function get_func_and_argc(key)
-    local argc=2
-    local f=Asserts[key]
-    if f==nil then
-        f=Asserts[key.."3"]
-        if f==nil then
-            return nil,nil
+    local argc2name={[0]="","1","2","3"}
+    local f=nil
+    local argc=1
+    for i=0,3 do
+        local suffix=argc2name[i] or ""
+        f=Asserts[key..suffix]
+        if f~=nil then
+            argc=i
+            break
         end
-        argc=3
     end
 
     return f,argc
@@ -56,12 +99,18 @@ function unittest(s)
 
         return function (...)
             local args={...}
-            local name=args[argc] or ""
+            local name=args[argc+1] or ""
             local ok=false
-            if f(...) then
+
+            local ret,msg=f(...)
+            if ret then
                 ok=true
             end
-            results[#results+1]={ok,name}
+
+            local result={status=ok,name=name}
+            result["line"]=self._test_info.currentline + debug.getinfo(2,"l").currentline
+            result.msg=msg
+            results[#results+1]=result
         end
     end
 
@@ -78,9 +127,12 @@ function unittest(s)
         end
         f()
     end
-
+    context["_test_info"]=debug.getinfo(2)
+    local info={file=context._test_info.source:sub(2)}
+    
     load_and_run(s,context)
-
-    local t=TAP.new(results)
+    
+    local t=TAP.new{info=info,result=results}
     t:output()
 end
+
