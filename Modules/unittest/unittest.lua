@@ -25,6 +25,18 @@ function Asserts.pass()
     return true
 end
 
+function Asserts.isnt2(exp,val)
+    return not Asserts.is2(exp,val)
+end
+
+function Asserts.isnt_2(var,type_name)
+    if not Asserts.is_2(var,type_name) then
+        return true
+    else
+        return false,string.format('expected type is not "%s".',type_name)
+    end
+end
+
 function Asserts.is_2(var,type_name)
     local var_type=type(var)
     local expect_type=string.lower(type_name)
@@ -68,6 +80,12 @@ local Types={"nil","string","userdata","number","function","table","boolean","th
 for i,n in pairs(Types) do
     Asserts["is_"..n.."1"] = function (var) 
         return Asserts.is_2(var,n)
+    end
+end
+
+for i,n in pairs(Types) do
+    Asserts["isnt_"..n.."1"] = function (var)
+        return Asserts.isnt_2(var,n)
     end
 end
 
