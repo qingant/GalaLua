@@ -65,15 +65,15 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
             {
                 GALA_DEBUG("Close Connection:%s", e.what());
                 MessageLinkStack *mls = ((MessageLinkStack*)ms);
-                GLR_BUS_HEAD msg;
+                GLRPROTOCOL msg;
                 memset(&msg, 0, sizeof(msg));
-                msg.Head.Type = MSG_HEAD::CLOSED;
-                msg.Head.GPid = -1;
-                msg.Head.Len = sizeof(MSG_HEAD) - 4;
+                msg._Protocol._Type = GLRPROTOCOL::CLOSED;
+                msg._Route._ToGpid = -1;
+                msg._Protocol._Length = 0;
 
-                memcpy(msg.Source.Host, mls->_Id.c_str(), mls->_Id.size());
+                memcpy(msg._Host._V2._Host, mls->_Id.c_str(), mls->_Id.size());
 
-                Runtime::GetInstance().GetBus().Send(mls->Gpid(), std::string((const char*)&msg, sizeof(msg)), MSG_HEAD::CLOSED);
+                Runtime::GetInstance().GetBus().Send(mls->Gpid(), std::string((const char*)&msg, sizeof(msg)), GLRPROTOCOL::CLOSED);
                 Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex);
                 _LinkMap[ev.first] = NULL;
                 _Router.erase(mls->_Id);
@@ -136,27 +136,22 @@ GLR::MessageStack::~MessageStack()
 
 void GLR::MessageLinkStack::OnMessage( const std::string &msg )
 {
-    GLR_BUS_HEAD *pMsg = (GLR_BUS_HEAD *)msg.c_str();
+    GLRPROTOCOL *pMsg = (GLRPROTOCOL *)msg.c_str();
     GALA_DEBUG("OnMessage");
     SHORT timeout = 30;
-    if (pMsg->Head.Type == MSG_HEAD::REGISTER)
+    if (pMsg->_Protocol._Type == GLRPROTOCOL::REGISTER)
     {
-        if (msg.size() < sizeof(GLR_BUS_HEAD))
+        if (msg.size() < sizeof(GLRPROTOCOL))
         {
             THROW_EXCEPTION_EX("Fatal Error");
         }
 
         char id[64] = {0};
-        //snprintf(id, sizeof(id), "%s::%d", pMsg->Source.Host, pMsg->Source.Port);
-        GLR_ADDR *pAddr = (GLR_ADDR*)&msg[sizeof(MSG_HEAD)];
-
-        //        printf("****************%s::%d------%d\n",pAddr->Host, ntohl(pAddr->Port),pAddr->Port);
-        snprintf(id, sizeof(id), "%s::%d", pAddr->Host, ntohl(pAddr->Port));
-        //uint32_t len = htonl(sizeof(*pMsg));
-        //_Sock->SegmentSend(-1, (const char*)&len, sizeof(len));
-        pMsg->Head.Type = MSG_HEAD::REGISTER_OK;
-        pMsg->Head.Len = htonl(sizeof(GLR_BUS_HEAD) - 4);
-        if(!_Sock->SegmentSend(timeout, msg.c_str(), sizeof(GLR_BUS_HEAD)))
+        // TODO: protocol version check
+        snprintf(id, sizeof(id), "%s::%d", pMsg->_Host._V2._Host, ntohl(pMsg->_Host._V2._Port));
+        pMsg->_Protocol._Type = GLRPROTOCOL::REGISTER_OK;
+        pMsg->_Protocol._Length = 0;
+        if(!_Sock->SegmentSend(timeout, msg.c_str(), sizeof(GLRPROTOCOL)))
         {
             _Sock->Close();
             return;
@@ -172,12 +167,12 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
         _Id = id;
         //Runtime::GetInstance().GetBus().Send(_Gpid, msg);
     }
-    else if (pMsg->Head.Type == MSG_HEAD::APP)
+    else if (pMsg->_Protocol._Type == GLRPROTOCOL::APP)
     {
 
-        pMsg->Source.Gpid = ntohl( pMsg->Source.Gpid);
-        pMsg->Source.Port = ntohl( pMsg->Source.Port);
-        Runtime::GetInstance().GetBus().Send(ntohl(pMsg->Head.GPid), msg);
+        pMsg->_Route._FromGpid = ntohl( pMsg->_Route._FromGpid);
+        pMsg->_Host._V2._Port = ntohl( pMsg->_Host._V2._Port);
+        Runtime::GetInstance().GetBus().Send(ntohl(pMsg->_Route._ToGpid), msg);
     }
 }
 
@@ -201,6 +196,8 @@ void GLR::MessageLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/
 {
     //int fd = ev.first;
     GALA_DEBUG("%d", _RecvTask.Len);
+
+    //TODO: recv 8 bytes, check magic number and type
     if (_RecvTask.HeadCurrent < 4)
     {
         size_t len = _Sock->Recv(((char*)&_RecvTask.Len)+_RecvTask.HeadCurrent, 4-_RecvTask.HeadCurrent);
@@ -221,7 +218,8 @@ void GLR::MessageLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/
     }
     else
     {
-        ssize_t len = _Sock->Recv(&_RecvTask.Buffer[_RecvTask.Current],_RecvTask.Len -_RecvTask.Current+4);
+        ssize_t len = _Sock->Recv(&_RecvTask.Buffer[_RecvTask.Current],
+                _RecvTask.Len -_RecvTask.Current + 4);
         if (len < 0)
         {
             THROW_EXCEPTION_EX("recv error");
@@ -266,17 +264,17 @@ void GLR::MessageLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, PO
     }
 }
 
-void GLR::MessageLinkStack::PutSendTask( const std::string &msg, int pid, int src_pid )
+void GLR::MessageLinkStack::PutSendTask( const std::string &msg, int to_pid, int src_pid )
 {
     Task t(msg);
-    GLR_BUS_HEAD *head = (GLR_BUS_HEAD *)&t.Buffer[0];
-    //head->GPid = htonl(pid);
-    head->Head.Type = MSG_HEAD::APP;
-    head->Head.GPid = htonl(pid);
-    memcpy(head->Source.Host, Runtime::GetInstance().Host().c_str(), Runtime::GetInstance().Host().size());
-    head->Source.Port = htonl(Runtime::GetInstance().NodeId());
-    head->Source.Gpid = htonl(src_pid);
-    //head->Type = MSG_HEAD::APP;
+    GLRPROTOCOL *head = (GLRPROTOCOL *)&t.Buffer[0];
+    head->_Protocol._Type = GLRPROTOCOL::APP;
+    head->_Protocol._Version = 2;
+    head->_Route._ToGpid = htonl(to_pid);
+    memcpy(head->_Host._V2._Host, Runtime::GetInstance().Host().c_str(), Runtime::GetInstance().Host().size());
+    head->_Host._V2._Port = htonl(Runtime::GetInstance().NodeId());
+    head->_Route._FromGpid = htonl(src_pid);
+    CRT_time((time_t*)&head->_Protocol._Stamp);
     _SendTaskQ.Put(t);
 }
 
@@ -285,13 +283,15 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port, short
     char id[64] = {0};
     snprintf(id, sizeof(id), "%s::%d", host.c_str(), port);
     _Id = id;
-    std::string buf(sizeof(MSG_HEAD)+sizeof(GLR_ADDR), 0);
-    MSG_HEAD *pHead = (MSG_HEAD*)buf.c_str();
-    GLR_ADDR *pAddr = (GLR_ADDR *)&buf[sizeof(MSG_HEAD)];
-    pHead->Type = MSG_HEAD::REGISTER;
-    pHead->Len = htonl(sizeof(MSG_HEAD) + sizeof(GLR_ADDR) - 4);
-    memcpy(pAddr->Host, Runtime::GetInstance().Host().c_str(), Runtime::GetInstance().Host().size());
-    pAddr->Port = htonl(Runtime::GetInstance().NodeId());
+    std::string buf(sizeof(GLRPROTOCOL), 0);
+    GLRPROTOCOL *pHead = (GLRPROTOCOL*)buf.c_str();
+    pHead->_Protocol._Type = GLRPROTOCOL::REGISTER;
+    pHead->_Protocol._Length = 0;
+
+    CRT_time((time_t*)&pHead->_Protocol._Stamp);
+    pHead->_Protocol._Version = 2;
+    memcpy(pHead->_Host._V2._Host, Runtime::GetInstance().Host().c_str(), Runtime::GetInstance().Host().size());
+    pHead->_Host._V2._Port = htonl(Runtime::GetInstance().NodeId());
     //uint32_t len = htonl(sizeof(GLR_MSG));
     //_Sock->SegmentSend(-1, (const char*)&len, sizeof(len));
     if(!_Sock->SegmentSend(timeout, buf.c_str(), buf.size()))
@@ -299,13 +299,13 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port, short
         THROW_EXCEPTION_EX("Register Timeout");
     }
 
-    if(!_Sock->SegmentRecv(timeout, (char*)&buf[0], sizeof(GLR_BUS_HEAD)))
+    if(!_Sock->SegmentRecv(timeout, (char*)&buf[0], sizeof(GLRPROTOCOL)))
     {
         THROW_EXCEPTION_EX("Register Timeout");
     }
     // _Sock->SegmentRecv(-1, (char*)&msg, sizeof(msg));
 
-    if (pHead->Type == MSG_HEAD::REGISTER_OK)
+    if (pHead->_Protocol._Type == GLRPROTOCOL::REGISTER_OK)
     {
         GALA_DEBUG("ok");
         return;

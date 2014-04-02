@@ -128,7 +128,7 @@ namespace GLR
         static void Destory(LN_ID_TYPE);
         static void SendMsgToNode(LN_ID_TYPE,
             const std::string &,
-            MSG_HEAD::MSG_TYPE type = MSG_HEAD::APP);
+            GLRPROTOCOL::MSG_TYPE type = GLRPROTOCOL::APP);
         static void CreateSpyer();
 
     public:

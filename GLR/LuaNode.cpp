@@ -144,16 +144,16 @@ void Process::SendMsg(const LN_MSG_TYPE& msg)
     if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
     {
         Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock);
-        GLR_BUS_HEAD *head = (GLR_BUS_HEAD *)&msg[0];
-        lua_pushinteger(_Stack, head->Head.Type);
+        GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
+        lua_pushinteger(_Stack, head->_Protocol._Type);
         lua_newtable(_Stack);
-        lua_pushstring(_Stack, head->Source.Host);
+        lua_pushstring(_Stack, (const char*)head->_Host._V2._Host);
         lua_setfield(_Stack, -2, "host");
 
-        lua_pushinteger(_Stack, head->Source.Port);
+        lua_pushinteger(_Stack, head->_Host._V2._Port);
         lua_setfield(_Stack, -2, "port");
 
-        lua_pushinteger(_Stack, head->Source.Gpid);
+        lua_pushinteger(_Stack, head->_Route._FromGpid);
         lua_setfield(_Stack, -2, "gpid");
         lua_pushlstring(_Stack, &msg[sizeof(*head)], msg.size() - sizeof(*head));
         _Status._NArg = 3;
@@ -362,19 +362,19 @@ void Process::InitNode(void)
     lua_settable(_Stack, -3);
 
     lua_pushstring(_Stack, "KILL");
-    lua_pushinteger(_Stack, MSG_HEAD::KILL);
+    lua_pushinteger(_Stack, GLRPROTOCOL::KILL);
     lua_settable(_Stack, -3);
 
     lua_pushstring(_Stack, "CLOSED");
-    lua_pushinteger(_Stack, MSG_HEAD::CLOSED);
+    lua_pushinteger(_Stack, GLRPROTOCOL::CLOSED);
     lua_settable(_Stack, -3);
 
     lua_pushstring(_Stack, "APP");
-    lua_pushinteger(_Stack, MSG_HEAD::APP);
+    lua_pushinteger(_Stack, GLRPROTOCOL::APP);
     lua_settable(_Stack, -3);
 
     lua_pushstring(_Stack, "EXIT");
-    lua_pushinteger(_Stack, MSG_HEAD::EXIT);
+    lua_pushinteger(_Stack, GLRPROTOCOL::EXIT);
     lua_settable(_Stack, -3);
 
 
@@ -418,14 +418,14 @@ int Process::SendMsgToNode(lua_State *l)
     LN_ID_TYPE id = luaL_checkinteger(l, 1);
     size_t len = 0;
     const char *msg = luaL_checklstring(l, 2, &len);
-    LN_MSG_TYPE  pack_msg(len + sizeof(GLR_BUS_HEAD), 0);
-    GLR_BUS_HEAD *head = (GLR_BUS_HEAD *)&pack_msg[0];
-    head->Head.Type = MSG_HEAD::APP;
-    head->Head.GPid = id;
-    head->Head.Len = len + sizeof(*head) - 4;
-    head->Source.Gpid = self_id;
-    head->Source.Port = GLR::Runtime::GetInstance().NodeId();
-    memcpy(head->Source.Host, GLR::Runtime::GetInstance().Host().c_str(), GLR::Runtime::GetInstance().Host().size());
+    LN_MSG_TYPE  pack_msg(len + sizeof(GLRPROTOCOL), 0);
+    GLRPROTOCOL *head = (GLRPROTOCOL *)&pack_msg[0];
+    head->_Protocol._Type = GLRPROTOCOL::APP;
+    head->_Route._ToGpid = id;
+    head->_Protocol._Length = len; //Content Length
+    head->_Route._FromGpid = self_id;
+    head->_Host._V2._Port = GLR::Runtime::GetInstance().NodeId();
+    memcpy(head->_Host._V2._Host, GLR::Runtime::GetInstance().Host().c_str(), GLR::Runtime::GetInstance().Host().size());
     memcpy((void *)&pack_msg[sizeof(*head)], msg, len);
     //GetNodeById(id).SendMsg(pack_msg);
     SendMsgToNode(id, pack_msg);
@@ -541,16 +541,16 @@ int Process::Recieve(lua_State *l)
     {
         LN_MSG_TYPE msg = self.RecvMsg();
 
-        GLR_BUS_HEAD *head = (GLR_BUS_HEAD *)&msg[0];
-        lua_pushinteger(self._Stack, head->Head.Type);
+        GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
+        lua_pushinteger(self._Stack, head->_Protocol._Type);
         lua_newtable(self._Stack);
-        lua_pushstring(self._Stack, head->Source.Host);
+        lua_pushstring(self._Stack, (const char*)head->_Host._V2._Host);
         lua_setfield(self._Stack, -2, "host");
 
-        lua_pushinteger(self._Stack, head->Source.Port);
+        lua_pushinteger(self._Stack, head->_Host._V2._Port);
         lua_setfield(self._Stack, -2, "port");
 
-        lua_pushinteger(self._Stack, head->Source.Gpid);
+        lua_pushinteger(self._Stack, head->_Route._FromGpid);
         lua_setfield(self._Stack, -2, "gpid");
         lua_pushlstring(self._Stack, &msg[sizeof(*head)], msg.size() - sizeof(*head));
         return 3;
@@ -724,12 +724,12 @@ int Process::Interrupt(lua_State *l)
 }
 void Process::SendExitMsg()
 {
-    std::string buffer(sizeof(GLR_BUS_HEAD), 0);
-    GLR_BUS_HEAD *pExitMsg = (GLR_BUS_HEAD *)&buffer[0];
-    pExitMsg->Head.Type = MSG_HEAD::EXIT;
-    pExitMsg->Head.GPid = _ParentId;
-    pExitMsg->Source.Gpid = _Id;
-    SendMsgToNode(_ParentId, buffer, MSG_HEAD::EXIT);
+    std::string buffer(sizeof(GLRPROTOCOL), 0);
+    GLRPROTOCOL *pExitMsg = (GLRPROTOCOL *)&buffer[0];
+    pExitMsg->_Protocol._Type = GLRPROTOCOL::EXIT;
+    pExitMsg->_Route._ToGpid = _ParentId;
+    pExitMsg->_Route._FromGpid = _Id;
+    SendMsgToNode(_ParentId, buffer, GLRPROTOCOL::EXIT);
 }
 void Process::Destory(LN_ID_TYPE pid)
 {
@@ -781,7 +781,7 @@ void Process::Destory(LN_ID_TYPE pid)
 
 }
 
-void Process::SendMsgToNode(LN_ID_TYPE pid, const std::string& msg, MSG_HEAD::MSG_TYPE /*type*/)
+void Process::SendMsgToNode(LN_ID_TYPE pid, const std::string& msg, GLRPROTOCOL::MSG_TYPE /*type*/)
 {
 
     try

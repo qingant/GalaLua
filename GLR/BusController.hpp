@@ -56,9 +56,9 @@ namespace GLR
             Task(const std::string &buf):Current(0), Len(buf.size())
             {
                 assert(buf.size()<100*1024*1024);
-                Buffer.resize(sizeof(GLR_BUS_HEAD)+buf.size(), 0);
-                *((uint32_t*)&Buffer[0]) = htonl(buf.size()+sizeof(GLR_BUS_HEAD) -4);
-                memcpy(&Buffer[sizeof(GLR_BUS_HEAD)], buf.c_str(), buf.size());
+                Buffer.resize(sizeof(GLRPROTOCOL)+buf.size(), 0);
+                *((uint32_t*)&Buffer[0]) = htonl(buf.size() + sizeof(GLRPROTOCOL) - 4);
+                memcpy(&Buffer[sizeof(GLRPROTOCOL)], buf.c_str(), buf.size());
 
             }
         };
