@@ -70,6 +70,16 @@
  *	  access to locks and lock file. Exceptions: On read-only filesystems
  *	  or with the #MDB_NOLOCK flag described under #mdb_env_open().
  *
+ *	- By default, in versions before 0.9.10, unused portions of the data
+ *	  file might receive garbage data from memory freed by other code.
+ *	  (This does not happen when using the #MDB_WRITEMAP flag.) As of
+ *	  0.9.10 the default behavior is to initialize such memory before
+ *	  writing to the data file. Since there may be a slight performance
+ *	  cost due to this initialization, applications may disable it using
+ *	  the #MDB_NOMEMINIT flag. Applications handling sensitive data
+ *	  which must not be written should not use this flag. This flag is
+ *	  irrelevant when using #MDB_WRITEMAP.
+ *
  *	- A thread can only use one transaction at a time, plus any child
  *	  transactions.  Each transaction belongs to one thread.  See below.
  *	  The #MDB_NOTLS flag changes this for read-only transactions.
@@ -174,7 +184,7 @@ typedef int mdb_filehandle_t;
 /** Library minor version */
 #define MDB_VERSION_MINOR	9
 /** Library patch version */
-#define MDB_VERSION_PATCH	9
+#define MDB_VERSION_PATCH	11
 
 /** Combine args a,b,c into a single integer for easy version comparisons */
 #define MDB_VERINT(a,b,c)	(((a) << 24) | ((b) << 16) | (c))
@@ -184,7 +194,7 @@ typedef int mdb_filehandle_t;
 	MDB_VERINT(MDB_VERSION_MAJOR,MDB_VERSION_MINOR,MDB_VERSION_PATCH)
 
 /** The release date of this library version */
-#define MDB_VERSION_DATE	"October 24, 2013"
+#define MDB_VERSION_DATE	"January 15, 2014"
 
 /** A stringifier for the version info */
 #define MDB_VERSTR(a,b,c,d)	"MDB " #a "." #b "." #c ": (" d ")"
@@ -253,8 +263,6 @@ typedef int  (MDB_cmp_func)(const MDB_val *a, const MDB_val *b);
 typedef void (MDB_rel_func)(MDB_val *item, void *oldptr, void *newptr, void *relctx);
 
 /** @defgroup	mdb_env	Environment Flags
- *
- *	Values do not overlap Database Flags.
  *	@{
  */
 	/** mmap at a fixed address (experimental) */
@@ -277,11 +285,11 @@ typedef void (MDB_rel_func)(MDB_val *item, void *oldptr, void *newptr, void *rel
 #define MDB_NOLOCK		0x400000
 	/** don't do readahead (no effect on Windows) */
 #define MDB_NORDAHEAD	0x800000
+	/** don't initialize malloc'd memory before writing to datafile */
+#define MDB_NOMEMINIT	0x1000000
 /** @} */
 
 /**	@defgroup	mdb_dbi_open	Database Flags
- *
- *	Values do not overlap Environment Flags.
  *	@{
  */
 	/** use reverse string keys */
@@ -546,6 +554,25 @@ int  mdb_env_create(MDB_env **env);
 	 *		supports it. Turning it off may help random read performance
 	 *		when the DB is larger than RAM and system RAM is full.
 	 *		The option is not implemented on Windows.
+	 *	<li>#MDB_NOMEMINIT
+	 *		Don't initialize malloc'd memory before writing to unused spaces
+	 *		in the data file. By default, memory for pages written to the data
+	 *		file is obtained using malloc. While these pages may be reused in
+	 *		subsequent transactions, freshly malloc'd pages will be initialized
+	 *		to zeroes before use. This avoids persisting leftover data from other
+	 *		code (that used the heap and subsequently freed the memory) into the
+	 *		data file. Note that many other system libraries may allocate
+	 *		and free memory from the heap for arbitrary uses. E.g., stdio may
+	 *		use the heap for file I/O buffers. This initialization step has a
+	 *		modest performance cost so some applications may want to disable
+	 *		it using this flag. This option can be a problem for applications
+	 *		which handle sensitive data like passwords, and it makes memory
+	 *		checkers like Valgrind noisy. This flag is not needed with #MDB_WRITEMAP,
+	 *		which writes directly to the mmap instead of using malloc for pages. The
+	 *		initialization is also skipped if #MDB_RESERVE is used; the
+	 *		caller is expected to overwrite all of the memory that was
+	 *		reserved in that case.
+	 *		This flag may be changed at any time using #mdb_env_set_flags().
 	 * </ul>
 	 * @param[in] mode The UNIX permissions to set on created files. This parameter
 	 * is ignored on Windows.
@@ -766,14 +793,46 @@ int  mdb_env_get_maxreaders(MDB_env *env, unsigned int *readers);
 	 */
 int  mdb_env_set_maxdbs(MDB_env *env, MDB_dbi dbs);
 
-	/** @brief Get the maximum size of a key for the environment.
+	/** @brief Get the maximum size of keys and #MDB_DUPSORT data we can write.
 	 *
-	 * This is the compile-time constant #MDB_MAXKEYSIZE, default 511.
+	 * Depends on the compile-time constant #MDB_MAXKEYSIZE. Default 511.
 	 * See @ref MDB_val.
 	 * @param[in] env An environment handle returned by #mdb_env_create()
-	 * @return The maximum size of a key
+	 * @return The maximum size of a key we can write
 	 */
 int  mdb_env_get_maxkeysize(MDB_env *env);
+
+	/** @brief Set application information associated with the #MDB_env.
+	 *
+	 * @param[in] env An environment handle returned by #mdb_env_create()
+	 * @param[in] ctx An arbitrary pointer for whatever the application needs.
+	 * @return A non-zero error value on failure and 0 on success.
+	 */
+int  mdb_env_set_userctx(MDB_env *env, void *ctx);
+
+	/** @brief Get the application information associated with the #MDB_env.
+	 *
+	 * @param[in] env An environment handle returned by #mdb_env_create()
+	 * @return The pointer set by #mdb_env_set_userctx().
+	 */
+void *mdb_env_get_userctx(MDB_env *env);
+
+	/** @brief A callback function for most MDB assert() failures,
+	 * called before printing the message and aborting.
+	 *
+	 * @param[in] env An environment handle returned by #mdb_env_create().
+	 * @param[in] msg The assertion message, not including newline.
+	 */
+typedef void MDB_assert_func(MDB_env *env, const char *msg);
+
+	/** Set or reset the assert() callback of the environment.
+	 * Disabled if liblmdb is buillt with NDEBUG.
+	 * @note This hack should become obsolete as lmdb's error handling matures.
+	 * @param[in] env An environment handle returned by #mdb_env_create().
+	 * @parem[in] func An #MDB_assert_func function, or 0.
+	 * @return A non-zero error value on failure and 0 on success.
+	 */
+int  mdb_env_set_assert(MDB_env *env, MDB_assert_func *func);
 
 	/** @brief Create a transaction for use with the environment.
 	 *
@@ -1131,6 +1190,8 @@ int  mdb_get(MDB_txn *txn, MDB_dbi dbi, MDB_val *key, MDB_val *data);
 	 *		reserved space, which the caller can fill in later - before
 	 *		the next update operation or the transaction ends. This saves
 	 *		an extra memcpy if the data is being generated later.
+	 *		MDB does nothing else with this memory, the caller is expected
+	 *		to modify all of the space requested.
 	 *	<li>#MDB_APPEND - append the given key/data pair to the end of the
 	 *		database. No key comparisons are performed. This option allows
 	 *		fast bulk loading when keys are already known to be in the
@@ -1376,7 +1437,7 @@ int  mdb_dcmp(MDB_txn *txn, MDB_dbi dbi, const MDB_val *a, const MDB_val *b);
 	 *
 	 * @param[in] msg The string to be printed.
 	 * @param[in] ctx An arbitrary context pointer for the callback.
-	 * @return < 0 on failure, 0 on success.
+	 * @return < 0 on failure, >= 0 on success.
 	 */
 typedef int (MDB_msg_func)(const char *msg, void *ctx);
 
@@ -1385,7 +1446,7 @@ typedef int (MDB_msg_func)(const char *msg, void *ctx);
 	 * @param[in] env An environment handle returned by #mdb_env_create()
 	 * @param[in] func A #MDB_msg_func function
 	 * @param[in] ctx Anything the message function needs
-	 * @return < 0 on failure, 0 on success.
+	 * @return < 0 on failure, >= 0 on success.
 	 */
 int	mdb_reader_list(MDB_env *env, MDB_msg_func *func, void *ctx);
 

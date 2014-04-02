@@ -1,5 +1,24 @@
 LMDB 0.9 Change Log
 
+LMDB 0.9.11 Release (2014/01/15)
+	Add mdb_env_set_assert() (ITS#7775)
+	Fix: invalidate txn on page allocation errors (ITS#7377)
+	Fix xcursor tracking in mdb_cursor_del0() (ITS#7771)
+	Fix corruption from deletes (ITS#7756)
+	Fix Windows/MSVC build issues
+	Raise safe limit of max MDB_MAXKEYSIZE
+	Misc code cleanup
+	Documentation
+		Remove spurious note about non-overlapping flags (ITS#7665)
+
+LMDB 0.9.10 Release (2013/11/12)
+	Add MDB_NOMEMINIT option
+	Fix mdb_page_split() again (ITS#7589)
+	Fix MDB_NORDAHEAD definition (ITS#7734)
+	Fix mdb_cursor_del() positioning (ITS#7733)
+	Partial fix for larger page sizes (ITS#7713)
+	Fix Windows64/MSVC build issues
+
 LMDB 0.9.9 Release (2013/10/24)
 	Add mdb_env_get_fd()
 	Add MDB_NORDAHEAD option
@@ -8,7 +27,7 @@ LMDB 0.9.9 Release (2013/10/24)
 	Fix mdb_page_merge() cursor fixup (ITS#7722)
 	Fix mdb_cursor_del() on last delete (ITS#7718)
 	Fix adding WRITEMAP on existing env (ITS#7715)
-	Fixes for nested txns (ITS#7515)
+	Fix nested txns (ITS#7515)
 	Fix mdb_env_copy() O_DIRECT bug (ITS#7682)
 	Fix mdb_cursor_set(SET_RANGE) return code (ITS#7681)
 	Fix mdb_rebalance() cursor fixup (ITS#7701)
