@@ -172,6 +172,7 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
 
         pMsg->_Route._FromGpid = ntohl( pMsg->_Route._FromGpid);
         pMsg->_Host._V2._Port = ntohl( pMsg->_Host._V2._Port);
+        pMsg->_Protocol._Stamp = ntohl( pMsg->_Protocol._Stamp);
         Runtime::GetInstance().GetBus().Send(ntohl(pMsg->_Route._ToGpid), msg);
     }
 }
@@ -275,6 +276,7 @@ void GLR::MessageLinkStack::PutSendTask( const std::string &msg, int to_pid, int
     head->_Host._V2._Port = htonl(Runtime::GetInstance().NodeId());
     head->_Route._FromGpid = htonl(src_pid);
     CRT_time((time_t*)&head->_Protocol._Stamp);
+    head->_Protocol._Stamp = htonl(head->_Protocol._Stamp);
     _SendTaskQ.Put(t);
 }
 

@@ -78,39 +78,6 @@ struct GLRPROTOCOL
         memset(this, 0, sizeof(*this));
     }
 };
-/*
-struct MSG_HEAD
-{
-    enum MSG_TYPE
-    {
-        REGISTER = 0,
-        REGISTER_OK = 1,
-        REGISTER_FAIL = 2,
-        APP = 3,        //Normal Application Message
-        KILL = 4,       //Message To Kill this GLR Process
-        CLOSED = 5,     //Resource bind to this GLR Process closed
-        EXIT = 6,       //Process Exit Message
-        //ACK = 7,
-    };
-    uint32_t Len;  //Message Length not including this head structure
-    unsigned char  Type; //Message Type
-    int32_t GPid; //GPid of process who send this message, nagetive if from controller
-    MSG_HEAD()
-    {
-        memset(this, 0, sizeof(*this));
-    }
-};
-typedef struct{
-    char   Host[20];              // Host
-    uint32_t   Port;              // Port
-    uint32_t   Gpid;
-}GLR_ADDR;
-struct GLR_BUS_HEAD
-{
-    MSG_HEAD Head;
-    GLR_ADDR Source;
-};
-*/
 #ifdef _AIX
 #pragma pack(pop)
 #else
@@ -141,13 +108,6 @@ public:
 private:
     Bus(void);
 public:
-    //************************************
-    // Method:    GetInstance
-    // FullName:  GLR::Bus::GetInstance
-    // Access:    public static
-    // Returns:   Bus &
-    // Qualifier: This method is **NOT** thread-safe
-    //************************************
     static Bus &GetInstance();
     void RegisterDevice(IController*);
     void Interrupt(int device, int tick, lua_State*);

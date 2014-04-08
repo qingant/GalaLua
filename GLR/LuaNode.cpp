@@ -143,6 +143,7 @@ void Process::SendMsg(const LN_MSG_TYPE& msg)
 
     if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
     {
+        // TODO: expose more info to lua
         Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock);
         GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
         lua_pushinteger(_Stack, head->_Protocol._Type);
@@ -421,6 +422,8 @@ int Process::SendMsgToNode(lua_State *l)
     LN_MSG_TYPE  pack_msg(len + sizeof(GLRPROTOCOL), 0);
     GLRPROTOCOL *head = (GLRPROTOCOL *)&pack_msg[0];
     head->_Protocol._Type = GLRPROTOCOL::APP;
+    head->_Protocol._Version = 2;
+    CRT_time((time_t*)&head->_Protocol._Stamp);
     head->_Route._ToGpid = id;
     head->_Protocol._Length = len; //Content Length
     head->_Route._FromGpid = self_id;
