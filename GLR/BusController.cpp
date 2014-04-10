@@ -150,7 +150,7 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
         // TODO: protocol version check
         snprintf(id, sizeof(id), "%s::%d", pMsg->_Host._V2._Host, ntohl(pMsg->_Host._V2._Port));
         pMsg->_Protocol._Type = GLRPROTOCOL::REGISTER_OK;
-        pMsg->_Protocol._Length = 0;
+        pMsg->_Protocol._Length = htonl(sizeof(GLRPROTOCOL) - sizeof(pMsg->_Protocol._Length));
         if(!_Sock->SegmentSend(timeout, msg.c_str(), sizeof(GLRPROTOCOL)))
         {
             _Sock->Close();
@@ -206,6 +206,7 @@ void GLR::MessageLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/
         if (_RecvTask.HeadCurrent == 4)
         {
             _RecvTask.Len = ntohl(_RecvTask.Len);
+            GALA_DEBUG("recv len:%d \n",_RecvTask.Len);
             if(_RecvTask.Len > 1024*1024*500)
             {
                 const char *rejectMessage = "GLR: you are invalid visitor, rejected!\n";
@@ -288,7 +289,7 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port, short
     std::string buf(sizeof(GLRPROTOCOL), 0);
     GLRPROTOCOL *pHead = (GLRPROTOCOL*)buf.c_str();
     pHead->_Protocol._Type = GLRPROTOCOL::REGISTER;
-    pHead->_Protocol._Length = 0;
+    pHead->_Protocol._Length = htonl(sizeof(GLRPROTOCOL) - sizeof(pHead->_Protocol._Length));
 
     CRT_time((time_t*)&pHead->_Protocol._Stamp);
     pHead->_Protocol._Version = 2;
@@ -298,12 +299,12 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port, short
     //_Sock->SegmentSend(-1, (const char*)&len, sizeof(len));
     if(!_Sock->SegmentSend(timeout, buf.c_str(), buf.size()))
     {
-        THROW_EXCEPTION_EX("Register Timeout");
+        THROW_EXCEPTION_EX("Send Register Timeout");
     }
 
     if(!_Sock->SegmentRecv(timeout, (char*)&buf[0], sizeof(GLRPROTOCOL)))
     {
-        THROW_EXCEPTION_EX("Register Timeout");
+        THROW_EXCEPTION_EX("Recv Register Timeout");
     }
     // _Sock->SegmentRecv(-1, (char*)&msg, sizeof(msg));
 
@@ -436,6 +437,7 @@ void GLR::BusController::DoNodeReg( lua_State *l )
         }
         catch (Galaxy::GalaxyRT::CException& e)
         {
+            GALA_DEBUG("%s\n",e.what());
             std::string errmsg = "Cannot Register";
             Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
             return;
