@@ -37,15 +37,7 @@ void * GLR::SocketWorker::Run( const Galaxy::GalaxyRT::CThread & )
         {
             Galaxy::GalaxyRT::CSelector::EV_PAIR &ev = evs[i];
             //GALA_ERROR("Fd(%d) EVent(%d)", ev.first, ev.second);
-            if (ev.second&Galaxy::GalaxyRT::EV_ERR ||
-                ev.second&Galaxy::GalaxyRT::EV_HUP ||
-                ev.second&Galaxy::GalaxyRT::EV_NVALID ||
-                ev.second&Galaxy::GalaxyRT::EV_RDHUP
-                )
-            {
-                OnErr(ev);
-            }
-            else if (ev.second&Galaxy::GalaxyRT::EV_IN)
+            if (ev.second&Galaxy::GalaxyRT::EV_IN)
             {
                 GALA_DEBUG("EV_IN");
                 OnRecv(ev);
@@ -53,6 +45,14 @@ void * GLR::SocketWorker::Run( const Galaxy::GalaxyRT::CThread & )
             else if (ev.second&Galaxy::GalaxyRT::EV_OUT)
             {
                 OnSend(ev);
+            }
+            else if (ev.second&Galaxy::GalaxyRT::EV_ERR ||
+                ev.second&Galaxy::GalaxyRT::EV_HUP ||
+                ev.second&Galaxy::GalaxyRT::EV_NVALID ||
+                ev.second&Galaxy::GalaxyRT::EV_RDHUP
+                )
+            {
+                OnErr(ev);
             }
             else
             {
@@ -109,7 +109,10 @@ void GLR::SocketWorker::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev )
     try
     {
 
-        ls->OnSend(ev, _Poller);
+        if (ls != NULL)
+        {
+            ls->OnSend(ev, _Poller);
+        }
     }
     catch (Galaxy::GalaxyRT::CException &e)
     {
@@ -424,13 +427,13 @@ void GLR::StreamLinkStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/, 
     {
         Task t = ls->_RecvTasks.Get();
         std::string errmsg = "IO Error";
-        Runtime::GetInstance().GetBus().ResponseEx(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        Runtime::GetInstance().GetBus().ResponseEx(t.Pid,t.RecvArg.Tick, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
     }
     while (!ls->_SendTasks.Empty())
     {
         Task t = ls->_SendTasks.Get();
         std::string errmsg = "IO Error";
-        Runtime::GetInstance().GetBus().ResponseEx(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        Runtime::GetInstance().GetBus().Response(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
     }
 }
 
