@@ -4,6 +4,9 @@
 
 	== Introduction ==
 	Basic test cases for glr-1.x
+
+	== Usage ==
+	glr -m basic -p 2345
 ]]
 
 module(..., package.seeall)
@@ -26,7 +29,7 @@ function test_self_msg(  )
 end
 function test_rpc_msg(  )
 	local msg = "hello world"
-	glr.send({host="0.0.0.0",port=2345,gpid=0}, msg)
+	glr.send({host="0.0.0.0",port=glr.sys.port,gpid=0}, msg)
 	local type, addr, recv_msg = glr.recv()
 	assert(recv_msg == msg)
 	print("test_rpc_msg")
@@ -39,9 +42,18 @@ function worker()
 	end
 end
 
+function test_timer( timeout )
+	local timeout = timeout or 1
+	local now = glr.time.now()
+	glr.time.sleep()
+	local just_now = glr.time.now()
+	assert(now==just_now, "")
+end
+
 
 
 function main(  )
+
 	test_process()
 	test_self_msg()
 	test_rpc_msg()
