@@ -38,7 +38,16 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
 
             try
             {
-                if (ev.second&Galaxy::GalaxyRT::EV_ERR ||
+
+                if (ev.second&Galaxy::GalaxyRT::EV_IN)
+                {
+                    ms->OnRecv(ev, _Poller);
+                }
+                else if (ev.second&Galaxy::GalaxyRT::EV_OUT)
+                {
+                    ms->OnSend(ev, _Poller);
+                }
+                else if (ev.second&Galaxy::GalaxyRT::EV_ERR ||
                     ev.second&Galaxy::GalaxyRT::EV_HUP ||
                     ev.second&Galaxy::GalaxyRT::EV_NVALID ||
                     ev.second&Galaxy::GalaxyRT::EV_RDHUP
@@ -47,14 +56,6 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
                     ms->OnErr(ev, _Poller);
                     THROW_EXCEPTION_EX("");
 
-                }
-                else if (ev.second&Galaxy::GalaxyRT::EV_IN)
-                {
-                    ms->OnRecv(ev, _Poller);
-                }
-                else if (ev.second&Galaxy::GalaxyRT::EV_OUT)
-                {
-                    ms->OnSend(ev, _Poller);
                 }
                 else
                 {
