@@ -146,7 +146,10 @@ int Process::Spawn(lua_State *l)
             node.EntryGar(GLR::Runtime::_GarFile, module, method);
         }
 
-        
+
+        // Set arguments for the new-created glr process
+        SetArgumentsForSpawnedProcess(l, node, 4);
+
 
         // Return Value to Calling Lua Node
         lua_pushboolean(l, 1);
@@ -570,6 +573,91 @@ void Process::StackDump()
     }
     printf("---------------------\n");
 
+}
+
+void Process::MoveValue(lua_State *src, lua_State *dst, int index)
+{
+    int type = lua_type(src, index);
+    const char *str=NULL;
+    size_t len=0;
+    switch (type)
+    {
+        case LUA_TSTRING:
+            str = luaL_checklstring(src, index, &len);
+            lua_pushlstring(dst, str, len);
+            break;
+        case LUA_TBOOLEAN:
+            len = lua_toboolean(src, index);
+            lua_pushboolean(dst, len);
+            break;
+        case LUA_TNUMBER:
+            len = luaL_checkinteger(src, index);
+            lua_pushinteger(dst, len);
+            break;
+        case LUA_TNIL:
+            lua_pushnil(dst);
+            break;
+        case LUA_TTABLE:
+            MoveTable(src,dst,index);
+            break;
+        default:
+            THROW_EXCEPTION_EX("not supported argument");
+            break;
+    }
+
+}
+
+void Process::MoveTable(lua_State *src, lua_State *dst, int index)
+{
+    if (lua_istable(src,index)==0) {
+        THROW_EXCEPTION_EX("not a lua table");
+    }
+
+    int src_top=lua_gettop(src);
+    //XXX: @index never use negative number
+    if (index<0) {
+        index=src_top+index+1;
+    }
+
+    lua_newtable(dst);
+    lua_pushnil(src);  /* first key */
+    int top=-1;
+    while (lua_next(src, index) != 0) {
+        /* uses 'key' (at index -2) and 'value' (at
+           * index -1) */
+        top=lua_gettop(dst);
+        try
+        {
+
+            MoveValue(src,dst,-2);
+            MoveValue(src,dst,-1);
+
+            lua_settable(dst,-3);
+        }
+        catch(Galaxy::GalaxyRT::CException& e)
+        {
+            //recover stack and go on
+            lua_settop(dst,top);
+        }
+
+        /* removes 'value'; keeps 'key' for next
+           * iteration */
+        lua_pop(src, 1);
+    }
+
+}
+
+void Process::SetArgumentsForSpawnedProcess(lua_State *l, Process &node, int begin_index)
+{
+    int i = begin_index, j = 0;
+    int top=lua_gettop(l);
+    for (; i <=top; ++i, ++j)
+    {
+        MoveValue(l,node._Stack,i);
+    }
+
+    // using += for ":"-call in entry
+    node._Status._NArg += (j);
 }
 
 Process::ProcessStatus::STATE Process::State() const
@@ -1105,6 +1193,8 @@ int GLR::Process::SpawnEx( lua_State *l )
         }
 
 
+        // Set arguments for the new-created glr process
+        SetArgumentsForSpawnedProcess(l, node, 4);
 
         // Return Value to Calling Lua Node
         lua_pushboolean(l, 1);

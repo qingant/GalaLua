@@ -152,8 +152,16 @@ namespace GLR
         void SendExitMsg();
         void SetTimeOut(int timeout);
     public:
+
         void StackDump();
         int32_t Id() const { return _Id; }
+
+    private:
+        // Helper member and static methods
+        static void MoveValue(lua_State *src, lua_State *dst, int index);
+        static void MoveTable(lua_State *src, lua_State *dst, int index);
+
+        static void SetArgumentsForSpawnedProcess(lua_State *l, Process &node, int begin_index);
     public:
         lua_State * Stack() const { return _Stack; }
     private:
