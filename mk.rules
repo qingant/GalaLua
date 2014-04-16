@@ -36,6 +36,8 @@ ifeq ($(PLATFORM),Linux)
     CPPFLAGS    = $(CMPFLAG)
 
     ifneq ($(CLANG_EXIST), )
+        G++   = clang++
+        GCC   = clang
         clang = yes
     endif
 
@@ -73,11 +75,6 @@ ifeq ($(PLATFORM),Darwin)
         clang = yes
         CMPFLAG_ = $(CMPFLAG) -D_DARWIN_C_SOURCE -D__FreeBSD__
     endif
-endif
-
-ifdef clang
-    #XXX:useless??
-    include ../clang.rules
 endif
 
 .cpp.o:
