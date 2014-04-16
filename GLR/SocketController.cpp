@@ -518,9 +518,13 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
 void GLR::StreamLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLLERTYPE &_Poller )
 {
     (void)ev;
-    _Sock->SetNonBlocking();
-    GALA_DEBUG("Recv");
     //int fd = ev.first;
+    if (this->_Hanguped)
+    {
+        THROW_EXCEPTION_EX("Peer Closed");
+    }
+
+    _Sock->SetNonBlocking();
     while (true)
     {
         try
