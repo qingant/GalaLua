@@ -191,6 +191,7 @@ namespace GLR
         TaskQueue      _RecvTasks;
         //Galaxy::GalaxyRT::CPthreadMutex _Lock;
         TcpCache       _Cache;
+        bool           _Hanguped;
     };
 
     typedef std::vector<LinkStack*>  LinkMap;

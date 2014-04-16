@@ -410,7 +410,8 @@ void GLR::StreamLinkStack::PutRecvTask( int pid, size_t len, int tick )
 
 GLR::StreamLinkStack::StreamLinkStack( Galaxy::GalaxyRT::CSocket *sock )
     :LinkStack(sock),
-    _Cache(GLR_PAGE_SIZE, GLR_STEP_SIZE)
+    _Cache(GLR_PAGE_SIZE, GLR_STEP_SIZE),
+    _Hanguped(false)
 {
 
 }
@@ -465,6 +466,9 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
                     _RecvTasks.Get();
                     continue;
                 }
+            }else if (this->_Hanguped)
+            {
+                THROW_EXCEPTION_EX("Connection Peer Closed");
             }else
             {
                 break;
@@ -489,7 +493,12 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
                     _RecvTasks.Get();
                     continue;
                 }
-            }else
+            }
+            else if (this->_Hanguped)
+            {
+                THROW_EXCEPTION_EX("Connection Peer Closed");
+            }
+            else
             {
                 break;
             }
@@ -522,6 +531,16 @@ void GLR::StreamLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POL
         } catch (const Galaxy::GalaxyRT::CSockWouldBlock &e)
         {
             break;
+        } catch (const Galaxy::GalaxyRT::CSockPeerClose &e){
+            this->_Hanguped = true;
+            if (_Cache.DataSize() == 0)
+            {
+                throw e;
+            }
+            else
+            {
+                break;
+            }
         }
     }
     Response(_Poller);
