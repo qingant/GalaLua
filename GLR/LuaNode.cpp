@@ -18,94 +18,6 @@ int32_t Process::NodeId;
 int32_t Process::NodeCount = 0;
 #define RESERVED_PID (32)
 
-void move_table(lua_State *src,lua_State *dst,int index);
-void move_value(lua_State *src,lua_State *dst,int i)
-{
-    int type = lua_type(src, i);
-    const char *str=NULL;
-    size_t len=0;
-    switch (type)
-    {
-        case LUA_TSTRING:
-            str = luaL_checklstring(src, i, &len);
-            lua_pushlstring(dst, str, len);
-            break;
-        case LUA_TBOOLEAN:
-            len = lua_toboolean(src, i);
-            lua_pushboolean(dst, len);
-            break;
-        case LUA_TNUMBER:
-            len = luaL_checkinteger(src, i);
-            lua_pushinteger(dst, len);
-            break;
-        case LUA_TNIL:
-            lua_pushnil(dst);
-            break;
-        case LUA_TTABLE:
-            move_table(src,dst,i);
-            break;
-        default:
-            THROW_EXCEPTION_EX("not supported argument");
-            break;
-    }
-} 
-
-void move_table(lua_State *src,lua_State *dst,int index)
-{
-    if (lua_istable(src,index)==0) {
-        THROW_EXCEPTION_EX("not a lua table");
-    }
-
-    int src_top=lua_gettop(src);
-    //XXX: @index never use negative number
-    if (index<0) {
-        index=src_top+index+1;
-    }
-    
-    lua_newtable(dst);
-    lua_pushnil(src);  /* first key */
-    int top=-1;
-    while (lua_next(src, index) != 0) {
-        /* uses 'key' (at index -2) and 'value' (at
-         * index -1) */
-        top=lua_gettop(dst);
-        try
-        {
-            
-            move_value(src,dst,-2); 
-            move_value(src,dst,-1);
-
-            lua_settable(dst,-3);
-        }
-        catch(Galaxy::GalaxyRT::CException& e)
-        {
-            //recover stack and go on
-            lua_settop(dst,top);
-        }
-
-        /* removes 'value'; keeps 'key' for next
-         * iteration */
-        lua_pop(src, 1);
-    }
-}
-
-void node_info(lua_State *l,const char *module,const char *method,int n)
-{
-    lua_newtable(l);
-    lua_pushstring(l,module);
-    lua_rawseti(l,-2,1);
-
-    lua_pushstring(l,method);
-    lua_rawseti(l,-2,2);
-    for (int i=1;i<=n;++i){
-        lua_pushvalue(l,-i-1);
-        lua_rawseti(l,-2,n-i+3);
-    }
-
-    lua_setglobal(l,"__info__");
-}
-
-
 Process::Process(int id)
     : _Stack(luaL_newstate()),
     _Id(id == 0 ? NodeId : id)
@@ -235,22 +147,13 @@ int Process::Spawn(lua_State *l)
         }
 
         
-        int i = 3, j = 0;
-        int top=lua_gettop(l);
-        for (; i <=top; ++i, ++j)
-        {
-            move_value(l,node._Stack,i);
-        }
-
-        node._Status._NArg = (j);
-
-        node_info(node._Stack,module,method,j);
-        // put to schedule queue
 
         // Return Value to Calling Lua Node
         lua_pushboolean(l, 1);
         lua_pushinteger(l, node_id);
 
+
+       // put to schedule queue
         node.Start(Schedule::GetInstance());
         return 2;
         // Op on Self State
@@ -1201,24 +1104,14 @@ int GLR::Process::SpawnEx( lua_State *l )
             node.EntryGar(GLR::Runtime::_GarFile, module, method);
         }
 
-        int i = 4, j = 0;
-        int top=lua_gettop(l);
-        for (; i <=top; ++i, ++j)
-        {
-            move_value(l,node._Stack,i);
-        }
-
-        node._Status._NArg = (j);
-
-        node_info(node._Stack,module,method,j);
-
-        // put to schedule queue
 
 
         // Return Value to Calling Lua Node
         lua_pushboolean(l, 1);
         lua_pushinteger(l, node_id);
 
+
+        // put to schedule queue
         node.Start(Schedule::GetInstance());
         return 2;
         // Op on Self State
