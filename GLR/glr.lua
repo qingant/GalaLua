@@ -30,6 +30,8 @@ local SOCK_INT_NO = 0x01000000
 local CLOK_INT_NO = 0x00000000
 local GBUS_INT_NO = 0x02000000
 
+__VER__ = "1.0"  -- first api wrapper for glr-1.x
+
 
 function spawn(mod_name, entry, ...)
 	return _glr.spawn(mod_name, entry, ...)
@@ -102,7 +104,7 @@ function recv(...)
         return _glr.recv(...)
    end
 end
-function recvByCondition( condition , ...)
+function recv_by_condition( condition , ...)
 
     local cache = {}
     function restore(  )
@@ -133,15 +135,15 @@ function recvByCondition( condition , ...)
         end
     end   
 end
-function recvByAddr( addr, ... )
-    return recvByCondition(function ( msg )
+function recv_by_addr( addr, ... )
+    return recv_by_condition(function ( msg )
                                return (msg[2].host == addr.host and
                                        msg[2].port == addr.port and
                                        msg[2].gpid == addr.gpid)
                            end, ...)
 end
-function recvByType( mType, ... )
-    return recvByCondition(function ( msg )
+function recv_by_type( mType, ... )
+    return recv_by_condition(function ( msg )
                                return (msg[1] == mType)
                            end, ...)
 end
