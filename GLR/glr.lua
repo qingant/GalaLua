@@ -119,6 +119,8 @@ function recv_by_condition( condition , ...)
     end
     while true do
         local mType, mAddr, msg = recv(...)
+
+
         if mType == nil then
             return nil
         end
@@ -137,9 +139,9 @@ function recv_by_condition( condition , ...)
 end
 function recv_by_addr( addr, ... )
     return recv_by_condition(function ( msg )
-                               return (msg[2].host == addr.host and
-                                       msg[2].port == addr.port and
-                                       msg[2].gpid == addr.gpid)
+                               return (msg[2].addr.host == addr.host and
+                                       msg[2].addr.port == addr.port and
+                                       msg[2].addr.gpid == addr.gpid)
                            end, ...)
 end
 function recv_by_type( mType, ... )
