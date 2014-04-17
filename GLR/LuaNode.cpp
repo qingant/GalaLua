@@ -345,6 +345,9 @@ int Process::SendMsgToNode(lua_State *l)
     head->_Protocol._Type = GLRPROTOCOL::APP;
     head->_Protocol._Version = 2;
     CRT_time((time_t*)&head->_Protocol._Stamp);
+
+    head->_Msg._MsgId = msgid;
+    head->_Msg._CorrId = corrid;
     head->_Route._ToGpid = id;
     head->_Protocol._Length = len + sizeof(GLRPROTOCOL) - 4; //Content Length
     head->_Route._FromGpid = self_id;
