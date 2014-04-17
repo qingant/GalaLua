@@ -272,6 +272,10 @@ void GLR::MessageLinkStack::PutSendTask( const std::string &msg, int to_pid, int
     Task t(msg);
     GLRPROTOCOL *head = (GLRPROTOCOL *)&t.Buffer[0];
     head->_Protocol._Type = GLRPROTOCOL::APP;
+
+    head->_Protocol._Magic[0] = 'G';
+    head->_Protocol._Magic[1] = 'L';
+
     head->_Protocol._Version = 2;
     head->_Route._ToGpid = htonl(to_pid);
     memcpy(head->_Host._V2._Host, Runtime::GetInstance().Host().c_str(), Runtime::GetInstance().Host().size());
@@ -290,6 +294,10 @@ void GLR::MessageLinkStack::RegisterTo( const std::string &host, int port, short
     std::string buf(sizeof(GLRPROTOCOL), 0);
     GLRPROTOCOL *pHead = (GLRPROTOCOL*)buf.c_str();
     pHead->_Protocol._Type = GLRPROTOCOL::REGISTER;
+
+    pHead->_Protocol._Magic[0] = 'G';
+    pHead->_Protocol._Magic[1] = 'L';
+
     pHead->_Protocol._Length = htonl(sizeof(GLRPROTOCOL) - sizeof(pHead->_Protocol._Length));
 
     CRT_time((time_t*)&pHead->_Protocol._Stamp);
