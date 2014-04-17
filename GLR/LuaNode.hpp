@@ -8,6 +8,7 @@
 #endif
 #include "Runtime/Queue.hpp"
 #include "Runtime/Utils.hpp"
+
 #include "GLR.hpp"
 #pragma once
 
@@ -85,6 +86,8 @@ namespace GLR
         {
             MAX_DEV_NUMBER = 256
         };
+
+        // TODO: remove this
         static const int SpyerId = 1;
     private:
         Process(int id = 0);
@@ -97,6 +100,7 @@ namespace GLR
         static Galaxy::GalaxyRT::CRWLock  ProcessMapLock;
         static int32_t NodeId;
         static int32_t NodeCount;     //现在活动中的进程数
+        static uint32_t MsgIdGen;
     public:
         static Globals GlobalVars;
     public:
@@ -158,10 +162,14 @@ namespace GLR
 
     private:
         // Helper member and static methods
+        // static
         static void MoveValue(lua_State *src, lua_State *dst, int index);
         static void MoveTable(lua_State *src, lua_State *dst, int index);
-
         static void SetArgumentsForSpawnedProcess(lua_State *l, Process &node, int begin_index);
+
+
+        // non-static helpers
+        void BuildMessageReturnValues(GLRPROTOCOL *head);
     public:
         lua_State * Stack() const { return _Stack; }
     private:

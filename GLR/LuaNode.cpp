@@ -16,6 +16,7 @@ std::vector<Process *> Process::NodeMap(MAX_PROCESS_ID, NULL);
 Galaxy::GalaxyRT::CRWLock Process::ProcessMapLock;
 int32_t Process::NodeId;
 int32_t Process::NodeCount = 0;
+uint32_t Process::MsgIdGen = 0;
 #define RESERVED_PID (32)
 
 Process::Process(int id)
@@ -58,17 +59,7 @@ void Process::SendMsg(const LN_MSG_TYPE& msg)
         // TODO: expose more info to lua
         Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock);
         GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
-        lua_pushinteger(_Stack, head->_Protocol._Type);
-        lua_newtable(_Stack);
-        lua_pushstring(_Stack, (const char*)head->_Host._V2._Host);
-        lua_setfield(_Stack, -2, "host");
-
-        lua_pushinteger(_Stack, head->_Host._V2._Port);
-        lua_setfield(_Stack, -2, "port");
-
-        lua_pushinteger(_Stack, head->_Route._FromGpid);
-        lua_setfield(_Stack, -2, "gpid");
-        lua_pushlstring(_Stack, &msg[sizeof(*head)], msg.size() - sizeof(*head));
+        BuildMessageReturnValues(head);
         _Status._NArg = 3;
         _Status._State = Process::ProcessStatus::RECV_RETURN;
         //StackDump();
@@ -322,16 +313,40 @@ int Process::SendMsgToNode(lua_State *l)
     lua_getglobal(l, "__id__");
     //lua_pushlstring("id");
     LN_ID_TYPE self_id = luaL_checkinteger(l, -1);
+    lua_pop(l, 1);
+
     LN_ID_TYPE id = luaL_checkinteger(l, 1);
+
     size_t len = 0;
     const char *msg = luaL_checklstring(l, 2, &len);
+
+    uint32_t msgid = MsgIdGen, corrid = 0;
+
+    // TODO: atomic_add
+    MsgIdGen++;
+
+
+    if (lua_gettop(l) == 3)
+    {
+        lua_getfield(l, 3, "msgid");
+        if (!lua_isnil(l, -1))
+        {
+            msgid = luaL_checkinteger(l, -1);
+        }
+        lua_pop(l,1);
+
+        lua_getfield(l, 3, "corrid");
+        corrid = luaL_checkinteger(l, -1);
+        lua_pop(l,1);
+    }
+
     LN_MSG_TYPE  pack_msg(len + sizeof(GLRPROTOCOL), 0);
     GLRPROTOCOL *head = (GLRPROTOCOL *)&pack_msg[0];
     head->_Protocol._Type = GLRPROTOCOL::APP;
     head->_Protocol._Version = 2;
     CRT_time((time_t*)&head->_Protocol._Stamp);
     head->_Route._ToGpid = id;
-    head->_Protocol._Length = len; //Content Length
+    head->_Protocol._Length = len + sizeof(GLRPROTOCOL) - 4; //Content Length
     head->_Route._FromGpid = self_id;
     head->_Host._V2._Port = GLR::Runtime::GetInstance().NodeId();
     memcpy(head->_Host._V2._Host, GLR::Runtime::GetInstance().Host().c_str(), GLR::Runtime::GetInstance().Host().size());
@@ -451,17 +466,7 @@ int Process::Recieve(lua_State *l)
         LN_MSG_TYPE msg = self.RecvMsg();
 
         GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
-        lua_pushinteger(self._Stack, head->_Protocol._Type);
-        lua_newtable(self._Stack);
-        lua_pushstring(self._Stack, (const char*)head->_Host._V2._Host);
-        lua_setfield(self._Stack, -2, "host");
-
-        lua_pushinteger(self._Stack, head->_Host._V2._Port);
-        lua_setfield(self._Stack, -2, "port");
-
-        lua_pushinteger(self._Stack, head->_Route._FromGpid);
-        lua_setfield(self._Stack, -2, "gpid");
-        lua_pushlstring(self._Stack, &msg[sizeof(*head)], msg.size() - sizeof(*head));
+        self.BuildMessageReturnValues(head);
         return 3;
     }
     catch (Galaxy::GalaxyRT::CException& e)
@@ -658,6 +663,43 @@ void Process::SetArgumentsForSpawnedProcess(lua_State *l, Process &node, int beg
 
     // using += for ":"-call in entry
     node._Status._NArg += (j);
+}
+
+void Process::BuildMessageReturnValues(GLRPROTOCOL *head)
+{
+    lua_pushinteger(this->_Stack, head->_Protocol._Type);
+
+    lua_newtable(this->_Stack); // desc
+
+    lua_newtable(this->_Stack); // addr
+    lua_pushstring(this->_Stack, (const char*)head->_Host._V2._Host);
+    lua_setfield(this->_Stack, -2, "host");
+
+    lua_pushinteger(this->_Stack, head->_Host._V2._Port);
+    lua_setfield(this->_Stack, -2, "port");
+
+    lua_pushinteger(this->_Stack, head->_Route._FromGpid);
+    lua_setfield(this->_Stack, -2, "gpid");
+
+    lua_setfield(this->_Stack, -2, "addr");
+
+    lua_newtable(this->_Stack); // attr
+
+    // timestamp
+    lua_pushinteger(this->_Stack, head->_Protocol._Stamp);
+    lua_setfield(this->_Stack, -2, "stamp");
+
+    // msgid
+    // XXX: if _MsgId converted to native endian?
+    lua_pushinteger(this->_Stack, head->_Msg._MsgId);
+    lua_setfield(this->_Stack, -2, "msgid");
+
+    lua_pushinteger(this->_Stack, head->_Msg._CorrId);
+    lua_setfield(this->_Stack, -2, "corrid");
+
+    lua_setfield(this->_Stack, -2, "attr");
+
+    lua_pushlstring(this->_Stack, (const char*)head->_Content, head->_Protocol._Length - sizeof(*head) + 4);
 }
 
 Process::ProcessStatus::STATE Process::State() const
