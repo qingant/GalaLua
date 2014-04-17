@@ -148,7 +148,7 @@ int Process::Spawn(lua_State *l)
 
 
         // Set arguments for the new-created glr process
-        SetArgumentsForSpawnedProcess(l, node, 4);
+        SetArgumentsForSpawnedProcess(l, node, 3);
 
 
         // Return Value to Calling Lua Node
