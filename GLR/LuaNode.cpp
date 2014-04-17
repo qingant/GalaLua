@@ -1016,6 +1016,26 @@ void GLR::Process::Entry(const std::string& module, const std::string& entry, ..
     {
         it = std::find(it1, entry.end(), '.');
         memset(tmp, 0, sizeof(tmp));
+        // for ":"
+        if (it == entry.end())
+        {
+            it = std::find(it1, entry.end(), ':');
+            if (it != entry.end())
+            {
+                std::copy(it1, it, tmp);
+                lua_getfield(_Stack, -1, tmp);
+                memset(tmp, 0, sizeof(tmp));
+                std::copy(it+1, entry.end(), tmp);
+                lua_getfield(_Stack,-1, tmp);
+
+                lua_pushvalue(_Stack, -2);
+                _Status._NArg += 1;
+
+                it = entry.end();
+                break;
+            }
+
+        }
         std::copy(it1, it, tmp);
         it1 = it + 1;
         lua_getfield(_Stack, -1, tmp);
@@ -1023,7 +1043,8 @@ void GLR::Process::Entry(const std::string& module, const std::string& entry, ..
     }
     while (it != entry.end());
 
-    if (!lua_isfunction(_Stack, -1))
+    if (!lua_isfunction(_Stack, -1) &&
+            (!lua_isfunction(_Stack, -2) && _Status._NArg == 1))
     {
         const char *type = lua_typename(_Stack, lua_type(_Stack, -1));
 
