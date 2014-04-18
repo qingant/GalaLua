@@ -495,7 +495,7 @@ void GLR::BusController::DoNodeSend( lua_State *l )
     MsgIdGen--;
 
 
-    if (lua_gettop(l) == 5)
+    if (lua_gettop(l) == 5 && lua_istable(l, -1))
     {
         lua_getfield(l, 5, "msgid");
         if (!lua_isnil(l, -1))

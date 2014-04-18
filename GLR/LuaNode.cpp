@@ -326,7 +326,7 @@ int Process::SendMsgToNode(lua_State *l)
     MsgIdGen++;
 
 
-    if (lua_gettop(l) == 3)
+    if (lua_gettop(l) == 3 && lua_istable(l,-1))
     {
         lua_getfield(l, 3, "msgid");
         if (!lua_isnil(l, -1))
