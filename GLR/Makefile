@@ -50,6 +50,7 @@ glr:LuaTest.o
 	rm -f $@
 	$(G++)  $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@
 	cp glr.lua $(HOME)/lib/lua/
+	cp -rf wrappers $(HOME)/lib/lua/
 	mv $@ $(HOME)/bin/
 
 glr_s:SensorFrm.cpp $(GLR_OBJ) resource/bswap.c resource/resource.c resource/resxloader.c resource/cmodulepack.c
