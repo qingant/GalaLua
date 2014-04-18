@@ -40,12 +40,12 @@ function spawn_ex(bindPid, mod_name, entry, ...)
     return _glr.spawn_ex(bindPid, mod_name, entry, ...)
 end
 
-function send(addr, msg)
+function send(addr, msg, attr)
 	if type(addr) == "table" then
 		if self_host == addr.host and self_port == addr.port then
-			return _glr.send(addr.gpid, msg)
+			return _glr.send(addr.gpid, msg, attr)
 		else
-			return _glr.int(GBUS_INT_NO, 1, addr.host, addr.port, msg, addr.gpid) -- node send
+			return _glr.int(GBUS_INT_NO, 1, addr, msg, attr) -- node send
 		end
 	else
 		return _glr.send(addr, msg)
