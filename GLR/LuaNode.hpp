@@ -87,8 +87,6 @@ namespace GLR
             MAX_DEV_NUMBER = 256
         };
 
-        // TODO: remove this
-        static const int SpyerId = 1;
     private:
         Process(int id = 0);
         void InitNode(void);
@@ -133,7 +131,6 @@ namespace GLR
         static void SendMsgToNode(LN_ID_TYPE,
             const std::string &,
             GLRPROTOCOL::MSG_TYPE type = GLRPROTOCOL::APP);
-        static void CreateSpyer();
 
     public:
         void DoString(const std::string&);
