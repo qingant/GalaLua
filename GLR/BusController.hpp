@@ -67,7 +67,7 @@ namespace GLR
         MessageLinkStack(Galaxy::GalaxyRT::CSocket*, RouteMap&);
         ~MessageLinkStack();
     public:
-        void PutSendTask(const std::string &, int, int);
+        void PutSendTask(const std::string &msg, int to_gpid, int src_gpid, uint32_t msgid = 0, uint32_t corrid = 0);
     public:
         virtual void OnErr(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&);
         virtual void OnRecv(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&);
@@ -150,5 +150,7 @@ namespace GLR
         POLLERTYPE _Poller;
         RouteMap _Router;
         BusWorker  _Worker;
+    private:
+        static uint32_t MsgIdGen;
     };
 }

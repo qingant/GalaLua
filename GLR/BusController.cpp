@@ -267,20 +267,27 @@ void GLR::MessageLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, PO
     }
 }
 
-void GLR::MessageLinkStack::PutSendTask( const std::string &msg, int to_pid, int src_pid )
+void GLR::MessageLinkStack::PutSendTask( const std::string &msg, int to_pid, int src_pid, uint32_t msgid, uint32_t corrid )
 {
+    // the constructor set GLRPROTOCOL._Protocol._Length by network endian
     Task t(msg);
+
+
     GLRPROTOCOL *head = (GLRPROTOCOL *)&t.Buffer[0];
     head->_Protocol._Type = GLRPROTOCOL::APP;
 
     head->_Protocol._Magic[0] = 'G';
     head->_Protocol._Magic[1] = 'L';
 
+    head->_Msg._CorrId = htonl(corrid);
+    head->_Msg._MsgId = htonl(msgid);
+
     head->_Protocol._Version = 2;
     head->_Route._ToGpid = htonl(to_pid);
     memcpy(head->_Host._V2._Host, Runtime::GetInstance().Host().c_str(), Runtime::GetInstance().Host().size());
     head->_Host._V2._Port = htonl(Runtime::GetInstance().NodeId());
     head->_Route._FromGpid = htonl(src_pid);
+
     CRT_time((time_t*)&head->_Protocol._Stamp);
     head->_Protocol._Stamp = htonl(head->_Protocol._Stamp);
     _SendTaskQ.Put(t);
@@ -462,13 +469,45 @@ void GLR::BusController::DoNodeReg( lua_State *l )
     }
 }
 
+uint32_t GLR::BusController::MsgIdGen = 0xffffffff;
+
 void GLR::BusController::DoNodeSend( lua_State *l )
 {
     lua_getglobal(l,"__id__");
     int pid = luaL_checkinteger(l,-1);
-    const char* host = luaL_checkstring(l, 3);
-    int port = luaL_checkinteger(l, 4);
-    int des_pid = luaL_checkinteger(l, 6);
+    lua_pop(l, 1);
+
+    lua_getfield(l, 3, "host");
+    // XXX: luaL_error cross C++ call
+    const char *host = luaL_checkstring(l, -1);
+    lua_pop(l, 1);
+
+    lua_getfield(l, 3, "port");
+    int port = luaL_checkinteger(l, -1);
+    lua_pop(l, 1);
+
+    lua_getfield(l, 3, "gpid");
+    int des_pid = luaL_checkinteger(l, -1);
+    lua_pop(l, 1);
+
+    uint32_t msgid = MsgIdGen, corrid = 0;
+    // TODO: atomic_add
+    MsgIdGen--;
+
+
+    if (lua_gettop(l) == 5)
+    {
+        lua_getfield(l, 5, "msgid");
+        if (!lua_isnil(l, -1))
+        {
+            msgid = luaL_checkinteger(l, -1);
+        }
+        lua_pop(l,1);
+
+        lua_getfield(l, 3, "corrid");
+        corrid = luaL_checkinteger(l, -1);
+        lua_pop(l,1);
+    }
     char id[64] = {0};
     snprintf(id, sizeof(id), "%s::%d", host, port);
     if (!_Router.has_key(id))
@@ -490,8 +529,8 @@ void GLR::BusController::DoNodeSend( lua_State *l )
     }
     const char *msg = NULL;
     size_t len = 0;
-    msg = luaL_checklstring(l, 5, &len);
-    ms->PutSendTask(std::string(msg, len), des_pid, pid);
+    msg = luaL_checklstring(l, 4, &len);
+    ms->PutSendTask(std::string(msg, len), des_pid, pid, msgid, corrid);
     _Poller.Register(fd, Galaxy::GalaxyRT::EV_OUT);
     Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
 }
