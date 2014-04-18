@@ -147,7 +147,7 @@ function mdb:_implement_storage()
 end
 function mdb:commit()
     if  self.txn ~= nil then
-        self.txn:commit()
+        assert(self.txn:commit())
         self.txn = nil
         self.dbi = nil
     else
@@ -168,13 +168,13 @@ function mdb:abort()
 end
 function mdb:beginTrans()
     assert(self.txn == nil, "Alredy in Transaction")
-    self.txn = self.env:txn_begin(nil, lightningmdb.MDB_RDONLY)
-    self.dbi = self.txn:dbi_open(nil,lightningmdb.MDB_DUPSORT)
+    self.txn = assert(self.env:txn_begin(nil, lightningmdb.MDB_RDONLY))
+    self.dbi = assert(self.txn:dbi_open(nil,lightningmdb.MDB_DUPSORT))
 end
 function mdb:beginWRTrans()
     assert(self.txn == nil, "Alredy in Transaction")
-    self.txn = self.env:txn_begin(nil, 0)
-    self.dbi = self.txn:dbi_open(nil,lightningmdb.MDB_DUPSORT)
+    self.txn = assert(self.env:txn_begin(nil, 0))
+    self.dbi = assert(self.txn:dbi_open(nil,lightningmdb.MDB_DUPSORT))
 end
 mdb.beginRDTrans = mdb.beginTrans
 
@@ -676,7 +676,7 @@ end
 function element:add_attrib(k, v)
     local attr = string.format("a:%s`%s", k, v)
 
-    self._db.txn:put(self._db.dbi, self.key, attr,lightningmdb.MDB_NODUPDATA)
+    self:_raw_put(attr)
 end
 
 function element:set_attrib( k, v )
@@ -685,7 +685,9 @@ function element:set_attrib( k, v )
 end
 function element:add_value(v)
     local value = string.format("v:%s", v)
-    self._db.txn:put(self._db.dbi, self.key, value,lightningmdb.MDB_NODUPDATA)
+
+    self:_raw_put(value)
+
 end
 -- function element:set_value(v)
 --    self:remove_value(v)
@@ -733,7 +735,7 @@ function element:add_node(k)
     --pprint.pprint(self._db)
 
     --if self:get_child(k) == nil then
-    self._db.txn:put(self._db.dbi, self.key, ch,lightningmdb.MDB_NODUPDATA)
+    self:_raw_put(ch)
     --end
 
     local key = string.format("%s%s%s", self.key, path_sep,  k)
@@ -745,7 +747,12 @@ function element:add_node(k)
 end
 function element:_raw_put(v)
     --print(debug.traceback())
-    self._db.txn:put(self._db.dbi, self.key, v,lightningmdb.MDB_NODUPDATA)
+    local ok,emsg=self._db.txn:put(self._db.dbi, self.key, v,lightningmdb.MDB_NODUPDATA)
+    if not ok then
+        if emsg:sub(1,13)~="MDB_KEYEXIST:" then
+            error(emsg)
+        end
+    end
 end
 function element:_add_ref(k, link)
     local key = string.format("%s%s%s", self.key, path_sep,  k)
