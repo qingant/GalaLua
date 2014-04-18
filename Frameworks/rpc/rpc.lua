@@ -5,6 +5,9 @@
 	== Introduction ==
 	GLR Service Framework
 
+    == TODO ==
+    - replace json with message-pack or some more effecent protocol conditionally
+    - working with general logging interface
 ]]
 
 __VER__ = "1.0"
@@ -35,7 +38,8 @@ end
 
 function server:main_loop( ... )
 	while true do
-		local type,addr,msg = glr.recv()
+		local type,desc,msg = glr.recv()
+        local addr = desc.addr
 		local call = cjson.decode(msg)
 		if call.method and call.params and self[call.method] then
 			local response, error_msg = self[call.method](self,

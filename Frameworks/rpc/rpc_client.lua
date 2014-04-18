@@ -12,7 +12,7 @@ __VER__ = "1.0"
 module(..., package.seeall)
 
 local cjson = require("cjson")
-local pprint = require("pprint")
+local pprint = require("pprint").pprint
 
 client = {}
 
@@ -37,6 +37,7 @@ function client:call(method, params)
                                               id = self._id
                                             })
     -- TODO: matching recv
-    local type, addr, msg = glr.recv_by_addr(self._server_addr)
+    local type, desc, msg = glr.recv_by_addr(self._server_addr)
+    pprint(desc, "call")
     return cjson.decode(msg)
 end
