@@ -6,11 +6,11 @@
 # Your platform. See PLATS for possible values.
 PLAT= none
 
-CFLAGS= -O2 -Wall -DLUA_COMPAT_ALL $(MYCFLAGS)
+CFLAGS= -O2 -Wall -DLUA_COMPAT_ALL -DLUA_USE_POSIX -DLUA_USE_DLOPEN  $(MYCFLAGS)
 PLATFORM      =  $(shell uname)
 RANLIB= ranlib
 RM= rm -f
-LIBS= -lm $(MYLIBS)
+LIBS= -lm -ldl $(MYLIBS)
 MYLDFLAGS=
 MYLIBS=
 ifeq ($(PLATFORM),AIX)
