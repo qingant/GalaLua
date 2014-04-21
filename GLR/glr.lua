@@ -2,23 +2,8 @@
 -- local __main__ = ...
 -- local __self__ = package.loaded[__main__]
 local M = {}
-local _glr = _glr
-local type = type
+local require = require
 local pairs = pairs
-local ipairs = ipairs
-local string = string
-
-local assert=assert
-local require= require
-local table=table
-local package=package
-local loadstring=loadstring
-local setmetatable = setmetatable
-local pcall = pcall
-local error = error
-local print = print
-local unpack = unpack
-
 if _VERSION== "Lua 5.2" then
     _ENV=M
 else
