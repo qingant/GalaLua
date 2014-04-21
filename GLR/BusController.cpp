@@ -173,9 +173,13 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
     else if (pMsg->_Protocol._Type == GLRPROTOCOL::APP)
     {
 
+        // convert to host endian for all needed fields
         pMsg->_Route._FromGpid = ntohl( pMsg->_Route._FromGpid);
         pMsg->_Host._V2._Port = ntohl( pMsg->_Host._V2._Port);
         pMsg->_Protocol._Stamp = ntohl( pMsg->_Protocol._Stamp);
+        pMsg->_Msg._MsgId = ntohl( pMsg->_Msg._MsgId);
+        pMsg->_Msg._CorrId = ntohl( pMsg->_Msg._CorrId);
+
         Runtime::GetInstance().GetBus().Send(ntohl(pMsg->_Route._ToGpid), msg);
     }
 }
