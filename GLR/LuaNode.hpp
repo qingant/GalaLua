@@ -20,25 +20,6 @@ namespace GLR
     typedef Galaxy::GalaxyRT::_TypeDef_FIFO<std::string>::CFIFOQueue LN_CHL_TYPE;
 
     class Schedule;
-    class Globals
-    {
-
-    public:
-        struct UserData
-        {
-            void *Content;
-            std::string Name;
-            UserData():Content(NULL), Name(32,0){}
-        };
-        typedef Galaxy::GalaxyRT::ConcurrentMap<std::string, UserData> VARMAP;
-    public:
-        Globals();
-        ~Globals();
-        void Put(const std::string &, void**, const std::string &);
-        const UserData &Get(const std::string &);
-    private:
-        VARMAP _VarMap;
-    };
     class Process
     {
     public:
@@ -99,8 +80,7 @@ namespace GLR
         static int32_t NodeId;
         static int32_t NodeCount;     //现在活动中的进程数
         static uint32_t MsgIdGen;
-    public:
-        static Globals GlobalVars;
+
     public:
         // Built In Ops
         static int Spawn(lua_State *l);
@@ -112,8 +92,6 @@ namespace GLR
         static int Interrupt(lua_State *l);
         static int Status(lua_State *l);
         static int AllProcesses(lua_State *l);
-        static int RegisterGlobal(lua_State *l);
-        static int GetGlobal(lua_State *l);
         static int GetNodeAddr(lua_State *l);
         static int GetFilePath(lua_State *l);
         static int Kill(lua_State *l);

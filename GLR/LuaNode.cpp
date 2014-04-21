@@ -228,8 +228,6 @@ void Process::InitNode(void)
         { "int", Interrupt },
         { "all", AllProcesses },
         { "status", Status },
-        { "global", RegisterGlobal },
-        { "get_global", GetGlobal },
         { "node_addr", GetNodeAddr },
         { "get_path", GetFilePath },
         { "kill", Kill },
@@ -922,83 +920,7 @@ int Process::AllProcesses(lua_State *l)
     return 2;
 }
 
-GLR::Globals::Globals()
-{
 
-}
-
-GLR::Globals::~Globals()
-{
-
-}
-
-void GLR::Globals::Put(const std::string& id, void **data, const std::string& type)
-{
-    UserData ud;
-    ud.Content = *data;
-    ud.Name = type;
-    _VarMap.insert(std::make_pair(id, ud));
-}
-
-const GLR::Globals::UserData& GLR::Globals::Get(const std::string& id)
-{
-    return _VarMap[id];
-}
-
-GLR::Globals GLR::Process::GlobalVars;
-
-//All userdata pass into this function should have registered
-//it's metatable name to it's metatable with key "__my_name"
-int GLR::Process::RegisterGlobal(lua_State *l)
-{
-    void *ud = lua_touserdata(l, 2);
-    const char *id = luaL_checkstring(l, 1);
-
-    //get the metatable name
-    if (lua_getmetatable(l, 2) == 0)
-    {
-        return luaL_error(l, "userdata do not has metatable  %s %d", __func__, __LINE__);
-    }
-    //!+ ��Ҫ����������;���"__my_name"����
-    lua_getfield(l, -1, "__my_name");
-
-    const char *type = luaL_checkstring(l, -1);
-
-    GlobalVars.Put(id, (void **)ud, type);
-    lua_pushvalue(l, -1);
-    return 0;
-}
-
-int GLR::Process::GetGlobal(lua_State *l)
-{
-    const char *id = luaL_checkstring(l, 1);
-    const Globals::UserData& ud = GlobalVars.Get(id);
-
-    if (ud.Content == NULL)
-    {
-        lua_pushnil(l);
-        std::string err(id);
-        err += " not found";
-        lua_pushstring(l, err.c_str());
-        return 2;
-    } else
-    {
-        void *p = lua_newuserdata(l, sizeof(ud.Content));
-        memcpy(p, &ud.Content, sizeof(ud.Content));
-        luaL_getmetatable(l, ud.Name.c_str());
-
-        lua_pushvalue(l, -1);
-
-        //clear __gc
-        lua_pushnil(l);
-        lua_setfield(l, -2, "__gc");
-
-        lua_setmetatable(l, -3);
-        lua_settop(l, -2);
-
-        return 1;
-    }
-}
 
 int GLR::Process::GetNodeAddr(lua_State *l)
 {

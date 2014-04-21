@@ -12,10 +12,6 @@ module(..., package.seeall)
 
 
 
--- global = _glr.global
--- get_global = _glr.get_global
-
-
 local self_host, self_port = _glr.node_addr()
 local SOCK_INT_NO = 0x01000000
 local CLOK_INT_NO = 0x00000000
