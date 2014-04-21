@@ -27,7 +27,7 @@ void GLR::Bus::IntSuspend( int pid )
     nd._Status._State = Process::ProcessStatus::INT_WAIT;
 }
 
-void GLR::Bus::Return( int pid, int narg,int type,std::map<std::string,int>m)
+void GLR::Bus::Return( int pid, int narg,int type,std::map<std::string,int> m)
 {
     Process &nd = Runtime::GetInstance().GetProcess(pid);
     if (nd._Status._State != Process::ProcessStatus::GLR_CALL)
