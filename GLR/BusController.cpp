@@ -166,6 +166,8 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
         _Router.insert(std::make_pair(std::string(id), _Sock->GetFD()));
         GALA_DEBUG("%s registered", id);
         _Id = id;
+        _Host = (const char *)pMsg->_Host._V2._Host;
+        _Port = ntohl(pMsg->_Host._V2._Port);
         //Runtime::GetInstance().GetBus().Send(_Gpid, msg);
     }
     else if (pMsg->_Protocol._Type == GLRPROTOCOL::APP)

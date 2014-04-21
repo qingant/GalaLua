@@ -83,8 +83,8 @@ namespace GLR
         TaskQueue _SendTaskQ;
         RouteMap  &_Router;
         std::string _Id;
-        //uint32_t    _Port;
-
+        std::string _Host;
+        uint32_t    _Port;
     };
 
     class MessageServerStack: public MessageStack
