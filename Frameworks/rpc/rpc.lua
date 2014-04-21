@@ -40,6 +40,7 @@ function server:main_loop( ... )
 	while true do
 		local type,desc,msg = glr.recv()
         local addr = desc.addr
+        local response_attr = {corrid=desc.attr.msgid}
 		local call = cjson.decode(msg)
 		if call.method and call.params and self[call.method] then
 			local response, error_msg = self[call.method](self,
@@ -49,18 +50,18 @@ function server:main_loop( ... )
 			if response then
 				glr.send(addr, cjson.encode{error="null",
                                             id=call.id,
-                                            result=response})
+                                            result=response}, response_attr)
 			else
 				glr.send(addr, cjson.encode{error=error_msg,
                                             id=call.id,
-                                            result="null"})
+                                            result="null"}, response_attr)
 			end
 		else
 			-- TODO: error logging
             glr.send(addr, cjson.encode{ error = "no method or method not exist",
                                          id = call.id,
                                          result = "null"
-                                       })
+                                       }, response_attr)
 		end
 	end
 end
