@@ -538,7 +538,13 @@ void GLR::BusController::DoNodeSend( lua_State *l )
     msg = luaL_checklstring(l, 4, &len);
     ms->PutSendTask(std::string(msg, len), des_pid, pid, msgid, corrid);
     _Poller.Register(fd, Galaxy::GalaxyRT::EV_OUT);
-    Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
+
+    std::map<std::string, int> attr;
+    attr["corrid"] = corrid;
+    attr["msgid"] = msgid;
+    //TODO: add stamp
+
+    Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TTABLE, attr);
 }
 
 void GLR::BusController::DoCheckReg( lua_State *l)

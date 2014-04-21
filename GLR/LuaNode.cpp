@@ -356,7 +356,18 @@ int Process::SendMsgToNode(lua_State *l)
     memcpy((void *)&pack_msg[sizeof(*head)], msg, len);
     //GetNodeById(id).SendMsg(pack_msg);
     SendMsgToNode(id, pack_msg);
-    lua_pushboolean(l, 1);
+
+    lua_newtable(l);
+
+    lua_pushinteger(l, msgid);
+    lua_setfield(l, -2, "msgid");
+
+    lua_pushinteger(l, corrid);
+    lua_setfield(l, -2, "corrid");
+
+    lua_pushinteger(l, head->_Protocol._Stamp);
+    lua_setfield(l, -2, "stamp");
+
     return 1;
 }
 
