@@ -56,7 +56,7 @@ void GLR::Bus::Return( int pid, int narg,int type,std::map<std::string,int> m)
 
 void GLR::Bus::Return( int pid, int narg, ...)
 {
-    // Return ²»ĞèÒªËø±£»¤£¬ÒòÎªGLR_CALLµÄ½ø³Ì²»»á±»Ïú»Ù
+    // Return ä¸éœ€è¦é”ä¿æŠ¤ï¼Œå› ä¸ºGLR_CALLçš„è¿›ç¨‹ä¸ä¼šè¢«é”€æ¯
     Process &nd = Runtime::GetInstance().GetProcess(pid);
     if (nd._Status._State != Process::ProcessStatus::GLR_CALL)
     {
@@ -107,7 +107,7 @@ void GLR::Bus::TimerSignal( int pid, int tick )
 {
     try
     {
-        // ±£»¤´úÂë¿é£¬±ÜÃâ·µ»ØµÄ½ø³Ì±»Ïú»Ù 
+        // ä¿æŠ¤ä»£ç å—ï¼Œé¿å…è¿”å›çš„è¿›ç¨‹è¢«é”€æ¯ 
         Galaxy::GalaxyRT::CRWLockAdapter _RL(GLR::Process::ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
         Galaxy::GalaxyRT::CLockGuard _(&_RL);
 
@@ -142,7 +142,7 @@ void GLR::Bus::TimerSignal( int pid, int tick )
 
 bool GLR::Bus::IsCanceled( int pid, int tick )
 {
-    // ±£»¤´úÂë¿é£¬±ÜÃâ·µ»ØµÄ½ø³Ì±»Ïú»Ù 
+    // ä¿æŠ¤ä»£ç å—ï¼Œé¿å…è¿”å›çš„è¿›ç¨‹è¢«é”€æ¯ 
     Galaxy::GalaxyRT::CRWLockAdapter _RL(GLR::Process::ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _(&_RL);
     Process &nd = Runtime::GetInstance().GetProcess(pid);
@@ -160,7 +160,7 @@ bool Bus::ResponseEx(int pid, int tick, int narg, ...)
 
     try
     {
-        // ±£»¤´úÂë¿é£¬±ÜÃâ·µ»ØµÄ½ø³Ì±»Ïú»Ù 
+        // ä¿æŠ¤ä»£ç å—ï¼Œé¿å…è¿”å›çš„è¿›ç¨‹è¢«é”€æ¯ 
         Galaxy::GalaxyRT::CRWLockAdapter _RL(GLR::Process::ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
         Galaxy::GalaxyRT::CLockGuard _(&_RL);
 
@@ -235,7 +235,7 @@ void Bus::Response( int pid, int narg, ...)
 
     try
     {
-        // ±£»¤´úÂë¿é£¬±ÜÃâ·µ»ØµÄ½ø³Ì±»Ïú»Ù 
+        // ä¿æŠ¤ä»£ç å—ï¼Œé¿å…è¿”å›çš„è¿›ç¨‹è¢«é”€æ¯ 
         Galaxy::GalaxyRT::CRWLockAdapter _RL(GLR::Process::ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
         Galaxy::GalaxyRT::CLockGuard _(&_RL);
 

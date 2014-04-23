@@ -78,7 +78,7 @@ namespace GLR
 
         static Galaxy::GalaxyRT::CRWLock  ProcessMapLock;
         static int32_t NodeId;
-        static int32_t NodeCount;     //ÏÖÔÚ»î¶¯ÖÐµÄ½ø³ÌÊý
+        static int32_t NodeCount;     //çŽ°åœ¨æ´»åŠ¨ä¸­çš„è¿›ç¨‹æ•°
         static uint32_t MsgIdGen;
 
     public:
@@ -155,7 +155,7 @@ namespace GLR
         Galaxy::GalaxyRT::CPthreadMutex              _IntLock;   //Interrupt Lock
         //std::condition_variable _Cond;
         int32_t                 _Id;
-        int32_t                 _ParentId;                       //_ParentId ¸¸½ø³ÌId
+        int32_t                 _ParentId;                       //_ParentId çˆ¶è¿›ç¨‹Id
         void Id(int32_t val) { _Id = val; }
         std::string   _Path;
     public:
