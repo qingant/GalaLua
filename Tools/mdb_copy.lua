@@ -1,16 +1,16 @@
 module("mdb_copy",package.seeall)
-local lightningmdb_lib=require "lightningmdb"
-local lightningmdb = _VERSION=="Lua 5.2" and lightningmdb_lib or lightningmdb
+local mdb=(require "mdb").mdb
 local pprint=require "pprint"
 local path=require "path"
+local cmd=require "cmd"
 
 local function _mdb_copy(src,dst)
-    local e=lightningmdb.env_create()
-    local num_pages = 1024
-    e:set_mapsize(num_pages*4096)
-    assert(e:open(src,0,420))
-    e:copy(dst)
+    local e=mdb._create_env(src)
+    local ok,emsg=xpcall(function () return e:copy(dst) end,debug.traceback)
     e:close()
+    if not ok then
+        cmd.cmd_error(emsg or "mdb_copy error")
+    end
 end
 
 --TODO:ensure all process open mdb must be stopped
