@@ -710,7 +710,15 @@ void Process::BuildMessageReturnValues(GLRPROTOCOL *head)
 
     lua_setfield(this->_Stack, -2, "attr");
 
-    lua_pushlstring(this->_Stack, (const char*)head->_Content, head->_Protocol._Length - sizeof(*head) + 4);
+    int len= head->_Protocol._Length - sizeof(*head) + 4;
+    if (len>0)
+    {
+        lua_pushlstring(this->_Stack, (const char*)head->_Content,len );
+    }
+    else
+    {
+        lua_pushnil(this->_Stack);
+    }
 }
 
 Process::ProcessStatus::STATE Process::State() const
