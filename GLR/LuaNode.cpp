@@ -702,10 +702,10 @@ void Process::BuildMessageReturnValues(GLRPROTOCOL *head)
 
     // msgid
     // XXX: if _MsgId converted to native endian?
-    lua_pushinteger(this->_Stack, head->_Msg._MsgId);
+    lua_pushinteger(this->_Stack, (int)head->_Msg._MsgId);
     lua_setfield(this->_Stack, -2, "msgid");
 
-    lua_pushinteger(this->_Stack, head->_Msg._CorrId);
+    lua_pushinteger(this->_Stack, (int)head->_Msg._CorrId);
     lua_setfield(this->_Stack, -2, "corrid");
 
     lua_setfield(this->_Stack, -2, "attr");
@@ -750,6 +750,7 @@ int Process::Interrupt(lua_State *l)
 
     lua_getglobal(l, "__id__");
     LN_ID_TYPE id = luaL_checkinteger(l, -1);
+    lua_pop(l,1);
     Process& n = Process::GetNodeById(id);
     n._Status._State = ProcessStatus::GLR_CALL;
     int dev = luaL_checkinteger(l, 1);

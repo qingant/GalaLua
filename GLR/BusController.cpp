@@ -180,6 +180,7 @@ void GLR::MessageLinkStack::OnMessage( const std::string &msg )
         pMsg->_Msg._MsgId = ntohl( pMsg->_Msg._MsgId);
         pMsg->_Msg._CorrId = ntohl( pMsg->_Msg._CorrId);
 
+
         Runtime::GetInstance().GetBus().Send(ntohl(pMsg->_Route._ToGpid), msg);
     }
 }
@@ -510,7 +511,7 @@ void GLR::BusController::DoNodeSend( lua_State *l )
         }
         lua_pop(l,1);
 
-        lua_getfield(l, 3, "corrid");
+        lua_getfield(l, 5, "corrid");
         corrid = luaL_checkinteger(l, -1);
         lua_pop(l,1);
     }

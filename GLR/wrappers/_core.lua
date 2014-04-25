@@ -44,7 +44,7 @@ function send(addr, msg, attr)
 			return _glr.int(GBUS_INT_NO, 1, addr, msg, attr) -- node send
 		end
 	else
-		return _glr.send(addr, msg, addr)
+		return _glr.send(addr, msg, attr)
 	end
 end
 
