@@ -432,9 +432,8 @@ void Process::Resume()
     {
         GALA_DEBUG("Resume Return (%d)\n", rt);
         StackDump();
-        lua_getglobal(_Stack, "debug");
-        lua_getfield(_Stack, -1, "traceback");
-        lua_pcall(_Stack, 0, 1, 0);      // this call should never fail
+
+        luaL_traceback(_Stack,_Stack,NULL,1);
         const char *msg = luaL_checkstring(_Stack, -1);
         GALA_DEBUG(msg);
         _Status._State = ProcessStatus::STOPED;
