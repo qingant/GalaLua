@@ -35,7 +35,6 @@ function yes_or_no(prompt,default)
     end
 
     if input~="y" then
-        writef("Aborted\n")
         return false
     end
     return true
@@ -143,20 +142,37 @@ function init_cmd(name)
 end
 
 
-function cmd_error(str,...)
+local THROW_TYPE={
+    ABORT="@abort@",
+    ERROR="@error@",
+}
+
+local function cmd_throw(t,str,...)
     assert(type(str)=="string","must be string") 
     local str2=string.format(str,...)
-    local s=string.format("@#%s",str2)
+    local s=string.format("%s%s",t,str2)
     error(s)
+end
+
+function cmd_error(str,...)
+    cmd_throw(THROW_TYPE.ERROR,str,...)
+end
+
+function cmd_abort(str,...)
+    cmd_throw(THROW_TYPE.ABORT,str or "cancelled by user",...)
 end
 
 function perror(str)
     assert(type(str)=="string","must be string") 
-    local err=string.match(str,"@#(.*)")
-    if err==nil then
-        err=str
+
+    for t,v in pairs(THROW_TYPE) do
+        local err=string.match(str,string.format("%s(.*)",v))
+        if err~=nil then
+            return writef("%s: %s\n",t,err)
+        end
     end
-    return writef("Error:%s\n",err)
+    --Just show raw message if throw exception without using cmd_throw.
+    return writef("Error: %s\n",str)
 end
 
 if ...=="__main__" then
