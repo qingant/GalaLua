@@ -12,6 +12,35 @@ function writef(fmt,...)
     end
 end
 
+function prompt_and_read(prompt,default)
+    local default=default or ""
+    local default_p=""
+    if default~="" then
+        default_p=string.format("[%s]",default)
+    end
+    writef("%s: %s",prompt,default_p)
+    local input=io.read()
+    if input=="" then
+        return default
+    end
+    return input
+end
+
+function yes_or_no(prompt,default)
+    local default=default or "n"
+    assert(default=="y" or default=="n","must be 'y' or 'n'.")
+    local input=""
+    while input=="" do
+        input=prompt_and_read(string.format("%s. Continue? (y|n)",prompt),default)
+    end
+
+    if input~="y" then
+        writef("Aborted\n")
+        return false
+    end
+    return true
+end
+
 local cmd={}
 function cmd:new(name)
     local o={}
@@ -130,3 +159,8 @@ function perror(str)
     return writef("Error:%s\n",err)
 end
 
+if ...=="__main__" then
+
+    print(prompt_and_read("input your name","funccc"))
+    print(yes_or_no("the process will be killed"))
+end
