@@ -31,6 +31,8 @@ net = require("wrappers._net")
 -- utils
 mixin(require("wrappers._utils"))
 
+mixin(require("global"))
+
 
 return M
 
