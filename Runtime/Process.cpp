@@ -14,8 +14,6 @@
 */
 
 #include "Process.hpp"
-#include "File.hpp"
-#include "IPC.hpp"
 
 namespace Galaxy
 {

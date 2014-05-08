@@ -15,7 +15,6 @@
 #include <vector>
 #include "Object.hpp"
 #include "Exception.hpp"
-#include "Options.hpp"
 
 namespace Galaxy
 {
