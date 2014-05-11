@@ -19,7 +19,7 @@ ifeq ($(PLATFORM),AIX)
 	LDFLAGS += -q64 -qmkshrobj -q64 -brtl -brtllib -berok -lm
 else
 	AR= ar rcs
-	CC= gcc
+	CC= g++
 	LDFLAGS += -shared
 	MYCFLAGS= -fPIC
 endif
@@ -97,7 +97,7 @@ none:
 	@echo "   $(PLATS)"
 
 aix:
-	$(MAKE) $(ALL) CC="xlc_r" CFLAGS="-q64 -O2 -DLUA_COMPAT_ALL -DLUA_USE_POSIX -DLUA_USE_DLOPEN" MYLIBS="-ldl" MYLDFLAGS="-q64 -brtl -bexpall"
+	$(MAKE) $(ALL) CC="xlc++_r" CFLAGS="-q64 -O2 -DLUA_COMPAT_ALL -DLUA_USE_POSIX -DLUA_USE_DLOPEN" MYLIBS="-ldl" MYLDFLAGS="-q64 -brtl -bexpall"
 ansi:
 	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_ANSI"
 

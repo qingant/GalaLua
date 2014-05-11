@@ -69,7 +69,7 @@
 #define LUA_USE_MKSTEMP
 #define LUA_USE_ISATTY
 #define LUA_USE_POPEN
-#define LUA_USE_ULONGJMP
+//#define LUA_USE_ULONGJMP
 #define LUA_USE_GMTIME_R
 #endif
 
@@ -150,7 +150,11 @@
 
 #else				/* }{ */
 
-#define LUA_API		extern
+#if defined(__cplusplus)
+#define LUA_API		extern "C"
+#else
+#define LUA_API		extern 
+#endif
 
 #endif				/* } */
 
