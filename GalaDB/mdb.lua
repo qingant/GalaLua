@@ -13,14 +13,6 @@ assert(require("str_utils"), "Cannot Import str_utils")
 assert(require("tab_utils"),"Cannot Import tab_utils")
 local logging = require("logging")
 
-local osxpcall = xpcall
-local function _xpcall(action,err,...)
-   local args = unpack{...}
-   return osxpcall(function() return action(args) end,err)
-end
-
-xpcall = _xpcall
-
 --[[
     Node:
     a:key`value  attribute key -> value
@@ -741,7 +733,7 @@ function element:add_node(k)
     local key = string.format("%s%s%s", self.key, path_sep,  k)
 
 
-    o = element:new{_db = self._db, key = key, e_type = "regular", _root = self._root}
+    local o = element:new{_db = self._db, key = key, e_type = "regular", _root = self._root}
 --    o:_raw_put("t:node")
     return o
 end
