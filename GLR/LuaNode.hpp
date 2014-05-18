@@ -63,7 +63,7 @@ namespace GLR
             TIMER,
             SOCKET,
         };
-        enum 
+        enum
         {
             MAX_DEV_NUMBER = 256
         };

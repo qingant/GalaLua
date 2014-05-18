@@ -4,6 +4,7 @@
 local M = {}
 local require = require
 local pairs = pairs
+local _glr = _glr
 if _VERSION== "Lua 5.2" then
     _ENV=M
 else
@@ -14,7 +15,6 @@ __VER__ = "1.0"  -- first api wrapper for glr-1.x
 
 local function mixin(mod)
     for k,v in pairs(mod) do
-        
         M[k] = v
     end
 end
@@ -33,6 +33,8 @@ mixin(require("wrappers._utils"))
 
 mixin(require("global"))
 
+-- NamedProcessTable
+npt = _glr.npt
 
 return M
 
