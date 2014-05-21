@@ -128,6 +128,7 @@ function _logger:fatal(format, ...)
     self:_log(self.enum_FATAL, format, ...)
 end
 function _logger:close()
+    self:flush()
     glr.send(self._handler,"!#")
 end
 function _logger:reset()
