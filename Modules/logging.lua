@@ -71,7 +71,7 @@ function _logger:init(path,size,copys,level_func)
     info.size = size or (64*1024*1024)
     info.copys = copys or 2000
     glr.send(logPid,"!@"..cjson.encode(info))
-    local _,_,msg = glr.recvByAddr({host=glr.sys.host,port=glr.sys.port,gpid=logPid})
+    local _,_,msg = glr.recv_by_addr({host=glr.sys.host,port=glr.sys.port,gpid=logPid})
     self._handler = cjson.decode(msg)
     self.flag = flag or 0
     pprint.pprint(self._handler)

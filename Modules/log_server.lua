@@ -45,7 +45,8 @@ function glrLogServerDispatch(info)
     local pidDict = {}
     while true do
         repeat
-            local msgType, addr, msg = glr.recv()
+            local msgType, maddr, msg = glr.recv()
+            local addr=maddr.addr
             if msgType == glr.EXIT then
                 local key = pidDict[addr.gpid]
                 if key ~= nil then
