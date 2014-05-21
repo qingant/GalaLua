@@ -43,6 +43,7 @@ static:
 	cd lua-time/ && make static
 	cd lua-snappy/snappy/ && make static
 	cd lua-snappy && make static
+	cd lua-aimagtpls && make static
 	$(MAKE) -C lua-time static
 	$(MAKE) -C lua-codec static
 #	$(MAKE) -C lua-xml/lua-iconv-7 static
