@@ -681,10 +681,12 @@ function element:add_value(v)
     self:_raw_put(value)
 
 end
--- function element:set_value(v)
---    self:remove_value(v)
---    self:add_value(v)
--- end
+
+function element:set_value(v)
+    self:remove_value()
+    self:add_value(v)
+end
+
 function element:add_pair(k, v)
     self:add_node(k):add_value(v)
 end
