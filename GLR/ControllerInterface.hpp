@@ -1,6 +1,8 @@
 #include "Runtime/Exception.hpp"
 #include "lua.hpp"
 
+#pragma once
+
 class IController
 {
 public:
@@ -20,6 +22,8 @@ protected:
 };
 
 extern "C"{
+    typedef IController *(*GLR_CTL_INIT_FUNC)(void*);
+    typedef void (*GLR_CTL_FINALIZE_FUNC)(void*);
     IController *Initialize(void *);
     void         Finalize(void *);
 }
