@@ -2,9 +2,9 @@
 #include "Schedule.hpp"
 #include "Bus.hpp"
 #include "LuaNode.hpp"
-#include "Clock.hpp"
-#include "SocketController.hpp"
-#include "BusController.hpp"
+#include "Controllers/Clock.hpp"
+#include "Controllers/SocketController.hpp"
+#include "Controllers/BusController.hpp"
 
 using namespace GLR;
 
