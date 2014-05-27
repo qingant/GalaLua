@@ -33,6 +33,7 @@ mixin(require("wrappers._utils"))
 
 mixin(require("global"))
 
+require "gar_loader"
 
 return M
 

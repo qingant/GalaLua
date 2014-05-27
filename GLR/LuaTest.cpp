@@ -49,31 +49,7 @@ private:
         {
 
             GLR::Runtime::Initialize(host, port, NULL, _Process.get());
-            if (_Process->ExistOption("g"))
-            {
-                GALA_DEBUG("RUNNING Gar package\n");
-                std::string file=_Process->GetOption("g");
-                char cwd[256] = {};
-                getcwd(cwd, sizeof(cwd));
-
-                //not absolute path
-                if (file[0]!='/')
-                {
-                    if (cwd!=NULL)
-                    {
-                        char path[256] = {};
-                        CRT_snprintf(path,sizeof(path),"%s/bin/%s",cwd,file.c_str());
-                        file=path;
-                    }
-                }
-                std::string module;
-                if (_Process->ExistOption("m"))
-                {
-                    module=_Process->GetOption("m");
-                }
-                GLR::Runtime::GetInstance().Entry(file,module,entry);
-            }
-            else if (_Process->ExistOption("m"))
+            if (_Process->ExistOption("m"))
             {
                 std::string file=_Process->GetOption("m");
                 GLR::Runtime::GetInstance().Entry(file,entry);
@@ -143,6 +119,14 @@ private:
         }
 
         setenv("LUA_CPATH", cpath.c_str(), 1);
+
+
+        if (_Process->ExistOption("g"))
+        {
+            std::string gpath=_Process->GetOption("g");
+            setenv("LUA_GPATH",gpath.c_str(),1);
+        }
+
 
         entry = "main";
         if (_Process->ExistOption("e"))

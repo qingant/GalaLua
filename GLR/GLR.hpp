@@ -44,7 +44,6 @@ namespace GLR
         static std::string _GarFile;
     public:
         void Entry(const std::string &path, const std::string &entry);
-        void Entry( const std::string &gar,const std::string &module, const std::string &entry );
         void EntryEx(const std::string &path,LoadEntryFrom  from=L_FILE);
     private:
         void Initialize();

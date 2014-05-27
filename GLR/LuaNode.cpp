@@ -217,6 +217,15 @@ int GLR::Process::SetOptions(lua_State *l)
 void Process::InitNode(void)
 {
     luaL_openlibs(_Stack);
+    const char *gpath=getenv("LUA_GPATH");
+    if (gpath!=NULL)
+    {
+        int top=lua_gettop(_Stack);
+        lua_getglobal(_Stack,"package");
+        lua_pushstring(_Stack,gpath);
+        lua_setfield(_Stack, -2, "gpath");
+        lua_settop(_Stack,top);
+    }
 
     // built in module glr
     static const  luaL_Reg glr_reg[] =
