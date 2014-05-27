@@ -25,8 +25,6 @@ linenoise:
 
 md5:
 	cd lua-encryption && $(MAKE) all
-resource:
-	cd resource && $(MAKE) all
 sigar:
 	$(MAKE) -C lua-sigar/src all
 	$(MAKE) -C lua-sigar/bindings/lua/ all

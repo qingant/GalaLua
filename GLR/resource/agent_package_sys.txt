@@ -1,5 +1,0 @@
-$(AIM_HOME)/Services/sensor.lua
-$(AIM_HOME)/Sensor/agent_sensor.lua
-$(AIM_HOME)/Sensor/cron.lua
-$(AIM_HOME)/Common/structdef.lua
-
