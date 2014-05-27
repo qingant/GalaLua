@@ -15,13 +15,13 @@ MYLDFLAGS=
 MYLIBS=
 ifeq ($(PLATFORM),AIX)
 	AR= ar -X64 rcs
-	CC= xlc_r
-	LDFLAGS += -q64 -qmkshrobj -q64 -brtl -brtllib -berok -lm
+	CC= xlc++_r
+	LDFLAGS += -q64 -qsourcetype=c++ -qmkshrobj -q64 -brtl -brtllib -berok -lm
 else
 	AR= ar rcs
 	CC= g++
-	LDFLAGS += -shared
-	MYCFLAGS= -fPIC
+	LDDYNFLAGS = -shared
+	DYNCFLAGS  = -fPIC
 endif
 
 
@@ -40,6 +40,8 @@ LIB_O=	lauxlib.o lbaselib.o lbitlib.o lcorolib.o ldblib.o liolib.o \
 	lmathlib.o loslib.o lstrlib.o ltablib.o loadlib.o linit.o
 BASE_O= $(CORE_O) $(LIB_O) $(MYOBJS)
 
+BASE_DYN_O=$(patsubst %.o,%_dyn.o,$(BASE_O))
+
 LUA_T=	lua
 LUA_O=	lua.o
 
@@ -47,6 +49,7 @@ LUAC_T=	luac
 LUAC_O=	luac.o
 
 ALL_O= $(BASE_O) $(LUA_O) $(LUAC_O)
+ALL_DYN_O=$(BASE_DYN_O)
 ALL_T= $(LUA_A) $(LUA_SO) $(LUA_T) $(LUAC_T)
 ALL_A= $(LUA_A)
 
@@ -57,14 +60,17 @@ all:	$(ALL_T)
 
 o:	$(ALL_O)
 
+%_dyn.o: %.c
+	$(CC) -o $@ $(DYNCFLAGS) $(CFLAGS) -c $<
+
 a:	$(ALL_A)
 
 $(LUA_A): $(BASE_O)
 	$(AR) $@ $(BASE_O)
 	$(RANLIB) $@
 
-$(LUA_SO):$(CORE_O) $(LIB_O)
-	$(CC) $(LDFLAGS) -o $@ $?
+$(LUA_SO):$(BASE_DYN_O)
+	$(CC) -o $@ $(LDDYNFLAGS) $(LDFLAGS) $?
 	mv $@ $(HOME)/lib
 
 $(LUA_T): $(LUA_O) $(LUA_A)
@@ -74,7 +80,7 @@ $(LUAC_T): $(LUAC_O) $(LUA_A)
 	$(CC) -o $@ $(MYLDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
 
 clean:
-	$(RM) $(ALL_T) $(ALL_O)
+	$(RM) $(ALL_T) $(ALL_O) $(ALL_DYN_O)
 
 depend:
 	@$(CC) $(CFLAGS) -MM l*.c
@@ -97,7 +103,8 @@ none:
 	@echo "   $(PLATS)"
 
 aix:
-	$(MAKE) $(ALL) CC="xlc++_r " CFLAGS=" -qsourcetype=c++ -q64 -O2 -DLUA_COMPAT_ALL -DLUA_USE_POSIX -DLUA_USE_DLOPEN" MYLIBS="-ldl" MYLDFLAGS="-q64 -brtl -bexpall"
+	$(MAKE) $(ALL) CC="xlc++_r" CFLAGS="-q64 -qsourcetype=c++ -O2 -DLUA_COMPAT_ALL -DLUA_USE_POSIX -DLUA_USE_DLOPEN" MYLIBS="-ldl" MYLDFLAGS="-q64 -brtl -bexpall"
+
 ansi:
 	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_ANSI"
 

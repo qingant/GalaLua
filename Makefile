@@ -43,7 +43,7 @@ conf:
 db:
 	$(MAKE) -C GalaDB
 static: pre
-ifeq ($(PLATFORM), Linux)
+ifeq ($(WHICH_LUA), luajit)
 	$(MAKE) -C LuaJIT-2.0.0 && $(MAKE) -C LuaJIT-2.0.0 static
 else
 	$(MAKE) -C lua-5.2.3 && $(MAKE) -C lua-5.2.3 install
@@ -58,10 +58,12 @@ clean:
 	$(MAKE) -C Stub clean
 	$(MAKE) -C Runtime clean
 	$(MAKE) -C AMQ clean
-ifeq ($(PLATFORM),Linux)
+
+ifeq ($(WHICH_LUA),luajit)
 	$(MAKE) -C LuaJIT-2.0.0 clean
-endif
+else
 	$(MAKE) -C lua-5.2.3 clean
+endif
 	$(MAKE) -C GLR clean
 	$(MAKE) -C LuaObject clean
 	$(MAKE) -C Lib clean
