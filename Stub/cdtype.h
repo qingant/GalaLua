@@ -88,7 +88,7 @@ typedef char				CHAR;
 typedef char				*PCHAR;
 typedef CHAR				*PSTR;
 typedef CONST CHAR			*CPSTR;
-typedef CHAR * CONST        PCSTR;
+typedef CONST CHAR * CONST  PCSTR;
 #endif
 
 #if !defined(UCHAR_TYPEDEFINED)
