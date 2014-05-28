@@ -1,14 +1,11 @@
 
-all:amq.so _dir.so xml.so osext.so hexdump.so platform.so global.so cp
+all:_dir.so xml.so osext.so hexdump.so platform.so global.so cp
 
 include ../mk.rules
 amq:amq.so
 platform.so:LuaPlatform.o
 	$(GCC) $? $(LNKFLAG)  $(SYTMLIB)  -o $@
 
-amq.so:LuaAMQ.o
-	@echo $(PLATFORM)
-	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyQueue -o $@
 _dir.so:LuaDir.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -lGalaxyRT -o $@
