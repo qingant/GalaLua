@@ -833,11 +833,13 @@ function element:to_table(attr_flag)
             result[k] = v:to_table(attr_flag)
         end
         if attr_flag then
-        		result[to_table_attrib_key] = {}
-        		local attrib = result[to_table_attrib_key]
-        		for k,v in pairs(self:get_attrib()) do
-        			attrib[k] = v
-        		end
+            local attrib ={}
+            for k,v in pairs(self:get_attrib()) do
+                attrib[k] = v
+            end
+            if next(attrib) then
+                result[to_table_attrib_key] = attrib
+            end
         end
     end
     return result
