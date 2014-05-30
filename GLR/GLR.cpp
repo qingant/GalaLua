@@ -2,9 +2,9 @@
 #include "Schedule.hpp"
 #include "Bus.hpp"
 #include "LuaNode.hpp"
-#include "Controllers.hpp"
-#include "SocketController.hpp"
-#include "BusController.hpp"
+#include "Controllers/Clock.hpp"
+#include "Controllers/SocketController.hpp"
+#include "Controllers/BusController.hpp"
 
 using namespace GLR;
 
@@ -45,7 +45,6 @@ void GLR::Runtime::Initialize()
     _Bus->RegisterDevice(new Clock());
     _Bus->RegisterDevice(new SocketController());
     _Bus->RegisterDevice(new BusController());
-    //_Host = 
     time(&_Stamp);
 }
 

@@ -4,10 +4,8 @@ include ../mk.rules
 
 STATIC_LIB_PATH = $(HOME)/share/static
 ROOT_DIR = ../..
-
 .PHONY:static clean
-
-GLR_OBJ = LuaNode.o Schedule.o GLR.o Bus.o Controllers.o SocketController.o BusController.o
+GLR_OBJ = LuaNode.o Schedule.o GLR.o Bus.o Controllers/Clock.o Controllers/SocketController.o Controllers/BusController.o NamedProcessTable.o Loader.o
 
 libGLR.so:$(GLR_OBJ)
 	@echo $(PLATFORM)

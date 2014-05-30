@@ -3,6 +3,7 @@
 #include "GLR.hpp"
 #include "lualib.h"
 #include "Process.hpp"
+#include "NamedProcessTable.hpp"
 #include <algorithm>
 //defines of static data member
 #define MAX_PROCESS_ID (1024*10)
@@ -255,6 +256,9 @@ void Process::InitNode(void)
     lua_pushinteger(_Stack, _Id);
     lua_settable(_Stack, -3);
 
+
+    NamedProcessTable::CreateOpTable(_Stack);
+    lua_setfield(_Stack, -2, "npt");
     // Some useful const
     // lua_getglobal(_Stack, "glr");
     lua_pushstring(_Stack, "AF_UNIX");
@@ -814,6 +818,8 @@ void Process::Destory(LN_ID_TYPE pid)
             try
             {
                 p->SendExitMsg();
+                NamedProcessTable::Clean(p->_Stack);
+                //NamedProcessTable::UnRegister(p->_Stack);
             }
             catch (const Galaxy::GalaxyRT::CException &e)
             {

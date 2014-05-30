@@ -9,7 +9,7 @@
 #include <unordered_map>
 #endif
 #include "Runtime/Queue.hpp"
-
+#include "ControllerInterface.hpp"
 #pragma once
 
 namespace GLR
@@ -83,23 +83,6 @@ struct GLRPROTOCOL
 #else
 #pragma pack()
 #endif
-class IController
-{
-public:
-    IController(void);
-    virtual void Request(lua_State*){THROW_EXCEPTION_EX("Not Impl");}
-    virtual void Request(lua_State*, int){THROW_EXCEPTION_EX("Not Impl");}
-    virtual int  Version() const {return 1;}   //1: Basic 2: With tick(Per-Process INT serial)
-    //void Response(int pid, int nargs);
-    virtual ~IController(void);
-private:
-    static int _DevIDSerial;
-    int _DeviceId;
-public:
-    int DeviceId() const { return _DeviceId; }
-protected:
-    void DeviceId(int val) { _DeviceId = val; }
-};
 
 class Bus
 {
