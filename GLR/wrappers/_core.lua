@@ -43,8 +43,10 @@ function send(addr, msg, attr)
 		else
 			return _glr.int(GBUS_INT_NO, 1, addr, msg, attr) -- node send
 		end
-	else
-		return _glr.send(addr, msg, attr)
+	elseif type(addr) == "number" then
+        return _glr.send(addr, msg, attr)
+    elseif type(addr) == "string" then
+        return _glr.send(_glr.npt.get(addr), msg, attr)
 	end
 end
 
@@ -133,7 +135,7 @@ function recv_by_condition( condition , ...)
         else
             cache[#cache+1] = {mType, mAddr, msg}
         end
-    end   
+    end
 end
 function recv_by_addr( addr, ... )
     return recv_by_condition(function ( msg )
