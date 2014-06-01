@@ -17,7 +17,7 @@ local pprint = require("pprint").pprint
 
 -- pprint(rpc, "rpc")
 function test_server()
-    test_server = rpc.server:new():init("test_server")
+    local test_server = rpc.server:new():init("test_server")
     function test_server:test(params, addr)
         pprint(params, "params")
         pprint(addr, "addr")
