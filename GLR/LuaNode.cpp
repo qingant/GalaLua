@@ -594,7 +594,7 @@ void Process::StackDump()
             printf("%g", lua_tonumber(_Stack, i));
             break;
         default:
-            printf("<object of %s>", lua_typename(_Stack, i));
+            printf("<object of %s>", luaL_typename(_Stack, i));
             break;
         }
         printf("\n");
