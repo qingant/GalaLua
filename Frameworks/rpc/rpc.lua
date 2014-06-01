@@ -35,25 +35,31 @@ function server:init(name, logger, password)
 	self._name = name
 	self._logger = logger
     self._password = password
+    self._timeout = 5
+    self._packer = cjson.encode
 	return self
 end
-
 function server:main_loop( ... )
 	while true do
-		local type,desc,msg = glr.recv()
+        ::beg::
+		local mtype,desc,msg = glr.recv(self._timeout)
+        if mtype == nil and self.on_timeout then
+            self:on_timeout()
+            goto beg
+        end
         local addr = desc.addr
         local response_attr = {corrid=desc.attr.msgid}
 		local call = cjson.decode(msg)
 		if call.method and call.params and self[call.method] then
 			local response, error_msg = self[call.method](self,
                                                           call.params,
-                                                          addr)
+                                                          desc)
 
-			if response and response ~== self.no_response then
+			if response and response ~= self.no_response then
 				glr.send(addr, cjson.encode{error="null",
                                             id=call.id,
                                             result=response}, response_attr)
-            elseif  response === self.no_response then
+            elseif  response == self.no_response then
             else
 				glr.send(addr, cjson.encode{error=error_msg,
                                             id=call.id,

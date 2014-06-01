@@ -18,10 +18,22 @@ local pprint = require("pprint").pprint
 -- pprint(rpc, "rpc")
 function test_server()
     local test_server = rpc.server:new():init("test_server")
-    function test_server:test(params, addr)
+    function test_server:test(params, desc)
         pprint(params, "params")
-        pprint(addr, "addr")
+        pprint(desc, "desc")
         return {msg="hello"}
+    end
+    function test_server:hello(params, desc)
+        self._wait_client = desc
+        return self.no_response
+    end
+    function test_server:on_timeout()
+        if self._wait_client then
+            glr.send(self._wait_client.addr, self._packer({error=nil,
+                                          id = nil,
+                                          result = {msg="wait hello"}}),
+                      {corrid = self._wait_client.attr.msgid})
+        end
     end
     test_server:main()
 end
@@ -39,7 +51,8 @@ function main(...)
     pprint(result, "result")
     local result = cli:call("test-1", {hello="world"})
     pprint(result, "result")
-
+    local result = cli:call("hello",  {})
+    pprint(result, "result")
 end
 
 if ... == "__main__" then
