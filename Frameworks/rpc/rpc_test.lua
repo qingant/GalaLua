@@ -16,18 +16,21 @@ local client = require("rpc_client").client
 local pprint = require("pprint").pprint
 
 -- pprint(rpc, "rpc")
-test_server = rpc.server:new():init("test_server")
-
-function test_server:test(params, addr)
-    pprint(params, "params")
-    pprint(addr, "addr")
-    return {msg="hello"}
+function test_server()
+    test_server = rpc.server:new():init("test_server")
+    function test_server:test(params, addr)
+        pprint(params, "params")
+        pprint(addr, "addr")
+        return {msg="hello"}
+    end
+    test_server:main()
 end
 
 function main(...)
     print("main...")
-    local err, pid = glr.spawn("rpc_test", "test_server:main")
+    local err, pid = glr.spawn("rpc_test", "test_server")
     print("Create rpc server: "..pid)
+    pprint(glr.npt.registered())
     local cli = client:new():init({ host = glr.sys.host,
                                     port = glr.sys.port,
                                     gpid = pid

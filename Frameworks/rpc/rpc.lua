@@ -30,6 +30,7 @@ function server:new(  )
 end
 
 function server:init(name, logger, password)
+    glr.npt.register(name)
 	self._name = name
 	self._logger = logger
     self._password = password
@@ -89,7 +90,6 @@ function server:main(...)
     else
         error(err)
     end
-        
 end
 
 
