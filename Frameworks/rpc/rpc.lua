@@ -21,6 +21,7 @@ local pprint = require("pprint")
 server = {}
 server.stop_error = {}
 server.restart_error = {}
+server.no_response = {}
 
 function server:new(  )
 	local o = {}
@@ -46,13 +47,14 @@ function server:main_loop( ... )
 		if call.method and call.params and self[call.method] then
 			local response, error_msg = self[call.method](self,
                                                           call.params,
-                                                          addr) 
+                                                          addr)
 
-			if response then
+			if response and response ~== self.no_response then
 				glr.send(addr, cjson.encode{error="null",
                                             id=call.id,
                                             result=response}, response_attr)
-			else
+            elseif  response === self.no_response then
+            else
 				glr.send(addr, cjson.encode{error=error_msg,
                                             id=call.id,
                                             result="null"}, response_attr)
