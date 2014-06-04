@@ -37,12 +37,20 @@ function server:init(name, logger, password)
     self._password = password
     self._timeout = 5
     self._packer = cjson.encode
+    self._tick = 0
 	return self
+end
+function server:_send(desc, result)
+    return glr.send(desc.addr, self._packer({error=nil,
+                                             id=nil,
+                                             result=result}),
+                    {corrid=desc.attr.msgid})
 end
 function server:main_loop( ... )
 	while true do
         ::beg::
 		local mtype,desc,msg = glr.recv(self._timeout)
+        self._tick = self._tick + 1
         if mtype == nil and self.on_timeout then
             self:on_timeout()
             goto beg
