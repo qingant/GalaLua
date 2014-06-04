@@ -113,7 +113,6 @@ namespace GLR
     public:
         void DoString(const std::string&);
         void Entry(const std::string &module, const std::string &entry, ...);
-        void EntryGar(const std::string &Gar,const std::string &module, const std::string &entry, ... );
         void LoadFile(const std::string &path);
         void LoadString(const std::string &path);
         void PushFun(const std::string &fname);

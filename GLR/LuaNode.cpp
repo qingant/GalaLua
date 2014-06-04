@@ -129,15 +129,7 @@ int Process::Spawn(lua_State *l)
         node._ParentId = parentId;
         lua_pop(l,1);
 
-
-        if (GLR::Runtime::_GarFile.empty())
-        {
-            node.Entry(module, method);
-        } else
-        {
-            node.EntryGar(GLR::Runtime::_GarFile, module, method);
-        }
-
+        node.Entry(module, method);
 
         // Set arguments for the new-created glr process
         SetArgumentsForSpawnedProcess(l, node, 3);
@@ -976,24 +968,7 @@ int GLR::Process::Kill(lua_State *l)
         return 0;
     }
 }
-void GLR::Process::EntryGar(const std::string& Gar, const std::string& module, const std::string& entry, ...)
-{
-    lua_getglobal(_Stack, "glr");
 
-    lua_pushstring(_Stack, Gar.c_str());
-    lua_setfield(_Stack,-2, "__gar__");
-
-    lua_getfield(_Stack,-1,"run_gar");
-    lua_pushstring(_Stack, Gar.c_str());
-    if (lua_pcall(_Stack, 1, 1, 0) != 0)
-    {
-        const char *msg = luaL_checklstring(_Stack, -1, NULL);
-        //StackDump();
-        THROW_EXCEPTION_EX(msg);
-    }
-    Entry(module, entry);
-
-}
 void GLR::Process::Entry(const std::string& module, const std::string& entry, ...)
 {
     lua_getglobal(_Stack, "require");
@@ -1189,15 +1164,7 @@ int GLR::Process::SpawnEx( lua_State *l )
         node._ParentId = parentId;
         lua_pop(l,1);
 
-
-        if (GLR::Runtime::_GarFile.empty())
-        {
-            node.Entry(module, method);
-        } else
-        {
-            node.EntryGar(GLR::Runtime::_GarFile, module, method);
-        }
-
+        node.Entry(module, method);
 
         // Set arguments for the new-created glr process
         SetArgumentsForSpawnedProcess(l, node, 4);

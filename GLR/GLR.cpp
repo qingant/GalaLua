@@ -9,7 +9,6 @@
 using namespace GLR;
 
 GLR::Runtime *GLR::Runtime::_Instance = NULL;
-std::string GLR::Runtime::_GarFile="";
 
 GLR::Runtime::GLR_INITIALIZER GLR::Runtime::_Initializer = NULL;
 Galaxy::GalaxyRT::CProcess  *GLR::Runtime::_pCProcess= NULL;
