@@ -59,7 +59,8 @@ static void __MQCarrier_F(PSTR _Dest,PCSTR _Src,UINT _Length)
 		*_SD++ = ~(*_SS++);
 		_Length -= sizeof(USHORT); 
 	}
-	else if(_Length > 0)
+
+	if(_Length > 0)
 	{
 		*((PBYTE)_SD) = ~(*((PBYTE)_SS));
 	}
