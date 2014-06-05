@@ -28,6 +28,8 @@ msg_available = _glr.msg_available
 set_options=_glr.set_options
 glr_stamp = _glr.glr_stamp
 exit = _glr.exit
+load = _glr.load
+unload = _glr.unload
 
 function spawn(mod_name, entry, ...)
 	return _glr.spawn(mod_name, entry, ...)

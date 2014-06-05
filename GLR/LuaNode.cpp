@@ -5,6 +5,8 @@
 #include "Process.hpp"
 #include "NamedProcessTable.hpp"
 #include <algorithm>
+#include "Loader.hpp"
+
 //defines of static data member
 #define MAX_PROCESS_ID (1024*10)
 using namespace GLR;
@@ -238,6 +240,9 @@ void Process::InitNode(void)
         { "msg_available", MessageAvailable },
         { "glr_stamp", GLRStamp },
         { "exit", Exit },
+
+        { "load", Loader::Load},
+        { "unload",Loader::UnLoad},
         { NULL, NULL },
     };
     luaL_register(_Stack, "_glr", glr_reg);
