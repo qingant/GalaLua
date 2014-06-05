@@ -11,10 +11,10 @@ namespace GLR {
     class Controller : public Galaxy::GalaxyRT::CNonCopyAble
     {
     public:
-        Controller(const std::string &);
+        Controller(const std::string &,void *arg);
         ~Controller();
     private:
-        void Load();
+        void Load(void *arg);
         void UnLoad();
     private:
         const std::string _Name;

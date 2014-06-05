@@ -6,19 +6,19 @@
 
 using namespace GLR;
 
-Controller::Controller(const std::string &name)
+Controller::Controller(const std::string &name,void *arg)
     :_Name(name),
      _Module(NULL),
      _Driver(NULL)
 {
-    Load();
+    Load(arg);
 }
 
 Controller::~Controller()
 {
     UnLoad();
 }
-void Controller::Load()
+void Controller::Load(void *arg)
 {
     _Module = dlopen(_Name.c_str(), RTLD_NOW|RTLD_LOCAL);
     if (_Module == NULL)
@@ -30,7 +30,7 @@ void Controller::Load()
 		THROW_EXCEPTION_EX(err);
     }
     GLR_CTL_INIT_FUNC init_func = (GLR_CTL_INIT_FUNC)dlsym(_Module, "Initialize");
-    _Driver = init_func(NULL);
+    _Driver = init_func(arg);
     if (_Driver == NULL)
     {
 		char err[ERR_MSG_MAX_SIZE]={0};
@@ -81,6 +81,7 @@ int Loader::Load(lua_State *l)
 {
     Galaxy::GalaxyRT::CLockGuard _(&GetInstance()->_Mutex); 
     const char *name = luaL_checkstring(l, 1);
+
     try
     {
         Controller *controller = GetInstance()->_Controllers[name];
@@ -91,7 +92,7 @@ int Loader::Load(lua_State *l)
             THROW_EXCEPTION_EX(err.c_str());
         }
 
-        GetInstance()->_Controllers[name] = new Controller(name);
+        GetInstance()->_Controllers[name] = new Controller(name,l);
     }
     catch (const Galaxy::GalaxyRT::CException &e)
     {
