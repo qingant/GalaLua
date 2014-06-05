@@ -19,7 +19,10 @@ template < class _PG_,class _LST_,class _LCK_ > void T_Free(const _PG_ &_Pages,c
 		while(_ThePage)
 		{
 			_TheNextPage = _ThePage->Next();
+			
+			//清除
 			_ThePage->Next(NULL);
+			//_ThePage->Length(0); //长度置零为了效率取消
 			
 			_List.Put2Head(*_ThePage);		
 			_ThePage = _TheNextPage; 
@@ -56,13 +59,13 @@ static void __MQCarrier_F(PSTR _Dest,PCSTR _Src,UINT _Length)
 	
 	if(_Length > 1)
 	{
-		*_SD++ = ~(*_SS++);
+		*_SD++ = (~(*_SS++)) & 0xFFFF;
 		_Length -= sizeof(USHORT); 
 	}
 
 	if(_Length > 0)
 	{
-		*((PBYTE)_SD) = ~(*((PBYTE)_SS));
+		*((PBYTE)_SD) = (~(*((PBYTE)_SS))) & 0xFF;
 	}
 
 #else
@@ -71,17 +74,18 @@ static void __MQCarrier_F(PSTR _Dest,PCSTR _Src,UINT _Length)
 
 	while(_Length > 1)
 	{
-		*_SD++ = ~(*_SS++);
+		*_SD++ = (~(*_SS++))&0xFFFF;
 		_Length -= sizeof(USHORT); 
 		__asm__ __volatile__("nop;");
 	}
 	
 	if(_Length > 0)
 	{
-		*((PBYTE)_SD) = ~(*((PBYTE)_SS));
+		*((PBYTE)_SD) = (~(*((PBYTE)_SS)))&0xFF;
 	}
 #endif
 }
+
 
 /*CSQPage*/
 void CSQPage::Init(USHORT _PageSize)
@@ -115,10 +119,15 @@ const CSQPage *CSQPage::Next() const
 	}
 }
 
+inline UINT F_MKLength(UINT _ThePageSize,UINT _TheDataLen)
+{
+	return (_ThePageSize & 0xFFFF0000) | (_TheDataLen & 0x0000FFFF);	
+}
+
 void CSQPage::Length(USHORT _TheLength) const
 {
 	CSQPage *_This = (CSQPage *)this;
-	_This->_Length |= (_TheLength & 0x0000FFFF);	
+	_This->_Length = F_MKLength(_Length,(UINT)_TheLength);
 }
 
 USHORT CSQPage::Length() const
@@ -129,7 +138,7 @@ USHORT CSQPage::Length() const
 void CSQPage::PageSize(USHORT _PageSize) const
 {
 	CSQPage *_This = (CSQPage *)this;
-	_This->_Length |= ((((UINT)_PageSize) << 16) & 0xFFFF0000);	
+	_This->_Length = F_MKLength((UINT)_PageSize,_Length);	
 }
 
 USHORT CSQPage::PageSize() const
@@ -154,7 +163,9 @@ USHORT CSQPage::Write(const PSTR _Buffer,USHORT _DataLen) const
 	_Result = (_Result > _DataLen) ? _DataLen : _Result; 
 	__MQCarrier_F((PSTR)this->_Data,_Buffer,_Result);
 	//memcpy((PSTR)this->_Data,_Buffer,_Result);
+	//printf("Write Len = %d\n",_Result);
 	Length(_Result);
+
 	return _Result;
 }
 
@@ -162,8 +173,9 @@ USHORT CSQPage::Read(PSTR _Buffer,USHORT _MaxLen) const
 {
 	USHORT _Result = Length();
 	_Result = (_Result > _MaxLen) ? _MaxLen : _Result; 
-	__MQCarrier_F(_Buffer,(PSTR)this->_Data,_Result);
+	__MQCarrier_F(_Buffer,(PSTR)this->_Data,_Result);	
 	//memcpy(_Buffer,(PSTR)this->_Data,_Result);
+	//printf("Read Len = %d\n",_Result);
 	return _Result;
 }
 
@@ -171,8 +183,8 @@ USHORT CSQPage::Read(PSTR _Buffer,USHORT _MaxLen) const
 /*CSQPageArray*/
 void CSQPageArray::Init(UINT _TheTotal,USHORT _ThePageSize)
 {
-	this->_Total 		= _TheTotal;
-	this->_PageSize 	= _ThePageSize;
+	_Total 		= _TheTotal;
+	_PageSize 	= _ThePageSize;
 	
 
 	{
@@ -190,9 +202,24 @@ void CSQPageArray::Init(UINT _TheTotal,USHORT _ThePageSize)
 		}
 	}
 	
-	
-	 	
+	{
+		PBYTE _TheMask = (PBYTE)&_MSK; //.PGS
+		_TheMask[0] = 0x2E;
+		_TheMask[1] = 0x50;
+		_TheMask[2] = 0x47;
+		_TheMask[3] = 0x53;
+	}	 	
 }
+
+
+bool CSQPageArray::Check() const
+{
+	{
+		const PBYTE _TheMask = (const PBYTE)&_MSK;
+		return (_TheMask[0] == 0x2E) && (_TheMask[1] == 0x50) && (_TheMask[2] == 0x47) && (_TheMask[3] == 0x53);
+	}
+}
+
 
 PBYTE CSQPageArray::NearPtr() const
 {
@@ -224,6 +251,7 @@ const CSQPage *CSQPageArray::operator[](UINT _Index) const
 /*CSQAllocator*/
 void CSQAllocator::Init(UINT _Pages,USHORT _PageSize)
 {
+	
 	_Lock.Init();
 	_Array.Init(_Pages,_PageSize);	
 	_List.Init();
@@ -247,7 +275,25 @@ void CSQAllocator::Init(UINT _Pages,USHORT _PageSize)
 	{
 		THROW_MQEXCEPTION("Init failed!");		
 	}
+	
+	{
+		PBYTE _TheMask = (PBYTE)&_MSK; //.ALC
+		_TheMask[0] = 0x2E;
+		_TheMask[1] = 0x41;
+		_TheMask[2] = 0x4C;
+		_TheMask[3] = 0x43;
+	}
+	
 }
+
+bool CSQAllocator::Check() const
+{
+	{
+		const PBYTE _TheMask = (const PBYTE)&_MSK;
+		return _Array.Check() && (_TheMask[0] == 0x2E) && (_TheMask[1] == 0x41) && (_TheMask[2] == 0x4C) && (_TheMask[3] == 0x43);
+	}
+}
+
 
 PBYTE CSQAllocator::NearPtr() const
 {

@@ -102,6 +102,25 @@ void CSQNodeArray::Init(UINT _TheTotal)
 		}
 	}
 	
+	{
+		PBYTE _TheMask = (PBYTE)&_MSK; //.ALC
+		_TheMask[0] = 0x2E;
+		_TheMask[1] = 0x4E;
+		_TheMask[2] = 0x44;
+		_TheMask[3] = 0x53;
+	}
+	
+}
+
+bool CSQNodeArray::Check() const
+{
+	{
+		const PBYTE _TheMask = (const PBYTE)&_MSK;
+		return (_TheMask[0] == 0x2E) && \
+			   (_TheMask[1] == 0x4E) && \
+			   (_TheMask[2] == 0x44) && \
+			   (_TheMask[3] == 0x53);
+	}
 }
 
 PBYTE CSQNodeArray::NearPtr() const
@@ -132,7 +151,26 @@ const CSQNode *CSQNodeArray::operator[](UINT _Index) const
 void CSQLockedList::Init()
 {
 	_Lock.Init();
-	_List.Init();	
+	_List.Init();
+	
+	{
+		PBYTE _TheMask = (PBYTE)&_MSK; //.ALC
+		_TheMask[0] = 0x2E;
+		_TheMask[1] = 0x4C;
+		_TheMask[2] = 0x4B;
+		_TheMask[3] = 0x4C;
+	}	
+}
+
+bool CSQLockedList::Check() const
+{
+	{
+		const PBYTE _TheMask = (const PBYTE)&_MSK;
+		return (_TheMask[0] == 0x2E) && \
+			   (_TheMask[1] == 0x4C) && \
+			   (_TheMask[2] == 0x4B) && \
+			   (_TheMask[3] == 0x4C);
+	}
 }
 
 PBYTE CSQLockedList::NearPtr() const
@@ -198,6 +236,26 @@ void CSQPooler::Init(UINT _Nodes)
 	if(Nodes()!=UsableNodes())
 	{
 		THROW_MQEXCEPTION("Init failed!");		
+	}
+	
+	{
+		PBYTE _TheMask = (PBYTE)&_MSK; //.ALC
+		_TheMask[0] = 0x2E;
+		_TheMask[1] = 0x50;
+		_TheMask[2] = 0x4C;
+		_TheMask[3] = 0x52;
+	}
+}
+
+bool CSQPooler::Check() const
+{
+	{
+		const PBYTE _TheMask = (const PBYTE)&_MSK;
+		return _Queue.Check() && _Array.Check() && \
+			   (_TheMask[0] == 0x2E) && \
+			   (_TheMask[1] == 0x50) && \
+			   (_TheMask[2] == 0x4C) && \
+			   (_TheMask[3] == 0x52);
 	}
 }
 

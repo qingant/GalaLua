@@ -6,7 +6,6 @@
 
 #include "MQMedia.hpp"
 #include "MQ_SQueue.hpp"
-#include "MQ_SQInfor.hpp"
 
 namespace Galaxy
 {
@@ -16,7 +15,6 @@ namespace AMQ
 	{
 	private:
 		CMQMemory		*_Media;
-		const CSQInfor	&_Infor;
 	
 		CGalaxyMQ(const CGalaxyMQ &);
 		const CGalaxyMQ &operator=(const CGalaxyMQ &);
@@ -41,6 +39,10 @@ namespace AMQ
 				UINT _Queues,UINT _MaxDepth,USHORT _CatchCount,UINT _Nodes,UINT _Pages,USHORT _PageSize);
 		~CGalaxyMQCreator();
 	};
+	
+	typedef CGalaxyMQ *  MQMHANDLE;
+	typedef CSQSuite *	 MQHANDLE;
+	
     
 } // AMQ namespace
 } // Galaxy namespace

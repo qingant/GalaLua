@@ -36,9 +36,11 @@ public:
 class CSQNodeArray
 {
 private:
+	UINT	_MSK;
 	UINT	_Total;
 public:
 	void Init(UINT _TheTotal);
+	bool Check() const;
 	PBYTE NearPtr() const; // 这个近指针实际上是NODE[0]的位置，千万别用错	
 	UINT Count() const;
 	const CSQNode *operator[](UINT _Index) const;	
@@ -48,10 +50,13 @@ class CSQLockedList
 {
 	typedef CSQList<CSQNode> CSQNodeList_T;
 private:
+	UINT			_MSK;
 	CSQLock			_Lock;
 	CSQNodeList_T	_List;	
 public:	
 	void Init();
+	bool Check() const;
+
 	PBYTE NearPtr() const;
 	UINT Count() const;
 
@@ -64,10 +69,12 @@ public:
 class CSQPooler
 {
 private:
+	UINT			_MSK;
 	CSQLockedList	_Queue;
 	CSQNodeArray	_Array;
 public:	
 	void Init(UINT _Nodes);
+	bool Check() const;
 	PBYTE NearPtr() const; // 这个近指针实际上是Node[0]的位置，千万别用错	
 	UINT UsableNodes() const;
 	UINT Nodes() const;	

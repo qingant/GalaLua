@@ -6,6 +6,7 @@
 #include <sys/mman.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <string.h>
 
 #include "MQMedia.hpp"
 #include "MQException.hpp"
@@ -43,6 +44,11 @@ PBYTE CMQMemory::Entry() const
 SIZE_T CMQMemory::Size() const
 {    
     return *((SIZE_T *)_Entry);
+}
+
+void CMQMemory::Zero()
+{
+	memset(Entry(),0,Size());	
 }
 
 	

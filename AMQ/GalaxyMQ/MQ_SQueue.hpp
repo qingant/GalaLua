@@ -86,6 +86,7 @@ class CSQSuite
 {
 	
 private:
+	UINT				_MSK;
 	__volatile__ INT	_Allocator;
 	__volatile__ INT	_Pooler;
 	CSQDoorQueue		_Queue;
@@ -97,6 +98,8 @@ private:
 	const CSQPooler &Pooler() const;
 public:	
 	void Init(const CSQAllocator &_TheAllocator,const CSQPooler &_ThePooler,UINT _MaxDepth,UINT _CatchCount);
+	bool Check() const;
+
 	PBYTE NearPtr() const;
 
 	UINT Get(PSTR _Buffer,UINT _MaxLength) const;
@@ -113,9 +116,14 @@ public:
 class CSQSuiteArray
 {
 private:
+	UINT				_MSK;
 	__volatile__ UINT	_Total;
+	
+	const CSQSuite *GetSQSuite(UINT _Index) const;
 public:
 	void Init(UINT _TheTotal,const CSQAllocator &_TheAllocator,const CSQPooler &_ThePooler,UINT _MaxDepth,UINT _CatchCount);
+	bool Check() const;
+
 	PBYTE NearPtr() const; // 这个近指针实际上是SQ[0]的位置，千万别用错	
 	UINT Count() const;
 	const CSQSuite *operator[](UINT _Index) const;
