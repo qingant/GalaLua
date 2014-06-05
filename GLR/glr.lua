@@ -33,6 +33,8 @@ mixin(require("wrappers._utils"))
 
 mixin(require("global"))
 
+amq = require("wrappers._amq")
+
 require "gar_loader"
 -- NamedProcessTable
 npt = _glr.npt

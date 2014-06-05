@@ -30,6 +30,10 @@ glr:LuaTest.o
 	cp -rf wrappers $(HOME)/lib/lua/
 	mv $@ $(HOME)/bin/
 
+amq.so: Controllers/AMQController.o
+	$(G++) $? $(LNKFLAG) $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lluajit -lGalaxyMQ -o $@
+	mv $@ $(HOME)/lib/
+
 clean::
 	-rm -f glr glr_s *.o *.a
 
