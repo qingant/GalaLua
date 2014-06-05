@@ -25,7 +25,7 @@ GLR::NamedProcessTable::IDTYPE GLR::NamedProcessTable::Get(const std::string &na
 	{
 		return it->second;
 	}
-	THROW_EXCEPTION_EX("Process not found");
+    return INVLID_ID;
 }
 
 void GLR::NamedProcessTable::Set(const std::string &name, GLR::NamedProcessTable::IDTYPE id)
@@ -98,13 +98,30 @@ GLR::NamedProcessTable * GLR::NamedProcessTable::GetInstance()
 
 void GLR::NamedProcessTable::_Registered(lua_State *l)
 {
-	lua_newtable(l);
-	Galaxy::GalaxyRT::CLockGuard _(&_RDLock);
-	for (ID_MAP_TYPE::const_iterator it = _Map.begin(); it != _Map.end(); ++it)
-	{
-		lua_pushinteger(l, it->second);
-		lua_setfield(l, -2, it->first.c_str());
-	}
+    Galaxy::GalaxyRT::CLockGuard _(&_RDLock);
+    if(lua_gettop(l) == 0)
+    {
+        lua_newtable(l);
+        for (ID_MAP_TYPE::const_iterator it = _Map.begin(); it != _Map.end(); ++it)
+        {
+            lua_pushinteger(l, it->second);
+            lua_setfield(l, -2, it->first.c_str());
+        }
+    }
+    else
+    {
+        IDTYPE id = Get(lua_tostring(l, 1));
+        if (id == INVLID_ID)
+        {
+            lua_pushnil(l);
+        }
+        else
+        {
+            lua_newtable(l);
+            lua_pushinteger(l, id);
+            lua_setfield(l, -2, lua_tostring(l, 1));
+        }
+    }
 }
 
 void GLR::NamedProcessTable::_UnRegistered(lua_State *l)
