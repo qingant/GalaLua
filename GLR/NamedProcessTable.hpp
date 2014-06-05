@@ -20,6 +20,9 @@ namespace GLR {
 	class NamedProcessTable : public Galaxy::GalaxyRT::CNonCopyAble
 	{
 		typedef uint32_t  IDTYPE;
+        enum{
+            INVLID_ID = -1
+        };
 	private:
 		NamedProcessTable();
 	public:
