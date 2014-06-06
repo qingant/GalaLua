@@ -1,9 +1,8 @@
 all: lib glr
-lib:libGLR.so #libGLR.a
+lib:libGLR.so amq.so #libGLR.a
 include ../mk.rules
 
 STATIC_LIB_PATH = $(HOME)/share/static
-ROOT_DIR = ../..
 .PHONY:static clean
 GLR_OBJ = LuaNode.o Schedule.o GLR.o Bus.o Controllers/Clock.o Controllers/SocketController.o Controllers/BusController.o NamedProcessTable.o Loader.o
 
@@ -35,5 +34,5 @@ amq.so: Controllers/AMQController.o
 	mv $@ $(HOME)/lib/
 
 clean::
-	-rm -f glr glr_s *.o *.a
+	-rm -f glr glr_s *.o *.a Controllers/*.o
 
