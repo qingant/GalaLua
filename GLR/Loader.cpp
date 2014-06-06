@@ -39,6 +39,7 @@ void Controller::Load()
 		snprintf(err,sizeof(err),"Cannot Load Controller: %s",dlerr);
 		THROW_EXCEPTION_EX(err);
     }
+    GLR::Bus::GetInstance().RegisterDevice(_Driver);
 }
 
 void Controller::UnLoad()
@@ -82,12 +83,32 @@ int Loader::Load(lua_State *l)
     const char *name = luaL_checkstring(l, 1);
     try
     {
+        Controller *controller = GetInstance()->_Controllers[name];
+        if (controller != NULL)
+        {
+            std::string err(name);
+            err+=" had alreadly loaded";
+            THROW_EXCEPTION_EX(err.c_str());
+        }
+
         GetInstance()->_Controllers[name] = new Controller(name);
     }
     catch (const Galaxy::GalaxyRT::CException &e)
     {
         luaL_error(l, e.what());
     }
+    catch (const std::exception &e)
+    {
+        luaL_error(l, e.what());
+    }
+    
+    catch (...)
+    {
+        std::string err("unknown exception while loading ");
+        err+=name;
+        luaL_error(l,err.c_str());
+    }
+    
     return 0;
 }
 
