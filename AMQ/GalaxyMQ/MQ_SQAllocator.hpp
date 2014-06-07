@@ -40,10 +40,12 @@ public:
 class CSQPageArray
 {
 private:
+	UINT				_MSK;
 	__volatile__ UINT	_Total;
 	__volatile__ UINT	_PageSize;
 public:
 	void Init(UINT _TheTotal,USHORT _ThePageSize);
+	bool Check() const;
 	PBYTE NearPtr() const; // 这个近指针实际上是PAGE[0]的位置，千万别用错	
 	UINT Count() const;
 	USHORT PageSize() const;
@@ -54,11 +56,13 @@ class CSQAllocator
 {
 	typedef CSQList<CSQPage> CSQPageList_T;
 private:
+	UINT			_MSK;
 	CSQLock			_Lock;
 	CSQPageList_T	_List;
 	CSQPageArray	_Array;
 public:	
 	void Init(UINT _Pages,USHORT _PageSize);
+	bool Check() const;
 	PBYTE NearPtr() const; // 这个近指针实际上是PAGE[0]的位置，千万别用错	
 	UINT UsablePages() const;
 	UINT Pages() const;

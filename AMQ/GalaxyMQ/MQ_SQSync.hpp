@@ -23,6 +23,7 @@ public:
 class CSQLock
 {
 private:
+	__volatile__ UINT		_MSK;
 	__volatile__ UINT		_STA;
 	pthread_mutex_t			_MTX;
 public:
@@ -42,10 +43,11 @@ public:
 class CSQCond
 {
 private:
+	__volatile__ UINT		_MSK;
 	__volatile__ UINT		_WAT;
 	pthread_cond_t			_CND;
 	__volatile__ INT		_LCK;
-	
+
 	const CSQLock &Locker() const;						
 public:
 	void Init(CSQLock &_TheLocker);
@@ -61,8 +63,11 @@ public:
 class CSQEvent
 {
 private:
+	__volatile__ UINT 		_MSK;
 	CSQCond					_Cond;
 	CSQLock					_Lock;
+	
+	bool Check();
 public:
 	void Init();
 	PBYTE NearPtr() const;
@@ -83,6 +88,7 @@ public:
 class CSQDoor
 {
 private:
+	__volatile__ UINT		_MSK;
 	CSQCond					_Threshold1;
 	CSQCond					_Threshold2;
 	CSQLock					_Lock;	

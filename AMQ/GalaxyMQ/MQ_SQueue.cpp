@@ -184,6 +184,7 @@ const CSQNode *CSQPrivatePooler::TimedGet(SHORT timeout) const
 void CSQPrivatePooler::Put(const CSQNode &_TheNode) const
 {	
 	_TheNode.Page(NULL); //上层必须释放PAGE
+	//_TheNode.Length(0);  //长度置零为了效率取消
 
 
 	{
@@ -498,11 +499,42 @@ bool CSQDoorQueue::TimedPut(const CSQNode &_TheNode,SHORT timeout) const
 /*CSQSuite*/
 void CSQSuite::Init(const CSQAllocator &_TheAllocator,const CSQPooler &_ThePooler,UINT _MaxDepth,UINT _CatchCount)
 {
+	if(!_TheAllocator.Check())
+	{
+		THROW_MQEXCEPTION(".ALC check Error.");
+		return;
+	}
+	
+	if(!_ThePooler.Check())
+	{
+		THROW_MQEXCEPTION(".PLR check Error.");
+		return;
+	}
+	
 	Allocator(_TheAllocator);
 	Pooler(_ThePooler);
 	_Queue.Init(_MaxDepth);
 	_PPL.Init(_CatchCount,_ThePooler);
+	
+	{
+		PBYTE _TheMask = (PBYTE)&_MSK; //.ALC
+		_TheMask[0] = 0x2E;
+		_TheMask[1] = 0x51;
+		_TheMask[2] = 0x55;
+		_TheMask[3] = 0x45;
+	}
 		
+}
+
+bool CSQSuite::Check() const
+{
+	{
+		const PBYTE _TheMask = (const PBYTE)&_MSK;
+		return (_TheMask[0] == 0x2E) && \
+			   (_TheMask[1] == 0x51) && \
+			   (_TheMask[2] == 0x55) && \
+			   (_TheMask[3] == 0x45);
+	}
 }
 
 PBYTE CSQSuite::NearPtr() const
@@ -808,13 +840,32 @@ void CSQSuiteArray::Init(UINT _TheTotal,const CSQAllocator &_TheAllocator,const 
 		
 		for(UINT i=0;i<_TheTotal;i++)
 		{
-			_TheQueue = (CSQSuite *) this->operator[](i);	
+			_TheQueue = (CSQSuite *) GetSQSuite(i);	
 			if(_TheQueue!=NULL)
 			{
 				_TheQueue->Init(_TheAllocator,_ThePooler,_MaxDepth,_CatchCount);		
 			}
 		}
+	}
+	
+	{
+		PBYTE _TheMask = (PBYTE)&_MSK;
+		_TheMask[0] = 0x2E;
+		_TheMask[1] = 0x4D;
+		_TheMask[2] = 0x51;
+		_TheMask[3] = 0x53;
 	}	
+}
+
+bool CSQSuiteArray::Check() const
+{
+	{
+		const PBYTE _TheMask = (const PBYTE)&_MSK;
+		return (_TheMask[0] == 0x2E) && \
+			   (_TheMask[1] == 0x4D) && \
+			   (_TheMask[2] == 0x51) && \
+			   (_TheMask[3] == 0x53);
+	}
 }
 
 PBYTE CSQSuiteArray::NearPtr() const
@@ -827,13 +878,28 @@ UINT CSQSuiteArray::Count() const
 	return _Total;	
 }
 
-const CSQSuite *CSQSuiteArray::operator[](UINT _Index) const
+const CSQSuite *CSQSuiteArray::GetSQSuite(UINT _Index) const
 {
 	CSQSuite *_TheQueue = NULL;
 	if(_Index < _Total)
 	{
 		PBYTE	_TheEntry = NearPtr();
-		_TheQueue = (CSQSuite *) &_TheEntry[(sizeof(CSQSuite) * _Index)];	
+		_TheQueue = (CSQSuite *) &_TheEntry[(sizeof(CSQSuite) * _Index)];
+	}
+
+	return _TheQueue;
+}
+
+const CSQSuite *CSQSuiteArray::operator[](UINT _Index) const
+{
+	const CSQSuite *_TheQueue = GetSQSuite(_Index);
+	
+	if(_TheQueue!=NULL)
+	{
+		if(!_TheQueue->Check())
+		{
+			THROW_MQEXCEPTION(".QUE check Error.");
+		}
 	}
 
 	return _TheQueue;

@@ -36,6 +36,8 @@ public:
 
 class CGalaxyMQ : public CGalaxyObject
 {
+private:
+    PVOID  _Media;
 public:
 	explicit CGalaxyMQ(const std::string &_FileName);
 	explicit CGalaxyMQ(key_t _IPCKey);

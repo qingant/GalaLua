@@ -1,6 +1,12 @@
-
+#include <string>
+#include <map>
 #include "GalaxyMQ.hpp"
 #include "MQException.hpp"
+#include "MQ_SQInfor.hpp"
+#include "MQT.hpp"
+
+
+
 
 namespace Galaxy
 {
@@ -9,15 +15,17 @@ namespace AMQ
 
 /*CGalaxyMQ*/
 CGalaxyMQ::CGalaxyMQ(const std::string &_FileName)
-	:_Media(new CMQFileMemory(_FileName,0)),_Infor(*((CSQInfor *)_Media->Entry()))
+	:_Media(new CMQFileMemory(_FileName,0))
 {
-	_Infor.Check();	
+	CSQInfor *_TheInfor = T_MQPtrCast<CSQInfor *>(_Media->Entry());
+	_TheInfor->Check();	
 }
 
 CGalaxyMQ::CGalaxyMQ(key_t _IPCKey)
-	:_Media(new CSysvSHMemory(_IPCKey,0)),_Infor(*((CSQInfor *)_Media->Entry()))
+	:_Media(new CSysvSHMemory(_IPCKey,0))
 {
-	_Infor.Check();	
+	CSQInfor *_TheInfor = T_MQPtrCast<CSQInfor *>(_Media->Entry());
+	_TheInfor->Check();	
 }
 
 CGalaxyMQ::~CGalaxyMQ()
@@ -30,12 +38,12 @@ CGalaxyMQ::~CGalaxyMQ()
 
 UINT CGalaxyMQ::Count() const
 {
-	return _Infor.SQArray().Count();	
+	return T_MQPtrCast<const CSQInfor *>(_Media->Entry())->SQArray().Count();	
 }
 
 const CSQSuite &CGalaxyMQ::operator[](UINT _Index) const
 {
-	const CSQSuite *_TheSQueue = _Infor.SQArray()[_Index];
+	const CSQSuite *_TheSQueue = T_MQPtrCast<const CSQInfor *>(_Media->Entry())->SQArray()[_Index];
 	if(ISNULL(_TheSQueue))
 	{
 		THROW_MQNULLEXCEPTION(_TheSQueue);		
@@ -71,8 +79,9 @@ CGalaxyMQCreator::CGalaxyMQCreator(const std::string &_FileName,UINT _Queues,UIN
 		return;	
 	}
 	
-
+	
 	CMQFileMemory	_Memory(_FileName,MQEvaluate(_Queues,_Nodes,_Pages,_PageSize));	
+	_Memory.Zero();
 	
 	CSQInfor *_Infor = (CSQInfor *)_Memory.Entry();
 	_Infor->Init(_Queues,_MaxDepth,_CatchCount,_Nodes,_Pages,_PageSize);
@@ -105,7 +114,9 @@ CGalaxyMQCreator::CGalaxyMQCreator(key_t _IPCKey,UINT _Queues,UINT _MaxDepth,USH
 		return;	
 	}
 	
-	CSysvSHMemory	_Memory(_IPCKey,MQEvaluate(_Queues,_Nodes,_Pages,_PageSize));	
+	CSysvSHMemory	_Memory(_IPCKey,MQEvaluate(_Queues,_Nodes,_Pages,_PageSize));
+	
+	_Memory.Zero();	
 	
 	CSQInfor *_Infor = (CSQInfor *)_Memory.Entry();
 	_Infor->Init(_Queues,_MaxDepth,_CatchCount,_Nodes,_Pages,_PageSize);

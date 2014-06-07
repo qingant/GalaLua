@@ -10,6 +10,12 @@ namespace Galaxy
 
 namespace AMQ
 {
+	
+const UINT MAK_LOCK 	= (0xFCFCDEDE);
+const UINT MAK_COND		= (0xEFEFCDCD);
+const UINT MAK_EVENT	= (0xABAB9A9A);
+const UINT MAK_DOOR		= (0xBCBCDFDF);
+	
 /*CMQNoLock*/
 void CMQNoLock::Lock() const
 {
@@ -53,6 +59,8 @@ void CSQLock::Init()
 		_STA = 0;
 	}
 	
+	_MSK = MAK_LOCK;
+	
 	//memcpy(&_BGN,"M:>>",4);
 	//memcpy(&_END,"<<:M",4);
 }
@@ -78,6 +86,7 @@ void CSQLock::Lock() const
 	}
 	
 	_This->_STA = 1;
+
 }
 
 void CSQLock::UnLock() const
@@ -92,11 +101,12 @@ void CSQLock::UnLock() const
 		
 		THROW_MQAPIEXCEPTION("pthread_mutex_unlock",rc);
 		return;
-	} 
+	}
 }
 
 bool CSQLock::TryLock() const
 {
+
 	CSQLock *_This = (CSQLock *)this;
 	INT rc = pthread_mutex_trylock(&(_This->_MTX));
 	if(rc==0)
@@ -186,6 +196,8 @@ void CSQCond::Init(CSQLock &_TheLocker)
 		THROW_MQEXCEPTION("Init Failed!");
 		return;	
 	}
+	
+	_MSK = MAK_COND;
 }
 
 const CSQLock &CSQCond::Locker() const
@@ -207,7 +219,6 @@ UINT CSQCond::Lurkers() const
 
 void CSQCond::Wait() const
 {
-
    CSQCond *_This = (CSQCond *)this;
 
    _This->_WAT++;
@@ -300,6 +311,8 @@ void CSQEvent::Init()
 	_Lock.Init(); //这个在前
 
 	_Cond.Init(_Lock);
+	
+	_MSK = MAK_EVENT;
 }
 
 PBYTE CSQEvent::NearPtr() const
@@ -361,6 +374,8 @@ void CSQDoor::Init()
 
 	_Threshold1.Init(_Lock);
 	_Threshold2.Init(_Lock);
+	
+	_MSK = MAK_DOOR;
 }
 
 PBYTE CSQDoor::NearPtr() const

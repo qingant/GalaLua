@@ -345,6 +345,25 @@ bool CSQInfor::Check() const
 		CSQPooler &_ThePooler = _This->Pooler();
 		CSQSuiteArray &_TheQArray = _This->SQArray();
 		
+		
+		if(!_TheAllocator.Check())
+		{
+			THROW_MQEXCEPTION(".ALC check Error.");
+			return false;
+		}
+		
+		if(!_ThePooler.Check())
+		{
+			THROW_MQEXCEPTION(".PLR check Error.");
+			return false;
+		}
+
+		if(!_TheQArray.Check())
+		{
+			THROW_MQEXCEPTION(".MQS check Error.");
+			return false;
+		}
+		
 		if(_Env._Queues!= _TheQArray.Count())
 		{
 			THROW_MQEXCEPTION("NUM_QUEUES not match.");
@@ -443,7 +462,8 @@ BYTE CSQInfor::GetBitwidth() const
 
 CSQSuiteArray &CSQInfor::SQArray()
 {
-	CSQSuiteArray *_TheSQArray = (CSQSuiteArray *)(((PBYTE)this) + (_Offset[POS_QARRAY]._Offset));
+	UINT _TheArrayOffset = (_Offset[POS_QARRAY]._Offset);
+	CSQSuiteArray *_TheSQArray = (CSQSuiteArray *)(((PBYTE)this) + _TheArrayOffset);
 	return *_TheSQArray;
 }
 

@@ -23,6 +23,7 @@ namespace Galaxy
 			virtual ~CMQMemory();	
 		    PBYTE Entry() const;
 		    SIZE_T Size() const;
+		    void Zero();
 		};
 		
 		class CMQFileMemory : public CMQMemory

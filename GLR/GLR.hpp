@@ -41,8 +41,6 @@ namespace GLR
         Schedule & GetSchedule() const { return *_Schedule; }
         Process  & GetProcess(int pid) const;
     public:
-        static std::string _GarFile;
-    public:
         void Entry(const std::string &path, const std::string &entry);
         void EntryEx(const std::string &path,LoadEntryFrom  from=L_FILE);
     private:
