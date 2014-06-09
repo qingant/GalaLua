@@ -5,6 +5,7 @@
 #include "Loader.hpp"
 
 using namespace GLR;
+using namespace std;
 
 Controller::Controller(const std::string &name)
     :_Name(name),
@@ -24,14 +25,26 @@ void Controller::Load()
     if (_Module == NULL)
     {
         //TODO: error handle with dlerror
-        THROW_EXCEPTION_EX("Cannot Load");
+		string err=dlerror();
+		if(err == "")
+			err = "Cannot Load file";
+		else
+			err = "Cannot Load: "+err;
+        //THROW_EXCEPTION_EX("Cannot Load");
+		THROW_EXCEPTION_EX(err.c_str());
     }
     GLR_CTL_INIT_FUNC init_func = (GLR_CTL_INIT_FUNC)dlsym(_Module, "Initialize");
     _Driver = init_func(NULL);
     if (_Driver == NULL)
     {
         //TODO: error handling
-        THROW_EXCEPTION_EX("Cannot Load Controller");
+		string err=dlerror();
+		if(err == "")
+			err = "Cannot Load Controller";
+		else
+			err = "Cannot Load Controller: "+err;
+        //THROW_EXCEPTION_EX("Cannot Load Controller");
+		THROW_EXCEPTION_EX(err.c_str());
     }
 }
 
@@ -49,6 +62,13 @@ void Controller::UnLoad()
     if (rt != 0)
     {
         //TODO: error handling with dlerror
+		std::string err=dlerror();
+		if(err == "")
+			err = "Cannot Close file";
+		else
+			err = "Cannot Close: " + err;
+
+		THROW_EXCEPTION_EX(err.c_str());
     }
     _Module = NULL;
 }
