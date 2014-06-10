@@ -7,6 +7,8 @@
 
 #pragma once
 
+#define MAX_SIZE 100
+
 namespace GLR {
     class Controller : public Galaxy::GalaxyRT::CNonCopyAble
     {
