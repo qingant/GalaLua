@@ -48,7 +48,7 @@ function send(addr, msg, attr)
 	elseif type(addr) == "number" then
         return _glr.send(addr, msg, attr)
     elseif type(addr) == "string" then
-        return _glr.send(_glr.npt.get(addr), msg, attr)
+        return _glr.send(_glr.npt.registered(addr)[addr], msg, attr)
 	end
 end
 
@@ -140,6 +140,14 @@ function recv_by_condition( condition , ...)
     end
 end
 function recv_by_addr( addr, ... )
+    if type(addr) == "string" then
+        return recv_by_condition(function (msg)
+                return (msg[2].addr.host == self_host and
+                            msg[2].addr.port == self_port and
+                            msg[2].addr.gpid == _glr.npt.registered(addr)[addr]
+                )
+        end)
+    end
     return recv_by_condition(function ( msg )
                                return (msg[2].addr.host == addr.host and
                                        msg[2].addr.port == addr.port and
