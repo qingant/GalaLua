@@ -11,7 +11,7 @@ else
     setfenv(1, M)
 end
 
-__VER__ = "1.0"  -- first api wrapper for glr-1.x
+_VER = "1.0"  -- first api wrapper for glr-1.x
 
 local function mixin(mod)
     for k,v in pairs(mod) do
