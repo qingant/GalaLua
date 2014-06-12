@@ -118,6 +118,7 @@ void GLR::Bus::TimerSignal( int pid, int tick )
         {
             return;
         }
+        Galaxy::GalaxyRT::CLockGuard _ll(&nd._Lock, false);
         Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, false);
         if (tick != nd._Status._Tick)
         {
