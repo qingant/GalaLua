@@ -23,7 +23,7 @@ void Controller::Load()
     _Module = dlopen(_Name.c_str(), RTLD_NOW|RTLD_LOCAL);
     if (_Module == NULL)
     {
-		char err[MAX_SIZE]={0};
+		char err[ERR_MSG_MAX_SIZE]={0};
 		char *dlerr=dlerror();
 
 		snprintf(err,sizeof(err),"Cannot Load Dll: %s",dlerr);
@@ -33,7 +33,7 @@ void Controller::Load()
     _Driver = init_func(NULL);
     if (_Driver == NULL)
     {
-		char err[MAX_SIZE]={0};
+		char err[ERR_MSG_MAX_SIZE]={0};
 		char *dlerr=dlerror();
 
 		snprintf(err,sizeof(err),"Cannot Load Controller: %s",dlerr);
@@ -54,7 +54,7 @@ void Controller::UnLoad()
     int rt = dlclose(_Module);
     if (rt != 0)
     {
-		char err[MAX_SIZE]={0};
+		char err[ERR_MSG_MAX_SIZE]={0};
 		char *dlerr=dlerror();
 
 		snprintf(err,sizeof(err),"Cannot Close Dll: %s",dlerr);
