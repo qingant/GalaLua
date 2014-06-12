@@ -54,7 +54,7 @@ function server:main_loop( ... )
         if mtype == nil and self.on_timeout then
             self:on_timeout()
             goto beg
-        elseif desc.attr.corrid ~= RPC_CORRID then
+        elseif desc.attr.corrid ~= RPC_CORRID and self.on_message then
             self:on_message(mtype, desc, msg)
             goto beg
         end
