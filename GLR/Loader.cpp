@@ -23,15 +23,21 @@ void Controller::Load()
     _Module = dlopen(_Name.c_str(), RTLD_NOW|RTLD_LOCAL);
     if (_Module == NULL)
     {
-        //TODO: error handle with dlerror
-        THROW_EXCEPTION_EX("Cannot Load");
+		char err[ERR_MSG_MAX_SIZE]={0};
+		char *dlerr=dlerror();
+
+		snprintf(err,sizeof(err),"Cannot Load Dll: %s",dlerr);
+		THROW_EXCEPTION_EX(err);
     }
     GLR_CTL_INIT_FUNC init_func = (GLR_CTL_INIT_FUNC)dlsym(_Module, "Initialize");
     _Driver = init_func(NULL);
     if (_Driver == NULL)
     {
-        //TODO: error handling
-        THROW_EXCEPTION_EX("Cannot Load Controller");
+		char err[ERR_MSG_MAX_SIZE]={0};
+		char *dlerr=dlerror();
+
+		snprintf(err,sizeof(err),"Cannot Load Controller: %s",dlerr);
+		THROW_EXCEPTION_EX(err);
     }
 }
 
@@ -48,7 +54,11 @@ void Controller::UnLoad()
     int rt = dlclose(_Module);
     if (rt != 0)
     {
-        //TODO: error handling with dlerror
+		char err[ERR_MSG_MAX_SIZE]={0};
+		char *dlerr=dlerror();
+
+		snprintf(err,sizeof(err),"Cannot Close Dll: %s",dlerr);
+		THROW_EXCEPTION_EX(err);
     }
     _Module = NULL;
 }

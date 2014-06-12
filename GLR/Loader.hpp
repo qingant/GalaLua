@@ -20,6 +20,11 @@ namespace GLR {
         const std::string _Name;
         void  *_Module;
         IController *_Driver;
+	private:
+		enum{
+			ERR_MSG_MAX_SIZE=100
+		};
+
     };
 
     class Loader : public Galaxy::GalaxyRT::CNonCopyAble
