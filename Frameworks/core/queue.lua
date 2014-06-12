@@ -40,7 +40,6 @@ function queue_server(name)
         return {dataq=self._dataq, customerq=self._customerq, timeout=self._dequeue_timeout}
     end
     function queue_server:put(params, desc)
-        print("Queue Put")
         if self._customerq:is_empty() then
             self._dataq:push_right(params)
         else
