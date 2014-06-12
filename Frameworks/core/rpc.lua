@@ -103,6 +103,9 @@ end
 
 function server:main(...)
     ::entry::
+    if self.on_init then
+        self:on_init()
+    end
     local ret, err = pcall(self.main_loop, self)
     if not ret and err == self.restart_error then
         goto entry
