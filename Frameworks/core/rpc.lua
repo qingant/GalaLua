@@ -10,13 +10,13 @@
     - working with general logging interface
 ]]
 
-__VER__ = "1.0"
+_VER = "1.0"
 
 module(..., package.seeall)
 
-local cjson = require("cjson") 
+local cjson = require("cjson")
 local pprint = require("pprint")
-
+local RPC_CORRID = require(_PACKAGE .. "const").RPC_CORRID
 
 server = {}
 server.stop_error = {}
@@ -53,6 +53,9 @@ function server:main_loop( ... )
         self._tick = self._tick + 1
         if mtype == nil and self.on_timeout then
             self:on_timeout()
+            goto beg
+        elseif desc.attr.corrid ~= RPC_CORRID then
+            self:on_message(mtype, desc, msg)
             goto beg
         end
         local addr = desc.addr
