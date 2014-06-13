@@ -8,20 +8,15 @@ module(...,package.seeall)
 local pprint=require "pprint"
 local cjson=require "cjson"
 local io=require "io"
+local conf=require "supervisor_conf"
 
 function get_supervisord_arg()
-    local Config=(require "config").Config
-    local mdb=require "mdb".mdb
-
-    local db_path=require "db_path"
-
-    local _conf= Config:new():init_with_env(mdb._create_env(db_path.config))
-    local host=_conf:get("CTR/Address/IP")
-    local port=tonumber(_conf:get("CTR/Address/Port"))
-
-    local gar=_conf:get("SUP/GarName")
-    _conf:close()
-    return host,port,gar
+    local sup_conf=conf.watchConf(conf.create())
+    local ok,entry=pcall(sup_conf.find_supervisord,sup_conf)
+    sup_conf:close()
+    assert(ok,entry)
+    assert(entry,"no supervisord configure")
+    return entry
 end
 
 local STATE_NAME={
@@ -47,10 +42,9 @@ function Interface:new()
 end
 
 function Interface:init()
-    local host,port,gar=get_supervisord_arg()
-    self.host=host
-    self.port=port
-    self.gar=gar
+    self.conf=get_supervisord_arg()
+    self.host=self.conf.host
+    self.port=self.conf.port
     self.addr_token=string.format("%s::%s",self.host,self.port) 
 end
 
@@ -130,7 +124,6 @@ function Interface:recv_from_supervisord()
             rest=rest-1
         end
     until (rest<0)
-
     return ret
 end
 
@@ -163,14 +156,13 @@ function Interface:start_supervisord()
     if self:isStarted() then
         return true,"supervisord alreadly started"
     else
-        local g=""
-        if self.gar and self.gar~="" then
-            g=string.format("-g %s",self.gar)
+        local g=self.conf.gar
+        if g and g~="" then
+            g=string.format("-g %s",g)
         end
-
-        local cmd=string.format("glr %s -m ctr -e main -h %s -p %d -D ",
-                                g,self.host,self.port)
-        ret=os.execute(cmd)
+        local cmd=string.format("glr %s -m %s -e main -h %s -p %d %s -D ",
+                                g,self.conf.module,self.host,self.port,self.conf.arg or "")
+        os.execute(cmd)
         if self:isStarted(3) then
             return true 
         end

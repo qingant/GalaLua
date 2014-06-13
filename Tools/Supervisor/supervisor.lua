@@ -243,14 +243,6 @@ end
 function start_monitor()
     local out=cmd_output()
     out.show("starting supervisord........")
-
-    out.show("importing configure........")
-    local conf=require "supervisor_conf"
-    local sup_conf=conf.watchConf(conf.create())
-    sup_conf:import()
-
-    out.success("importing configure")
-
     local interface=_interface.new()
     local err,msg=interface:start_supervisord()
     out.result("start supervisord",err)

@@ -213,9 +213,9 @@ function process(entry,max)
     end
 
     function Process:get_startcmd()
-        local startcmd=string.format("glr %s -h %s -p %d -i %d -m %s -e main -D",
+        local startcmd=string.format("glr %s -h %s -p %d -i %d -m %s -e main %s -D",
                                      self:get_run_gar_arg(),self.entry.host,self.entry.port,
-                                     self.entry.index, self.entry.module)
+                                     self.entry.index, self.entry.module,self.entry.arg)
         return startcmd
     end
 
