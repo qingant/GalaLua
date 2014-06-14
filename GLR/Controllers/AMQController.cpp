@@ -69,16 +69,13 @@ void AMQController::Put(lua_State *l)
     lua_getglobal(l,"__id__");
     int pid = luaL_checkinteger(l,-1);
 
-    lua_getfield(l, 3, "host");
-    // XXX: luaL_error cross C++ call
-    const char *host = luaL_checkstring(l, -1);
-    //XXX host is "AMQ"
-
     lua_getfield(l, 3, "port");
     int port = luaL_checkinteger(l, -1);
 
     lua_getfield(l, 3, "gpid");
     int des_pid = luaL_checkinteger(l, -1);
+
+    const char *host = "AMQ";
 
     try
     {
@@ -93,7 +90,7 @@ void AMQController::Put(lua_State *l)
         header->_Route._ToGpid=des_pid;
 
         memcpy(header->_Host._V2._Host,host,strlen(host));
-        header->_Host._V2._Port=port;
+        header->_Host._V2._Port=m_queue;
 
         header->_Protocol._Length=(sizeof(AMQHeader)-4)+ len;
         
@@ -143,6 +140,7 @@ void AMQController::Request( lua_State *l)
 
 AMQController::AMQController(const std::string &path,short queueno)
     :m_amq_path(path),
+     m_queue(queueno),
      m_amq(path),
      m_worker(m_amq[queueno])
 {
@@ -169,7 +167,7 @@ IController *Initialize(void *arg)
     {
         Galaxy::AMQ::CGalaxyMQCreator _Creator(path,1024,64,4,8192,16384,64);
     }
-   */ 
+   */
 
     AMQController *amq=NULL;
     try

@@ -108,6 +108,7 @@ namespace GLR
         void InvalidType(lua_State *l);
     private:
         const std::string m_amq_path;
+        short m_queue;
         Galaxy::AMQ::CGalaxyMQ m_amq;
         AMQWorker m_worker;
         Galaxy::GalaxyRT::CThread *m_thread;
