@@ -162,12 +162,16 @@ IController *Initialize(void *arg)
     //XXX: 大小不能超过INT_MAX
     int queue=luaL_checkint(l,3);
 
-    /*
-    if (access(path.c_str(), F_OK) != 0)
+    if (access(path, F_OK) != 0)
     {
-        Galaxy::AMQ::CGalaxyMQCreator _Creator(path,1024,64,4,8192,16384,64);
+        int queues=luaL_optint(l,4,20);
+        int max_depth=luaL_optint(l,5,64);
+        int catch_count=luaL_optint(l,6,4);
+        int nodes=luaL_optint(l,7,8192);
+        int pages=luaL_optint(l,8,16384);
+        int page_size=luaL_optint(l,9,4096);
+        Galaxy::AMQ::CGalaxyMQCreator _Creator(path,queues,max_depth,catch_count,nodes,pages,page_size);
     }
-   */
 
     AMQController *amq=NULL;
     try
