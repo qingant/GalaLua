@@ -15,8 +15,10 @@ _VER = "1.0"
 module(..., package.seeall)
 
 local cjson = require("cjson")
+local cmsgpack = require("cmsgpack")
 local pprint = require("pprint")
 local RPC_CORRID = require(_PACKAGE .. "const").RPC_CORRID
+local client = require("rpc_client").client
 
 server = {}
 server.stop_error = {}
@@ -33,10 +35,12 @@ end
 function server:init(name, logger, password)
     glr.npt.register(name)
 	self._name = name
+    self._stamp = glr.time.now()
 	self._logger = logger
     self._password = password
-    self._timeout = 5
-    self._packer = cjson.encode
+    self._timeout = nil
+    self._packer = cmsgpack.pack
+    self._unpacker = cmsgpack.unpack
     self._tick = 0
 	return self
 end
@@ -47,40 +51,48 @@ function server:_send(desc, result)
                     {corrid=desc.attr.msgid})
 end
 function server:main_loop( ... )
+    local packer = self._packer
+    local unpacker = self._unpacker
+    local response_attr = {corrid=0}
 	while true do
         ::beg::
 		local mtype,desc,msg = glr.recv(self._timeout)
         self._tick = self._tick + 1
-        if mtype == nil and self.on_timeout then
-            self:on_timeout()
+        if mtype == nil then
+            if self.on_timeout then
+                self:on_timeout()
+            end
             goto beg
-        elseif desc.attr.corrid ~= RPC_CORRID and self.on_message then
-            self:on_message(mtype, desc, msg)
+        elseif  desc.attr.corrid ~= RPC_CORRID then
+            if self.on_message then
+                self:on_message(mtype, desc, msg)
+            end
             goto beg
         end
         local addr = desc.addr
-        local response_attr = {corrid=desc.attr.msgid}
-		local call = cjson.decode(msg)
-		if call.method and call.params and self[call.method] then
+        response_attr.corrid = desc.attr.msgid
+        -- local response_attr = {corrid=desc.attr.msgid}
+		local call = unpacker(msg)
+		if call.method  and self[call.method] then
 			local response, error_msg = self[call.method](self,
                                                           call.params,
                                                           desc)
 
 			if response and response ~= self.no_response then
-				glr.send(addr, cjson.encode{error="null",
+				glr.send(addr, packer{error=nil,
                                             id=call.id,
                                             result=response}, response_attr)
             elseif  response == self.no_response then
             else
-				glr.send(addr, cjson.encode{error=error_msg,
+				glr.send(addr, packer{error=error_msg,
                                             id=call.id,
-                                            result="null"}, response_attr)
+                                            result=nil}, response_attr)
 			end
 		else
 			-- TODO: error logging
-            glr.send(addr, cjson.encode{ error = "no method or method not exist",
+            glr.send(addr, packer{ error = "no method or method not exist",
                                          id = call.id,
-                                         result = "null"
+                                         result = nil
                                        }, response_attr)
 		end
 	end
@@ -98,7 +110,10 @@ function server:restart(params, addr)
     if params.password and params.password == self._password then
         error(self.restart_error)
     end
-
+end
+function server:server_status(params, desc)
+    -- TODO: serve richer info
+    return {name = self._name, stamp = self._stamp}
 end
 
 function server:main(...)
@@ -114,5 +129,44 @@ function server:main(...)
     end
 end
 
-
-
+function _server(mod_name, cls_name, args)
+    local o = require(mod_name)[cls_name]:new(unpack(args))
+    o:main()
+end
+--[[
+    {
+    mod_name:string
+    cls_name:string?
+    server_name:string?
+    parameters:table
+    bind_gpid:number?
+    }
+]]
+local default_server_cls_name = "server"
+function create_server(params)
+    print("create_server")
+    local rt, errmsg
+    params.parameters = params.parameters or {}
+    if params.bind_gpid then
+        rt, errmsg = glr.spawn_ex(params.bind_gpid,
+                                        params.mod_name,
+                                        params.cls_name or default_server_cls_name,
+                                        params.server_name,
+                                        params.parameters)
+    else
+        print("glr.spawn")
+        rt, errmsg = glr.spawn(_NAME,
+                               "_server",
+                               params.mod_name,
+                               params.cls_name or default_server_cls_name,
+                               params.parameters)
+        print("errmsg",errmsg)
+    end
+    assert(rt, errmsg)
+    local cli = client:new():init(server_name or rt)
+    return cli
+end
+function create_client(addr)
+    local cli = client:new():init(addr)
+    return cli
+end
