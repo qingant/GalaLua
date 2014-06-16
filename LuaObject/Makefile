@@ -1,5 +1,5 @@
 
-all:_dir.so xml.so osext.so hexdump.so platform.so global.so cp
+all:_dir.so xml.so osext.so hexdump.so platform.so global.so cmsgpack.so cp
 
 include ../mk.rules
 amq:amq.so
@@ -25,7 +25,9 @@ cp:
 hexdump.so:LuaDump.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@
-.PHONY: static 
+cmsgpack.so:lua_cmsgpack.o
+	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@
+.PHONY: static
 
 
 static: _dir.a xml.a platform.a hexdump.a
