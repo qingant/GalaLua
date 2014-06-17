@@ -920,7 +920,6 @@ int Process::AllProcesses(lua_State *l)
 {
     Galaxy::GalaxyRT::CRWLockAdapter _RL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
-    lua_pushboolean(l, 1);
     lua_newtable(l);
     for (size_t i = 0; i != NodeMap.size(); ++i)
     {
@@ -932,7 +931,7 @@ int Process::AllProcesses(lua_State *l)
         }
 
     }
-    return 2;
+    return 1;
 }
 
 
