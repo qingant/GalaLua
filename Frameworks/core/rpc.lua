@@ -24,7 +24,7 @@ server = {}
 server.stop_error = {}
 server.restart_error = {}
 server.no_response = {}
-
+server.ok = {}
 function server:new(  )
 	local o = {}
 	setmetatable(o, self)
@@ -33,7 +33,9 @@ function server:new(  )
 end
 
 function server:init(name, logger, password)
-    glr.npt.register(name)
+    if name then
+        glr.npt.register(name)
+    end
 	self._name = name
     self._stamp = glr.time.now()
 	self._logger = logger
@@ -50,7 +52,7 @@ function server:_send(desc, result)
                                              result=result}),
                     {corrid=desc.attr.msgid})
 end
-function server:main_loop( ... )
+function server:_main_loop( ... )
     local packer = self._packer
     local unpacker = self._unpacker
     local response_attr = {corrid=0}
@@ -73,12 +75,16 @@ function server:main_loop( ... )
         response_attr.corrid = desc.attr.msgid
         -- local response_attr = {corrid=desc.attr.msgid}
 		local call = unpacker(msg)
+        -- TODO: method must **NOT** begin with "_"
 		if call.method  and self[call.method] then
 			local response, error_msg = self[call.method](self,
                                                           call.params,
                                                           desc)
 
 			if response and response ~= self.no_response then
+                if response == self.ok then
+                    response = nil
+                end
 				glr.send(addr, packer{error=nil,
                                             id=call.id,
                                             result=response}, response_attr)
@@ -105,33 +111,63 @@ function server:stop(params, addr)
         error(self.stop_error)
     end
 end
-
+local function _collect_methods(t, mt)
+    for k,v in pairs(t) do
+        if type(v) == "function" and k:sub(1,1) ~= '_' and k:sub(1,2) ~= "on" and k ~= "new" and k ~= "init" then
+            mt[#mt + 1] = k
+        end
+    end
+end
+function server:methods(params, addr)
+    if self._methods then
+        return self._methods
+    end
+    self._methods = {}
+    local t = self
+    while t do
+        _collect_methods(t, self._methods)
+        t = getmetatable(t)
+    end
+    return self._methods
+end
 function server:restart(params, addr)
     if params.password and params.password == self._password then
         error(self.restart_error)
     end
 end
-function server:server_status(params, desc)
+
+
+function server:sys_status(params, desc)
     -- TODO: serve richer info
-    return {name = self._name, stamp = self._stamp}
+    return { name = self._name,
+             stamp = self._stamp,
+             call_times = self._tick}
 end
 
-function server:main(...)
+function server:memory_usage(params, desc)
+    local kb =  collectgarbage("count")
+    return {total=kb*1024}
+end
+function server:_main(...)
     ::entry::
     if self.on_init then
         self:on_init()
     end
-    local ret, err = pcall(self.main_loop, self)
+    local ret, err = pcall(self._main_loop, self)
     if not ret and err == self.restart_error then
         goto entry
-    else
+    elseif not ret and err == self.stop_error then
         error(err)
+    else
+        print(err)
+        -- TODO: logging
+        goto entry
     end
 end
 
 function _server(mod_name, cls_name, args)
     local o = require(mod_name)[cls_name]:new(unpack(args))
-    o:main()
+    o:_main()
 end
 --[[
     {
@@ -149,9 +185,10 @@ function create_server(params)
     params.parameters = params.parameters or {}
     if params.bind_gpid then
         rt, errmsg = glr.spawn_ex(params.bind_gpid,
+                                        _NAME,
+                                        "_server",
                                         params.mod_name,
                                         params.cls_name or default_server_cls_name,
-                                        params.server_name,
                                         params.parameters)
     else
         print("glr.spawn")
@@ -163,7 +200,7 @@ function create_server(params)
         print("errmsg",errmsg)
     end
     assert(rt, errmsg)
-    local cli = client:new():init(server_name or rt)
+    local cli = client:new():init(params.server_name or rt)
     return cli
 end
 function create_client(addr)
