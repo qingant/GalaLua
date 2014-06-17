@@ -673,6 +673,8 @@ function cmds(sup,log)
         glr.send(toaddr,cjson.encode({error="unkown cmd:"..msg}))
     end
 
+
+
     local mt={__index=function () return unknown end}
     setmetatable(Cmds,mt)
     
@@ -682,6 +684,10 @@ function cmds(sup,log)
         local ret={cmd=cmd_name}
         ret.rest=num     -- number of rest messages
         glr.send(toaddr,cjson.encode(ret))
+    end
+
+    function Cmds.register(msg_table,addr)
+        response(addr,"register",msg_table.name,{supervisord=__id__})
     end
 
     function cmd_skel(func,cmd_name)

@@ -44,18 +44,24 @@ end
 function Interface:init()
     self.conf=get_supervisord_arg()
     self.host=self.conf.host
-    self.port=self.conf.port
+    self.port=tonumber(self.conf.port)
     self.addr_token=string.format("%s::%s",self.host,self.port) 
 end
 
 
---register to ctr and get supervisord's gpid
 function Interface:register_and_get_gpid()
-    
+    --[[
+    @msg:{cmd=register,name="supervisord",result={supervisord=0}} 
+    ]]
+    function parse_gpid(msg)
+        local mt=cjson.decode(msg)
+        return assert(tonumber(mt.result.supervisord),"fatal error")
+    end
+
     --recv message from ctr main node and the CLOSED message
     function _cond(msg)
         local msg_type=msg[1]
-        local addr=msg[2]
+        local addr=msg[2].addr
         if msg_type==glr.CLOSED then
             return true
         end
@@ -66,14 +72,14 @@ function Interface:register_and_get_gpid()
         end
     end
 
-    local reg={Type="CTR",Action="REG"}
+    local reg={cmd="register",name="supervisord"}
     local addr={host=self.host,port=self.port,gpid=0}
     assert(glr.send(addr,cjson.encode(reg)))
-    local msg_type, addr, msg = glr.recvByCondition(_cond)
+    local msg_type, addr, msg = glr.recv_by_condition(_cond)
     if msg_type==glr.CLOSED then
         error("supervisord is not running")
     end
-    self.gpid=assert(cjson.decode(msg)["supervisord"],"not ctr message")
+    self.gpid=parse_gpid(msg)
     self.addr={host=self.host,port=self.port,gpid=self.gpid}
 end
 
@@ -142,7 +148,7 @@ function Interface:stop_supervisord()
         --XXX: we must recv the CLOSED msg here. Otherwise it will mess the rest
         --command.
         while true do
-            local msg_type,addr,msg=glr.recvByType(glr.CLOSED)
+            local msg_type,addr,msg=glr.recv_by_type(glr.CLOSED)
             if msg_type==glr.CLOSED and self.addr_token==addr.host then
                 break
             end
