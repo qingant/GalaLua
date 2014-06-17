@@ -14,8 +14,6 @@ local io=require "io"
 local _interface=require "interface"
 local cmd_template=require "cmd"
 
-local ALL={"svc","lsr"}
-
 function pairByKey(t,f)
     local a={}
     for k in pairs(t) do a[#a+1]=k end
@@ -101,6 +99,7 @@ local function show_status(status)
     local sep2=("-"):rep(20)
     out.add(sep1)
 
+    local status=status.result
     local pid=""
     if status.pid then
         pid=string.format("[pid:%s]",status.pid)
@@ -187,15 +186,33 @@ local function status(name)
     local interface=_interface.new()
     local st=interface:status(name)
     local ret={}
+    local out=cmd_output()
     for i,s in pairs(st) do
-        ret[s.result.name]=s.result
+        ret[s.name]=s
     end
     for k,s in pairByKey(ret) do
-        show_status(s)
+        if s.status==0 then
+            show_status(s)
+        else
+            out.error(s.result)
+        end
+
     end
 end
 
-function sort_output(ret)
+local function start_stop_show(ret,out)
+    local sort_ret={}
+    for i,v in ipairs(ret) do
+        local content=v.result
+        sort_ret[v.name]=v
+    end
+    for name,v in pairByKey(sort_ret) do
+        if v.status==0 then
+            out.result(name,v.result.state)
+        else
+            out.error(v.result)
+        end
+    end
 
 end
 
@@ -205,14 +222,9 @@ local function start(name)
     local interface=_interface.new()
     local sort_ret={}
     local ret=interface:start(name)
-    for i,v in ipairs(ret) do
-        local content=v.result
-        sort_ret[content.name]=content.state
-    end
-    for name,v in pairByKey(sort_ret) do
-        out.result(name,v)
-    end
+    start_stop_show(ret,out)
 end
+
 
 local function stop(name)
     local out=cmd_output()
@@ -220,17 +232,11 @@ local function stop(name)
     local interface=_interface.new()
     local sort_ret={}
     local ret=interface:stop(name)
-    for i,v in ipairs(ret) do
-        local content=v.result
-        sort_ret[content.name]=content.state
-    end
-    for name,v in pairByKey(sort_ret) do
-        out.result(name,v)
-    end
+    start_stop_show(ret,out)
 end
 
 
-local function stop_supervisord()
+local function stop_monitor()
     local out=cmd_output()
     out.show("stopping supervisord........")
     local interface=_interface.new()
@@ -248,23 +254,6 @@ function start_monitor()
     out.result("start supervisord",err)
 end
 
-local function startall()
-    for i=1,#ALL do
-        start(ALL[i])
-    end
-end
-
-local function stopall()
-    for i=#ALL,1,-1 do
-        stop(ALL[i])
-    end
-end
-
-local function statusall()
-    for i=1,#ALL do
-        status(ALL[i])
-    end
-end
 
 --list config
 local function config(name)
@@ -276,8 +265,12 @@ local function config(name)
         if not (ret and ret.result and next(ret.result)) then 
             return out.warn(string.format("No valid configures"))
         end
-        for i,c in ipairs(ret.result) do
-            show_config(c)
+        if ret.status==0 then
+            for i,c in ipairs(ret.result) do
+                show_config(c)
+            end
+        else
+            out.error(ret.result)
         end
     else
         out.error(errmsg)
@@ -314,16 +307,17 @@ end
 
 local cmds=cmd_template.init_cmd("supervisor")
 
-cmds:add("stop_monitor",all_cmds("stop_monitor",stop_supervisord),help.stop_monitor,help_more.stop_monitor)
-cmds:add("start_monitor",all_cmds("start_monitor",start_monitor),help.start_monitor,help_more.start_monitor)
-cmds:add("start",all_cmds("start",start,1),help.start,help_more.start)
-cmds:add("startall",all_cmds("startall",startall),help.startall,help_more.startall)
-cmds:add("stop",all_cmds("stop",stop,1),help.stop,help_more.stop)
-cmds:add("stopall",all_cmds("stopall",stopall),help.stopall,help_more.stopall)
-cmds:add("status",all_cmds("status",status,1),help.status,help_more.status)
-cmds:add("statusall",all_cmds("statusall",statusall),help.statusall,help_more.statusall)
-cmds:add("config",all_cmds("config",config,{0,1}),help.config,help_more.config)
-cmds:add("list",all_cmds("list",list),help.list,help_more.list)
+function add_command(name,func,argc)
+    cmds:add(name,all_cmds(name,func,argc),help[name],help_more[name])
+end
+
+add_command("stop_monitor",stop_monitor)
+add_command("start_monitor",start_monitor)
+add_command("start",start,1)
+add_command("stop",stop,1)
+add_command("status",status,1)
+add_command("config",config,{0,1})
+add_command("list",list)
 
 function helper(argv)
     return cmds:helper(argv)
