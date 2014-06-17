@@ -25,8 +25,12 @@ function main()
 
     local q = rpc.create_server{ mod_name = "core.queue", parameters = {server_name}}
     pprint.pprint(q, "q")
+    pprint.pprint(q:call("methods"), "methods")
+    pprint.pprint(q:call("memory_usage"), "memory")
+    pprint.pprint(q:call("sys_status"), "sys_status")
+    pprint.pprint(q:call("get_options"), "options")
     local math = require("math")
-    math.huge = 1000000
+    math.huge = 10
     glr.spawn(_NAME, "recv", math.huge)
     local msg = "massage"
     for i = 1, math.huge do

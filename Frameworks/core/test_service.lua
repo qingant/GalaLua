@@ -9,10 +9,12 @@ module(..., package.seeall)
 
 local rpc_server = require("rpc").server
 
-function test_server(name)
-    local server = rpc_server:new():init(name)
-    function server:test(params, desc)
-        return {stamp = glr.time.now(), params = params, source = desc}
-    end
-    server:main()
+server = rpc_server:new()
+function server:new(name)
+    self:init(name)
+    return self
 end
+function server:test(params, desc)
+    return {stamp = glr.time.now(), params = params, source = desc}
+end
+
