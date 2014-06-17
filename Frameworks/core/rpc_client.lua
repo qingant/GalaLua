@@ -24,6 +24,7 @@ function client:new(...)
     self.__index = self
     self._packer = cmsgpack.pack
     self._unpacker = cmsgpack.unpack
+    self._timeout = nil
     return o
 end
 
@@ -34,12 +35,16 @@ function client:init(server_addr)
     return self
 end
 
-function client:call(method, params)
+function client:call(method, params, timeout)
     self:request(method, params)
     -- TODO: matching recv
-    local mtype, desc, msg = glr.recv_by_addr(self._server_addr)
+    local mtype, desc, msg = glr.recv_by_addr(self._server_addr, timeout)
     -- pprint(desc, "call")
-    return self._unpacker(msg)
+    if mtype then
+        return self._unpacker(msg)
+    else
+        return nil
+    end
 end
 
 function client:request(method, params)
