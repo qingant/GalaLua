@@ -14,6 +14,15 @@ local db_path=require "db_path"
 local path=require "path"
 local mdb=(require "mdb").mdb
 
+local function response(addr,cmd,name,result,status)
+    local addr =tonumber(addr) or addr
+    local _t=type(addr)
+    if _t=="string" then
+        addr=cjson.decode(addr)
+    end
+    local msg=cjson.encode{cmd=cmd,name=name,result=result,status=status or 0}
+    return glr.send(addr,msg)
+end
 
 function init_logger()
     local log=require("logging")
@@ -681,24 +690,31 @@ function cmds(sup,log)
 
         function skel(msg_table,toaddr)
             local procs=sup:get_processes(msg_table.name)
-            rest_message_number(cmd_name,#procs,toaddr)
-            func(procs,toaddr)
+            if #procs>0 then
+                rest_message_number(cmd_name,#procs,toaddr)
+                func(procs,toaddr)
+            else
+                rest_message_number(cmd_name,1,toaddr)
+                local emsg=string.format("no such process: %s",msg_table.name)
+                response(toaddr,cmd_name,msg_table.name,emsg,1)
+            end
         end
 
         return skel
     end
 
     function stop(procs,toaddr)
-        local ret={cmd="stop"}
         for i,_p in ipairs(procs) do   --procs may have more than one item
             _p:stop()
             local _proc=_p:export()
-            ret.result={}
-            ret.result.state=STATE_NAME[_proc.state]
-            ret.result.name=string.format("%s%.4d",_proc.module,_proc.index)
-            ret.result.group=_proc.group
-
-            glr.send(toaddr,cjson.encode(ret))
+            local name=string.format("%s%.4d",_proc.module,_proc.index)
+            local result={
+                state=STATE_NAME[_proc.state],
+                name=name,
+                group=_proc.group,
+            }
+            
+            response(toaddr,"stop",name,result)
         end
     end
     Cmds.stop=cmd_skel(stop,"stop")
@@ -728,14 +744,13 @@ function cmds(sup,log)
 
     --update process 
     function Cmds.update(msg_table)
-        sup:attach(msg_table.content)
+        sup:attach(msg_table.result)
     end
 
     function Cmds.config(msg_table,toaddr)
         rest_message_number("config",1,toaddr)
-        local ret={cmd=msg_table.cmd}
-        ret.result=sup:get_config(DefaultGroup,msg_table.name)
-        glr.send(toaddr,cjson.encode(ret))
+        local result=sup:get_config(DefaultGroup,msg_table.name)
+        response(toaddr,msg_table.cmd,msg_table.name,result)
 
     end
     function Cmds.auto_restart(msg_table)
@@ -758,7 +773,7 @@ end
 --  "update" message format:
 --  {
 --      cmd="update",
---      content={
+--      result={
 --                  host=...,
 --                  port=...,
 --                  group=...,
@@ -781,30 +796,29 @@ end
 function _run_ctrl_cmd(proc,cmd,main_gpid,addr,log)
     local proc=cjson.decode(proc) 
     local _p=process(proc)
-    log:info("cmd:%s %s%.4d",cmd,proc.module,proc.index)
+    local name=string.format("%s%.4d",proc.module,proc.index)
+    log:info("cmd:%s %s",cmd,name)
 
-    _p[cmd](_p)
+    local ok,emsg=pcall(_p[cmd],_p)
+    if not ok then
+        log:error("ctrl cmd error:%s",emsg)
+        if addr then
+            response(addr,cmd,name,emsg,1)
+        end
+        return
+    end
 
     local _proc=_p:export()
-    local msg_table={}
-
-    msg_table.cmd="update"
-    msg_table.content=_proc
-
-    local msg=cjson.encode(msg_table)
-    glr.send({host=glr.sys.host,port=glr.sys.port,gpid=(main_gpid or 0)},msg)
+    response(main_gpid or 0,"update",name,_proc)
 
     if addr then
-        local ret={}
-        ret.cmd=cmd
-        ret.result={}
+        local result={
+            state=STATE_NAME[_proc.state],
+            name=name,
+            group=_proc.group,
+        }
 
-        ret.result.state=STATE_NAME[_proc.state]
-        ret.result.name=string.format("%s%.4d",_proc.module,_proc.index)
-        ret.result.group=_proc.group
-
-        local msg=cjson.encode(ret)
-        glr.send(cjson.decode(addr),msg)   --to supervisord client
+        response(addr,cmd,name,result) --to supervisord client
     end
     log:info("ctrl cmd done")
 end
@@ -838,31 +852,36 @@ end
 function _run_info_cmd(proc,cmd,addr,log)
     local addr=assert(addr,"must pass addr")
     local proc=cjson.decode(proc) 
-    log:info("cmd:%s %s%.4d",cmd,proc.module,proc.index)
+    local name=string.format("%s%.4d",proc.module,proc.index)
+
+    log:info("cmd:%s %s",cmd,name)
     local _p=process(proc)
 
-    local ret=_p[cmd](_p)
-    local msg_table={cmd=cmd}
-    local _proc=_p:export()
+    local ok,ret=pcall(_p[cmd],_p)
+    if not ok then
+        log:error("info cmd error:%s",ret)
+        response(addr,cmd,name,ret,1)
+    else
+        local _proc=_p:export()
 
-    msg_table.result={}
-
-    msg_table.result.state=STATE_NAME[ret.state]
-    msg_table.result.pid=ret.pid
-    msg_table.result.name=string.format("%s%.4d",_proc.module,_proc.index)
-    msg_table.result.group=_proc.group
-    msg_table.result.nodes=ret.status
-
-    local msg=cjson.encode(msg_table)
-    glr.send(cjson.decode(addr),msg)   --to supervisord client
-    
+        local result={
+            state=STATE_NAME[ret.state],
+            pid=ret.pid,
+            name=name,
+            group=_proc.group,
+            nodes=ret.status,
+        }
+        
+        --to supervisord client
+        response(addr,cmd,name,result)
+    end
     log:info("info cmd done")
 end
 function run_info_cmd(proc,cmd,addr)
     local log=init_logger()
     local ok,errmsg=xpcall(function () _run_info_cmd(proc,cmd,addr,log) end,debug.traceback)
     if not ok then
-        log:error("run_ctrl_cmd error:%s",errmsg)
+        log:error("run_info_cmd error:%s",errmsg)
     end
     log:close()
 end
@@ -874,14 +893,17 @@ function main()
     local command=cmds(node,log)
     while true do
         local msg_type, addr, msg = glr.recv()
-
+        addr=addr.addr
         if msg_type == glr.CLOSED then
             log:warn("get CLOSED msg:%s",addr.host)
             command.auto_restart({name=addr.host})
         elseif MSG_TYPE.APP==msg_type then
             log:info("get msg:%s",msg)
             local msg_table=cjson.decode(msg)
-            command[msg_table.cmd](msg_table,addr)
+            local ok,emsg=pcall(command[msg_table.cmd],msg_table,addr)
+            if not ok then
+                log:warn("error:%s",emsg)
+            end
         else
             log:warn("unknown msg:%s,%s,%s",msg_type,pprint.format(addr),msg)
         end
