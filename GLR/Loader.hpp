@@ -24,7 +24,6 @@ namespace GLR {
 		enum{
 			ERR_MSG_MAX_SIZE=100
 		};
-
     };
 
     class Loader : public Galaxy::GalaxyRT::CNonCopyAble
