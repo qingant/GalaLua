@@ -10,13 +10,13 @@
 namespace GLR {
     class Controller : public Galaxy::GalaxyRT::CNonCopyAble
     {
-    public:
+	public:
         Controller(const std::string &,void *arg);
         ~Controller();
-    private:
+	private:
         void Load(void *arg);
         void UnLoad();
-    private:
+	private:
         const std::string _Name;
         void  *_Module;
         IController *_Driver;
@@ -28,7 +28,7 @@ namespace GLR {
 
     class Loader : public Galaxy::GalaxyRT::CNonCopyAble
     {
-    private:
+	private:
         Loader();
 	public:
         ~Loader();
@@ -37,10 +37,10 @@ namespace GLR {
 	private:
 		static Loader *_Instance;
 		static Galaxy::GalaxyRT::CPthreadMutex _Lock;
-    public:
+	public:
         static int Load(lua_State *l);
         static int UnLoad(lua_State *l);
-    private:
+	private:
         std::map<std::string, Controller*> _Controllers;
         Galaxy::GalaxyRT::CPthreadMutex    _Mutex;
     };
