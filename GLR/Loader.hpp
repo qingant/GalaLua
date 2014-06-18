@@ -10,17 +10,17 @@
 namespace GLR {
     class Controller : public Galaxy::GalaxyRT::CNonCopyAble
     {
-	public:
+    public:
         Controller(const std::string &,void *arg);
         ~Controller();
-	private:
+    private:
         void Load(void *arg);
         void UnLoad();
-	private:
+    private:
         const std::string _Name;
         void  *_Module;
         IController *_Driver;
-	private:
+    private:
 		enum{
 			ERR_MSG_MAX_SIZE=100
 		};
@@ -28,19 +28,19 @@ namespace GLR {
 
     class Loader : public Galaxy::GalaxyRT::CNonCopyAble
     {
-	private:
+    private:
         Loader();
-	public:
+    public:
         ~Loader();
-	public:
+    public:
 		static Loader *GetInstance();
-	private:
+    private:
 		static Loader *_Instance;
 		static Galaxy::GalaxyRT::CPthreadMutex _Lock;
-	public:
+    public:
         static int Load(lua_State *l);
         static int UnLoad(lua_State *l);
-	private:
+    private:
         std::map<std::string, Controller*> _Controllers;
         Galaxy::GalaxyRT::CPthreadMutex    _Mutex;
     };
