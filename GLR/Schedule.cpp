@@ -146,7 +146,15 @@ void GLR::Schedule::Stop()
         _ScheQueue.Close();
         for (typeof(_Cores.begin()) it = _Cores.begin(); it != _Cores.end(); ++it)
         {
-            it->second->Join();
+            try
+            {
+                it->second->Join();
+            }
+            catch(Galaxy::GalaxyRT::CException &e)
+            {
+                GALA_ERROR(e.what());
+            }
+
         }
         _isLiving = false;
     }

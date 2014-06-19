@@ -247,7 +247,7 @@ namespace Galaxy
             pthread_cleanup_pop(0);
 
 
-            _TheThread._ThreadId = 0;   //置线程退出
+            //_TheThread._ThreadId = 0;   //置线程退出
             _TheThread.Exit();
             return _ret;
         }
@@ -255,7 +255,7 @@ namespace Galaxy
         void CThread::__T_Cleanup(CThread &_TheThread)
         {
             _TheThread._Run.Clean(_TheThread);
-            _TheThread._ThreadId = 0;   //置线程退出
+        //    _TheThread._ThreadId = 0;   //置线程退出
         }
 
 /*CThreadPooler*/
