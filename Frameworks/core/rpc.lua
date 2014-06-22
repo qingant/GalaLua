@@ -39,6 +39,7 @@ function server:init(name, logger, password)
 	self._name = name
     self._stamp = glr.time.now()
 	self._logger = logger
+    self._log_level = 0
     self._password = password
     self._timeout = nil
     self._packer = cmsgpack.pack
@@ -136,7 +137,10 @@ function server:restart(params, addr)
     end
 end
 
-
+function server:set_log_level(params, desc)
+    self._log_level = params.log_level
+    return self.ok
+end
 function server:sys_status(params, desc)
     -- TODO: serve richer info
     return { name = self._name,
