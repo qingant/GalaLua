@@ -780,7 +780,6 @@ int Process::Interrupt(lua_State *l)
         n.SetTimeOut(timeout);
     }
 
-    printf("Yield\n");
     return n.Yield();
 }
 void Process::SendExitMsg()

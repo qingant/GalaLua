@@ -112,6 +112,8 @@ namespace GLR
             SEND,
             WEEP,
             RECV_LINE,
+            POLL,
+            ACCEPT_POLL,
         };
         struct Task{
             TaskType Type;
@@ -143,6 +145,8 @@ namespace GLR
         virtual bool FastRecvReturn(int /*pid*/, TaskType, size_t){THROW_EXCEPTION_EX("Operation Not Supported");}
         virtual void PutSendTask(int , const std::string &){THROW_EXCEPTION_EX("Operation Not Supported");}
         virtual void PutAcceptTask(int, int ){THROW_EXCEPTION_EX("Operation Not Supported");}
+        virtual void PutAcceptPollTask(int /*pid*/){THROW_EXCEPTION_EX("Operation Not Supported");}
+        virtual void PutPollTask(int /*pid*/){THROW_EXCEPTION_EX("Operation Not Supported");}
 
     public:
         virtual void OnErr(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&) = 0;
@@ -176,6 +180,7 @@ namespace GLR
         virtual void PutRecvTask(int pid, size_t len, int);
         virtual void PutSendTask(int pid, const std::string &);
         virtual void PutRecvLineTask(int , int);
+        virtual void PutPollTask(int pid);
         virtual bool FastRecvReturn(int /*pid*/, TaskType, size_t);
     public:
         virtual void OnErr(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&);
@@ -208,6 +213,7 @@ namespace GLR
         StreamServerStack(Galaxy::GalaxyRT::CSocket*, LinkMap &);
         ~StreamServerStack();
         virtual void PutAcceptTask(int pid, int tick);
+        virtual void PutAcceptPollTask(int pid);
     public:
         virtual void OnErr(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&);
         virtual void OnRecv(Galaxy::GalaxyRT::CSelector::EV_PAIR &, POLLERTYPE&);
@@ -253,6 +259,11 @@ namespace GLR
             SC_CLOSE,
             SC_SHUTDOWN,
             SC_READLINE,
+            SC_POLL,      // Message Driven
+            SC_ACCEPT_POLL,
+        };
+        enum {
+            INT_NO = 1
         };
 
     public:      
@@ -272,6 +283,8 @@ namespace GLR
         inline void DoAccept(lua_State*, int);
         inline void DoClose(lua_State*);
         inline void DoRecvLine(lua_State*, int);
+        inline void DoPoll(lua_State*);
+        inline void DoAcceptPoll(lua_State*);
     private:
 
         LinkMap _LinkMap;
