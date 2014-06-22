@@ -18,7 +18,7 @@ Galaxy::GalaxyRT::CRWLock Process::ProcessMapLock;
 int32_t Process::NodeId;
 int32_t Process::NodeCount = 0;
 uint32_t Process::MsgIdGen = 0;
-#define RESERVED_PID (32)
+#define RESERVED_PID (128)
 
 Process::Process(int id)
     : _Stack(luaL_newstate()),
