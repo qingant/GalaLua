@@ -48,6 +48,7 @@ function GRepl:initEnv( ... )
     self._env.env = self._env
     self._env._G = _G
     self._env.os = os
+    self._env.glr = glr
     self._env.pprint = pprint
 end
 function GRepl:main()
@@ -66,7 +67,7 @@ function GRepl:main()
                         L.addcompletion(c, "require")
                   end
                   end)
-   
+
     self.iter = 1
     local prompt = string.format("In [%d]: ", self.iter)
     local line = L.linenoise(prompt)
@@ -95,7 +96,6 @@ function GRepl:main()
         else
             print ""
         end
-    
         prompt = string.format("In [%d]: ", self.iter)
         line = L.linenoise(prompt)
     end
