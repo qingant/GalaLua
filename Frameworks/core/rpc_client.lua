@@ -29,7 +29,6 @@ function client:new(...)
 end
 
 function client:init(server_addr)
-    -- TODO: name resolution
     self._server_addr = server_addr
     self._id = 1
     return self
