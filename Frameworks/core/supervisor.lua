@@ -12,12 +12,12 @@ local rpc = require(_PACKAGE .. "rpc")
 -- local rpc_client = require(_PACKAGE .. "rpc_client").client
 local pprint = require("pprint").pprint
 local pformat = require("pprint").format
-local logger = require("test_logger").logger              -->added by yangbo for logging test
+local logger = require(_PACKAGE .. "logger").logger              -->added by yangbo for logging test
 
 
 server = rpc.server:new()
-server.raw_process_type = "raw"   -- 瑁告湇鍔�
-server.gen_process_type = "gen"   -- 缁ф壙鑷猺pc.server鐨勪竴鑸湇鍔�
+server.raw_process_type = "raw"   -- 裸服务
+server.gen_process_type = "gen"   -- 继承自rpc.server的一般服务
 
 local process_table = {}
 local proxy = {}
@@ -91,7 +91,7 @@ function server:start_process(params, desc)
         addr, errmsg = self:_start_raw_process(params, desc)
     end
     self._logger:info("spawn:", addr, errmsg)
-    -- 澶勭悊鍚姩澶辫触鐨勬儏鍐�
+    -- 处理启动失败的情况
 
     local mtype, desc, msg = glr.recv_by_addr(addr, 1)
     if mtype then
