@@ -48,7 +48,7 @@ local _logger = {
     enum_ERROR = 5,
     enum_FATAL = 6,
 }
-local _loggerFlag ={"DEBUG", "TRACE", "INFO ","WARN ", "ERROR", "FATAL"}
+local _logger_Flag ={"DEBUG", "TRACE", "INFO ","WARN ", "ERROR", "FATAL"}
 logger = _logger
 function _logger:new(o)
     local o = o or {}
@@ -77,19 +77,19 @@ function _logger:_log(level, format, ...)
             str = string.format(format, ...)
         end
         local info = debug.getinfo(3)
-        info.level = _loggerFlag[level]
+        info.level = _logger_Flag[level]
         info.msg = str
         --info.gpid = self._handler.gpid  --deleted by yangbo for test;self._handler is nil now
-        local timeformat
+        local time_format
         local log_str
         if self.flag ~= 0 then
-            timeformat = string.format("[%s.%s] ",os.date("%m/%d %H:%M:%S",glr.time.now()),osdatetime.gettimeofday().msec)
+            time_format = string.format("[%s.%s] ",os.date("%m/%d %H:%M:%S",glr.time.now()),osdatetime.gettimeofday().msec)
             log_str= ("[%(level)s] [%(short_src)s:%(currentline)s] [G:%(gpid)s]:%(msg)s" % info)
         else
-            timeformat = string.format("[%s] ",os.date("%m/%d %H:%M:%S",glr.time.now()))
+            time_format = string.format("[%s] ",os.date("%m/%d %H:%M:%S",glr.time.now()))
             log_str= ("[%(level)s] [%(short_src)s:%(currentline)s] [G:%(gpid)s]:%(msg)s" % info)
         end
-        self._output_func(timeformat.."\n"..log_str)
+        self._output_func(time_format.."\n"..log_str)
     end
 end
 function _logger:debug(format, ...)
