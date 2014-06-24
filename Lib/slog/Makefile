@@ -1,5 +1,5 @@
 all: slog.so
-
+include ../../mk.rules
 CC = g++
 
 INC = /usr/local/include/lua
