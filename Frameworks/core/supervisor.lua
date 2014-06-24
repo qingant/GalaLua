@@ -12,11 +12,12 @@ local rpc = require(_PACKAGE .. "rpc")
 -- local rpc_client = require(_PACKAGE .. "rpc_client").client
 local pprint = require("pprint").pprint
 local pformat = require("pprint").format
+local logger = require("test_logger").logger              -->added by yangbo for logging test
 
 
 server = rpc.server:new()
-server.raw_process_type = "raw"   -- 裸服务
-server.gen_process_type = "gen"   -- 继承自rpc.server的一般服务
+server.raw_process_type = "raw"   -- 瑁告湇鍔�
+server.gen_process_type = "gen"   -- 缁ф壙鑷猺pc.server鐨勪竴鑸湇鍔�
 
 local process_table = {}
 local proxy = {}
@@ -46,21 +47,22 @@ function server:new(name)
     self._log = print
     self._id = 0
     self._processes_indexed_by_id = {}
+    self._logger = logger:new():init(self)
     return self
 end
 function server:on_init()
 end
 function server:on_message(mtype, desc, msg)
-    self._log("on_message", mtype, glr.EXIT, desc, msg)
+    self._logger:info("on_message", mtype, glr.EXIT, desc, msg)
     if mtype == glr.EXIT then
         -- TODO: logging restart info
         local params = self._processes[desc.addr]
-        self._log("restarting...", params)
+        self._logger:info("restarting...", params)
         self._processes[desc.addr] = nil
         if params then
             self:start_process(params.start_params)
-            self._log(pformat(glr.status.processes(), "processes"))
-            self._log(pformat(get_proxy(self._processes), "records"))
+            self._logger:info(pformat(glr.status.processes(), "processes"))
+            self._logger:info(pformat(get_proxy(self._processes), "records"))
         else
             -- TODO: logging
         end
@@ -77,23 +79,23 @@ function server:_start_raw_process(params, desc)
     return addr, errmsg
 end
 function server:start_process(params, desc)
-    self._log(pformat(params, "params"))
+    self._logger:info(pformat(params, "params"))
     local addr, errmsg
     local cli
     if params.process_type == self.gen_process_type then
         -- TODO: error handling(when rpc.create_server fails)
         cli = rpc.create_server(params.process_params)
-        self._log("process created", pformat(cli))
+        self._logger:info("process created", pformat(cli))
         addr = cli._server_addr
     elseif params.process_type == self.raw_process_type then
         addr, errmsg = self:_start_raw_process(params, desc)
     end
-    self._log("spawn:", addr, errmsg)
-    -- 处理启动失败的情况
+    self._logger:info("spawn:", addr, errmsg)
+    -- 澶勭悊鍚姩澶辫触鐨勬儏鍐�
 
     local mtype, desc, msg = glr.recv_by_addr(addr, 1)
     if mtype then
-        self._log("Fail to start", mtype, desc, msg,  pformat(params))
+        self._logger:info("Fail to start", mtype, desc, msg,  pformat(params))
         return {status = "failed"}
     end
 
@@ -105,7 +107,7 @@ function server:start_process(params, desc)
                                  client = cli}
         self._processes_indexed_by_id[self._id] = self._processes[addr]
     else
-        self._log("error", errmsg)
+        self._logger:info("error", errmsg)
         error(errmsg)
     end
     return {process=addr}
