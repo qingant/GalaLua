@@ -18,7 +18,7 @@ local cjson = require("cjson")
 local cmsgpack = require("cmsgpack")
 local pprint = require("pprint")
 local RPC_CORRID = require(_PACKAGE .. "const").RPC_CORRID
-local client = require("rpc_client").client
+local client = require(_PACKAGE .. "rpc_client").client
 
 server = {}
 server.stop_error = {}
