@@ -30,13 +30,11 @@ local function get_proxy(t)
     return proxy[t]
 end
 function process_table:__index(k)
-    print("INDEX", k)
     if type(k) == "table" then
         return proxy[self][k.gpid]
     end
 end
 function process_table:__newindex(k,v)
-    print("NEWINDEX",pformat(k), pformat(v))
     if type(k) == "table" then
         proxy[self][k.gpid] = v
     end
@@ -46,6 +44,8 @@ function server:new(name)
     self:init(name)
     self._processes = process_table:new()
     self._log = print
+    self._id = 0
+    self._processes_indexed_by_id = {}
     return self
 end
 function server:on_init()
@@ -53,6 +53,7 @@ end
 function server:on_message(mtype, desc, msg)
     self._log("on_message", mtype, glr.EXIT, desc, msg)
     if mtype == glr.EXIT then
+        -- TODO: logging restart info
         local params = self._processes[desc.addr]
         self._log("restarting...", params)
         self._processes[desc.addr] = nil
@@ -97,8 +98,12 @@ function server:start_process(params, desc)
     end
 
     if addr then
+        self._id = self._id + 1
         self._processes[addr] = {start_params = params,
+                                 group = params.group,
+                                 id = self._id,
                                  client = cli}
+        self._processes_indexed_by_id[self._id] = self._processes[addr]
     else
         self._log("error", errmsg)
         error(errmsg)
@@ -125,6 +130,12 @@ function server:stop_process(params, desc)
     elseif desc.addr == params then
         return self.ok
     end
+end
+function server:stop_all(params, desc)
+    for i = #self._processes_indexed_by_id, 1, -1 do
+        self:stop_process(self._processes_indexed_by_id[i])
+    end
+    return self.ok
 end
 function server:restart_process(params, desc)
     local info = self._processes[params.process]
