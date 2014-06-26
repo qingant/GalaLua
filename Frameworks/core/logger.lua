@@ -79,6 +79,7 @@ function _logger:_log(level, format, ...)
         local info = debug.getinfo(3)
         info.level = _logger_Flag[level]
         info.msg = str
+        info.gpid = __id__
         --info.gpid = self._handler.gpid  --deleted by yangbo for test;self._handler is nil now
         local time_format
         local log_str
