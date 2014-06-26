@@ -32,10 +32,20 @@ load = _glr.load
 unload = _glr.unload
 
 function spawn(mod_name, entry, ...)
-	return _glr.spawn(mod_name, entry, ...)
+	local r, gpid = _glr.spawn(mod_name, entry, ...)
+    if r then
+        return {host=self_host, port=self_port, gpid=gpid}
+    else
+        return r, gpid
+    end
 end
 function spawn_ex(bindPid, mod_name, entry, ...)
-    return _glr.spawn_ex(bindPid, mod_name, entry, ...)
+    local r, gpid = _glr.spawn_ex(bindPid, mod_name, entry, ...)
+    if r then
+        return {host=self_host, port=self_port, gpid=gpid}
+    else
+        return r, gpid
+    end
 end
 
 function send(addr, msg, attr)
@@ -48,7 +58,7 @@ function send(addr, msg, attr)
 	elseif type(addr) == "number" then
         return _glr.send(addr, msg, attr)
     elseif type(addr) == "string" then
-        return _glr.send(_glr.npt.get(addr), msg, attr)
+        return _glr.send(_glr.npt.registered(addr)[addr], msg, attr)
 	end
 end
 
@@ -140,11 +150,20 @@ function recv_by_condition( condition , ...)
     end
 end
 function recv_by_addr( addr, ... )
-    return recv_by_condition(function ( msg )
+    if type(addr) == "string" then
+        return recv_by_condition(function (msg)
+                return (msg[2].addr.host == self_host and
+                            msg[2].addr.port == self_port and
+                            msg[2].addr.gpid == _glr.npt.registered(addr)[addr]
+                )
+        end)
+    else
+        return recv_by_condition(function ( msg )
                                return (msg[2].addr.host == addr.host and
                                        msg[2].addr.port == addr.port and
                                        msg[2].addr.gpid == addr.gpid)
                            end, ...)
+    end
 end
 function recv_by_type( mType, ... )
     return recv_by_condition(function ( msg )

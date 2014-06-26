@@ -24,6 +24,9 @@ CTimer::CTimer(TIMERHANDLER handle, INT tick)
 {
     time(&_TimeStamp);
     std::make_heap(_Heap.begin(), _Heap.end());
+
+    _Pair.GetAnother()->SetNonBlocking();
+    _Pair.GetOne()->SetNonBlocking();
 }
 CTimer::~CTimer()
 {
@@ -134,13 +137,19 @@ void *CTimer::Run(const CThread &)
 
 void CTimer::wake()
 {
-    _Pair.GetAnother()->Send(" ",1);
+    try
+    {
+        _Pair.GetAnother()->Send(" ",1);
+    }
+    catch (...)
+    {
+
+    }
 }
 
 void CTimer::eat()
 {
     char buf[1024];
-    _Pair.GetOne()->SetNonBlocking();
     try
     {
         _Pair.GetOne()->Recv(buf, sizeof(buf));    

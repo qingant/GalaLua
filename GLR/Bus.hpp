@@ -68,6 +68,7 @@ struct GLRPROTOCOL
         CLOSED = 5,     //Resource bind to this GLR Process closed
         EXIT = 6,       //Process Exit Message
         ACK = 7,
+        IOCP = 8,       //IO notify or IOCP
     };
     PRTC_HEADER			_Protocol;
     RTU_HEADER			_Route;

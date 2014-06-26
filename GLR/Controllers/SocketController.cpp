@@ -170,6 +170,12 @@ void GLR::SocketController::Request( lua_State *l, int tick)
     case SC_READLINE:
         DoRecvLine(l, tick);
         break;
+    case SC_POLL:
+        DoPoll(l);
+        break;
+    case SC_ACCEPT_POLL:
+        DoAcceptPoll(l);
+        break;
         //default:
         //   break;
     }
@@ -361,6 +367,48 @@ void GLR::SocketController::DoRecvLine( lua_State* l, int tick)
     _Poller.Register(realFd, Galaxy::GalaxyRT::EV_IN);
 }
 
+void GLR::SocketController::DoPoll(lua_State *l)
+{
+    lua_getglobal(l,"__id__");
+    int pid = luaL_checkinteger(l,-1);
+
+    int fd = luaL_checkinteger(l, 3);
+    int realFd = LinkStack::GetRealFd(fd);
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex);
+    (void)_Gl;
+    LinkStack *ls = _LinkMap[realFd];
+    if (ls == NULL||(!ls->CheckDummyFd(fd)))
+    {
+        std::string errmsg = "Invalid Fd";
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        return;
+    }
+    ls->PutPollTask(pid);
+    _Poller.Register(realFd, Galaxy::GalaxyRT::EV_IN);
+    Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
+}
+
+void GLR::SocketController::DoAcceptPoll(lua_State *l)
+{
+    lua_getglobal(l,"__id__");
+    int pid = luaL_checkinteger(l,-1);
+
+    int fd = luaL_checkinteger(l, 3);
+    int realFd = LinkStack::GetRealFd(fd);
+    Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex);
+    (void)_Gl;
+    LinkStack *ls = _LinkMap[realFd];
+    if (ls == NULL||(!ls->CheckDummyFd(fd)))
+    {
+        std::string errmsg = "Invalid Fd";
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        return;
+    }
+    ls->PutAcceptPollTask(pid);
+    _Poller.Register(realFd, Galaxy::GalaxyRT::EV_IN);
+    Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
+}
+
 
 
 
@@ -505,6 +553,18 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
 
 
         }
+        else if (t.Type == POLL)
+        {
+            if (_Cache.DataSize() != 0)
+            {
+                GLRPROTOCOL msg;
+                memset((void*)&msg, 0, sizeof(msg));
+                msg._Route._FromGpid = _Sock->GetFD();
+                msg._Host._V3._Port = SocketController::INT_NO;
+                msg._Protocol._Length = 0;
+                Runtime::GetInstance().GetBus().Send(t.Pid, std::string((const char*)&msg, sizeof(msg)), GLRPROTOCOL::IOCP);
+            }
+        }
 
     }
 
@@ -589,6 +649,14 @@ void GLR::StreamLinkStack::PutRecvLineTask( int pid, int tick)
     _RecvTasks.Put(t);
 }
 
+void GLR::StreamLinkStack::PutPollTask(int pid)
+{
+    Task t;
+    t.Type = POLL;
+    t.Pid = pid;
+    _RecvTasks.Put(t);
+}
+
 bool GLR::StreamLinkStack::FastRecvReturn(int pid, TaskType taskType, size_t len)
 {
     if (!_RecvTasks.Empty())
@@ -646,6 +714,14 @@ void GLR::StreamServerStack::PutAcceptTask( int pid , int tick)
     _RecvTasks.Put(t);
 }
 
+void GLR::StreamServerStack::PutAcceptPollTask(int pid)
+{
+    Task t;
+    t.Type = ACCEPT_POLL;
+    t.Pid = pid;
+    _RecvTasks.Put(t);
+}
+
 void GLR::StreamServerStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/, POLLERTYPE &/*_Poller*/ )
 {
     StreamServerStack *ls = this;
@@ -696,6 +772,24 @@ void GLR::StreamServerStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, P
         }
 
         LinkStack *ls = _LinkMap[recvfd];
+        if (t.Type == ACCEPT_POLL)
+        {
+            std::string buffer(sizeof(GLRPROTOCOL) + 5, 0);
+
+            GLRPROTOCOL &msg = *(GLRPROTOCOL*)&buffer[0];
+            msg._Route._FromGpid = _Sock->GetFD();
+            msg._Host._V3._Port = SocketController::INT_NO;
+            msg._Protocol._Type = GLRPROTOCOL::IOCP;
+            msg._Protocol._Length = 0;
+
+            //msgpack.pack
+            buffer[sizeof(GLRPROTOCOL)] = 0xce;
+            *(uint32_t*)&buffer[sizeof(GLRPROTOCOL) + 1] = htonl(ls->GetDummyFd());
+
+            Runtime::GetInstance().GetBus().Send(t.Pid, buffer, GLRPROTOCOL::IOCP);
+            _RecvTasks.Get();
+            continue;
+        }
         if (Runtime::GetInstance().GetBus().ResponseEx(t.Pid, t.RecvArg.Tick, 1, LUA_TNUMBER, ls->GetDummyFd()))
         {
             _RecvTasks.Get();

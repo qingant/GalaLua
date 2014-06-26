@@ -13,16 +13,17 @@ function GRepl:new( ... )
     local o = {}
     setmetatable(o, self)
     self.__index = self
+    o:initEnv()
     return o
 end
 
 function GRepl:onExpr( expr )
     local src = string.format("setfenv(1, ...);_  = %s; _%d = _;return _;",  expr, self.iter)
-    return pcall(loadstring(src), self._env)
+    return xpcall(loadstring(src), debug.traceback, self._env)
 end
 function GRepl:onSingleAssignStatement( var, expr )
     local src = string.format("setfenv(1, ...);_ =  %s; _%d = _;%s = _;return _;",  expr, self.iter, var)
-    return pcall(loadstring(src), self._env)
+    return xpcall(loadstring(src), debug.traceback, self._env)
 end
 function GRepl:onCommand( cmd )
     os.execute(cmd)
@@ -48,11 +49,15 @@ function GRepl:initEnv( ... )
     self._env.env = self._env
     self._env._G = _G
     self._env.os = os
+    self._env.glr = glr
     self._env.pprint = pprint
 end
+function GRepl:mockEnv(...)
+    for i, v in ipairs{...} do
+        self._env[v[1]] = v[2]
+    end
+end
 function GRepl:main()
-    self:initEnv()
-
     -- L.clearscreen()
     local host, port = glr.sys.host,glr.sys.port
     print(string.format("GLR Repl at (%s::%d)\n\n", host, port))
@@ -66,7 +71,7 @@ function GRepl:main()
                         L.addcompletion(c, "require")
                   end
                   end)
-   
+
     self.iter = 1
     local prompt = string.format("In [%d]: ", self.iter)
     local line = L.linenoise(prompt)
@@ -95,7 +100,6 @@ function GRepl:main()
         else
             print ""
         end
-    
         prompt = string.format("In [%d]: ", self.iter)
         line = L.linenoise(prompt)
     end

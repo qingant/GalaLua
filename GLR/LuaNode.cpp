@@ -20,7 +20,7 @@ Galaxy::GalaxyRT::CRWLock Process::ProcessMapLock;
 int32_t Process::NodeId;
 int32_t Process::NodeCount = 0;
 uint32_t Process::MsgIdGen = 0;
-#define RESERVED_PID (32)
+#define RESERVED_PID (128)
 
 Process::Process(int id)
     : _Stack(luaL_newstate()),
@@ -785,7 +785,6 @@ int Process::Interrupt(lua_State *l)
         n.SetTimeOut(timeout);
     }
 
-    printf("Yield\n");
     return n.Yield();
 }
 void Process::SendExitMsg()
@@ -925,7 +924,6 @@ int Process::AllProcesses(lua_State *l)
 {
     Galaxy::GalaxyRT::CRWLockAdapter _RL(ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_RL);
-    lua_pushboolean(l, 1);
     lua_newtable(l);
     for (size_t i = 0; i != NodeMap.size(); ++i)
     {
@@ -937,7 +935,7 @@ int Process::AllProcesses(lua_State *l)
         }
 
     }
-    return 2;
+    return 1;
 }
 
 
