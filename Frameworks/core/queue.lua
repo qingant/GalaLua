@@ -20,11 +20,11 @@ server = queue_server
     这个new函数不同于常见的new函数，是因为在一个lua环境中只会存在一个这样的实例。
 ]]
 function queue_server:new(name)
+    self:init(name)
     self._dataq = _queue:new()
     self._customerq = _queue:new()
     self._dequeue_timeout = 300
     self._data_timeout = 30000
-    self:init(name)
     return self
 end
 function queue_server:get(params, desc)
@@ -58,3 +58,4 @@ function queue_server:put(params, desc)
 end
 function queue_server:on_timeout()
 end
+
