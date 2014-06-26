@@ -58,20 +58,20 @@ local vector_index_key = "__VectorIndexGenerator"
 local vector_item_tag = "__VectorItemTag"
 local to_table_attrib_key = "@attr"
 
-function mdb.create_env(path)
+function mdb.create_env(path, size)
     local path_id="@"..path
     local e,err_msg=glr.get_global(path_id)
     if not e then
-        e=mdb._create_env(path)
+        e=mdb._create_env(path, size)
         glr.global(path_id,e)
     end
     return e
 end
 
-function mdb._create_env(path)
-
+function mdb._create_env(path, size)
+    local size = size or 4096
     local e=lightningmdb.env_create()
-    e:set_mapsize(num_pages*4096)
+    e:set_mapsize(num_pages*size)
     assert(e:open(path,0,420))
     return e
 end
@@ -971,7 +971,7 @@ end
 
 -- tests
 if ... == "__main__" then
-    local path = "./temp/bar"
+    local path = "/tmp/temp/bar"
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
     local root1 = "Domain"
     local test={}
@@ -1267,7 +1267,7 @@ if ... == "__main__" then
     for i=1,limit do
         db:with(test)
 
-        -- db:with(test1)
+        db:with(test1)
         -- db:with(test_xquery_xpath)
         -- db:withReadOnly(test_xpath)
         -- db:withReadOnly(test_value)
