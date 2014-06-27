@@ -21,7 +21,7 @@ Watch="Watch"
 defaultGroup="wg1"
 PATH=db_path.supervisor
 
-local function isvalid_ip(ip)
+function isvalid_ip(ip)
     local ip=tostring(ip)
     local a,b,c,d=string.match(ip,"^(%d+)%.(%d+)%.(%d+)%.(%d+)$") 
     if a and tonumber(a)<=255 and tonumber(b)<=255 and 
@@ -33,7 +33,7 @@ local function isvalid_ip(ip)
     return false
 end
 
-local function isvalid_port(port)
+function isvalid_port(port)
     local port=tonumber(port)
     if port and port>0 and port <65535 then
         return true
@@ -41,7 +41,7 @@ local function isvalid_port(port)
     return false
 end
 
-local function isvalid_addr(host,port)
+function isvalid_addr(host,port)
     function valid()
         if isvalid_ip(host) and isvalid_port(port) then
             return true

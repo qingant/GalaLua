@@ -182,7 +182,7 @@ function all_cmds(name,cmd,argc)
 end
 
 
-local function status(name)
+function status(name)
     local interface=_interface.new()
     local st=interface:status(name)
     local ret={}
@@ -216,7 +216,7 @@ local function start_stop_show(ret,out)
 
 end
 
-local function start(name)
+function start(name)
     local out=cmd_output()
     out.show(string.format("starting %s......",name))
     local interface=_interface.new()
@@ -226,7 +226,7 @@ local function start(name)
 end
 
 
-local function stop(name)
+function stop(name)
     local out=cmd_output()
     out.show(string.format("stopping %s......",name))
     local interface=_interface.new()
@@ -236,7 +236,7 @@ local function stop(name)
 end
 
 
-local function stop_monitor()
+function stop_monitor()
     local out=cmd_output()
     out.show("stopping supervisord........")
     local interface=_interface.new()
