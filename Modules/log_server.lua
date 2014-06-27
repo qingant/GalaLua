@@ -75,9 +75,11 @@ function glrLogServerDispatch(info)
                     pidDict[pid] = info.path
                 end
                 local childaddr = {}
+                local child_pid=nameDict[info.path]
                 childaddr.host = glr.sys.host
                 childaddr.port = glr.sys.port
-                childaddr.gpid = nameDict[info.path]
+                childaddr.gpid = child_pid
+                glr.send(child_pid,"^^")
                 glr.send(addr,cjson.encode(childaddr))
             elseif msg:sub(1,2) == "!!" then -- flush
                 for pid, name in pairs(pidDict) do
@@ -115,6 +117,7 @@ function glrFileLoggerProcessor( targetPath,sizePerFile,Files)
     local fileid = 0
     local cache = memcached:new():init(1024)
     local fileHandle = io.open(filepath, "a")
+    local refCount=0
     fileHandle:setvbuf("no")
     while true do
         local filesize = fSize(fileHandle)
@@ -130,7 +133,9 @@ function glrFileLoggerProcessor( targetPath,sizePerFile,Files)
             fileHandle:setvbuf("no")
             fileid = fileid + 1
         end
-        if msg:sub(1,2) == "!!" or msg:sub(1,2) == "!#" then -- flush
+        if msg=="^^" then
+            refCount=refCount+1
+        elseif msg:sub(1,2) == "!!" or msg:sub(1,2) == "!#" then -- flush
 --            print("flush!")
             --fileHandle:flush()
             local cachedata = cache:get()
@@ -139,7 +144,10 @@ function glrFileLoggerProcessor( targetPath,sizePerFile,Files)
                 fileHandle:write("\n")
             end
             if msg:sub(1,2) == "!#" then
-                return
+                refCount=refCount-1
+                if refCount==0 then
+                    return
+                end
             end
             cache:clean()
         else
