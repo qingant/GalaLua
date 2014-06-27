@@ -1056,6 +1056,18 @@ int GLR::Process::Exit(lua_State */*l*/)
     return kill(getpid(), SIGKILL);
 }
 
+void GLR::Process::CreateSpyer()
+{
+
+    CreateNode(SpyerId);
+
+    Process& spyer = GetNodeById(SpyerId);
+    lua_getglobal(spyer._Stack, "glr");
+    lua_getfield(spyer._Stack, -1, "run_spyer");
+    spyer.Start(GLR::Runtime::GetInstance().GetSchedule());
+
+}
+
 GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
 {
 
@@ -1118,9 +1130,13 @@ GLR::LN_ID_TYPE GLR::Process::CreateNode(int id)
 
 bool GLR::Process::GetNodeExceptionHandle(LN_ID_TYPE pid)
 {
-    (void)pid;
-   // TODO: start service by need
-   return false;
+
+    if (pid == SpyerId)
+    {
+        CreateSpyer();
+        return true;
+    }
+    return false;
 
 }
 
