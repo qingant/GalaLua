@@ -80,7 +80,7 @@ local logdir=os.getenv("HOME").."/log"
 local DefaultGroup=conf.defaultGroup
 
 --default gar package search for module
-local DefaultGar=glr.__gar__
+local DefaultGar=os.getenv("LUA_GPATH")
 function execute(cmd)
     return os.execute(cmd)
 end
@@ -209,9 +209,7 @@ function process(entry,max)
     --maybe run module from gar package
     function Process:get_run_gar_arg()
         local gar=""
-        local gar_search={}
-        gar_search[#gar_search+1]=self.entry.gar
-        gar_search[#gar_search+1]=DefaultGar
+        local gar_search={ self.entry.gar, DefaultGar}
         for i,g in ipairs(gar_search) do
             if g ~="" then
                 gar="-g "..path.join(db_path.gar_path,g)
