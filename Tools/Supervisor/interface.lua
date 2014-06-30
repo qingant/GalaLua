@@ -149,6 +149,7 @@ function Interface:stop_supervisord()
         --command.
         while true do
             local msg_type,addr,msg=glr.recv_by_type(glr.CLOSED)
+            addr=addr.addr
             if msg_type==glr.CLOSED and self.addr_token==addr.host then
                 break
             end
