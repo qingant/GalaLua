@@ -53,6 +53,8 @@ endif
 	$(MAKE) -C GLR static
 	$(MAKE) -C LuaObject static
 	$(MAKE) -C Lib static
+	$(MAKE) -C Modules
+	$(MAKE) -C Tools/
 
 clean:
 	$(MAKE) -C Stub clean
