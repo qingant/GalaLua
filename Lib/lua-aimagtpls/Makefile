@@ -8,9 +8,6 @@ default: $(OBJ)
 
 static: aimagtpls.a
 
-$(OBJ): aimagtpls.cpp
-	$(CC) -o $@ -c aimagtpls.cpp
-
 aimagtpls.a: $(OBJ)
 	$(AR) $(ARFLAGS) aimagtpls.a $(OBJ)
 	$(RANLIB) $(RANLIBFLAGS) aimagtpls.a
