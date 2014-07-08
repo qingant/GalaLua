@@ -73,7 +73,9 @@ end
 
 function http:sendResponse(o)
     self._socket:send(o:toString())
-    self._socket:send(o.content)
+    if o.content then
+        self._socket:send(o.content)
+    end
 end
 
 if ... == "__main__" then
