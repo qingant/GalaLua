@@ -494,7 +494,7 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
         Task &t = _RecvTasks.Head();
 
         // filter canceled request
-        if (Runtime::GetInstance().GetBus().IsCanceled(t.Pid, t.RecvArg.Tick))
+        if (t.Type != POLL && Runtime::GetInstance().GetBus().IsCanceled(t.Pid, t.RecvArg.Tick))
         {
             _RecvTasks.Get();
             continue;
@@ -560,9 +560,11 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
                 GLRPROTOCOL msg;
                 memset((void*)&msg, 0, sizeof(msg));
                 msg._Route._FromGpid = _Sock->GetFD();
+                msg._Protocol._Type = GLRPROTOCOL::IOCP;
                 msg._Host._V3._Port = SocketController::INT_NO;
-                msg._Protocol._Length = 0;
+                msg._Protocol._Length = sizeof(GLRPROTOCOL) - 4;
                 Runtime::GetInstance().GetBus().Send(t.Pid, std::string((const char*)&msg, sizeof(msg)), GLRPROTOCOL::IOCP);
+                _RecvTasks.Get();
             }
         }
 
@@ -740,7 +742,7 @@ void GLR::StreamServerStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, P
     while (!_RecvTasks.Empty())
     {
         StreamLinkStack::Task &t = _RecvTasks.Head();
-        if (Runtime::GetInstance().GetBus().IsCanceled(t.Pid, t.RecvArg.Tick))
+        if (t.Type != ACCEPT_POLL && Runtime::GetInstance().GetBus().IsCanceled(t.Pid, t.RecvArg.Tick))
         {
             _RecvTasks.Get();
             continue;
@@ -780,7 +782,7 @@ void GLR::StreamServerStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, P
             msg._Route._FromGpid = _Sock->GetFD();
             msg._Host._V3._Port = SocketController::INT_NO;
             msg._Protocol._Type = GLRPROTOCOL::IOCP;
-            msg._Protocol._Length = 0;
+            msg._Protocol._Length = sizeof(GLRPROTOCOL) + 5 - sizeof(uint32_t);
 
             //msgpack.pack
             buffer[sizeof(GLRPROTOCOL)] = 0xce;

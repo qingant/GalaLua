@@ -13,9 +13,9 @@ module(..., package.seeall)
 
 
 local fmt = string.format
-
+local pprint = require("pprint")
 local rpc = require(_PACKAGE .. "rpc")
-
+local logger = require(_PACKAGE .. "logger").logger
 local kernel_app_name = "kernel"
 local kernel_sup_name = fmt("%s.supervisor", kernel_app_name)
 
@@ -39,23 +39,26 @@ function app_mgr:new(app_name, inst_name)
     return o
 end
 function app_mgr:_init()
-    self.app = require(fmt("%s.app", self.app_name))
+    self.app_module = require(fmt("%s.app", self.app_name))
+    self.app = self.app_module.app
     if inst_name then
         self.base_name = fmt("%s.%s.", self.app_name, self.inst_name)
     else
-        self.base_name = self.app._PACKAGE
+        self.base_name = self.app_module._PACKAGE
     end
     self.app_inst_name = self.base_name:sub(1, #self.base_name - 1)
     self.root_sup = rpc.create_client(kernel_sup_name)
     self.supervisor_id = fmt("%ssupervisor", self.base_name)
+    self._logger = logger:new():init(self)  --TODO:
 end
 function app_mgr:_start_pool(com)
     -- start pool
+    print("start pool")
     self._supervisor:call("start_process", {
                 process_type = "gen",
                 process_params = {
                     mod_name = "core.pool",
-                    parameters = {self.app_inst_name, com.pool_name, com.dipatcher, com.worker, com.min, com.max}
+                    parameters = {self.app_inst_name, com.pool_name, com.dispatcher, com.worker, com.params}
                 }
     })
 
@@ -74,10 +77,10 @@ _ROOT_SUPERVISOR_GPID = 3
 function app_mgr:_start_app()
     local app = self.app
     if app.on_load then
-        app.on_load(self)
+        app:on_load(self)
     end
 
-    if app._NAME == "kernel.app" then
+    if self.app_module._NAME == "kernel.app" then
         rpc.create_server{mod_name = "core.supervisor", bind_gpid = _ROOT_SUPERVISOR_GPID, parameters = {self.supervisor_id}} -- root supervisor
     else
         local app_sup_start_arguments = {
@@ -100,16 +103,16 @@ function app_mgr:_start_app()
     -- startup other services
     if app.components then
         for i, v in ipairs(app.components) do
-            _start_component(v)
+            self:_start_component(v)
         end
     end
 
     if app.on_started then
-        app.on_started(self)
+        app:on_started(self)
     end
 end
 function app_mgr:_is_kernel()
-    return self.app._NAME == "kernel.app"
+    return self.app_module._NAME == "kernel.app"
 end
 function app_mgr:_stop_app()
     --TODO: deal with dependency
@@ -124,13 +127,12 @@ function app_mgr:_stop_app()
     --TODO: error handling
 
     if self.app.on_stoped then
-        self.app.on_stoped(self)
+        self.app:on_stoped(self)
     end
 end
 
 function start_app(app_name, inst_name)
-    local app = require(fmt("%s.app", app_name))
-    print(fmt("Start app: %s", app._NAME))
+    local app = require(fmt("%s.app", app_name)).app
 
     -- start dependent apps first
     if app.dep then
@@ -157,11 +159,7 @@ function bootstrap(init_app, inst_name)
     if init_app then
         start_app(init_app, inst_name)
     else
-        local grepl = require("grepl").GRepl
-        local g = grepl:new()
-        g:mockEnv({"start_app", start_app},
-            {"stop_app", stop_app})
-        g:main()
+
     end
 end
 
@@ -169,7 +167,18 @@ end
 -- system entry
 function main()
     -- TODO: parse comman line arguments
-    bootstrap()
+    if glr.get_option("init-app") then
+        bootstrap(glr.get_option("init-app"), glr.get_option("inst-name"))
+    else
+        bootstrap()
+    end
+    if glr.get_option("interactive") then
+        local grepl = require("grepl").GRepl
+        local g = grepl:new()
+        g:mockEnv({"start_app", start_app},
+            {"stop_app", stop_app})
+        g:main()
+    end
 end
 if ... == "__main__" then
     main()

@@ -81,6 +81,14 @@ end;
 accept = function (fd, timeout)
     return _glr.int(int_arg(SOCK_INT_NO, timeout), 4, fd)
 end;
+
+accept_poll = function (fd)
+    return _glr.int(int_arg(SOCK_INT_NO), 9, fd)
+end
+
+poll = function (fd)
+    return _glr.int(int_arg(SOCK_INT_NO), 8, fd)
+end
 recv =  function (fd, len, timeout)
     return _glr.int(int_arg(SOCK_INT_NO, timeout),     
                     -- Interrupt ID

@@ -48,6 +48,7 @@ function server:new(name)
     self._id = 0
     self._processes_indexed_by_id = {}
     self._logger = logger:new():init(self)
+    self._logger:info("supervisor(%s) started", name)
     return self
 end
 function server:on_init()
@@ -79,7 +80,7 @@ function server:_start_raw_process(params, desc)
     return addr, errmsg
 end
 function server:start_process(params, desc)
-    self._logger:info(pformat(params, "params"))
+    self._logger:info("params: %s", pformat(params, "params"))
     local addr, errmsg
     local cli
     if params.process_type == self.gen_process_type then
@@ -93,9 +94,10 @@ function server:start_process(params, desc)
     self._logger:info("spawn:", addr, errmsg)
     -- 处理启动失败的情况
 
-    local mtype, desc, msg = glr.recv_by_addr(addr, 1)
-    if mtype then
-        self._logger:info("Fail to start", mtype, desc, msg,  pformat(params))
+    local mtype, desc, msg = glr.recv_by_condition(function (msg) return msg[2].addr.gpid == addr.gpid and msg[1] == glr.EXIT end, 1)
+    self._logger:debug("mtype:" ..  (mtype or "nil"))
+    if mtype == glr.EXIT then
+        self._logger:info("Fail to start:%d, %s %s %s", mtype, pformat(desc), pformat(msg),  pformat(params))
         return {status = "failed"}
     end
 
@@ -110,6 +112,7 @@ function server:start_process(params, desc)
         self._logger:info("error", errmsg)
         error(errmsg)
     end
+    self._logger:debug("process %d started", addr.gpid)
     return {process=addr}
 end
 function server:stop_process(params, desc)

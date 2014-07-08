@@ -50,6 +50,7 @@ local _logger = {
 }
 local _logger_Flag ={"DEBUG", "TRACE", "INFO ","WARN ", "ERROR", "FATAL"}
 logger = _logger
+logger.format = pprint.format
 function _logger:new(o)
     local o = o or {}
     setmetatable(o, self)
@@ -79,6 +80,7 @@ function _logger:_log(level, format, ...)
         local info = debug.getinfo(3)
         info.level = _logger_Flag[level]
         info.msg = str
+        info.gpid = __id__
         --info.gpid = self._handler.gpid  --deleted by yangbo for test;self._handler is nil now
         local time_format
         local log_str
@@ -89,7 +91,7 @@ function _logger:_log(level, format, ...)
             time_format = string.format("[%s] ",os.date("%m/%d %H:%M:%S",glr.time.now()))
             log_str= ("[%(level)s] [%(short_src)s:%(currentline)s] [G:%(gpid)s]:%(msg)s" % info)
         end
-        self._output_func(time_format.."\n"..log_str)
+        self._output_func(time_format .. log_str)
     end
 end
 function _logger:debug(format, ...)

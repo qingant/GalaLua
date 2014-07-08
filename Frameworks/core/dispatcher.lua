@@ -10,7 +10,7 @@
 module(..., package.seeall)
 
 local rpc = require(_PACKAGE .. "rpc")
-
+local logger = require(_PACKAGE .. "logger").logger
 local dispatcher = rpc.server:new()
 
 server = dispatcher
@@ -27,6 +27,8 @@ function dispatcher:init(app_name, pool_name)
     rpc.server.init(self, full_name)
     self._app_name = app_name
     self._pool_name = pool_name
+    self._logger = logger:new():init(self)
+    self._pool = rpc.create_client(string.format("%s.%s", app_name, pool_name))
     return self
 end
 
