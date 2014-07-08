@@ -22,6 +22,7 @@ CLOSED = _glr.CLOSED
 KILL = _glr.KILL
 APP = _glr.APP
 EXIT = _glr.EXIT
+IOCP = 8
 
 AF_INET = _glr.AF_INET
 msg_available = _glr.msg_available
@@ -108,12 +109,17 @@ function mailBox:available(  )
     return (self._first <= self._last)
 end
 local cacheBox = mailBox:new()
+local function glr_recv(...)
+    local t,d,m = _glr.recv(...)
+    return t,d,m
+end
 function recv(...)
+    print(__name__, "RECV", cacheBox:available())
     if cacheBox:available() then
         local result = cacheBox:pop()
         return unpack(result)
     else
-        return _glr.recv(...)
+        return glr_recv(...)
    end
 end
 function recv_by_condition( condition , ...)
@@ -132,8 +138,8 @@ function recv_by_condition( condition , ...)
     while true do
         local mType, mAddr, msg = recv(...)
 
-
         if mType == nil then
+            restore()
             return nil
         end
         local err, flag = pcall(condition, {mType, mAddr, msg})
