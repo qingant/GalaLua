@@ -35,10 +35,18 @@ function processor:init(app_name, pool_name, idx)
     self._pool_name = pool_name
     self._pool = rpc.create_client(string.format("%s.%s", app_name, pool_name))
     self._idx = idx
-    self._id = __id__
+    self._id = {host=glr.sys.host, port=glr.sys.port, gpid=__id__}
+    self._logger = require(_PACKAGE .. "logger").logger:new():init(self)
     return self
 end
-
+function processor:add_task(params, desc)
+    self._logger:debug("add_task")
+    if self.on_task_add then
+        return self:on_task_add(params, desc)
+    end
+    -- TODO: error handling
+end
 function processor:_back_to_pool()
-    self._pool:call("put", self._id)
+    self._pool:request("put", self._id)
+    self._logger:debug("back to pool")
 end

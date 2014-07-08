@@ -39,11 +39,12 @@ function app_mgr:new(app_name, inst_name)
     return o
 end
 function app_mgr:_init()
-    self.app = require(fmt("%s.app", self.app_name))
+    self.app_module = require(fmt("%s.app", self.app_name))
+    self.app = self.app_module.app
     if inst_name then
         self.base_name = fmt("%s.%s.", self.app_name, self.inst_name)
     else
-        self.base_name = self.app._PACKAGE
+        self.base_name = self.app_module._PACKAGE
     end
     self.app_inst_name = self.base_name:sub(1, #self.base_name - 1)
     self.root_sup = rpc.create_client(kernel_sup_name)
@@ -76,10 +77,10 @@ _ROOT_SUPERVISOR_GPID = 3
 function app_mgr:_start_app()
     local app = self.app
     if app.on_load then
-        app.on_load(self)
+        app:on_load(self)
     end
 
-    if app._NAME == "kernel.app" then
+    if self.app_module._NAME == "kernel.app" then
         rpc.create_server{mod_name = "core.supervisor", bind_gpid = _ROOT_SUPERVISOR_GPID, parameters = {self.supervisor_id}} -- root supervisor
     else
         local app_sup_start_arguments = {
@@ -107,11 +108,11 @@ function app_mgr:_start_app()
     end
 
     if app.on_started then
-        app.on_started(self)
+        app:on_started(self)
     end
 end
 function app_mgr:_is_kernel()
-    return self.app._NAME == "kernel.app"
+    return self.app_module._NAME == "kernel.app"
 end
 function app_mgr:_stop_app()
     --TODO: deal with dependency
@@ -126,13 +127,12 @@ function app_mgr:_stop_app()
     --TODO: error handling
 
     if self.app.on_stoped then
-        self.app.on_stoped(self)
+        self.app:on_stoped(self)
     end
 end
 
 function start_app(app_name, inst_name)
-    local app = require(fmt("%s.app", app_name))
-    print(fmt("Start app: %s", app._NAME))
+    local app = require(fmt("%s.app", app_name)).app
 
     -- start dependent apps first
     if app.dep then
@@ -156,7 +156,6 @@ end
 
 function bootstrap(init_app, inst_name)
     start_kernel_app()
-    glr.time.sleep(2)
     if init_app then
         start_app(init_app, inst_name)
     else

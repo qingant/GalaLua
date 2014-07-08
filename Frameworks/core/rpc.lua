@@ -32,15 +32,13 @@ function server:new(  )
 	return o
 end
 
-function server:init(name, logger, password)
+function server:init(name)
     if name then
         glr.npt.register(name)
     end
 	self._name = name
     self._stamp = glr.time.now()
-	self._logger = logger
     self._log_level = 0
-    self._password = password
     self._timeout = nil
     self._packer = cmsgpack.pack
     self._unpacker = cmsgpack.unpack
@@ -60,6 +58,7 @@ function server:_main_loop( ... )
 	while true do
         ::beg::
 		local mtype,desc,msg = glr.recv(self._timeout)
+        print("LOOP:", mtype, pprint.format(desc, "desc"), msg)
         self._tick = self._tick + 1
         if mtype == nil then
             if self.on_timeout then
@@ -170,7 +169,11 @@ function server:_main(...)
 end
 
 function _server(mod_name, cls_name, args)
-    local o = require(mod_name)[cls_name]:new(unpack(args))
+    print("S", mod_name, cls_name)
+    local mod = require(mod_name)
+    print("M", mod)
+    print("C", mod[cls_name])
+    local o = mod[cls_name]:new(unpack(args))
     o:_main()
 end
 --[[
@@ -184,10 +187,10 @@ end
 ]]
 local default_server_cls_name = "server"
 function create_server(params)
-    print("create_server")
     local rt, errmsg
     params.parameters = params.parameters or {}
     if params.bind_gpid then
+        print(params.bind_gpid, _NAME, params.mod_name, params.cls_name, params.parameters)
         rt, errmsg = glr.spawn_ex(params.bind_gpid,
                                         _NAME,
                                         "_server",
