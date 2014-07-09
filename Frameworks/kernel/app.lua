@@ -9,7 +9,7 @@
 module(..., package.seeall)
 
 
-app = require("core.app").inherit()
+app = require("core.modular").inherit()
 function app:on_started()
     print("Kernel app started")
 end
