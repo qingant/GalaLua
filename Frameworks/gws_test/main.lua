@@ -19,7 +19,15 @@ function index:new()
 end
 
 function index:get(...)
-    return "Hello world"
+    if ... then
+        local str = ""
+        for i,k in pairs(...) do
+            str = str.."key ="..i .. "value= " .. k
+        end
+        return str
+    else
+        return "Hello world"
+    end
 end
 
 function index:post(...)
