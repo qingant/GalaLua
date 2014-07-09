@@ -33,7 +33,8 @@ end
 function dispatcher:on_message(mtype, desc, msg)
     if mtype == glr.IOCP then
         local fd = self._unpacker(msg)
-        local worker = self._pool:call("get").result
+        self._logger:debug("get connection: %d", fd)
+        local worker = self._pool:call("get_process").result
         self._logger:debug("get worker:%s", pprint.format(worker))
         self._worker._server_addr = worker
         self._worker:call("add_task", {fd = fd})

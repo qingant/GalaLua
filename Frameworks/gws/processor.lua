@@ -36,23 +36,35 @@ end
 
 function processor:on_message(mtype, desc, msg)
     if mtype == glr.IOCP then
-        local request = self._protocol:getRequest()
-        self._logger:debug(pprint.format(request, "request"))
-        local rsp = self:_request_dispatch(request)
-
-        self._protocol:sendResponse(rsp)
-        glr.net.close(self._fd)
+        print("IOCP...", self._fd)
+        local r, err
+        while true do
+            r, err = pcall(function ()
+                    local request = self._protocol:getRequest()
+                    -- self._logger:debug(pprint.format(request, "request"))
+                    local rsp = self:_request_dispatch(request)
+                    self._protocol:sendResponse(rsp)
+                                 end, debug.traceback)
+            if not r then
+                break
+            end
+        end
+        print("ERROR", err)
         self:_back_to_pool()
+        -- glr.net.close(self._fd)
+        -- self:_back_to_pool()
     end
 end
 
 function processor:_request_dispatch(request)
     -- TODO: url matching
+    pprint.pprint(self.urls, "urls")
     if self.urls then
         local p, h
         for i,p in ipairs(self.urls) do
             p, h = unpack(p)
-            if string.gmatch(request.uri, p) then
+            local m = {string.match(request.uri, p)}
+            if m then
                 local rsp = self:_call_hander(h, request)
                 return rsp
             end
