@@ -58,14 +58,17 @@ end
 
 function processor:_request_dispatch(request)
     -- TODO: url matching
+    pprint.pprint(request, "request")
     pprint.pprint(self.urls, "urls")
+    for i, k in pairs(self.urls) do
+        pprint.pprint(i,"urls")
+        pprint.pprint(split(k," "),"split")
+    end
     if self.urls then
-        local p, h
-        for i,p in ipairs(self.urls) do
-            p, h = unpack(p)
-            local m = {string.match(request.uri, p)}
+        for uri,func in pairs(self.urls) do
+            local m = {string.match(request.uri, uri)}
             if m then
-                local rsp = self:_call_hander(h, request)
+                local rsp = self:_call_hander(func, request)
                 return rsp
             end
         end
@@ -73,14 +76,87 @@ function processor:_request_dispatch(request)
     local rsp = response:new()
     rsp.statusCode = 404
     rsp.status = "Service Not Found"
+    rsp.version = "http/1.1"
     return rsp
 end
 
 function processor:_call_hander(h, request)
     print(h, request)
     -- TODO: load handler and cache
+    --header
     local rsp = response:new()
-    rsp["Content-Type"] = "text/plain"
-    rsp:setContent("Hello World")
+    --TODO parse request.accept
+    if request.accept == "text/html" then
+        rsp["Content-Type"] = "text/html"
+    else 
+        rsp["Content-Type"] = "text/html"
+    end
+   
+    tab = split(h,"%.")
+    e = #tab
+    module = slice(tab,1,e,".")
+    cls = slice(tab,e)
+
+    module = require(module)
+    cls = module[cls]
+
+    --pprint.pprint(tab, "table.split")
+    --pprint.pprint(module, "module")
+    --pprint.pprint(cls, "class")
+
+    --body
+    if request.method == "GET" then
+        rsp:setContent(cls:get())
+    elseif request.method == "POST" then
+        rsp:setContent(cls:post())
+    end
     return rsp
 end
+
+function slice(table,...)
+    s, e, sep = ...
+    if not s then 
+        s = 1
+    end
+    if not e then
+        e = #table + 1
+    end
+
+    if not sep then
+        sep = ""
+    end
+
+    local str = ""
+    for i,k in  ipairs(table) do
+        if i == s then
+            str = str..k
+        elseif i > s and i < e then
+            str = str..sep..k
+        end
+    end
+    return str
+end
+
+
+--TODO parse pPattern replace %. as %s\ 
+function split(pString, pPattern)
+   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
+   local fpat = "(.-)" .. pPattern
+   local last_end = 1
+   --local s, e, cap = pString:find(fpat, 1)
+   local s, e, cap = string.find(pString, fpat, 1)
+
+   while s do
+      if s ~= 1 or cap ~= "" then
+        table.insert(Table,cap)
+      end
+      last_end = e+1
+      s, e, cap = string.find(pString, fpat, last_end)
+   end
+   if last_end <= #pString then
+      cap = string.sub(pString, last_end)
+      table.insert(Table, cap)
+   end
+   return Table
+end
+
