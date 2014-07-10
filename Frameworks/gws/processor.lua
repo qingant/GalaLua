@@ -9,8 +9,8 @@
 module(..., package.seeall)
 
 local base = require("core.processor").server
-local http = require("http").http
-local response = require("http").response
+local http = require("http.http").http
+local response = require("http.http").response
 local pprint = require("pprint")
 local processor = base:new()
 
@@ -56,23 +56,6 @@ function processor:on_message(mtype, desc, msg)
     end
 end
 
-function get_query(request)
-    local query = split(request.uri,"#")
-    query = slice(query,1,#query)
-    query = split(query,"%?")
-    query = slice(query,#query)
-    query = split(query,"&")
-    pprint.pprint(query,"query")
-    for i,key in pairs(query) do
-        local k,v 
-        t = split(key,"=")
-        request["query"][t[1]] = t[2]
-    end
-    --pprint.pprint(request["query"],"query")
-    --request.query = request["query"]
-    --pprint.pprint(request.query,"--query--")
-
-end
 
 function processor:_request_dispatch(request)
     -- TODO: url matching
@@ -83,11 +66,9 @@ function processor:_request_dispatch(request)
         pprint.pprint(split(k," "),"split")
     end
     if self.urls then
-        request["query"] = {}
         for uri,func in pairs(self.urls) do
             local m = {string.match(request.uri, uri)}
             if m then
-                get_query(request)
                 local rsp = self:_call_hander(func, request)
                 return rsp
             end
