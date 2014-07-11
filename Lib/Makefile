@@ -62,3 +62,4 @@ clean::
 	$(MAKE) -C lua-sigar/src clean
 	$(MAKE) -C lua-sigar/bindings/lua/ clean
 	$(MAKE) -C lua-time/ clean
+	$(MAKE) -C lua-aimagtpls clean
