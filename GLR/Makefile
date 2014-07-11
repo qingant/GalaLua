@@ -27,7 +27,7 @@ libGLR.a: $(GLR_OBJ) lua_file
 glr:LuaTest.o lua_file
 	@echo $(PLATFORM)
 	rm -f $@
-	$(G++)  $(COMMINC) $^ -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@
+	$(G++)  $(COMMINC) $< -lluajit $(SYTMLIB) $(STUBLIB) -lGalaxyRT -lGLR -lc -lm -ldl -lpthread -lrt -lluajit -o $@
 	mv $@ $(HOME)/bin/
 
 lua_file:
