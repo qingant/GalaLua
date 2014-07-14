@@ -25,6 +25,7 @@ end
 function processor:on_init(...)
     self:_back_to_pool()
     self._logger:debug("back to pool")
+    self.hander_cache = {}
 end
 
 function processor:on_task_add(params, desc)
@@ -82,40 +83,47 @@ function processor:_request_dispatch(request)
 end
 
 function processor:_call_hander(h, request)
-    print(h, request)
-    -- TODO: load handler and cache
-    --header
-    local rsp = response:new()
-    --TODO parse request.accept
-    if request.accept == "text/html" then
-        rsp["Content-Type"] = "text/html"
-    else 
-        rsp["Content-Type"] = "text/html"
-    end
-   
-    tab = split(h,"%.")
-    e = #tab
-    module = slice(tab,1,e,".")
-    cls = slice(tab,e)
+    --print(h, request)
+    if self.hander_cache[h] then
+        return self.hander_cache[h]
+    else
+        -- TODO: load handler and cache
+        tab = split(h,"%.")
+        e = #tab
+        module = slice(tab,1,e,".")
+        cls = slice(tab,e)
 
-    module = require(module)
-    cls = module[cls]
+        module = require(module)
+        cls = module[cls]
 
-    --pprint.pprint(tab, "table.split")
-    --pprint.pprint(module, "module")
-    --pprint.pprint(cls, "class")
+        --header
+        local rsp = response:new()
+        --TODO parse request.accept
+        if request.accept == "text/html" then
+            rsp["Content-Type"] = "text/html"
+        else 
+            rsp["Content-Type"] = "text/html"
+        end
 
-    --body
-    if request.query then
-        params = request.query
+        --pprint.pprint(tab, "table.split")
+        --pprint.pprint(module, "module")
+        --pprint.pprint(cls, "class")
+
+        --body
+        if request.query then
+            params = request.query
+        end
+        pprint.pprint(params,"--params---")
+        if request.method == "GET" then
+            rsp:setContent(cls:get(params))
+        elseif request.method == "POST" then
+            rsp:setContent(cls:post(params))
+        end
+
+        self.hander_cache[h] = rsp
+
+        return rsp
     end
-    pprint.pprint(params,"--params---")
-    if request.method == "GET" then
-        rsp:setContent(cls:get(params))
-    elseif request.method == "POST" then
-        rsp:setContent(cls:post(params))
-    end
-    return rsp
 end
 
 function slice(table,...)
