@@ -17,14 +17,18 @@ function response:init()
     self.version = "HTTP/1.1"
     self.Server = "GLR/GHS 1.0"
     self["Content-Type"] = "text/html"
-    self.chunked = true
+    self.chunked = false
     self.chunk = {}
     self.header = "" --toString
     return self
 end
 function response:setContent(content)
     self.content = content
-    self["Content-Length"] = tostring(#content)
+    local len = #content
+    self["Content-Length"] = tostring(len)
+    if len > 500 then
+        self.chunked = true
+    end
 end
 function response:setCookie(k,v)
     self["Set-Cookie"] = self["Set-Cookie"] or {}
