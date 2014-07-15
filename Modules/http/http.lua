@@ -3,17 +3,24 @@ local socket = require("glr.socket")
 local strUtils = require("str_utils")
 
 response = {}
-response.Fields = {"Content-Type" , "Server", "Last-Modified","Content-Length"}
+response.Fields = {"Content-Type" , "Server", "Last-Modified","Content-Length", "Expire","Cache-Control","Transfer-Encoding"}
 function response:new(o)
     local o = o or {}
-    o.statusCode = "200"
-    o.status = "Okay"
-    o.version = "HTTP/1.1"
-    o.Server = "GLR/GHS 1.0"
-    o["Content-Type"] = "text/html"
     setmetatable(o, self)
     self.__index = self
     return o
+end
+
+function response:init()
+    self.statusCode = "200"
+    self.status = "Okay"
+    self.version = "HTTP/1.1"
+    self.Server = "GLR/GHS 1.0"
+    self["Content-Type"] = "text/html"
+    self.chunked = true
+    self.chunk = {}
+    self.header = "" --toString
+    return self
 end
 function response:setContent(content)
     self.content = content
@@ -23,17 +30,52 @@ function response:setCookie(k,v)
     self["Set-Cookie"] = self["Set-Cookie"] or {}
     self["Set-Cookie"][k] = tostring(v)
 end
+
+function response:setChunk()
+    if self.chunked then
+        self["Transfer-Encoding"] = "chunked"
+    end
+end
 function response:toString()
+    if self.chunked then
+        self["Transfer-Encoding"] = "chunked"
+    	self["Content-Length"] = nil
+    end
     local lines = {}
     lines[#lines+1] = string.format("%s %s %s\r\n", self.version, self.statusCode, self.status)
     for i,k in ipairs(self.Fields) do
         local v = self[k]
-        if v  then
+        if v then
             lines[#lines + 1] = string.format("%s:%s\r\n", k, v)
         end
     end
     lines[#lines + 1] = "\r\n"
-    return table.concat(lines)
+    self.header = table.concat(lines)
+    return self.header
+end
+
+--TODO 
+--A server MUST NOT send transfer-codings to an HTTP/1.0 client.
+--A server which receives an entity-body with a transfer-coding it does not understand SHOULD return 501 (Unimplemented)
+function response:encodeChunk(content)
+    local len = 500
+    local s = 1
+    local chunk = ""
+    repeat
+        local data = string.sub(content,s,s + len)
+        local header = string.format("%x",#data)
+        --print("data", data)
+        --print("header", header)
+        if not data then
+            chunk = "0"
+            self.chunk[#self.chunk + 1] = string.format("%s\r\n",chunk)
+            self.chunk[#self.chunk + 1] = "\r\n" 
+        else
+            chunk = string.format("%s\r\n%s\r\n",header,data)
+            self.chunk[#self.chunk + 1] = chunk
+        end
+        s = s + len + 1
+    until header == "0"
 end
 
 http = {}
@@ -88,11 +130,36 @@ function get_query(request)
     --pprint.pprint(request.query,"--query--")
 end
 
-function http:sendResponse(o)
-    self._socket:send(o:toString())
-    if o.content then
-        self._socket:send(o.content)
+function http:sendResponse(response)
+    local header = response:toString()
+    local body = response.content
+    --print("header:\n ",header)
+    --print("content :\n ",content)
+    --print("chunked :\t ",o.chunked)
+    self._socket:send(header)
+    if response.chunked then
+        response:encodeChunk(body)
+        for i,v in pairs(response.chunk) do
+            print("chunk",v)
+            self._socket:send(v)
+        end
+    else
+        self._socket:send(body)
     end
+end
+
+--gen Date and If-Modified-Since for request
+function get_date(date) 
+    --date = os.date("!*t")
+    local WEEK = {"Sun.","Mon.", "Tues.", "Wed.", "Thur.","Fri.", "Sta."}
+    local MONTH = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
+    local week = WEEK[date["wday"]]
+    local day = date["day"]
+    local month = MONTH[date["month"]]
+    local year = date["year"]
+    local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
+    date = week.." "..day.." "..month.." "..year.." "..time
+    return date
 end
 
 --table get between e,b seperate by sep 

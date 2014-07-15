@@ -75,7 +75,7 @@ function processor:_request_dispatch(request)
             end
         end
     end
-    local rsp = response:new()
+    local rsp = response:new():init()
     rsp.statusCode = 404
     rsp.status = "Service Not Found"
     rsp.version = "http/1.1"
@@ -87,7 +87,6 @@ function processor:_call_hander(h, request)
     if self.hander_cache[h] then
         return self.hander_cache[h]
     else
-        -- TODO: load handler and cache
         tab = split(h,"%.")
         e = #tab
         module = slice(tab,1,e,".")
@@ -97,14 +96,7 @@ function processor:_call_hander(h, request)
         cls = module[cls]
 
         --header
-        local rsp = response:new()
-        --TODO parse request.accept
-        if request.accept == "text/html" then
-            rsp["Content-Type"] = "text/html"
-        else 
-            rsp["Content-Type"] = "text/html"
-        end
-
+        local rsp = response:new():init()
         --pprint.pprint(tab, "table.split")
         --pprint.pprint(module, "module")
         --pprint.pprint(cls, "class")
