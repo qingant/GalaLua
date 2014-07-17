@@ -30,7 +30,11 @@ function cache_control:del_cache(request)
 end
 
 function cache_control:valid(request, reponse)
+    if request.Pragma == "no-cache" or request.Cache-Control == "no-cache" then
+        return false
+    return true
 end
+
 function cache_control:exist_cache(request)
     for key, value in pairs(self.cache) do
         if request.uri == key then
@@ -51,8 +55,8 @@ function cache_control:revalidations(request,response)
         end
         ]==]
         --Not Modify
-        if request.If-Modified-Since == self.Last-Modified then
-            if request.If-None-Match and request.If-None-Match == self.Etag then
+        if request.If-Modified-Since and request.If-Modified-Since == response.Last-Modified then
+            if request.If-None-Match and request.If-None-Match == response.Etag then
                 response.statusCode = "304"
                 response.status = "Not Modified"
                 response.version = "HTTP/1.1"
@@ -136,6 +140,9 @@ function slice(table,...)
 end
 
 --TODO
+--reponse.ETag
+--reponse.Expire
+--reponse.Last-Modified
 function response:setCache(request)
     request.cache_control = cache_control.get_pairs(request.Cache-Control)
     if request.cache_control["no-cache"] then

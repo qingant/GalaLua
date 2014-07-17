@@ -3,7 +3,7 @@ local socket = require("glr.socket")
 local strUtils = require("str_utils")
 
 response = {}
-response.Fields = {"Content-Type" , "Server", "Last-Modified","Content-Length", "Expire","Cache-Control","Transfer-Encoding"}
+response.Fields = {"Date","Content-Type" , "Server", "Last-Modified","Content-Length", "Expire","Cache-Control","Transfer-Encoding"}
 function response:new(o)
     local o = o or {}
     setmetatable(o, self)
@@ -16,7 +16,7 @@ function response:init()
     self.status = "Okay"
     self.version = "HTTP/1.1"
     self.Server = "GLR/GHS 1.0"
-    self["Content-Type"] = "text/html"
+    self["Content-Type"] = "text/html;charset=utf-8"
     self.chunked = false
     self.chunk = {}
     self.header = "" --toString
@@ -40,6 +40,26 @@ function response:setChunk()
         self["Transfer-Encoding"] = "chunked"
     end
 end
+
+
+--TODO
+--compress
+--deflate
+--identity　　
+--gziEncode
+function response:setEncode(request)
+    local encode = getAcceptEncoding(request.Accept-Encoding)
+    for _, v in pairs(encode) do
+        if v == "gzip" then
+            self["Content-Encoding"] = "gzip"
+            local len = gzipEncode(self.content)
+            self["Content-Length"] = len
+        else
+            local len = #self.content
+            self["Content-Length"] = len
+        end
+    end
+end
 function response:toString()
     if self.chunked then
         self["Transfer-Encoding"] = "chunked"
@@ -58,7 +78,7 @@ function response:toString()
     return self.header
 end
 
---TODO 
+--TODO
 --A server MUST NOT send transfer-codings to an HTTP/1.0 client.
 --A server which receives an entity-body with a transfer-coding it does not understand SHOULD return 501 (Unimplemented)
 function response:encodeChunk(content)
@@ -115,9 +135,21 @@ function http:getRequest(timeout)
         request[key] = value:trim()
     end
     get_query(request)
+    get_path(request)
+    get_encode(request)
+    get_language(request)
     return request
 end
 
+function get_path(request)
+    request.path = ""
+    local query = split(request.uri,"#")
+    query = slice(query,1,#query)
+    query = split(query,"%?")
+    local path = slice(query,1,#query)
+    --pprint.pprint(path,"--path--")
+    request.path = path
+end
 function get_query(request)
     request.query = {}
     local query = split(request.uri,"#")
@@ -132,6 +164,30 @@ function get_query(request)
         request.query[t[1]] = t[2]
     end
     --pprint.pprint(request.query,"--query--")
+end
+
+function get_encode(request)
+    request.encode = {}
+    --print("Accept-Encoding", request["Accept-Encoding"])
+    local encode = split(request["Accept-Encoding"],",")
+    if encode then
+	for k,v in pairs(encode) do
+            request.encode[k] = strip(v)
+	end
+        --pprint.pprint(encode,"--encode--")
+    end
+end
+
+function get_language(request)
+    request.language = {}
+    lang = split(request["Accept-Language"],";")
+    if lang then
+        for i,v  in pairs(lang) do
+            request.language[i] = v
+        end
+        --pprint.pprint(request.language, "accept-language")
+    end
+    
 end
 
 function http:sendResponse(response)
@@ -222,6 +278,22 @@ function split(pString, pPattern)
    return Table
 end
 
+function strip(pString)
+    local s1,e1 = string.find(tostring(pString), "%s+", 1)
+    print(s1,e1)
+    if not e1 then
+       e1 = 0
+       s2,e2 = string.find(pString,"%s+", e1+1)
+    end
+    print(s2,e2)
+    if s1 ~= 1 and s1 then
+       return string.sub(pString,1,s1-1)
+    end
+    if not s2 then
+       return string.sub(pString,e1+1)
+    end
+    return string.sub(pString,e1+1,s2-1)
+end
 if ... == "__main__" then
     table = {1,2,4,5,5}
     print(utils.slice(table,1,3, "."))
@@ -242,6 +314,4 @@ if ... == "__main__" then
         protocol:sendResponse(rsp)
         glr.net.close(fd)
     end
-
-
 end
