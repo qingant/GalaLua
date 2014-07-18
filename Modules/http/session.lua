@@ -9,6 +9,7 @@
     --more
         you can set, get, and del session with specification
 ]]
+module(...,package.seeall)
 
 session = {}
 
@@ -16,15 +17,15 @@ function session:new(o)
     local o = o or {}
     setmetatable(o, self)
     self.__index = self
-    self.__newindex = function(t, k, v)
-        error("attempt to add session key is forbid!")
-    end
+    --self.__newindex = function(t, k, v)
+    --    error("attempt to add session key is forbid!")
+    --end
     return o
 end
 
 function session:init()
     --in case of c10k duplicate
-    self.name = math.random(os.time()) + math.ramdom(1000000)
+    self.name = math.random(os.time()) + math.random(1000000)
     --step if you want to support transaction
     self.value = 1
     --60*60*24*30  one month
@@ -52,10 +53,6 @@ end
 
 function session:getDomain()
     return self.domain
-end
-
-function session:get()
-    return {self.name, self.value, self.expires, self.path, self.domain}
 end
 
 --set value as step if you want to support transaction
@@ -104,8 +101,4 @@ function get_date(date)
     local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
     date = week.." "..day.." "..month.." "..year.." "..time
     return date
-end
-
-function session:toString()
-    return string.format("SessionID=%d, Step=%s, Expire=%s, Domain=%s, Path=%s",self.name,self.value,get_date(self.expires), self.domain,self.path)
 end

@@ -1,6 +1,7 @@
 module(...,package.seeall)
 local socket = require("glr.socket")
 local strUtils = require("str_utils")
+--local split = require("http.utils").split
 
 response = {}
 response.Fields = {"Date","Content-Type" , "Server", "Last-Modified","Content-Length", "Expire","Cache-Control","Transfer-Encoding"}
@@ -48,16 +49,18 @@ end
 --identity　　
 --gziEncode
 function response:setEncode(request)
-    local encode = getAcceptEncoding(request.Accept-Encoding)
-    for _, v in pairs(encode) do
-        if v == "gzip" then
-            self["Content-Encoding"] = "gzip"
-            local len = gzipEncode(self.content)
-            self["Content-Length"] = len
-        else
-            local len = #self.content
-            self["Content-Length"] = len
-        end
+    local encode = get_encode(request)
+    if encode then
+	for _, v in pairs(encode) do
+	    if v == "gzip" then
+		self["Content-Encoding"] = "gzip"
+		local len = gzipEncode(self.content)
+		self["Content-Length"] = len
+	    else
+		local len = #self.content
+		self["Content-Length"] = len
+	    end
+	end
     end
 end
 function response:toString()
@@ -169,19 +172,23 @@ end
 function get_encode(request)
     request.encode = {}
     --print("Accept-Encoding", request["Accept-Encoding"])
-    local encode = split(request["Accept-Encoding"],",")
+    local encode = request["Accept-Encoding"] 
     if encode then
-	for k,v in pairs(encode) do
-            request.encode[k] = strip(v)
-	end
-        --pprint.pprint(encode,"--encode--")
+       encode = split(encode,",")
+       for k,v in pairs(encode) do
+           request.encode[k] = strip(v)
+       end
+       return request.encode
+    --pprint.pprint(encode,"--encode--")
     end
+    return nil
 end
 
 function get_language(request)
     request.language = {}
-    lang = split(request["Accept-Language"],";")
+    local lang = request["Accept-Language"]
     if lang then
+        lang = split(lang,";")
         for i,v  in pairs(lang) do
             request.language[i] = v
         end
@@ -257,39 +264,39 @@ end
 --@param : pPattern : character is splited by
 --@return : table  like python split
 function split(pString, pPattern)
-   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
-   local fpat = "(.-)" .. pPattern
-   local last_end = 1
-   --local s, e, cap = pString:find(fpat, 1)
-   local s, e, cap = string.find(pString, fpat, 1)
+    local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
+    local fpat = "(.-)" .. pPattern
+    local last_end = 1
+    --local s, e, cap = pString:find(fpat, 1)
+    local s, e, cap = string.find(pString, fpat, 1)
 
-   while s do
-      if s ~= 1 or cap ~= "" then
-        table.insert(Table,cap)
-      end
-      last_end = e+1
-      s, e, cap = string.find(pString, fpat, last_end)
-   end
-   if last_end <= #pString then
-      cap = string.sub(pString, last_end)
-      table.insert(Table, cap)
-   end
-   return Table
+    while s do
+        if s ~= 1 or cap ~= "" then
+            table.insert(Table,cap)
+        end
+        last_end = e+1
+        s, e, cap = string.find(pString, fpat, last_end)
+    end
+    if last_end <= #pString then
+        cap = string.sub(pString, last_end)
+        table.insert(Table, cap)
+    end
+    return Table
 end
 
 function strip(pString)
     local s1,e1 = string.find(tostring(pString), "%s+", 1)
     print(s1,e1)
     if not e1 then
-       e1 = 0
-       s2,e2 = string.find(pString,"%s+", e1+1)
+        e1 = 0
+        s2,e2 = string.find(pString,"%s+", e1+1)
     end
     print(s2,e2)
     if s1 ~= 1 and s1 then
-       return string.sub(pString,1,s1-1)
+        return string.sub(pString,1,s1-1)
     end
     if not s2 then
-       return string.sub(pString,e1+1)
+        return string.sub(pString,e1+1)
     end
     return string.sub(pString,e1+1,s2-1)
 end

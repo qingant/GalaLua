@@ -11,6 +11,7 @@ module(..., package.seeall)
 local base = require("core.processor").server
 local http = require("http.http").http
 local response = require("http.http").response
+local context = require("http.context").context
 local pprint = require("pprint")
 local processor = base:new()
 
@@ -19,9 +20,7 @@ server = processor
 function processor:new(app_name, pool_name, idx, params)
     base.init(self, app_name, pool_name, idx)
     self.urls = params.urls
-    return self
-end
-
+    return self end 
 function processor:on_init(...)
     self:_back_to_pool()
     self._logger:debug("back to pool")
@@ -44,6 +43,7 @@ function processor:on_message(mtype, desc, msg)
                     local request = self._protocol:getRequest()
                     -- self._logger:debug(pprint.format(request, "request"))
                     local rsp = self:_request_dispatch(request)
+                    --pprint.pprint(rsp,"rsp")
                     self._protocol:sendResponse(rsp)
                                  end, debug.traceback)
             if not r then
@@ -110,13 +110,20 @@ function processor:_call_hander(h, request)
 
         pprint.pprint(params,"--params---")
         if request.method == "GET" then
-            rsp:setContent(cls:get(params))
+            local resp = cls:get(context, params)
+            --pprint.pprint(resp[1],"resp[1]")
+            rsp = resp[1]
+            rsp:setContent(resp[2])
         elseif request.method == "POST" then
-            rsp:setContent(cls:post(params))
+            local resp = cls:post(context, params)
+            --pprint.pprint(resp[1],"resp[1]")
+            rsp = resp[1]
+            rsp:setContent(resp[2])
         end
 
         self.hander_cache[h] = rsp
 
+        --pprint.pprint(rsp,"rsp")
         return rsp
     end
 end
