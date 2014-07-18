@@ -18,7 +18,8 @@ function index:new()
     return o
 end
 
-function index:get(...)
+function index:get(context,...)
+    pprint.pprint(context,"context")
     if ... then
         local str = ""
         for i,k in pairs(...) do
@@ -30,7 +31,8 @@ function index:get(...)
     end
 end
 
-function index:post(...)
+function index:post(context,...)
+    pprint.pprint(context,"context")
     pprint.pprint(...)
 end
 

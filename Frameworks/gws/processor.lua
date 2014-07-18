@@ -105,6 +105,9 @@ function processor:_call_hander(h, request)
         if request.query then
             params = request.query
         end
+
+        local context = context:new():init(request,rsp)
+
         pprint.pprint(params,"--params---")
         if request.method == "GET" then
             rsp:setContent(cls:get(params))

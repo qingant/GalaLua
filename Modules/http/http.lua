@@ -187,7 +187,6 @@ function get_language(request)
         end
         --pprint.pprint(request.language, "accept-language")
     end
-    
 end
 
 function http:sendResponse(response)
