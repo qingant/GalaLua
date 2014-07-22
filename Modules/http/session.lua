@@ -60,6 +60,7 @@ function session:setValue(step)
     self.value = step
 end
 
+--delay seconds
 function session:setExpire(delay)
     self.expires = os.time() + delay
 end
@@ -89,9 +90,55 @@ function session:del()
     self.domain = nil
 end
 
+function session:save(key, value)
+    local db = mdb:new():init(mdb.create_env("/tmp/lmdb"))
+    local root = "Session"
+    function save(db)
+        local e = db:get_root(root)
+        local id = e:add_node(key)
+        id:set_value(value)
+        db:commit()
+    end
+    db:with(save)
+end
+
+function session:query(key)
+    local db = mdb:new():init(mdb.create_env("/tmp/lmdb"))
+    local root = "Session"
+    function query(db)
+        local e = db:get_root(root)
+        return e:_xpath(key)
+    end
+    return db:with(query)
+end
+
+--ses : a session object
+function session:gen(ses)
+    return string.format("SessionID=%d, Step=%s, Expire=%s, Domain=%s, Path=%s",
+    ses.name,ses.value,get_date(ses.expires), ses.domain,ses.path)
+end
+
+function session:parse(cookie)
+    local ses = split(cookie,",")
+    local session = {}
+    for _,k in pairs(ses) do
+        local tmp = split(k,"=")
+        session[strip(tmp[1])] = strip(tmp[2])
+    end
+    return {name = session["SessionID"],  value = session["Step"], expires = session["Expire"], 
+    path = session["Path"], domain = session["Domain"]}
+end
+
+-- session["Expire"] same as os.date()'t return
+function session:check(expire)
+    str = os.date()
+    local t = diff_date(str,expire)
+    return t
+end
+
 --gen Date and If-Modified-Since for request
-function get_date(date) 
-    --date = os.date("!*t")
+function get_date(date)
+    date = os.date("!*t",date)
     local WEEK = {"Sun.","Mon.", "Tues.", "Wed.", "Thur.","Fri.", "Sta."}
     local MONTH = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
     local week = WEEK[date["wday"]]

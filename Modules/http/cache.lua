@@ -1,4 +1,12 @@
+--[[
+--Author liuwenxue
+--Date 2014-07-17
 
+session--Call by application
+    --if you want session , call context:session()
+    --if you want cache-control, call context:cache()
+]]
+module(...,package.seeall)
 --TODO logging
 cache_control = {}
 

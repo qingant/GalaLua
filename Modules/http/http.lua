@@ -1,10 +1,13 @@
 module(...,package.seeall)
 local socket = require("glr.socket")
 local strUtils = require("str_utils")
---local split = require("http.utils").split
+local split = require("http.utils").split
+local strip = require("http.utils").strip
+local slice = require("http.utils").slice
+local get_date = require("http.utils").get_date
 
 response = {}
-response.Fields = {"Date","Content-Type" , "Server", "Last-Modified","Content-Length", "Expire","Cache-Control","Transfer-Encoding"}
+response.Fields = {"Set-Cookie","Date","Content-Type" , "Server", "Last-Modified","Content-Length", "Expire","Cache-Control","Transfer-Encoding"}
 function response:new(o)
     local o = o or {}
     setmetatable(o, self)
@@ -215,18 +218,18 @@ function http:sendResponse(response)
 end
 
 --gen Date and If-Modified-Since for request
-function get_date(date) 
-    --date = os.date("!*t")
-    local WEEK = {"Sun.","Mon.", "Tues.", "Wed.", "Thur.","Fri.", "Sta."}
-    local MONTH = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
-    local week = WEEK[date["wday"]]
-    local day = date["day"]
-    local month = MONTH[date["month"]]
-    local year = date["year"]
-    local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
-    date = week.." "..day.." "..month.." "..year.." "..time
-    return date
-end
+--function get_date(date) 
+--    --date = os.date("!*t")
+--    local WEEK = {"Sun.","Mon.", "Tues.", "Wed.", "Thur.","Fri.", "Sta."}
+--    local MONTH = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
+--    local week = WEEK[date["wday"]]
+--    local day = date["day"]
+--    local month = MONTH[date["month"]]
+--    local year = date["year"]
+--    local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
+--    date = week.." "..day.." "..month.." "..year.." "..time
+--    return date
+--end
 
 --table get between e,b seperate by sep 
 --@param table
@@ -234,72 +237,72 @@ end
 --@param e : end
 --@param sep : seprate character
 --@return : string 
-function slice(table,...)
-    s, e, sep = ...
-    if not s then 
-        s = 1
-    end
-    if not e then
-        e = #table + 1
-    end
-
-    if not sep then
-        sep = ""
-    end
-
-    local str = ""
-    for i,k in  ipairs(table) do
-        if i == s then
-            str = str..k
-        elseif i > s and i < e then
-            str = str..sep..k
-        end
-    end
-    return str
-end
+--function slice(table,...)
+--    s, e, sep = ...
+--    if not s then 
+--        s = 1
+--    end
+--    if not e then
+--        e = #table + 1
+--    end
+--
+--    if not sep then
+--        sep = ""
+--    end
+--
+--    local str = ""
+--    for i,k in  ipairs(table) do
+--        if i == s then
+--            str = str..k
+--        elseif i > s and i < e then
+--            str = str..sep..k
+--        end
+--    end
+--    return str
+--end
 
 
 --TODO parse pPattern replace %. as %s\ 
 --@param : pString : str what to split
 --@param : pPattern : character is splited by
 --@return : table  like python split
-function split(pString, pPattern)
-    local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
-    local fpat = "(.-)" .. pPattern
-    local last_end = 1
-    --local s, e, cap = pString:find(fpat, 1)
-    local s, e, cap = string.find(pString, fpat, 1)
+--function split(pString, pPattern)
+--    local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
+--    local fpat = "(.-)" .. pPattern
+--    local last_end = 1
+--    --local s, e, cap = pString:find(fpat, 1)
+--    local s, e, cap = string.find(pString, fpat, 1)
+--
+--    while s do
+--        if s ~= 1 or cap ~= "" then
+--            table.insert(Table,cap)
+--        end
+--        last_end = e+1
+--        s, e, cap = string.find(pString, fpat, last_end)
+--    end
+--    if last_end <= #pString then
+--        cap = string.sub(pString, last_end)
+--        table.insert(Table, cap)
+--    end
+--    return Table
+--end
 
-    while s do
-        if s ~= 1 or cap ~= "" then
-            table.insert(Table,cap)
-        end
-        last_end = e+1
-        s, e, cap = string.find(pString, fpat, last_end)
-    end
-    if last_end <= #pString then
-        cap = string.sub(pString, last_end)
-        table.insert(Table, cap)
-    end
-    return Table
-end
-
-function strip(pString)
-    local s1,e1 = string.find(tostring(pString), "%s+", 1)
-    print(s1,e1)
-    if not e1 then
-        e1 = 0
-        s2,e2 = string.find(pString,"%s+", e1+1)
-    end
-    print(s2,e2)
-    if s1 ~= 1 and s1 then
-        return string.sub(pString,1,s1-1)
-    end
-    if not s2 then
-        return string.sub(pString,e1+1)
-    end
-    return string.sub(pString,e1+1,s2-1)
-end
+--function strip(pString)
+--    local s1,e1 = string.find(tostring(pString), "%s+", 1)
+--    print(s1,e1)
+--    if not e1 then
+--        e1 = 0
+--        s2,e2 = string.find(pString,"%s+", e1+1)
+--    end
+--    print(s2,e2)
+--    if s1 ~= 1 and s1 then
+--        return string.sub(pString,1,s1-1)
+--    end
+--    if not s2 then
+--        return string.sub(pString,e1+1)
+--    end
+--    return string.sub(pString,e1+1,s2-1)
+--end
 if ... == "__main__" then
     table = {1,2,4,5,5}
     print(utils.slice(table,1,3, "."))
