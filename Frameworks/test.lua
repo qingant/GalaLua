@@ -1,13 +1,8 @@
---[[
 module(...,package.seeall)
 
-local slice = require("http.utils")
+local slice = require("http.utils").slice
 local pprint = require("pprint")
 
-pprint.pprint(slice)
-table = {1,2,4,5,56}
-print(slice(table,2,4))
-]]
 
 --TODO parse pPattern replace %. as %s\ 
 --@param : pString : str what to split
@@ -37,25 +32,31 @@ function split(pString, pPattern)
    return Table
 end
 
-function get_date() 
+function get_date(delay,timezone)
+    if not timezone  then
+        timezone = 8
+    end
+    if not delay then
+        delay = 0
+    end
     local WEEK = {"Sun.","Mon.", "Tues.", "Wed.", "Thur.","Fri.", "Sta."}
     local MONTH = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
-    date = os.date("!*t")
+    local NUM = {"01","02","03","04","05","06","07","08","09","10","11","12","13","14","15",
+                "16","17","18","19","20","21","22","23","24","25","26","27","28","29","30",
+                "31","32","33","34","35","36","37","38","39","40","41","42","43","44","45",
+                "46","47","48","49","50","51","52","53","54","55","56","57","58","59"}
+    --timezone of GMT
+    local date = os.date("*t",os.time() + 3600*timezone + delay)
     local week = WEEK[date["wday"]]
-    local day = date["day"]
+    local day = NUM[date["day"]]
     local month = MONTH[date["month"]]
     local year = date["year"]
-    local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
-    date = week.." "..day.." "..month.." "..year.." "..time
-    return date
+    local time = string.format("%s:%s:%s",NUM[date["hour"]],NUM[date["min"]],NUM[date["sec"]])
+    --local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
+    --date = week.." "..day.." "..month.." "..year.." "..time
+    local dt = string.format("%s %d %s %d %s %s",week,day,month,year,time,"GMT")
+    return dt
 end
-
---table = {1,2,3,4,5}
-print(get_date())
---table1 = slice(table,1,3)
---print(table1)
---table2 = slice(table)
---print(table2)
 
 -- see test_strip()
 function strip(pString)
@@ -267,3 +268,10 @@ function test_parse_date()
     end
 end
 
+print(_PACKAGE)
+function test_get_date()
+    print(get_date())
+    print(get_date(100))
+    print(get_date(100,8))
+end
+test_get_date()

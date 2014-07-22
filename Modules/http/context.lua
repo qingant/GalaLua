@@ -48,7 +48,7 @@ function sessionGen(ses)
 end
 
 function sessionParse(cookie)
-    local ses = split(cookie,",")
+    local ses = split(cookie,",%s+")
     pprint.pprint(ses, "session")
     local session = {}
     for _,k in pairs(ses) do
@@ -108,7 +108,7 @@ function context:session()
     if cookie then
         print(cookie,"--cookie--")
         local sess = sessionParse(cookie)
-        --pprint.pprint(sess,"sess")
+        pprint.pprint(sess,"sess")
         local d = sessionCheck(sess.expires)
         if d >= 0 then
             self:setSession(1)

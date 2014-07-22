@@ -5,19 +5,31 @@
 
 module(...,package.seeall)
 --gen Http request header Date property
-function get_date(delay) 
+--timezone of GMT,default for china
+function get_date(delay,timezone) 
+    if not timezone  then
+        timezone = 8
+    end
+    if not delay then
+        delay = 0
+    end
     local WEEK = {"Sun.","Mon.", "Tues.", "Wed.", "Thur.","Fri.", "Sta."}
     local MONTH = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
-    local date = os.date("*t",delay)
+    local NUM = {01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,
+                16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,
+                31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,
+                46,47,48,49,50,51,52,53,54,55,56,57,58,59}
+    --timezone of GMT
+    local date = os.date("*t",os.time() + 3600*timezone + delay)
     local week = WEEK[date["wday"]]
-    local day = date["day"]
+    local day = NUM[date["day"]]
     local month = MONTH[date["month"]]
     local year = date["year"]
-    local time = string.format("%d:%d:%d",date["hour"],date["min"],date["sec"])
+    local time = string.format("%d:%d:%d",NUM[date["hour"]],NUM[date["min"]],NUM[date["sec"]])
     --local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
-    --local date = week.." "..day.." "..month.." "..year.." "..time
-    local dt = string
-    return date
+    --date = week.." "..day.." "..month.." "..year.." "..time
+    local dt = string.format("%s %d %s %d %s %s",week,day,month,year,time,"GMT")
+    return dt
 end
 
 --table get between e,b seperate by sep 
@@ -75,20 +87,20 @@ function split(pString, pPattern)
    end
    return Table
 end
-
 -- see test_strip()
 function strip(pString)
     local s1,e1 = string.find(pString,"^%s+")
     if not e1 then
         e1 = 0
     end
+    print(s1,e1)
     local s2,e2 = string.find(pString,"%s+$")
     if not s2 then
         s2 = #pString + 1
     end
+    print(s2,e2)
     return string.sub(pString,e1+1,s2-1)
 end
-
 --------------------------------------
 ---seperate date to items
 --for example, 
