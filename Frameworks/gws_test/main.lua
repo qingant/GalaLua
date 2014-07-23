@@ -20,7 +20,10 @@ end
 
 function index:get(context,...)
     pprint.pprint(context,"--context--")
-    context:session()
+    local id = context:get_session_id()
+    print("----sesssion id----", id)
+    context:set_session("domain","111111111")
+    context:create_session(id)
     --function index:get(...)
     if ... then
         local str = ""

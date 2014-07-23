@@ -4,8 +4,9 @@
 ]]
 
 module(...,package.seeall)
+pprint = require("pprint")
 --gen Http request header Date property
---timezone of GMT,default for china
+--timezone of GMT,default current timezone is china
 function get_date(delay,timezone) 
     if not timezone  then
         timezone = 8
@@ -18,48 +19,18 @@ function get_date(delay,timezone)
     local NUM = {"01","02","03","04","05","06","07","08","09","10","11","12","13","14","15",
                 "16","17","18","19","20","21","22","23","24","25","26","27","28","29","30",
                 "31","32","33","34","35","36","37","38","39","40","41","42","43","44","45",
-                "46","47","48","49","50","51","52","53","54","55","56","57","58","59"}
+                "46","47","48","49","50","51","52","53","54","55","56","57","58","59",[0]="00"}
     --timezone of GMT
-    local date = os.date("*t",os.time() + 3600*timezone + delay)
+    local date = os.date("*t",os.time() - 3600*timezone + delay)
     local week = WEEK[date["wday"]]
     local day = NUM[date["day"]]
     local month = MONTH[date["month"]]
     local year = date["year"]
-    local time = string.format("%d:%d:%d",NUM[date["hour"]],NUM[date["min"]],NUM[date["sec"]])
+    local time = string.format("%s:%s:%s",NUM[date["hour"]],NUM[date["min"]],NUM[date["sec"]])
     --local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
     --date = week.." "..day.." "..month.." "..year.." "..time
-    local dt = string.format("%s %d %s %d %s %s",week,day,month,year,time,"GMT")
+    local dt = string.format("%s %s %s %d %s %s",week,day,month,year,time,"GMT")
     return dt
-end
-
---table get between e,b seperate by sep 
---@param table
---@param s : start
---@param e : end
---@param sep : seprate character
---@return : string 
-function slice(table,...)
-    s, e, sep = ...
-    if not s then 
-        s = 1
-    end
-    if not e then
-        e = #table + 1
-    end
-
-    if not sep then
-        sep = ""
-    end
-
-    local str = ""
-    for i,k in  ipairs(table) do
-        if i == s then
-            str = str..k
-        elseif i > s and i < e then
-            str = str..sep..k
-        end
-    end
-    return str
 end
 
 
@@ -93,12 +64,12 @@ function strip(pString)
     if not e1 then
         e1 = 0
     end
-    print(s1,e1)
+    --print(s1,e1)
     local s2,e2 = string.find(pString,"%s+$")
     if not s2 then
         s2 = #pString + 1
     end
-    print(s2,e2)
+    --print(s2,e2)
     return string.sub(pString,e1+1,s2-1)
 end
 --------------------------------------
@@ -118,7 +89,8 @@ end
 function parse_date(date)
     local WEEK = {["Sun,"] = 1,["Mon,"] = 2, ["Tues,"] = 3, ["Wed,"] = 4,["Thur,"] = 5,["Fri,"] = 6, ["Sta,"] = 7,
                  ["Sun"] = 1,["Mon"] = 2, ["Tues"] = 3, ["Wed"] = 4, ["Thur"] = 5,["Fri"] = 6, ["Sta"] = 7}
-    local MONTH = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
+    local MONTH = {["Jan"] = 1, ["Feb"] = 2, ["Mar"] = 3, ["Apr"] = 4, ["May"] = 5, 
+                    ["Jun"] = 6, ["Jul"] = 7, ["Aug"] = 8, ["Sept"] = 9, ["Oct"] = 10, ["Nov"] = 11, ["Dec"] = 12}
     local date_item = {}
     date = tostring(date)
     date_table = split(date,"%s+")
@@ -144,6 +116,8 @@ function diff_date(date1, date2)
     if date1 == date2 then
         return 0
     end
+    --print("date1",date1)
+    --print("date1",date2)
     date1 = parse_date(date1)
     date2 = parse_date(date2)
     if date1["year"] < date2["year"] then
@@ -189,10 +163,6 @@ function test_get_date()
     print(get_date())
 end
 
-function test_slice()
-    table = {1,3,4,5}
-    print(slice(table,1,2,"."))
-end
 
 function test_strip()
     a = "abc"

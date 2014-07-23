@@ -19,54 +19,6 @@ local parse_date = require("http.utils").parse_date
 local strip = require("http.utils").strip
 local diff_date = require("http.utils").diff_date
 
-function sessionSave(key, value)
-    local db = mdb:new():init(mdb.create_env("/tmp/lmdb"))
-    local root = "Session"
-    function save(db)
-        local e = db:get_root(root)
-        local id = e:add_node(key)
-        id:set_value(value)
-        db:commit()
-    end
-    db:with(save)
-end
-
-function sessionQuery(key)
-    local db = mdb:new():init(mdb.create_env("/tmp/lmdb"))
-    local root = "Session"
-    function query(db)
-        local e = db:get_root(root)
-        return e:_xpath(key)
-    end
-    return db:with(query)
-end
-
---ses : a session object
-function sessionGen(ses)
-    return string.format("SessionID=%d, Step=%s, Expire=%s, Domain=%s, Path=%s",
-    ses.name,ses.value,get_date(ses.expires), ses.domain,ses.path)
-end
-
-function sessionParse(cookie)
-    local ses = split(cookie,",%s+")
-    pprint.pprint(ses, "session")
-    local session = {}
-    for _,k in pairs(ses) do
-        local tmp = split(k,"=")
-        pprint.pprint(tmp,"tmp")
-        session[strip(tmp[1])] = strip(tmp[2])
-    end
-    return {name = session["SessionID"],  value = session["Step"], expires = session["Expire"], 
-    path = session["Path"], domain = session["Domain"]}
-end
-
--- session["Expire"] same as os.date()'t return
-function sessionCheck(expire)
-    str = get_date()
-    local t = diff_date(str,expire)
-    return t
-end
-
 context = {}
 
 function context:new(o)
@@ -79,61 +31,169 @@ end
 function context:init(request,response)
     self.request = request
     self.response  = response
+    self.session = session:new():init()
     return self
 end
 
+function context:get_session_id()
+    local request = get_request()
+    local ses = request["Cookie"]
+    pprint.pprint(ses,"Cookie")
+    if ses and self.session:exist(ses.id) and
+       not self.session:is_expired(ses.expires) then
+       return ses.id
+    else
+       return nil
+    end
+end
+function context:set_session(key,value)
+    return self.session:set(key,value)
+end
+
+function context:create_session(id)
+    if id then 
+       self.session:set("id",id)
+    end
+    key = self.session:get("id")
+    value = self.session:to_string()
+    print("value",value)
+    self.session:save(key,value)
+    self.response["Set-Cookie"] = value
+end
+
+function context:remove_session(key)
+    self.session:remove(key)
+end
+--function context:destory_session()
+--    self.session:remove()
+--end
+
 --default
-function context:setSession(value)
-    local ses = session:new():init()
-    ses:setDomain(self.request["Host"])
-    ses:setValue(value)
-    ses:setExpire(10)
-    --pprint.pprint(get_date(ses:getExpire()),"Expire ")
-    local session = sessionGen(ses)
-    pprint.pprint(session,"sessionGen")
-    sessionSave(ses:getName(), session)
-    self.response["Set-Cookie"] = session
-    --pprint.pprint(self.response,"context.response")
+--function context:setSession(value)
+--    local ses = session:new():init()
+--    ses:set("domain",self.request["Host"])
+--    ses:set("value",value)
+--    ses:set("expires",10)
+--    --pprint.pprint(get_date(ses:getExpire()),"Expire ")
+--    local session = sessionGen(ses)
+--    pprint.pprint(session,"sessionGen")
+--    sessionSave(ses:get("name"), session)
+--    self.response["Set-Cookie"] = session
+--    --pprint.pprint(self.response,"context.response")
+--end
+--
+---- default support transaction, the value as step
+--function context:getSession()
+--    local cookie = self.request["Cookie"]
+--    return cookie
+--end
+--
+--function context:session()
+--    local cookie = self:getSession()
+--    print("cookie begin : ",cookie, "\n")
+--    if cookie then
+--        print(cookie,"--cookie--")
+--        local sess = sessionParse(cookie)
+--        pprint.pprint(sess,"sess")
+--        local d = sessionCheck(sess.expires)
+--        if d >= 0 then
+--            self:setSession(1)
+--        else
+--            local s = sessionQuery(sess.name)
+--            pprint.pprint(s,"sessionQuery")
+--            if s then
+--                local tmp = sess.value
+--                pprint.pprint(tmp,"tmp")
+--                self:setSession(tmp + 1)
+--            end
+--        end
+--    else
+--        self:setSession(1)
+--    end
+--end
+
+function context:get_cache_control(key)
+    --if self:revaild_cache_control() then
+    --    return self.cache_control:get(key)
+    --end
+    --return nil
+
+    return self.cache_control:get(key)
 end
 
--- default support transaction, the value as step
-function context:getSession()
-    local cookie = self.request["Cookie"]
-    return cookie
+function context:is_cache_control()
+    local request = get_request()
+    local cache = request["Cache-Control"]
+    if cache.attrib == "no-store" or 
+       request["Pargma"] == "no-cache" then
+       return false
+    else 
+       return true
+    end
+
 end
 
-function context:session()
-    local cookie = self:getSession()
-    print("cookie begin : ",cookie, "\n")
-    if cookie then
-        print(cookie,"--cookie--")
-        local sess = sessionParse(cookie)
-        pprint.pprint(sess,"sess")
-        local d = sessionCheck(sess.expires)
-        if d >= 0 then
-            self:setSession(1)
+function context:vaild_cache_control()
+    local request = get_request()
+    if self:is_cache_control() then
+        local cache = request["Cache-Control"]
+        local date = request["If-Modified-Since"]
+        local uri = request["uri"]
+        local etag = request["If-None-Match"]
+        if self.cache_control:is_expired(date,cache.max_age,etag) or 
+           self.cache_control:exist(uri)  or 
+           cache.attrib == "no-cache" then
+            return false
         else
-            local s = sessionQuery(sess.name)
-            pprint.pprint(s,"sessionQuery")
-            if s then
-                local tmp = sess.value
-                pprint.pprint(tmp,"tmp")
-                self:setSession(tmp + 1)
-            end
+            return true
         end
     else
-        self:setSession(1)
+        return false
     end
 end
 
-function context:cacheControl()
+function context:set_cache_control(key,value)
+    if self:revaild_cache_control() then
+        return self.cache_control:set(key,value)
+    end
+
+    --框架是否需要控制 Etag 的生成方式
+    --if key == "etag" then
+    --    local content = gen_etag(value)
+    --    self.cache_control:set(key,content)
+    --else
+    --    self.cache_control:set(key,value)
+    --end
+
+    --self.cache_control:set(key,value)
+
 end
 
-function context:getRequest()
+function context:remove_cache_control()
+    if self:revaild_cache_control() then
+        return self.cache_control:remove()
+    end
+    
+    --self.cache_control:remove()
+end
+
+function context:create_cache_control()
+    --if self:revaild_cache_control() then
+    --    return self.cache_control:set(key,value)
+    --end
+    self.response["Cache-Control"] = self.cache_control:to_string()
+    self.response["Etag"] = gen_etag(self.cache_control:get("value"))
+    self.response["Last-Modified"] = self.cache_control:get("last-modified")
+    self.response["Content"] = self.cache_control:get("value")
+    self.cache_control:save()
+end
+
+local function gen_etag(value)
+    return value
+end
+
+function context:get_request()
     return self.request
-end
-
-function context:sendResponse()
 end
 
 --TODO parse pPattern replace %. as %s\ 

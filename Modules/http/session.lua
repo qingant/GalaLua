@@ -2,150 +2,152 @@
 --Author liuwenxue
 --Date 2014-07-17
 --
---WorkFlow :
-    --simple:
-        session:new():init()
-        response["Set-Cookie"] = session:tostring()
-    --more
-        you can set, get, and del session with specification
 ]]
 module(...,package.seeall)
+local get_date = require("http.utils").get_date
+local diff_date = require("http.utils").diff_date
+local pprint = require("pprint")
 
+mdb = require("mdb").mdb
 session = {}
+session.Fields = {"id", "value","expires","path","domain"}
 
 function session:new(o)
     local o = o or {}
     setmetatable(o, self)
     self.__index = self
-    --self.__newindex = function(t, k, v)
-    --    error("attempt to add session key is forbid!")
-    --end
     return o
 end
 
 function session:init()
     --in case of c10k duplicate
-    self.name = math.random(os.time()) + math.random(1000000)
+    self.id = math.random(os.time()) + math.random(1000000)
     --step if you want to support transaction
     self.value = 1
     --60*60*24*30  one month
     self.expires = 2592000 
     self.path = "/"
-    self.domain = ""
+    self.domain = "127.0.0.1"
+    --if you want write your store,
+    --self.store must support new,init,remove,save,exist
+    --and raise erro if set, remove key which isn't exist . 
+    --take class lmdb as example
+    self.store = lmdb:new():init()
     return self
 end
-
-function session:getName()
-    return self.name
+function session:get(key)
+    for _,k in pairs(self.Fields) do
+        if key == k then
+            return self[key]
+        end
+    end
+    return nil
 end
 
-function session:getValue()
-    return self.value
+function session:set(key,value)
+    for _,k in pairs(self.Fields) do
+        if k == key then
+            self[key] = value
+            break
+        end
+    end
 end
 
-function session:getExpire()
-    return self.expires
+--设计原则：如果不存在，是抛出异常，还是什么也不做
+function session:remove(key)
+    if self.store:exist(key) then
+        self.store:remove(key)
+    else
+        error("remove key isn't exist")
+    end
 end
-
-function session:getPath()
-    return self.path
-end
-
-function session:getDomain()
-    return self.domain
-end
-
---set value as step if you want to support transaction
-function session:setValue(step)
-    self.value = step
-end
-
---delay seconds
-function session:setExpire(delay)
-    self.expires = delay
-end
-
-function session:setDomain(host)
-    self.domain = host
-end
-
-function session:setPath(path)
-    self.path = path
-end
-
-
-function session:set(ses)
-    self.name = ses.name
-    self.value = ses.value
-    self.expires = ses.expires
-    self.path = ses.path
-    self.domain = ses.domain
-end
-
-function session:del()
-    self.name = nil
-    self.value = nil
-    self.expires = nil
-    self.path = nil
-    self.domain = nil
+    
+function session:destory()
+    self.store:remove()
 end
 
 function session:save(key, value)
-    local db = mdb:new():init(mdb.create_env("/tmp/lmdb"))
-    local root = "Session"
-    function save(db)
-        local e = db:get_root(root)
+    --print("key",key)
+    --print("value",value)
+    --pprint.pprint(self,"self")
+    self.store:save(key,value)
+end
+
+function session:exist(key)
+    return self.store:exist(key)
+end
+
+--ses : a session object
+function session:to_string()
+    return string.format("id=%s, value=%s, expires=%s, domain=%s, path=%s",
+    self.id,self.value,get_date(self.expires), self.domain,self.path)
+end
+
+--function session:parse(cookie)
+--    local ses = split(cookie,",")
+--    local session = {}
+--    for _,k in pairs(ses) do
+--        local tmp = split(k,"=")
+--        session[strip(tmp[1])] = strip(tmp[2])
+--    end
+--    return {name = session["SessionID"],  value = session["Step"], expires = session["Expire"], 
+--    path = session["Path"], domain = session["Domain"]}
+--end
+
+-- session["Expire"] same as os.date()'t return
+function session:is_expired(expires)
+    if not expires then
+        error("function is_expire argument expires is nil")
+    end
+    str = get_date()
+    --print("str",str)
+    --print("expire",expires)
+    local t = diff_date(str,expires)
+    if t >= 0 then
+       print("has expired")
+       return true
+    else
+       print("hasn't expired")
+       return false
+    end
+end
+lmdb = {}
+
+function lmdb:new(o)
+    local o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function lmdb:init()
+    local path = "/tmp/lmdb/session"
+    os.execute(string.format("mkdir -p %s",path))
+    self.store = mdb:new():init(mdb.create_env(path))
+    self.root = "Session"
+    return self
+end
+function lmdb:exist(key)
+    function _exist(db,elem) 
+        e = db:get_root(self.root)
+        return e:exist(elem) 
+    end
+    return self.store:with(_exist,key)
+end
+
+function lmdb:save(key,value)
+    function _save(db, key, value)
+        local e = db:get_root(self.root)
         local id = e:add_node(key)
         id:set_value(value)
         db:commit()
     end
-    db:with(save)
+    self.store:with(_save, key, value)
 end
-
-function session:query(key)
-    local db = mdb:new():init(mdb.create_env("/tmp/lmdb"))
-    local root = "Session"
-    function query(db)
-        local e = db:get_root(root)
-        return e:_xpath(key)
+function lmdb:remove(key)
+    function _remove(db, elem)
+        local e = db:get_root(self.root)
+        e:remove(elem)
     end
-    return db:with(query)
+    self.store:with(_remove, key)
 end
-
---ses : a session object
-function session:gen(ses)
-    return string.format("SessionID=%d, Step=%s, Expire=%s, Domain=%s, Path=%s",
-    ses.name,ses.value,get_date(ses.expires), ses.domain,ses.path)
-end
-
-function session:parse(cookie)
-    local ses = split(cookie,",")
-    local session = {}
-    for _,k in pairs(ses) do
-        local tmp = split(k,"=")
-        session[strip(tmp[1])] = strip(tmp[2])
-    end
-    return {name = session["SessionID"],  value = session["Step"], expires = session["Expire"], 
-    path = session["Path"], domain = session["Domain"]}
-end
-
--- session["Expire"] same as os.date()'t return
-function session:check(expire)
-    str = os.date()
-    local t = diff_date(str,expire)
-    return t
-end
-
---gen Date and If-Modified-Since for request
---function get_date(date)
---    date = os.date("!*t",date)
---    local WEEK = {"Sun.","Mon.", "Tues.", "Wed.", "Thur.","Fri.", "Sta."}
---    local MONTH = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
---    local week = WEEK[date["wday"]]
---    local day = date["day"]
---    local month = MONTH[date["month"]]
---    local year = date["year"]
---    local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
---    date = week.." "..day.." "..month.." "..year.." "..time
---    return date
---end
