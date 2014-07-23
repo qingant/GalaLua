@@ -10,7 +10,7 @@ module(..., package.seeall)
 
 local base = require("core.processor").server
 local http = require("http.http").http
-local response = require("http.http").response
+local response = require("http.response").response
 local context = require("http.context").context
 local pprint = require("pprint")
 local processor = base:new()
@@ -40,11 +40,11 @@ function processor:on_message(mtype, desc, msg)
         local r, err
         while true do
             r, err = pcall(function ()
-                    local request = self._protocol:getRequest()
+                    local request = self._protocol:get_request()
                     -- self._logger:debug(pprint.format(request, "request"))
                     local rsp = self:_request_dispatch(request)
                     --pprint.pprint(rsp,"rsp")
-                    self._protocol:sendResponse(rsp)
+                    self._protocol:send_response(rsp)
                                  end, debug.traceback)
             if not r then
                 break
@@ -111,14 +111,18 @@ function processor:_call_hander(h, request)
         pprint.pprint(params,"--params---")
         if request.method == "GET" then
             local resp = cls:get(context, params)
+            if not resp then
+            end
             --pprint.pprint(resp[1],"resp[1]")
             rsp = resp[1]
-            rsp:setContent(resp[2])
+            rsp:set_content(resp[2])
         elseif request.method == "POST" then
             local resp = cls:post(context, params)
+            if not resp then
+            end
             --pprint.pprint(resp[1],"resp[1]")
             rsp = resp[1]
-            rsp:setContent(resp[2])
+            rsp:set_content(resp[2])
         end
 
         self.hander_cache[h] = rsp

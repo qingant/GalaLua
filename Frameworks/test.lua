@@ -268,7 +268,7 @@ function test_parse_date()
     end
 end
 
-print(_PACKAGE)
+print("PACKAGE: ",_PACKAGE)
 function test_get_date()
     print(get_date())
     print(get_date(100))

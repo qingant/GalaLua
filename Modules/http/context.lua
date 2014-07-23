@@ -62,7 +62,7 @@ end
 
 -- session["Expire"] same as os.date()'t return
 function sessionCheck(expire)
-    str = os.date()
+    str = get_date()
     local t = diff_date(str,expire)
     return t
 end

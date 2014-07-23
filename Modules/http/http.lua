@@ -137,7 +137,12 @@ function http:getRequest(timeout)
             break
         end
         -- header[#header+1] = line
-        local key, value = unpack(string.split(line, ":"))
+        --local key, value = unpack(string.split(line, ":"))
+        --print("line",line)
+        local s,e = string.find(line,"%s*:%s*") 
+        --print(s,e)
+        key = string.sub(line,1,s)
+        value = string.sub(line,e,#line)
         request[key] = value:trim()
     end
     get_query(request)
@@ -163,7 +168,7 @@ function get_query(request)
     query = split(query,"%?")
     query = slice(query,#query)
     query = split(query,"&")
-    pprint.pprint(query,"query")
+    --pprint.pprint(query,"query")
     for i,key in pairs(query) do
         local k,v 
         t = split(key,"=")

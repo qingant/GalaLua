@@ -29,7 +29,7 @@ function session:init()
     --step if you want to support transaction
     self.value = 1
     --60*60*24*30  one month
-    self.expires = os.time() + 2592000 
+    self.expires = 2592000 
     self.path = "/"
     self.domain = ""
     return self
@@ -62,7 +62,7 @@ end
 
 --delay seconds
 function session:setExpire(delay)
-    self.expires = os.time() + delay
+    self.expires = delay
 end
 
 function session:setDomain(host)
@@ -137,15 +137,15 @@ function session:check(expire)
 end
 
 --gen Date and If-Modified-Since for request
-function get_date(date)
-    date = os.date("!*t",date)
-    local WEEK = {"Sun.","Mon.", "Tues.", "Wed.", "Thur.","Fri.", "Sta."}
-    local MONTH = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
-    local week = WEEK[date["wday"]]
-    local day = date["day"]
-    local month = MONTH[date["month"]]
-    local year = date["year"]
-    local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
-    date = week.." "..day.." "..month.." "..year.." "..time
-    return date
-end
+--function get_date(date)
+--    date = os.date("!*t",date)
+--    local WEEK = {"Sun.","Mon.", "Tues.", "Wed.", "Thur.","Fri.", "Sta."}
+--    local MONTH = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}
+--    local week = WEEK[date["wday"]]
+--    local day = date["day"]
+--    local month = MONTH[date["month"]]
+--    local year = date["year"]
+--    local time = date["hour"]..":"..date["min"]..":"..date["sec"].." ".."GMT"
+--    date = week.." "..day.." "..month.." "..year.." "..time
+--    return date
+--end
