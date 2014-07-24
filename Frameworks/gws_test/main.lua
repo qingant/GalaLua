@@ -25,6 +25,7 @@ function index:get(context,...)
     if not ses then
         local ses = context:create_session()
     else
+        --ses:destory()
         ses:set("a","b")
         ses:set("b","c")
     end

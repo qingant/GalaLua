@@ -38,9 +38,9 @@ function session:set(key, value)
     if key == self.mgr or key == self.id then
         error("mgr and id cannot be modify !!!")
     end
-    print("key",key,"value",value)
+    --print("key",key,"value",value)
     self.key = value
-    local content = self:to_string() .. "," .. key .. "=" .. value
+    local content = self.mgr:get(self.id) .. "," .. key .. "=" .. value
     self.mgr:save(self.id,content)
 end
 
@@ -49,15 +49,6 @@ function session:to_string()
     --print("-- date --",date)
     return string.format("id=%s, value=%s, expires=%s, domain=%s, path=%s",
     self.id,self.value,date, self.domain,self.path)
-    --local str = {}
-    --for k,v in pairs(self) do
-    --    if k == "expires" then
-    --        v = get_date(self.expires)
-    --    end
-    --    str[k] = v
-    --    --print("key",key,"value",value)
-    --end
-    --return table.concat(str,",")
 end
 
 function session:destory()
@@ -92,23 +83,9 @@ function session_manager:create()
     return sess
 end
 
---function session_manager:get(key)
---    for _,k in pairs(self.Fields) do
---        if key == k then
---            return self[key]
---        end
---    end
---    return nil
---end
---
---function session_manager:set(key,value)
---    for _,k in pairs(self.Fields) do
---        if k == key then
---            self[key] = value
---            break
---        end
---    end
---end
+function session_manager:get(key)
+    return self.store:get(key)
+end
 
 --设计原则：如果不存在，是抛出异常，还是什么也不做
 function session_manager:remove(key)
@@ -127,6 +104,9 @@ function session_manager:save(key, value)
     --print("key",key)
     --print("value",value)
     --pprint.pprint(self,"self")
+    if self.store:exist(key) then
+        self.store:remove(key)
+    end
     self.store:save(key,value)
 end
 
@@ -189,10 +169,20 @@ function lmdb:save(key,value)
     end
     self.store:with(_save, key, value)
 end
+
 function lmdb:remove(key)
     function _remove(db, elem)
         local e = db:get_root(self.root)
         e:remove(elem)
     end
     self.store:with(_remove, key)
+end
+
+function lmdb:get(key)
+    function _get(db, elem)
+        local e = db:get_root(self.root)
+        local id = e:get_child(elem)
+        return id:get_value()
+    end
+    return table.concat(self.store:with(_get, key))
 end
