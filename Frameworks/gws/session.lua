@@ -18,7 +18,6 @@ function session:new()
     return o
 end
 
---ses : table of key:value pairs
 function session:init(session_manager, id)
     self._id = id
     self._mgr = session_manager
@@ -71,7 +70,7 @@ end
 local mdb = require("mdb").mdb
 session_manager = {}
 
-function session_manager:new(o)
+function session_manager:new()
     local o = o or {}
     setmetatable(o, self)
     self.__index = self
