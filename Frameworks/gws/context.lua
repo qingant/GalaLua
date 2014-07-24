@@ -41,11 +41,15 @@ end
 
 function context:create_session()
     self._session = self._session_mgr:create_session()
-    self.response["Set-Cookie"] = string.format("sessionId=%s", self._session:get_id())
-    return self.session
+    self._response["Set-Cookie"] = string.format("sessionId=%s", self._session:get_id())
+    return self._session
 end
 
 function context:get_request()
     return self._request
+end
+
+function context:get_response()
+    return self._response
 end
 
