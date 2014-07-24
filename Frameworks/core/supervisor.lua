@@ -92,8 +92,7 @@ function server:start_process(params, desc)
     end
     self._logger:info("spawn:", addr, errmsg)
     -- 处理启动失败的情况
-
-    local mtype, desc, msg = glr.recv_by_condition(function (msg) return msg[2].addr.gpid == addr.gpid and msg[1] == glr.EXIT end, 1)
+    local mtype, desc, msg = glr.recv_by_condition(function (msg) return msg[2].addr.gpid == addr.gpid and msg[1] == glr.EXIT end, 300)
     self._logger:debug("mtype:" ..  (mtype or "nil"))
     if mtype == glr.EXIT then
         self._logger:info("Fail to start:%d, %s %s %s", mtype, pformat(desc), pformat(msg),  pformat(params))
