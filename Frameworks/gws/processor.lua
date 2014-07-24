@@ -8,11 +8,14 @@
 
 module(..., package.seeall)
 
+
+
 local base = require("core.processor").server
 local http = require("http.http").http
 local response = require("http.response").response
 local context = require("http.context").context
 local pprint = require("pprint")
+local split = require("http.utils").split
 local processor = base:new()
 
 server = processor
@@ -83,99 +86,146 @@ function processor:_request_dispatch(request)
 end
 
 function processor:_call_hander(h, request)
+    tab = split(h,"%.")
+    e = #tab
+    --module = slice(tab,1,e,".")
+    --cls = slice(tab,e)
+    module = table.concat(tab,".",1,e-1)
+    cls = tab[e]
+
+    module = require(module)
+    cls = module[cls]
+
+    --header
+    local rsp = response:new():init()
+    --pprint.pprint(tab, "table.split")
+    --pprint.pprint(module, "module")
+    --pprint.pprint(cls, "class")
+
+    --body
+    if request.query then
+        params = request.query
+    end
+
+    local context = context:new():init(request,rsp)
+
+    pprint.pprint(params,"--params---")
+    if request.method == "GET" then
+        local resp = cls:get(context, params)
+        if not resp then
+        end
+        --pprint.pprint(resp[1],"resp[1]")
+        rsp = resp[1]
+        rsp:set_content(resp[2])
+    elseif request.method == "POST" then
+        local resp = cls:post(context, params)
+        if not resp then
+        end
+        --pprint.pprint(resp[1],"resp[1]")
+        rsp = resp[1]
+        rsp:set_content(resp[2])
+    end
+
+    self.hander_cache[h] = rsp
+
+    --pprint.pprint(rsp,"rsp")
+    return rsp
+
     --print(h, request)
-    if self.hander_cache[h] then
-        return self.hander_cache[h]
-    else
-        tab = split(h,"%.")
-        e = #tab
-        module = slice(tab,1,e,".")
-        cls = slice(tab,e)
+    --if self.hander_cache[h] then
+    --    return self.hander_cache[h]
+    --else
+    --    tab = split(h,"%.")
+    --    e = #tab
+    --    --module = slice(tab,1,e,".")
+    --    --cls = slice(tab,e)
+    --    module = table.concat(tab,".",1,e-1)
+    --    cls = tab[e]
 
-        module = require(module)
-        cls = module[cls]
+    --    module = require(module)
+    --    cls = module[cls]
 
-        --header
-        local rsp = response:new():init()
-        --pprint.pprint(tab, "table.split")
-        --pprint.pprint(module, "module")
-        --pprint.pprint(cls, "class")
+    --    --header
+    --    local rsp = response:new():init()
+    --    --pprint.pprint(tab, "table.split")
+    --    --pprint.pprint(module, "module")
+    --    --pprint.pprint(cls, "class")
 
-        --body
-        if request.query then
-            params = request.query
-        end
+    --    --body
+    --    if request.query then
+    --        params = request.query
+    --    end
 
-        local context = context:new():init(request,rsp)
+    --    local context = context:new():init(request,rsp)
 
-        pprint.pprint(params,"--params---")
-        if request.method == "GET" then
-            local resp = cls:get(context, params)
-            if not resp then
-            end
-            --pprint.pprint(resp[1],"resp[1]")
-            rsp = resp[1]
-            rsp:set_content(resp[2])
-        elseif request.method == "POST" then
-            local resp = cls:post(context, params)
-            if not resp then
-            end
-            --pprint.pprint(resp[1],"resp[1]")
-            rsp = resp[1]
-            rsp:set_content(resp[2])
-        end
+    --    pprint.pprint(params,"--params---")
+    --    if request.method == "GET" then
+    --        local resp = cls:get(context, params)
+    --        if not resp then
+    --        end
+    --        --pprint.pprint(resp[1],"resp[1]")
+    --        rsp = resp[1]
+    --        rsp:set_content(resp[2])
+    --    elseif request.method == "POST" then
+    --        local resp = cls:post(context, params)
+    --        if not resp then
+    --        end
+    --        --pprint.pprint(resp[1],"resp[1]")
+    --        rsp = resp[1]
+    --        rsp:set_content(resp[2])
+    --    end
 
-        self.hander_cache[h] = rsp
+    --    self.hander_cache[h] = rsp
 
-        --pprint.pprint(rsp,"rsp")
-        return rsp
-    end
+    --    --pprint.pprint(rsp,"rsp")
+    --    return rsp
+    --end
 end
 
-function slice(table,...)
-    s, e, sep = ...
-    if not s then 
-        s = 1
-    end
-    if not e then
-        e = #table + 1
-    end
-
-    if not sep then
-        sep = ""
-    end
-
-    local str = ""
-    for i,k in  ipairs(table) do
-        if i == s then
-            str = str..k
-        elseif i > s and i < e then
-            str = str..sep..k
-        end
-    end
-    return str
-end
+--function slice(table,...)
+--    s, e, sep = ...
+--    if not s then 
+--        s = 1
+--    end
+--    if not e then
+--        e = #table + 1
+--    end
+--
+--    if not sep then
+--        sep = ""
+--    end
+--
+--    local str = ""
+--    for i,k in  ipairs(table) do
+--        if i == s then
+--            str = str..k
+--        elseif i > s and i < e then
+--            str = str..sep..k
+--        end
+--    end
+--    return str
+--end
 
 
 --TODO parse pPattern replace %. as %s\ 
-function split(pString, pPattern)
-   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
-   local fpat = "(.-)" .. pPattern
-   local last_end = 1
-   --local s, e, cap = pString:find(fpat, 1)
-   local s, e, cap = string.find(pString, fpat, 1)
-
-   while s do
-      if s ~= 1 or cap ~= "" then
-        table.insert(Table,cap)
-      end
-      last_end = e+1
-      s, e, cap = string.find(pString, fpat, last_end)
-   end
-   if last_end <= #pString then
-      cap = string.sub(pString, last_end)
-      table.insert(Table, cap)
-   end
-   return Table
-end
+--function split(pString, pPattern)
+--   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
+--   local fpat = "(.-)" .. pPattern
+--   local last_end = 1
+--   --local s, e, cap = pString:find(fpat, 1)
+--   local s, e, cap = string.find(pString, fpat, 1)
+--
+--   while s do
+--      if s ~= 1 or cap ~= "" then
+--        table.insert(Table,cap)
+--      end
+--      last_end = e+1
+--      s, e, cap = string.find(pString, fpat, last_end)
+--   end
+--   if last_end <= #pString then
+--      cap = string.sub(pString, last_end)
+--      table.insert(Table, cap)
+--   end
+--   return Table
+--end
 
