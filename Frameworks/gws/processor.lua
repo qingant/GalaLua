@@ -95,9 +95,9 @@ function processor:_call_hander(h, request)
 
     local response
     if request.method == "GET" then
-        response = cls:get(context, params)
+        response = handle:get(context, params)
     elseif request.method == "POST" then
-        response = cls:post(context, params)
+        response = handle:post(context, params)
     end
 
     if response then
