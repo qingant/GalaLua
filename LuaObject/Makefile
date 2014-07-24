@@ -22,6 +22,7 @@ global.so:LuaGlobal.o
 
 cp:
 	cp -rf *.so $(HOME)/lib/lua
+	cp -rf *.lua $(HOME)/lib/lua
 hexdump.so:LuaDump.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@

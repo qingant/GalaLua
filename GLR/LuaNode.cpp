@@ -440,12 +440,12 @@ void Process::Resume()
     //lua_newthread()
     else
     {
-        GALA_DEBUG("Resume Return (%d)\n", rt);
+        GALA_ERROR("Resume Return (%d)\n", rt);
         StackDump();
 
         luaL_traceback(_Stack,_Stack,NULL,1);
         const char *msg = luaL_checkstring(_Stack, -1);
-        GALA_DEBUG(msg);
+        GALA_ERROR(msg);
         _Status._State = ProcessStatus::STOPED;
         THROW_EXCEPTION_EX(msg);
 
@@ -1148,7 +1148,7 @@ int GLR::Process::SpawnEx( lua_State *l )
         const char *method = NULL;
         method = lua_tolstring(l, 3, &len);
 
-        if (module == NULL)
+        if (method == NULL)
         {
             THROW_EXCEPTION_EX("Extract Para Error");
         }

@@ -46,11 +46,11 @@ namespace Galaxy
                 :_Val(val), _Data(data){
                     
             }
-            TIMEREVENT(time_t sec)
+            TIMEREVENT(time_t sec, int usec = 0)
                 :_Val(),_Data("")
             {
                 _Val.tv_sec =  sec;
-                _Val.tv_usec = 0;
+                _Val.tv_usec = usec;
             }
             bool IsTimeOut(const TPType &t){
                 return ((*this)==t) || !((*this) < t);

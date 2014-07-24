@@ -17,7 +17,7 @@ void Clock::Request( lua_State *l, int tick )
     else if (type == Clock::DO_TIMEOUT)
     {
         int timeval = luaL_checkinteger(l, 3);
-        Galaxy::GalaxyRT::TIMEREVENT ev(timeval);
+        Galaxy::GalaxyRT::TIMEREVENT ev(0, timeval*1000);
         ClockEvent cev = {pid, -1};
         ev._Data = std::string((const char*)&cev, sizeof(cev));
         _Timer.SetTimer(ev);
@@ -30,7 +30,7 @@ void Clock::Request( lua_State *l, int tick )
         //int tick = luaL_checkinteger(l, 4);
 
         printf("timeout %d!\n", timeval);
-        Galaxy::GalaxyRT::TIMEREVENT ev(timeval);
+        Galaxy::GalaxyRT::TIMEREVENT ev(0, timeval*1000);
         ClockEvent cev = {pid, tick};
         ev._Data = std::string((const char*)&cev, sizeof(cev));
         _Timer.SetTimer(ev);
@@ -54,6 +54,7 @@ GLR::Clock::~Clock()
 void GLR::Clock::OnTimeOut( const Galaxy::GalaxyRT::TIMEREVENT &ev )
 {
     ClockEvent *pEv = (ClockEvent*)ev._Data.c_str();
+    GALA_ERROR("Pid: %ld Usec: %ld", pEv->pid, ev._Val.tv_usec);
     //Process &n = Runtime::GetInstance().GetProcess(pEv->pid);
     if (pEv->tick == -1)
     {
@@ -61,6 +62,7 @@ void GLR::Clock::OnTimeOut( const Galaxy::GalaxyRT::TIMEREVENT &ev )
     }
     else
     {
+        GALA_ERROR("timersignal");
         Runtime::GetInstance().GetBus().TimerSignal(pEv->pid, pEv->tick);
     }
 }
