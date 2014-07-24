@@ -1,10 +1,10 @@
 module(...,package.seeall)
 local socket = require("glr.socket")
 local strUtils = require("str_utils")
-local request = require("http.request").request
-local split = require("http.utils").split
-local strip = require("http.utils").strip
-local get_date = require("http.utils").get_date
+local request = require(_PACKAGE .. "request").request
+local split = require(_PACKAGE .. "utils").split
+local strip = require(_PACKAGE .. "utils").strip
+local get_date = require(_PACKAGE .. "utils").get_date
 
 
 http = {}
@@ -22,9 +22,9 @@ function http:init(fd)
 end
 
 function http:get_request(timeout)
-    local timeout = timeout or 30
+    local timeout = timeout or 3000 -- ms
     local request = request:new():init()
-    local initLine = assert(self._socket:recvLine(30)):trim()
+    local initLine = assert(self._socket:recvLine(timeout)):trim()
     local method, path, version = unpack(string.split(initLine, " "))
     request.method = method:trim()
     request.uri = path:trim()
@@ -58,14 +58,10 @@ end
 function http:send_response(response)
     local header = response:to_string()
     local body = response.content
-    --print("header:\n ",header)
-    --print("content :\n ",content)
-    --print("chunked :\t ",o.chunked)
     self._socket:send(header)
     if response.chunked then
         response:encode_chunk(body)
         for i,v in pairs(response.chunk) do
-            print("chunk",v)
             self._socket:send(v)
         end
     else
