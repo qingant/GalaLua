@@ -44,11 +44,10 @@ end
 function server:new(name)
     self:init(name)
     self._processes = process_table:new()
-    self._log = print
     self._id = 0
     self._processes_indexed_by_id = {}
     self._logger = logger:new():init(self)
-    return self
+   return self
 end
 function server:on_init()
 end
