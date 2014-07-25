@@ -5,8 +5,8 @@
 ]]
 module(...,package.seeall)
 
-local get_date = require("http.utils").get_date
-local diff_date = require("http.utils").diff_date
+local get_date = require(_PACKAGE .. "utils").get_date
+local diff_date = require(_PACKAGE .. "utils").diff_date
 local pprint = require("pprint")
 
 session = {}

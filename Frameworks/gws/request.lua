@@ -1,7 +1,7 @@
 module(...,package.seeall)
 
-local split = require("http.utils").split
-local strip = require("http.utils").strip
+local split = require(_PACKAGE .. "utils").split
+local strip = require(_PACKAGE .. "utils").strip
 request = {}
 
 function request:new(o)
