@@ -71,32 +71,10 @@ function _logger:_log(level, format, ...)
             time_format = string.format("[%s] ",os.date("%m/%d %H:%M:%S",glr.time.now()))
             log_str= ("[%(level)s] [%(short_src)s:%(currentline)s] [G:%(gpid)s]:%(msg)s" % info)
         end
-        self._log_client:call("log", {log_path=self._log_path,level=info.level,msg=time_format.."\n"..log_str})
-    end
-end
-
-function _logger:_loglocal(level, format, ...)
-    if self._log_level <= level then
-        local str
-        if #{...} == 0 then
-            str = format
-        else
-            str = string.format(format, ...)
-        end
-        local info = debug.getinfo(3)
-        info.level = _logger_Flag[level]
-        info.msg = str
-        --info.gpid = self._handler.gpid  --deleted by yangbo for test;self._handler is nil now
-        local time_format
-        local log_str
-        if self.flag ~= 0 then
-            time_format = string.format("[%s.%s] ",os.date("%m/%d %H:%M:%S",glr.time.now()),osdatetime.gettimeofday().msec)
-            log_str= ("[%(level)s] [%(short_src)s:%(currentline)s] [G:%(gpid)s]:%(msg)s" % info)
-        else
-            time_format = string.format("[%s] ",os.date("%m/%d %H:%M:%S",glr.time.now()))
-            log_str= ("[%(level)s] [%(short_src)s:%(currentline)s] [G:%(gpid)s]:%(msg)s" % info)
-        end
         self:_write_buf(self._log_path,time_format.."\n"..log_str)
+        if level >= self.enum_WARN then   --used for warn
+            self._log_client:call("log", {log_path=self._log_path,level=info.level,msg=time_format.."\n"..log_str})
+        end
     end
 end
 
@@ -190,26 +168,23 @@ function _logger:flush()
 end
 
 function _logger:debug(format, ...)
-    self:_loglocal(self.enum_DEBUG, format, ...)
+    self:_log(self.enum_DEBUG, format, ...)
 end
 
 function _logger:error(format, ...)
-    self:_loglocal(self.enum_INFO, format, ...)
-    self:_log(self.enum_FATAL, format, ...)
+    self:_log(self.enum_ERROR, format, ...)
 end
 function _logger:info(format, ...)
-    self:_loglocal(self.enum_INFO, format, ...)
+    self:_log(self.enum_INFO, format, ...)
 end
 function _logger:trace(format, ...)
-    self:_loglocal(self.enum_TRACE, format, ...)
+    self:_log(self.enum_TRACE, format, ...)
 end
 
 function _logger:warn(format, ...)
-    self:_loglocal(self.enum_INFO, format, ...)
-    self:_log(self.enum_FATAL, format, ...)
+    self:_log(self.enum_WARN, format, ...)
 end
 function _logger:fatal(format, ...)
-    self:_loglocal(self.enum_INFO, format, ...)
     self:_log(self.enum_FATAL, format, ...)
 end
 function _logger:close()
