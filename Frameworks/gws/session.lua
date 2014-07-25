@@ -76,8 +76,9 @@ function session_manager:new()
     self.__index = self
     return o
 end
-
+local os = require("os")
 function session_manager:init(path)
+    os.execute("mkdir -p " .. path)
     self._database =  mdb:new():init(mdb.create_env(path))
     self._serial = 0
     return self
