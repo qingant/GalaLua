@@ -28,6 +28,9 @@ end
 function app:set_urls(urls)
     self.components[1].params.urls = urls
 end
+function app:set_session_storage_path(path)
+    self.components[1].params.session_storage_path = path
+end
 
 app:add_component{
     catagory = "pool",
