@@ -32,6 +32,9 @@ function response:set_content(content)
         self.chunked = true
     end
 end
+function response:set_content_type(content_type)
+    self["Content-Type"] = content_type
+end
 function response:set_cookie(k,v)
     self["Set-Cookie"] = self["Set-Cookie"] or {}
     self["Set-Cookie"][k] = tostring(v)
