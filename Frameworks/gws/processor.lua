@@ -24,8 +24,8 @@ server = processor
 function processor:new(app_name, pool_name, idx, params)
     base.init(self, app_name, pool_name, idx)
     self.urls = params.urls
-    self._session_path = params.session_path
-    self._session_mgr = session_manager:new():init(self._session_path)
+    self._session_storage_path = params.session_storage_path
+    self._session_mgr = session_manager:new():init(self._session_storage_path)
     return self
 end
 function processor:on_init(...)
