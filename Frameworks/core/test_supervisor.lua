@@ -6,7 +6,7 @@
     Test case for core.supervisor
 ]]
 module(..., package.seeall)
-local rpc = require("core.rpc")
+local rpc = require(_PACKAGE .. "rpc")
 local pprint = require("pprint").pprint
 function main()
     local supervisor_client = rpc.create_server{mod_name = "core.supervisor", parameters = {"test/supervisor"}}

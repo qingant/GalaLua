@@ -31,13 +31,11 @@ local function get_proxy(t)
     return proxy[t]
 end
 function process_table:__index(k)
-    print("INDEX", k)
     if type(k) == "table" then
         return proxy[self][k.gpid]
     end
 end
 function process_table:__newindex(k,v)
-    print("NEWINDEX",pformat(k), pformat(v))
     if type(k) == "table" then
         proxy[self][k.gpid] = v
     end
@@ -46,8 +44,9 @@ end
 function server:new(name)
     self:init(name)
     self._processes = process_table:new()
-    self._logger = logger:new():init(self)
-    -- self._log = function (...) return logger:_log(...) end                          -->added by yangbo for logging test      
+    local supervisor_path = "../../log/1.log"
+    self._logger = logger:new():init(self,supervisor_path)
+    --self._log = function (...) return logger:_log(...) end                          -->added by yangbo for logging test
     return self
 end
 function server:on_init()
@@ -127,6 +126,12 @@ function server:stop_process(params, desc)
     elseif desc.addr == params then
         return self.ok
     end
+end
+function server:stop_all(params, desc)
+    for i = #self._processes_indexed_by_id, 1, -1 do
+        self:stop_process(self._processes_indexed_by_id[i])
+    end
+    return self.ok
 end
 function server:restart_process(params, desc)
     local info = self._processes[params.process]
