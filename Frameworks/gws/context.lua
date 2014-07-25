@@ -29,7 +29,7 @@ function context:init(request, mgr)
     self._response  = response:new():init()
     self._session_mgr = mgr
     local cookie = request["Cookie"]
-    if cookie["sessionId"] and self._session_mgr:exist(cookie["sessionId"]) then
+    if cookie and cookie["sessionId"] and self._session_mgr:exist(cookie["sessionId"]) then
         self._session = self._session_mgr:get_session_ref(id)
     end
     return self
