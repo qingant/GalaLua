@@ -1,7 +1,7 @@
 #include<iostream>
+#include<stdio.h>
 #include<fcntl.h>
 #include<lua.hpp>
-#include<string.h>
 
 extern "C"
 int luaopen_c_flag(lua_State *l)
@@ -90,5 +90,15 @@ int luaopen_c_flag(lua_State *l)
     lua_pushinteger(l,S_IEXEC);
     lua_setfield(l,-2,"S_IEXEC");
 	*/
+
+    lua_pushinteger(l,SEEK_SET);
+    lua_setfield(l,-2,"SEEK_SET");
+
+    lua_pushinteger(l,SEEK_CUR);
+    lua_setfield(l,-2,"SEEK_CUR");
+
+    lua_pushinteger(l,SEEK_END);
+    lua_setfield(l,-2,"SEEK_END");
+
     return 1;
 }

@@ -26,6 +26,8 @@ function main()
     glr.kill(rt.result.process.gpid)
     print("Kill")
     pprint(glr.status.processes(), "p")
+    glr.time.sleep(3)
+    glr.exit()
 end
 
 if ... == "__main__" then
