@@ -23,7 +23,6 @@ function session:init(session_manager, id)
     self._mgr = session_manager
     self._storage = self._mgr:get_session_storage(id)
     self._expires = 2592000
-    self._expired = nil
     self._path = "/"
     self._domain = "127.0.0.1"
     return self
@@ -35,15 +34,28 @@ end
 
 function session:get(key)
     return self._mgr:get_database():withReadOnly(function (db)
+            --self._storage:show()
             local v = self._storage:get_child(key)
             if v == nil then
                 return nil
             elseif v:is_leaf() then
-                return v:get_value()
+                return v:to_table()
             else
                 return v:to_table()
             end
-                                                end)
+        end)
+end
+
+function session:is_expired(origin_expire)
+    local now = get_date()
+    local t = diff_date(now, origin_expire)
+    if t >= 0 then
+        --print("has expired")
+        return true
+    else
+        --print("hasn't expired")
+        return false
+    end
 end
 
 function session:set(key, value)
@@ -93,7 +105,9 @@ function session_manager:get_database()
     return self._database
 end
 function session_manager:get_session_storage(id)
-    return self._database:get_root("session"):get_child(id)
+    return self._database:withReadOnly(function (db)
+            return self._database:get_root("session"):get_child(id)
+    end)
 end
 function session_manager:remove_session(id)
     self._database:with(function ()
@@ -103,14 +117,19 @@ function session_manager:remove_session(id)
 end
 function session_manager:exist(id)
     return self._database:withReadOnly(function (db)
+            --self._database:get_root("session"):show()
             return self._database:get_root("session"):get_child(id) ~= nil
-    end)
+    end) 
 end
 function session_manager:create_session()
     local id = self:generate_session_id()
+    local session = session:new():init(self,id)
     self._database:with(function (db)
-            self._database:get_root("session"):add_node(id)
-            db:commit()
+            local session_node = self._database:get_root("session"):add_node(session._id)
+            session_node:add_node("Expires"):add_value(get_date(session._expires))
+            session_node:add_node("Path"):add_value(session._path)
+            session_node:add_node("Domain"):add_value(session._domain)
+            self._database:commit()
     end)
     local session = session:new():init(self,id)
     return session

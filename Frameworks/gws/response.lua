@@ -35,9 +35,10 @@ end
 function response:set_content_type(content_type)
     self["Content-Type"] = content_type
 end
-function response:set_cookie(k,v)
-    self["Set-Cookie"] = self["Set-Cookie"] or {}
-    self["Set-Cookie"][k] = tostring(v)
+function response:set_cookie(v)
+    self["Set-Cookie"] = v
+    --self["Set-Cookie"] = self["Set-Cookie"] or {}
+    --self["Set-Cookie"][k] = tostring(v)
 end
 
 function response:set_chunk()
