@@ -25,6 +25,7 @@ function processor:new(app_name, pool_name, idx, params)
     base.init(self, app_name, pool_name, idx)
     self.urls = params.urls
     self._session_storage_path = params.session_storage_path
+    self._static_page_path  = params.static_page_path
     self._session_mgr = session_manager:new():init(self._session_storage_path)
     return self
 end
@@ -50,7 +51,6 @@ function processor:on_message(mtype, desc, msg)
                     local request = self._protocol:get_request()
                     -- self._logger:debug(pprint.format(request, "request"))
                     local rsp = self:_request_dispatch(request)
-                    --pprint.pprint(rsp,"rsp")
                     self._protocol:send_response(rsp)
                                  end, debug.traceback)
             if not r then
@@ -66,12 +66,17 @@ end
 
 processor.response_404 = response:new():init():set_status_code(404) -- TODO: set status code and error msg
 function processor:_request_dispatch(request)
-    if self.urls then
-        for uri,func in pairs(self.urls) do
-            local m = string.match(request.uri, uri)
-            if m ~= nil then
-                local response = self:_call_hander(func, request)
-                return response
+    local static_response = self:_static_page_handle(request.uri) 
+    if static_response then
+        return static_response 
+    else
+        if self.urls then
+            for uri,func in pairs(self.urls) do
+                local m = string.match(request.uri, uri)
+                if m ~= nil then
+                    local response = self:_call_hander(func, request)
+                    return response
+                end
             end
         end
     end
@@ -106,3 +111,46 @@ function processor:_call_hander(h, request)
     return context:get_response()
 end
 
+function processor:_static_page_handle(uri)
+    local CONTENT_TYPE = {["jpg"] = "image/jpg",
+                          ["js"] =  "application/x-javascript", 
+                          ["png"] = "image/png",
+                          ["html"] = "text/html",
+                          ["css"] = "text/css"}
+
+    local match =  _match_static_page(uri)
+    if match then
+       local static_page_path = self._static_page_path .. match 
+       print("image path : ", static_page_path)
+       local fd = io.open(static_page_path,"rb") 
+       if fd then
+           local response = response:new():init()
+           response:set_content(fd:read("*a"))
+           response:set_content_type(CONTENT_TYPE[string.lower(string.match(uri,"%.(%w+)$"))])
+           return response
+       else 
+           return self.response_404
+       end
+    end
+    return nil
+end
+
+function _match_static_page(str)
+    local prefix = "/[%w-._/]+%."
+    local suffix = "%w+"
+    local pattern = string.format("(%s)(%s)$",prefix,suffix)
+    local static_suffix = {"jpg","html","css","png","js"}
+
+    local path_prefix, path_suffix = string.match(str,pattern)
+    print("path: ",path_prefix, "suffix :",path_suffix)
+
+    for _,k in pairs(static_suffix) do
+        local pattern1 = string.format("(%s%s)",prefix,k)
+        local path =  path_prefix .. string.lower(path_suffix)
+        local match = string.match(path, pattern1) 
+        if match then 
+            return str
+        end
+    end
+    return nil
+end

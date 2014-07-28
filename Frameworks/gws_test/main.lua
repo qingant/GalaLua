@@ -20,7 +20,7 @@ end
 
 function index:get(context,...)
     local sess =  context:get_session() 
-    pprint.pprint(sess,"get_session")
+    --pprint.pprint(sess,"get_session")
     if not sess then
         sess = context:create_session()
     end

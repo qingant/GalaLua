@@ -22,13 +22,14 @@ function response:init()
 end
 function response:set_status_code(code)
     self.statusCode = tostring(code)
+    self.status = "Not Found"
     return self
 end
 function response:set_content(content)
     self.content = content
     local len = #content
     self["Content-Length"] = tostring(len)
-    if len > 500 then
+    if len > 50000 then
         self.chunked = true
     end
 end
@@ -91,7 +92,7 @@ end
 --A server MUST NOT send transfer-codings to an HTTP/1.0 client.
 --A server which receives an entity-body with a transfer-coding it does not understand SHOULD return 501 (Unimplemented)
 function response:encode_chunk(content)
-    local len = 500
+    local len = 5000
     local s = 1
     local chunk = ""
     repeat
