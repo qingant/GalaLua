@@ -50,6 +50,7 @@ function processor:on_message(mtype, desc, msg)
             r, err = pcall(function ()
                     local request = self._protocol:get_request()
                     -- self._logger:debug(pprint.format(request, "request"))
+                    pprint.pprint(request,"---request----")
                     local rsp = self:_request_dispatch(request)
                     self._protocol:send_response(rsp)
                                  end, debug.traceback)
@@ -142,6 +143,9 @@ function _match_static_page(str)
     local static_suffix = {"jpg","html","css","png","js"}
 
     local path_prefix, path_suffix = string.match(str,pattern)
+    if not path_prefix or not path_suffix then
+        return nil
+    end
     print("path: ",path_prefix, "suffix :",path_suffix)
 
     for _,k in pairs(static_suffix) do

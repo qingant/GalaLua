@@ -19,9 +19,10 @@ function request:parse_path()
     if not self.uri then
         error("request uri is nil")
     end
-    local query = split(self.uri,"#")[1]
-    query = split(query,"%?")[1]
-    self.path = query
+    --local query = split(self.uri,"#")[1]
+    --query = split(query,"%?")[1]
+    local path, query = string.match(self.uri, "(/.*)%?(.*)#?")
+    self.path = path 
 end
 
 function request:parse_accept_encoding()
@@ -58,16 +59,16 @@ function request:parse_query()
         error("request uri is nil")
     end
     self.query = {}
-    local query = split(self.uri,"#")
-    query = table.concat(query,"",1,#query)
-    query = split(query,"%?")
-    query = table.concat(query,"",#query)
-    query = split(query,"&")
-    --pprint.pprint(query,"query")
-    for i,key in pairs(query) do
-        local k,v 
-        t = split(key,"=")
-        self.query[t[1]] = t[2]
+    --print(self.uri,"self.uri")
+    local path, query = string.match(self.uri, "(/.*)%?(.*)#?")
+    --print(query,"query",path,"path")
+    if query then
+        query = split(query,"&")
+        for i,key in pairs(query) do
+            local k,v 
+            t = split(key,"=")
+            self.query[t[1]] = t[2]
+        end
     end
     --pprint.pprint(self.query,"--query--")
 end
