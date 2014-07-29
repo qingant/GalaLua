@@ -11,8 +11,8 @@ module(..., package.seeall)
 
 
 local base = require("core.processor").server
-local http = require(_PACKAGE .. "http").http
-local response = require(_PACKAGE .. "response").response
+local http = require("http.http").http
+local response = require("http.response").response
 local context = require(_PACKAGE .. "context").context
 local session_manager = require(_PACKAGE .. "session").session_manager
 local pprint = require("pprint")
@@ -123,7 +123,8 @@ function processor:_static_page_handle(uri)
     if match then
        local static_page_path = self._static_page_path .. match 
        print("image path : ", static_page_path)
-       local fd = io.open(static_page_path,"rb") 
+       local fd,err,errno = io.open(static_page_path,"rb") 
+       print("------fd-----------",fd)
        if fd then
            local response = response:new():init()
            response:set_content(fd:read("*a"))

@@ -20,17 +20,29 @@ function response:init()
     self.header = "" --toString
     return self
 end
+function response:set_status_code(code)
+    self.statusCode = tostring(code)
+    self.status = "Not Found"
+    if self.statusCode == "404" then
+        self.content = "Not Found"
+    end
+    return self
+end
 function response:set_content(content)
     self.content = content
     local len = #content
     self["Content-Length"] = tostring(len)
-    if len > 500 then
+    if len > 50000 then
         self.chunked = true
     end
 end
-function response:set_cookie(k,v)
-    self["Set-Cookie"] = self["Set-Cookie"] or {}
-    self["Set-Cookie"][k] = tostring(v)
+function response:set_content_type(content_type)
+    self["Content-Type"] = content_type
+end
+function response:set_cookie(v)
+    self["Set-Cookie"] = v
+    --self["Set-Cookie"] = self["Set-Cookie"] or {}
+    --self["Set-Cookie"][k] = tostring(v)
 end
 
 function response:set_chunk()
@@ -83,7 +95,7 @@ end
 --A server MUST NOT send transfer-codings to an HTTP/1.0 client.
 --A server which receives an entity-body with a transfer-coding it does not understand SHOULD return 501 (Unimplemented)
 function response:encode_chunk(content)
-    local len = 500
+    local len = 5000
     local s = 1
     local chunk = ""
     repeat
