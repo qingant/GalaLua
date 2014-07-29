@@ -52,9 +52,13 @@ function _logger:init(process,log_path)
 end
 
 function _logger:__gc()
-    local rt = io.close(self._fd)
-    if 0~= rt then
-        print("destructed!")
+    if -1 ~= self._fd then
+        local rt = io.close(self._fd)
+        if 0 ~= rt then
+            print("destruct logger io failed!")
+        else
+            print("destructed!")
+        end
     end
 end
 
@@ -174,7 +178,7 @@ function _logger:_log(level, format, ...)
             log_str= ("[%(level)s] [%(short_src)s:%(currentline)s] [G:%(gpid)s]:%(msg)s" % info)
         end
         self:_log_local(self._log_path,time_format.."\n"..log_str)
-        if level >= self.enum_DEBUG then   --used for warn
+        if level >= self.enum_WARN then   --used for warn
             --self._log_client:call("log", {level=info.level,msg=time_format.."\n"..log_str})
         end
     end

@@ -27,9 +27,11 @@ function server:new(name)
 end
 
 function server:__gc()
-    local rt = io.close(self._fd)
-    if 0~= rt then
-        print("destructed!")
+    if -1 ~= self._fd then
+        local rt = io.close(self._fd)
+        if 0~= rt then
+            print("destructed!")
+        end
     end
 end
 
