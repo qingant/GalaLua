@@ -31,8 +31,8 @@ end
 function app:set_session_storage_path(path)
     self.components[1].params.session_storage_path = path
 end
-function app:set_static_page_path(path)
-    self.components[1].params.static_page_path = path
+function app:set_static_path(path)
+    self.components[1].params.static_path = path
 end
 
 app:add_component{
