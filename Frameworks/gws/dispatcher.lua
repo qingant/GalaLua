@@ -16,6 +16,9 @@ server = dispatcher
 
 function dispatcher:new(app_name, pool_name, params)
     base.init(self, app_name, pool_name)
+    local log_file_path = string.format("%s%s.%s.log",params.log_path, app_name, pool_name)
+    print("LOG:", log_file_path)
+    self._logger:set_path(log_file_path)
     self._port = params.port or 80
     self._host = params.host or "0.0.0.0"
     self._worker = rpc.create_client("no client")
