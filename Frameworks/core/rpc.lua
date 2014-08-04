@@ -51,6 +51,11 @@ function server:_send(desc, result)
                                              result=result}),
                     {corrid=desc.attr.msgid})
 end
+function server:on_timeout()
+    if self._logger then
+        self._logger:flush()
+    end
+end
 function server:_main_loop( ... )
     local packer = self._packer
     local unpacker = self._unpacker
@@ -58,7 +63,6 @@ function server:_main_loop( ... )
 	while true do
         ::beg::
 		local mtype,desc,msg = glr.recv(self._timeout)
-        print("LOOP:", mtype, pprint.format(desc, "desc"), msg)
         self._tick = self._tick + 1
         if mtype == nil then
             if self.on_timeout then
@@ -169,10 +173,7 @@ function server:_main(...)
 end
 
 function _server(mod_name, cls_name, args)
-    print("S", mod_name, cls_name)
     local mod = require(mod_name)
-    print("M", mod)
-    print("C", mod[cls_name])
     local o = mod[cls_name]:new(unpack(args))
     o:_main()
 end
@@ -187,11 +188,10 @@ end
 ]]
 local default_server_cls_name = "server"
 function create_server(params)
-    local rt, errmsg
+    local rt, err_msg
     params.parameters = params.parameters or {}
     if params.bind_gpid then
-        print(params.bind_gpid, _NAME, params.mod_name, params.cls_name, params.parameters)
-        rt, errmsg = glr.spawn_ex(params.bind_gpid,
+        rt, err_msg = glr.spawn_ex(params.bind_gpid,
                                         _NAME,
                                         "_server",
                                         params.mod_name,
@@ -199,14 +199,15 @@ function create_server(params)
                                         params.parameters)
     else
         print("glr.spawn")
-        rt, errmsg = glr.spawn(_NAME,
+        rt, err_msg = glr.spawn(_NAME,
                                "_server",
                                params.mod_name,
                                params.cls_name or default_server_cls_name,
                                params.parameters)
-        print("errmsg",errmsg)
+
+        print("errmsg",err_msg)
     end
-    assert(rt, errmsg)
+    assert(rt, err_msg)
     local cli = client:new():init(params.server_name or rt)
     return cli
 end

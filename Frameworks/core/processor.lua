@@ -48,5 +48,4 @@ function processor:add_task(params, desc)
 end
 function processor:_back_to_pool()
     self._pool:request("put", self._id)
-    self._logger:debug("back to pool")
 end

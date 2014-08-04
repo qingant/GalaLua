@@ -7,10 +7,11 @@ else
 	MAKE = gmake
 endif
 
-DES = pre header $(WHICH_LUA) stub rt amq cfg lobj lib glr mod db conf tool 
+DES = pre header $(WHICH_LUA) stub rt amq cfg lobj lib glr mod db conf tool frameworks
 
 all:$(DES)
-
+frameworks:
+	$(MAKE) -C Frameworks
 pre:
 	mkdir -p $(HOME)/bin
 	mkdir -p $(HOME)/lib/lua

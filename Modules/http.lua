@@ -50,16 +50,16 @@ function http:init(fd)
 end
 
 function http:getRequest(timeout)
-    local timeout = timeout or 30
+    local timeout = timeout or 30000
     local request = {}
-    local initLine = assert(self._socket:recvLine(30)):trim()
+    local initLine = assert(self._socket:recvLine(timeout)):trim()
     local method, path, version = unpack(string.split(initLine, " "))
     request.method = method:trim()
     request.uri = path:trim()
     request.version = version:trim()
     local header = {}
     while true do
-        local line = assert(self._socket:recvLine(30)):trim()
+        local line = assert(self._socket:recvLine(timeout)):trim()
         if line == "" then
             break
         end

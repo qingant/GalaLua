@@ -1,5 +1,5 @@
 
-all:_dir.so xml.so osext.so hexdump.so platform.so global.so cmsgpack.so cp
+all:_dir.so xml.so osext.so hexdump.so platform.so global.so cmsgpack.so c_flag.so cp
 
 include ../mk.rules
 amq:amq.so
@@ -19,9 +19,14 @@ osext.so:LuaOS.o
 
 global.so:LuaGlobal.o
 	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) -o $@
+	
+c_flag.so:c_flag.o
+	@echo $(PLATFORM)
+	$(G++) $?   $(LNKFLAG)  $(SYTMLIB) -o $@
 
 cp:
 	cp -rf *.so $(HOME)/lib/lua
+	cp -rf *.lua $(HOME)/lib/lua
 hexdump.so:LuaDump.o
 	@echo $(PLATFORM)
 	$(G++) $? $(LNKFLAG)  $(SYTMLIB) $(STUBLIB) -o $@

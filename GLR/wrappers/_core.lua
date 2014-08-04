@@ -59,7 +59,9 @@ function send(addr, msg, attr)
 	elseif type(addr) == "number" then
         return _glr.send(addr, msg, attr)
     elseif type(addr) == "string" then
-        return _glr.send(_glr.npt.registered(addr)[addr], msg, attr)
+        local r_addr = _glr.npt.registered(addr)[addr]
+        assert(r_addr, addr .. " Not found")
+        return _glr.send(r_addr, msg, attr)
 	end
 end
 
@@ -111,10 +113,10 @@ end
 local cacheBox = mailBox:new()
 local function glr_recv(...)
     local t,d,m = _glr.recv(...)
+    print("glr_recv", t, d and d.addr.gpid)
     return t,d,m
 end
 function recv(...)
-    print(__name__, "RECV", cacheBox:available())
     if cacheBox:available() then
         local result = cacheBox:pop()
         return unpack(result)

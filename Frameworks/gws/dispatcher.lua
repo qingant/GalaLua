@@ -16,6 +16,9 @@ server = dispatcher
 
 function dispatcher:new(app_name, pool_name, params)
     base.init(self, app_name, pool_name)
+    local log_file_path = string.format("%s%s.%s.log",params.log_path, app_name, pool_name)
+    print("LOG:", log_file_path)
+    self._logger:set_path(log_file_path)
     self._port = params.port or 80
     self._host = params.host or "0.0.0.0"
     self._worker = rpc.create_client("no client")
@@ -33,7 +36,8 @@ end
 function dispatcher:on_message(mtype, desc, msg)
     if mtype == glr.IOCP then
         local fd = self._unpacker(msg)
-        local worker = self._pool:call("get").result
+        self._logger:debug("get connection: %d", fd)
+        local worker = self._pool:call("get_process").result
         self._logger:debug("get worker:%s", pprint.format(worker))
         self._worker._server_addr = worker
         self._worker:call("add_task", {fd = fd})

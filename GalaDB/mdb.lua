@@ -1142,10 +1142,13 @@ if ... == "__main__" then
     function test_remove_root_child( db )
         local domain_root = db:get_root(root1)
         domain_root:add_node("Bank1"):add_node("Test"):add_value("ok")
-        print(domain_root:to_xml())
+        --print(domain_root:to_xml())
+        domain_root:show()
         domain_root:_xpath("Bank"):remove()
+        domain_root:show()
+        
 
-        print(domain_root:to_xml())
+        --print(domain_root:to_xml())
     end
     function test_exist( db )
         local e = db:get_root(root1)
@@ -1267,7 +1270,7 @@ if ... == "__main__" then
     for i=1,limit do
         db:with(test)
 
-        db:with(test1)
+        -- db:with(test1)
         -- db:with(test_xquery_xpath)
         -- db:withReadOnly(test_xpath)
         -- db:withReadOnly(test_value)
@@ -1278,7 +1281,7 @@ if ... == "__main__" then
         -- db:withReadOnly(test_more_more_xpath)
         -- db:withReadOnly(test_walk)
         -- db:with(test5)
-        -- db:with(test_remove_root_child)
+        db:with(test_remove_root_child)
         -- collectgarbage("collect")
 
         -- db:withReadOnly(test_exist)
@@ -1287,7 +1290,7 @@ if ... == "__main__" then
         -- db:withReadOnly(test_merge)
         -- db:withReadOnly(test_xquery_xpath)
         -- db:with(test_create_xpath)
-        db:with(test_xpath_match)
+        -- db:with(test_xpath_match)
     end
 
 end

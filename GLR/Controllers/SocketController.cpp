@@ -476,13 +476,27 @@ void GLR::StreamLinkStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/, 
     {
         Task t = ls->_RecvTasks.Get();
         std::string errmsg = "IO Error";
-        Runtime::GetInstance().GetBus().ResponseEx(t.Pid,t.RecvArg.Tick, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        if (t.Type == RECV)
+        {
+            Runtime::GetInstance().GetBus().ResponseEx(t.Pid,t.RecvArg.Tick, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        }
+        else if (t.Type == POLL)
+        {
+            GLRPROTOCOL msg;
+            memset((void*)&msg, 0, sizeof(msg));
+            msg._Route._FromGpid = _Sock->GetFD();
+            msg._Protocol._Type = GLRPROTOCOL::IOCP;
+            msg._Host._V3._Port = SocketController::INT_NO;
+            msg._Protocol._Length = sizeof(GLRPROTOCOL) - 4;
+            Runtime::GetInstance().GetBus().Send(t.Pid, std::string((const char*)&msg, sizeof(msg)), GLRPROTOCOL::IOCP);
+        }
     }
     while (!ls->_SendTasks.Empty())
     {
         Task t = ls->_SendTasks.Get();
         std::string errmsg = "IO Error";
-        Runtime::GetInstance().GetBus().Response(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        //???:
+        //Runtime::GetInstance().GetBus().Response(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
     }
 }
 
@@ -506,12 +520,13 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
             if (_Cache.DataSize() >= t.RecvArg.Len)
             {
                 bool flag = Runtime::GetInstance().GetBus().ResponseEx(t.Pid, t.RecvArg.Tick, 1, LUA_TSTRING, _Cache.Get(), t.RecvArg.Len);
+
+                _RecvTasks.Get();
                 if (flag)
                 {
                     _Cache.Eat(t.RecvArg.Len);
                 }else
                 {
-                    _RecvTasks.Get();
                     continue;
                 }
             }else if (this->_Hanguped)
@@ -529,16 +544,17 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
         else if (t.Type == RECV_LINE)
         {
             ssize_t lineCursor = _Cache.GetLine();
-            GALA_DEBUG("LineCusor: %ld Str: %s", lineCursor, _Cache.Get());
             if (lineCursor != -1)
             {
                 bool flag = Runtime::GetInstance().GetBus().ResponseEx(t.Pid, t.RecvArg.Tick, 1, LUA_TSTRING, _Cache.Get(), lineCursor);
+
+
+                _RecvTasks.Get();
                 if (flag)
                 {
                     _Cache.Eat(lineCursor);
                 }else
                 {
-                    _RecvTasks.Get();
                     continue;
                 }
             }
@@ -564,6 +580,7 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
                 msg._Host._V3._Port = SocketController::INT_NO;
                 msg._Protocol._Length = sizeof(GLRPROTOCOL) - 4;
                 Runtime::GetInstance().GetBus().Send(t.Pid, std::string((const char*)&msg, sizeof(msg)), GLRPROTOCOL::IOCP);
+
                 _RecvTasks.Get();
             }
         }
@@ -622,7 +639,6 @@ void GLR::StreamLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev , PO
     Task &t = _SendTasks.Head();
     size_t len = _Sock->Send(&t.Buffer[t.Current], t.Buffer.size() - t.Current);
     t.Current += len;
-    GALA_ERROR("Current(%zu)", t.Current);
     if (t.Current == t.Buffer.size())
     {
         int pid = t.Pid;
@@ -653,6 +669,18 @@ void GLR::StreamLinkStack::PutRecvLineTask( int pid, int tick)
 
 void GLR::StreamLinkStack::PutPollTask(int pid)
 {
+    if (_Cache.DataSize() != 0)
+    {
+        GALA_DEBUG("Polling...: %d", pid);
+        GLRPROTOCOL msg;
+        memset((void*)&msg, 0, sizeof(msg));
+        msg._Route._FromGpid = _Sock->GetFD();
+        msg._Protocol._Type = GLRPROTOCOL::IOCP;
+        msg._Host._V3._Port = SocketController::INT_NO;
+        msg._Protocol._Length = sizeof(GLRPROTOCOL) - 4;
+        Runtime::GetInstance().GetBus().Send(pid, std::string((const char*)&msg, sizeof(msg)), GLRPROTOCOL::IOCP);
+        return;
+    }
     Task t;
     t.Type = POLL;
     t.Pid = pid;
@@ -682,6 +710,7 @@ bool GLR::StreamLinkStack::FastRecvReturn(int pid, TaskType taskType, size_t len
         {
             Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TSTRING, _Cache.Get(), lineCursor);
             _Cache.Eat(lineCursor);
+            GALA_ERROR("%d %s", lineCursor, _Cache.Get());
             return true;
         }
 
@@ -792,7 +821,7 @@ void GLR::StreamServerStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, P
             _RecvTasks.Get();
             continue;
         }
-        if (Runtime::GetInstance().GetBus().ResponseEx(t.Pid, t.RecvArg.Tick, 1, LUA_TNUMBER, ls->GetDummyFd()))
+        else if (Runtime::GetInstance().GetBus().ResponseEx(t.Pid, t.RecvArg.Tick, 1, LUA_TNUMBER, ls->GetDummyFd()))
         {
             _RecvTasks.Get();
         }else

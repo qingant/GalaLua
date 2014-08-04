@@ -18,11 +18,20 @@ function index:new()
     return o
 end
 
-function index:get(...)
-    return "Hello world"
+function index:get(context,...)
+    local sess =  context:get_session() 
+    --pprint.pprint(sess,"get_session")
+    if not sess then
+        sess = context:create_session()
+    end
+    local expires = sess:get("Expires")
+    local path = sess:get("Path")
+    sess:set("Domain","2222")
+    local domain = sess:get("Domain")
+    context:get_response():set_content_type("text/plain")
+    return expires .. path .. domain .. "\nHello WORLD\n"
 end
 
-function index:post(...)
-    pprint.pprint(...)
+function index:post(context,...)
 end
 
