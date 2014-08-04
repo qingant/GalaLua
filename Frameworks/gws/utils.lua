@@ -236,3 +236,21 @@ function test_diff_date()
     print_diff(str7,str8)
 
 end
+
+function vaild_static_path(path)
+    str = {}
+    for i,k in pairs(split(path,"/")) do
+        if k == ".." then
+            str[i] = ""
+            if i > 1 then
+                str[i - 1] = ""
+            end
+        elseif k == "." then
+            str[i] = ""
+        else
+            str[i] = k
+        end
+    end
+    static_path = "/" .. table.concat(str,"/")
+    return string.gsub(static_path,"/+","/")
+end
