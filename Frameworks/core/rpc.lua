@@ -51,6 +51,11 @@ function server:_send(desc, result)
                                              result=result}),
                     {corrid=desc.attr.msgid})
 end
+function server:on_timeout()
+    if self._logger then
+        self._logger:flush()
+    end
+end
 function server:_main_loop( ... )
     local packer = self._packer
     local unpacker = self._unpacker
@@ -183,23 +188,26 @@ end
 ]]
 local default_server_cls_name = "server"
 function create_server(params)
-    local rt, errmsg
+    local rt, err_msg
     params.parameters = params.parameters or {}
     if params.bind_gpid then
-        rt, errmsg = glr.spawn_ex(params.bind_gpid,
+        rt, err_msg = glr.spawn_ex(params.bind_gpid,
                                         _NAME,
                                         "_server",
                                         params.mod_name,
                                         params.cls_name or default_server_cls_name,
                                         params.parameters)
     else
-        rt, errmsg = glr.spawn(_NAME,
+        print("glr.spawn")
+        rt, err_msg = glr.spawn(_NAME,
                                "_server",
                                params.mod_name,
                                params.cls_name or default_server_cls_name,
                                params.parameters)
+
+        print("errmsg",err_msg)
     end
-    assert(rt, errmsg)
+    assert(rt, err_msg)
     local cli = client:new():init(params.server_name or rt)
     return cli
 end
