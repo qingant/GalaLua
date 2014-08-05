@@ -7,12 +7,15 @@ ffi.cdef[[
               size_t iov_len;
               }iovec;
                        
-              int open(const char* pathname,int flag);
+              int open(const char* pathname,int flag,int mode);
               int close(int fd);
               int writev(int fd,const iovec* iov,int iovcnt);
               long int lseek(int handle, long int offset, int fromwhere);
-              int rename(const char *oldname,const char *newname);
+              int rename(const char* oldname,const char* newname);
+              int system(const char* string);
+              int write(int handle,const char* buf,int nbyte);
             ]]
+            
 open = ffi.C.open
 --[[
             flags:
@@ -46,3 +49,5 @@ new = ffi.new
 cast = ffi.cast
 lseek = ffi.C.lseek
 rename = ffi.C.rename
+system = ffi.C.system
+write = ffi.C.write

@@ -293,6 +293,11 @@ void GLR::SocketController::DoSend( lua_State *l)
         Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
         return;
     }
+    if (len == 0)
+    {
+        Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
+        return;
+    }
 
     Runtime::GetInstance().GetBus().IntSuspend(pid);
     ls->PutSendTask(pid, std::string(buf, len));
@@ -441,7 +446,6 @@ void GLR::StreamLinkStack::PutSendTask( int pid, const std::string & buf)
     t.Pid = pid;
     t.Current = 0;
     t.Buffer = buf;
-
     _SendTasks.Put(t);
 }
 void GLR::StreamLinkStack::PutRecvTask( int pid, size_t len, int tick )
@@ -634,9 +638,17 @@ void GLR::StreamLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POL
 void GLR::StreamLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev , POLLERTYPE &_Poller)
 {
 
-    //_Sock->SetNonBlocking();
+    _Sock->SetNonBlocking();
     int fd = ev.first;
+    if (_SendTasks.Empty())
+    {
+        _Poller.Remove(fd, Galaxy::GalaxyRT::EV_OUT);
+        return;
+    }
+
     Task &t = _SendTasks.Head();
+    assert(!_SendTasks.Empty());
+    assert(t.Buffer.size() != 0);
     size_t len = _Sock->Send(&t.Buffer[t.Current], t.Buffer.size() - t.Current);
     t.Current += len;
     if (t.Current == t.Buffer.size())

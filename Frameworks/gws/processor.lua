@@ -25,6 +25,8 @@ function processor:new(app_name, pool_name, idx, params)
     self._session_storage_path = params.session_storage_path
     self._static_path  = params.static_path
     self._session_mgr = session_manager:new():init(self._session_storage_path)
+    local log_file_path = string.format("%s/%s.%s.processor.log", params.log_path, app_name, pool_name)
+    self._logger:set_path(log_file_path)
     return self
 end
 function processor:on_init(...)
@@ -42,13 +44,11 @@ end
 
 function processor:on_message(mtype, desc, msg)
     if mtype == glr.IOCP then
-        print("IOCP...", self._fd)
         local r, err
         while true do
             r, err = pcall(function ()
                     local request = self._protocol:get_request()
                     -- self._logger:debug(pprint.format(request, "request"))
-                    pprint.pprint(request,"---request----")
                     local rsp = self:_request_dispatch(request)
                     self._protocol:send_response(rsp)
                                  end, debug.traceback)
@@ -56,7 +56,7 @@ function processor:on_message(mtype, desc, msg)
                 break
             end
         end
-        print("ERROR", err)
+        self._logger:info(err)
         self:_back_to_pool()
         -- glr.net.close(self._fd)
         -- self:_back_to_pool()
@@ -73,12 +73,14 @@ end
 
 processor.response_404 = response:new():init():set_status_code(404) -- TODO: set status code and error msg
 function processor:_request_dispatch(request)
+    self._logger:info("uri: " .. request.uri )
     if self:_is_static_request(request.uri) then
         return self:_static_handle(request)
     else
         if self.urls then
             for uri,func in pairs(self.urls) do
                 local m = string.match(request.uri, uri)
+                self._logger:debug("match %s-%s ", uri, func)
                 if m ~= nil then
                     local response = self:_call_hander(func, request)
                     return response
