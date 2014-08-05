@@ -15,6 +15,7 @@ local http = require("http.http").http
 local response = require("http.response").response
 local context = require(_PACKAGE .. "context").context
 local session_manager = require(_PACKAGE .. "session").session_manager
+local vaild_static_path = require(_PACKAGE .. "utils").vaild_static_path
 local pprint = require("pprint")
 
 local processor = base:new()
@@ -65,7 +66,7 @@ function processor:on_message(mtype, desc, msg)
     end
 end
 function processor:_is_static_request(uri)
-    local pattern = "^/static/.*"
+    local pattern = "^/statics/.*"
     if string.match(uri, pattern) then
         return true
     else
@@ -138,6 +139,22 @@ function processor:_is_file_exist(path)
     end
 end
 
+function processor:_is_file_vaild(path)
+    print(path,self._static_path,"----compare-----")
+    if string.match(path,self._static_path) then
+        print(path,self._static_path,"----match----")
+        local fd,err,errno = io.open(path,"rb")
+        if fd then
+            io.close(fd)
+            return true
+        else
+            return false
+        end
+    else
+        return false
+    end
+end
+
 function processor:_static_handle(request)
     local CONTENT_TYPE = {["jpg"] = "image/jpg",
                           ["js"] =  "application/x-javascript",
@@ -146,12 +163,13 @@ function processor:_static_handle(request)
                           ["css"] = "text/css",
                           ["txt"] = "text/plain"}
     local uri = request.uri
-    local fname =  assert(string.match(uri, "^/static/(.*)"))
+    local fname =  assert(string.match(uri, "^/statics(/.*)"))
     local full_path = self._static_path .. fname
-    if not self:_is_file_exist(full_path) then
+    full_path = vaild_static_path(full_path)
+    print("image path : ", full_path)
+    if not self:_is_file_vaild(full_path) then
         return self.response_404
     end
-    print("image path : ", full_path)
     local response = response:new():init()
     response:set_content(self:_read_file_content(full_path))
     response:set_content_type(CONTENT_TYPE[string.lower(string.match(uri,"%.(%w+)$"))])
