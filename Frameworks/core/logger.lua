@@ -24,7 +24,7 @@ local _logger = {
 }
 local _logger_Flag ={"DEBUG", "TRACE", "INFO ","WARN ", "ERROR", "FATAL"}
 logger = _logger
-
+_logger.format = pprint.format
 function _logger:new(o)
     local o = o or {}
     setmetatable(o, self)
@@ -53,9 +53,7 @@ function _logger:init(process,log_path)
 end
 function _logger:set_path(path)
     local flag = bit.bor(c_flag.O_CREAT,c_flag.O_APPEND,c_flag.O_RDWR)
-    print("flag", flag)
     self._fd = cio.open(self._log_path, flag, c_flag.S_IFMT)
-    print("LOG", path, self._fd)
     if self._fd ~= -1 then
         self._output = function (msg) return self:_write(msg) end
     end
