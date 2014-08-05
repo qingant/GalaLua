@@ -30,7 +30,7 @@ end
 function server:_set_path(path)
     local flag = bit.bor(c_flag.O_CREAT,c_flag.O_APPEND,c_flag.O_RDWR)
     print("flag", flag)
-    self._fd = cio.open(self._file_path, flag)
+    self._fd = cio.open(self._file_path, flag, c_flag.S_IFMT)
     print("LOG", path, self._fd)
     if self._fd ~= -1 then
         self._log_output = function (msg) return self:_write(msg) end
@@ -70,7 +70,7 @@ function server:_log_full()
         end
         local rt=cio.rename(self._file_path,self._file_path..'.'.. 0)
         print("******************pathchange:",rt,"**********************")
-        self._fd=cio.open(self._file_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)))
+        self._fd=cio.open(self._file_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)),c_flag.S_IFMT)
     end
 end
 
