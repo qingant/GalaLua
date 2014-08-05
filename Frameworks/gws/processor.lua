@@ -13,7 +13,7 @@ local http = require("http.http").http
 local response = require("http.response").response
 local context = require(_PACKAGE .. "context").context
 local session_manager = require(_PACKAGE .. "session").session_manager
-local path_cls = require("path").path
+local path_cls = require("os.path").path
 local pprint = require("pprint")
 
 local processor = base:new()
