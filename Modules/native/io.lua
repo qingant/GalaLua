@@ -7,7 +7,7 @@ ffi.cdef[[
               size_t iov_len;
               }iovec;
                        
-              int open(const char* pathname,int flag);
+              int open(const char* pathname,int flag,int mode);
               int close(int fd);
               int writev(int fd,const iovec* iov,int iovcnt);
               long int lseek(int handle, long int offset, int fromwhere);
