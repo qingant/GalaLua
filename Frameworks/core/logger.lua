@@ -45,7 +45,7 @@ function _logger:init(process,log_path)
     self._max_file_num = 10
     self._times_to_get_filesize = 1 --每_times_to_get_filesize次flush buf，检查一次文件大小；为了测试方便，这里暂时设为1
     self._times = 0
-    --self._fd=cio.open(self._log_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)))
+    --self._fd=cio.open(self._log_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)),c_flag.S_IFMT)
     self._output = print
     self:set_path(self._log_path)
     --self._timeout = 3
@@ -54,7 +54,7 @@ end
 function _logger:set_path(path)
     local flag = bit.bor(c_flag.O_CREAT,c_flag.O_APPEND,c_flag.O_RDWR)
     print("flag", flag)
-    self._fd = cio.open(self._log_path, flag)
+    self._fd = cio.open(self._log_path, flag, c_flag.S_IFMT)
     print("LOG", path, self._fd)
     if self._fd ~= -1 then
         self._output = function (msg) return self:_write(msg) end
@@ -98,7 +98,7 @@ function _logger:_log_full(file_path)
         end
         local rt=cio.rename(file_path,file_path..'.'.. 0)
         print("******************pathchange:",rt,"**********************")
-        self._fd=cio.open(file_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)))
+        self._fd=cio.open(file_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)),c_flag.S_IFMT)
     end
 end
 
