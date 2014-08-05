@@ -52,6 +52,8 @@ function _logger:init(process,log_path)
     return self
 end
 function _logger:set_path(path)
+    self._log_path = path
+    self:finalize()
     local flag = bit.bor(c_flag.O_CREAT,c_flag.O_APPEND,c_flag.O_RDWR)
     self._fd = cio.open(self._log_path, flag, c_flag.S_IFMT)
     if self._fd ~= -1 then
