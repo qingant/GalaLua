@@ -18,6 +18,7 @@ function response:init()
     self.chunked = false
     self.chunk = {}
     self.header = "" --toString
+    self.content = ""
     return self
 end
 function response:set_status_code(code)
