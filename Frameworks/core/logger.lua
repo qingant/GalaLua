@@ -43,8 +43,9 @@ function _logger:init(process,log_path)
     --self._file_size = 4*1024*1024
     self._file_size = 5000
     self._max_file_num = 10
-    self._times_to_get_filesize = 1 --每_times_to_get_filesize次flush buf，检查一次文件大小；为了测试方便，这里暂时设为1
+    self._times_to_get_filesize = 64 --每_times_to_get_filesize次flush buf，检查一次文件大小；为了测试方便，这里暂时设为1
     self._times = 0
+    self._fd = -1
     --self._fd=cio.open(self._log_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)),c_flag.S_IFMT)
     self._output = print
     self:set_path(self._log_path)
