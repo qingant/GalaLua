@@ -8,16 +8,13 @@
 
 module(..., package.seeall)
 
-
-
 local base = require("core.processor").server
 local http = require("http.http").http
 local response = require("http.response").response
 local context = require(_PACKAGE .. "context").context
 local session_manager = require(_PACKAGE .. "session").session_manager
-local path = require("path").path
+local path_cls = require("path").path
 local pprint = require("pprint")
-local path = require("path").path
 
 local processor = base:new()
 
@@ -89,6 +86,7 @@ function processor:_request_dispatch(request)
             end
         end
     end
+    self.response_404:set_content(self.response_404.content)
     return self.response_404
 end
 
@@ -139,8 +137,8 @@ end
 
 function processor:is_file_vaild(path)
     print(path,self._static_path,"----compare-----")
-    path:init(path)
-    if path:is_prefix_of(self._static_path) then
+    path_cls = path_cls:new():init(path)
+    if path_cls:is_prefix_of(self._static_path) and path_cls:isfile(path) then
         print(path,self._static_path,"----match----")
         local fd,err,errno = io.open(path,"rb")
         if fd then
@@ -164,9 +162,15 @@ function processor:_static_handle(request)
     local uri = request.uri
     local fname =  assert(string.match(uri, "^/statics(/.*)"))
     local full_path = self._static_path .. fname
-    full_path = path:normpath(full_path)
+    path_cls = path_cls:new():init(full_path)
+    print("full_path",full_path)
+    full_path = path_cls:normpath(full_path)
     print("image path : ", full_path)
     if not self:is_file_vaild(full_path) then
+        print(self.response_404.status)
+        print(self.response_404.statusCode)
+        print(self.response_404.content)
+        self.response_404:set_content(self.response_404.content)
         return self.response_404
     end
     local response = response:new():init()
