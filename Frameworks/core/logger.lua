@@ -38,10 +38,10 @@ function _logger:init(process,log_path)
     --self._log_client = rpc.create_server{mod_name = "log_server", parameters = {"test/log_server"}}
     self._buf = {}
     self._buf_len = 0
-    self._buf_max_len = 500
+    self._buf_max_len = 0
     self._log_path = log_path
     --self._file_size = 4*1024*1024
-    self._file_size = 5000
+    self._file_size = 4*1024*1024
     self._max_file_num = 10
     self._times_to_get_filesize = 64 --每_times_to_get_filesize次flush buf，检查一次文件大小；为了测试方便，这里暂时设为1
     self._times = 0
@@ -56,7 +56,8 @@ function _logger:set_path(path)
     self._log_path = path
     self:finalize()
     local flag = bit.bor(c_flag.O_CREAT,c_flag.O_APPEND,c_flag.O_RDWR)
-    self._fd = cio.open(self._log_path, flag, c_flag.S_IFMT)
+    self._fd = cio.open(self._log_path, flag, 438)
+    print("LOG", self._log_path, self._fd)
     if self._fd ~= -1 then
         self._output = function (msg) return self:_write(msg) end
     end
@@ -99,7 +100,7 @@ function _logger:_log_full(file_path)
         end
         local rt=cio.rename(file_path,file_path..'.'.. 0)
         print("******************pathchange:",rt,"**********************")
-        self._fd=cio.open(file_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)),c_flag.S_IFMT)
+        self._fd=cio.open(file_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)), 483)
     end
 end
 
