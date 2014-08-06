@@ -113,7 +113,6 @@ end
 local cacheBox = mailBox:new()
 local function glr_recv(...)
     local t,d,m = _glr.recv(...)
-    print("glr_recv", t, d and d.addr.gpid)
     return t,d,m
 end
 function recv(...)
