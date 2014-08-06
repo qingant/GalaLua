@@ -184,10 +184,9 @@ bool Bus::ResponseEx(int pid, int tick, int narg, ...)
             GALA_ERROR("process(%ld) call(%ld) canceled", pid, tick);
             return false;
         }
-        GALA_ERROR("");
-        Galaxy::GalaxyRT::CLockGuard _LL(&nd._Lock, false);
+
         Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, true); // ???
-        GALA_ERROR("Pid(%d) Status(%d)", pid, nd._Status._State);
+        Galaxy::GalaxyRT::CLockGuard _LL(&nd._Lock, true);
         if (nd._Status._State != Process::ProcessStatus::INT_WAIT &&
             nd._Status._State != Process::ProcessStatus::RECV_WAIT)
         {
