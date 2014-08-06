@@ -499,8 +499,7 @@ void GLR::StreamLinkStack::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &/*ev*/, 
     {
         Task t = ls->_SendTasks.Get();
         std::string errmsg = "IO Error";
-        //???:
-        //Runtime::GetInstance().GetBus().Response(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
+        Runtime::GetInstance().GetBus().Response(t.Pid, 2, LUA_TNIL, LUA_TSTRING, errmsg.c_str(), errmsg.size());
     }
 }
 
@@ -663,7 +662,7 @@ void GLR::StreamLinkStack::OnSend( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev , PO
         }
 
 
-        Runtime::GetInstance().GetBus().Response(pid,1, LUA_TBOOLEAN, 1);
+        Runtime::GetInstance().GetBus().Response(pid, 1, LUA_TBOOLEAN, 1);
     }
 }
 
@@ -722,7 +721,6 @@ bool GLR::StreamLinkStack::FastRecvReturn(int pid, TaskType taskType, size_t len
         {
             Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TSTRING, _Cache.Get(), lineCursor);
             _Cache.Eat(lineCursor);
-            GALA_ERROR("%d %s", lineCursor, _Cache.Get());
             return true;
         }
 
