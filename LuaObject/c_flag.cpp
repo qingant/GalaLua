@@ -1,39 +1,12 @@
 #include<iostream>
 #include<stdio.h>
+#include<sys/stat.h>
 #include<fcntl.h>
 #include<lua.hpp>
 
 extern "C"
 int luaopen_c_flag(lua_State *l)
 {
-    /*
-	const struct luaL_Reg _obj[] = {
-            {"O_RDONLY",O_RDONLY},
-            {"O_WRONLY", O_WRONLY},
-            {"O_RDWR", O_RDWR},
-            {"O_CREAT", O_CREAT},
-            {"O_APPEND", O_APPEND},
-            {"O_TRUNC", O_TRUNC},
-            {"O_EXCL", O_EXCL},
-            {"O_TEXT", O_TEXT},
-            {"O_BINARY", O_BINARY},
-            {"S_IFMT", S_IFMT},
-            {"S_IFDIR", S_IFDIR},
-            {"S_IFIFO", S_IFIFO},
-            {"S_IFCHR", S_IFCHR},
-            {"S_IFBLK", S_IFBLK},
-            {"S_IFREG", S_IFREG},
-            {"S_IREAD", S_IREAD},
-            {"S_IWRITE", S_IWRITE},
-            {"S_IEXEC", S_IEXEC},
-            {NULL, NULL}
-    };
-
-    luaL_newmetatable(l, Foo_Wrapper::type_id);
-
-    luaL_register(l, NULL, _obj);
-    return 1;
-    */
     lua_newtable(l);
 
     lua_pushinteger(l,O_RDONLY);
@@ -80,7 +53,7 @@ int luaopen_c_flag(lua_State *l)
 
     lua_pushinteger(l,S_IFREG);
     lua_setfield(l,-2,"S_IFREG");
-    /*
+
     lua_pushinteger(l,S_IREAD);
     lua_setfield(l,-2,"S_IREAD");
 
@@ -89,7 +62,6 @@ int luaopen_c_flag(lua_State *l)
 
     lua_pushinteger(l,S_IEXEC);
     lua_setfield(l,-2,"S_IEXEC");
-	*/
 
     lua_pushinteger(l,SEEK_SET);
     lua_setfield(l,-2,"SEEK_SET");
