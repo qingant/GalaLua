@@ -46,7 +46,7 @@ function server:new(name)
     self._processes = process_table:new()
     self._id = 0
     self._processes_indexed_by_id = {}
-    self._logger = logger:new():init(self,"../../log/test.log")
+    self._logger = logger:new():init(self)
     self._logger:info("supervisor(%s) started", name)
     return self
 end
