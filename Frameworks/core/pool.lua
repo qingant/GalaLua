@@ -18,7 +18,9 @@ server = pool
 function pool:new(app_name, pool_name, dispatcher, worker, params)
     local full_name = string.format("%s.%s", app_name, pool_name)
     glr.npt.register(full_name)
-    self._logger = logger:new():init(self)
+    local log_path = string.format("%s/%s.%s.pool.log", params.log_path, app_name, pool_name)
+    print("Pool Logging:", log_path)
+    self._logger = logger:new():init(self, log_path)
     self._logger:info("%s init", full_name)
     self._logger:info("with: %s %s", dispatcher, worker)
     self._timeout = timeout
@@ -69,6 +71,7 @@ function pool:_init()
     self._logger:info("dispatcher started:%s", self._logger.format(rt, "rt"))
 end
 function pool:get_process(params, desc)
+    self._logger:info("worker remain: %s", self._logger.format(self._dataq))
     local p = self:get(params, desc)
     if p == self.no_response and self._count < self._max then
         pool:_create_process()
@@ -76,11 +79,14 @@ function pool:get_process(params, desc)
     return p
 end
 function pool:on_timeout()
-    -- TODO: timeout
+    self._logger:debug(self._logger.format(glr.status.processes()))
+    self._logger:debug(self._logger.format(self._sup:call("query")))
+    self._logger:flush()
 end
 function pool:_create_process()
     local rt = self._sup:call("start_process", self._start_argv_template)
     self._logger:info("start processor:%d %s", self._count, self._logger.format(rt))
+    self._count = self._count + 1
     -- TODO: error handling and logging
 end
 

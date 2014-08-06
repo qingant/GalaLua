@@ -48,6 +48,8 @@ function queue_server:status(params, desc)
     return {dataq=self._dataq, customerq=self._customerq, timeout=self._dequeue_timeout}
 end
 function queue_server:put(params, desc)
+    self._logger:info("put by %d", desc.addr.gpid)
+    self._logger:info("data size: %d", self._dataq:length())
     if self._customerq:is_empty() then
         self._dataq:push_right(params)
     else
