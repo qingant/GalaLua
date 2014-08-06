@@ -131,8 +131,8 @@ void GLR::Bus::TimerSignal( int pid, int tick )
             GALA_DEBUG("Now Tick: %d, Last Tick: %d\n", nd._Status._Tick, tick);
             return;
         }
-        Galaxy::GalaxyRT::CLockGuard _ll(&nd._Lock, true);
         Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, true);
+        Galaxy::GalaxyRT::CLockGuard _ll(&nd._Lock, true);
         if (tick != nd._Status._Tick)
         {
             return;
