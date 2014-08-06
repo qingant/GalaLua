@@ -14,14 +14,27 @@ local db_path=require "db_path"
 local path=require "path"
 local mdb=(require "mdb").mdb
 
-local function response(addr,cmd,name,result,status)
-    local addr =tonumber(addr) or addr
+local function response(addr,result,status,cmd)
     local _t=type(addr)
+    local attr
+
     if _t=="string" then
-        addr=cjson.decode(addr)
+        if tonumber(addr) then
+            addr=tonumber(addr)
+        else
+            addr=cjson.decode(addr)
+        end
     end
-    local msg=cjson.encode{cmd=cmd,name=name,result=result,status=status or 0}
-    return glr.send(addr,msg)
+    --必须重新判断addr类型，因为上面的代码会改变addr的类型
+    if type(addr)=="table" then
+        --包含msgid等信息
+        if addr.addr then
+            attr=addr.attr
+            addr=addr.addr
+        end
+    end
+    local msg=cjson.encode{cmd=cmd or "response" ,result=result,status=status or 0}
+    return glr.send(addr,msg,attr)
 end
 
 function init_logger()
@@ -137,7 +150,6 @@ function configure(env)
             else
                 module_name=name
             end
-            print(module_name,index)
         end
 
         local conf_entries=self._conf:find(group,module_name,index)
@@ -160,6 +172,8 @@ function configure(env)
 
                 v.host=v.host or ""
                 v.port=tonumber(v.port) or -1 
+                v.name=string.format("%s%.4d",v.module,v.index)
+
                 ret[#ret+1]=v
             end
         end
@@ -324,6 +338,7 @@ function process(entry,max)
     
     --[[
         restart process when it exited accidentally
+        TODO:清理所有mdb
     ]]
     function Process:restart_if_exited()
         mdb.lock_clear(db_path.router)
@@ -528,8 +543,7 @@ function ProcessTable()
     
     --save it if not existed!
     function _process.save_new(conf)
-        local token=string.format("%s%.4d",conf.module,conf.index)
-        local _p=_process.get(conf.group,token)
+        local _p=_process.get(conf.group,conf.name)
 
         if not _p then
             _p=_process.save(conf)
@@ -540,9 +554,8 @@ function ProcessTable()
     --save process, if existed then replace it.
     function _process.save(conf)
         self[conf.group]=self[conf.group] or {}
-        local token=string.format("%s%.4d",conf.module,(tonumber(conf.index) or 0))
         local _p=process(conf)
-        self[conf.group][token]=_p
+        self[conf.group][conf.name]=_p
         local id=string.format("%s::%s",conf.host,(tonumber(conf.port) or -1))
         self_id[id]=_p
         return _p
@@ -665,27 +678,16 @@ function cmds(sup,log)
     local Cmds={}
     
     function unknown(msg_table,toaddr)
-        rest_message_number(msg_table.cmd,1,toaddr)
         local msg=cjson.encode(msg_table)
         log:warn("unknown command:%s",msg_table.cmd)
-        glr.send(toaddr,cjson.encode({error="unkown cmd:"..msg}))
+        response(toaddr,"unkown cmd:"..msg,1)
     end
-
-
 
     local mt={__index=function () return unknown end}
     setmetatable(Cmds,mt)
     
-    
-    --reply the number of rest messages when calling cmd name @cmd_name
-    function rest_message_number(cmd_name,num,toaddr)
-        local ret={cmd=cmd_name}
-        ret.rest=num     -- number of rest messages
-        glr.send(toaddr,cjson.encode(ret))
-    end
-
     function Cmds.register(msg_table,addr)
-        response(addr,"register",msg_table.name,{supervisord=__id__})
+        response(addr,{supervisord=__id__})
     end
 
     function cmd_skel(func,cmd_name)
@@ -695,12 +697,10 @@ function cmds(sup,log)
         function skel(msg_table,toaddr)
             local procs=sup:get_processes(msg_table.name)
             if #procs>0 then
-                rest_message_number(cmd_name,#procs,toaddr)
                 func(procs,toaddr)
             else
-                rest_message_number(cmd_name,1,toaddr)
                 local emsg=string.format("no such process: %s",msg_table.name)
-                response(toaddr,cmd_name,msg_table.name,emsg,1)
+                response(toaddr,emsg,1)
             end
         end
 
@@ -708,42 +708,54 @@ function cmds(sup,log)
     end
 
     function stop(procs,toaddr)
+        local result={}
         for i,_p in ipairs(procs) do   --procs may have more than one item
             _p:stop()
             local _proc=_p:export()
-            local name=string.format("%s%.4d",_proc.module,_proc.index)
-            local result={
+            result[i]={
                 state=STATE_NAME[_proc.state],
-                name=name,
+                name=_proc.name,
                 group=_proc.group,
             }
             
-            response(toaddr,"stop",name,result)
         end
+        response(toaddr,result)
     end
     Cmds.stop=cmd_skel(stop,"stop")
 
     function start(procs,toaddr)
+        local p={}
         for i,e in ipairs(procs) do   --procs may have more than one item
-            local err,id=glr.spawn("supervisord","run_ctrl_cmd",cjson.encode(e:export()),
-                                   "start",__id__,cjson.encode(toaddr))
+            p[i]=e:export()
         end
+        local err,id=glr.spawn("supervisord","run_ctrl_cmd",p, "start",__id__,cjson.encode(toaddr))
     end
     Cmds.start=cmd_skel(start,"start")
 
     function status(procs,toaddr)
+        local p={}
         for i,e in ipairs(procs) do   --procs may have more than one item
-            local err,id=glr.spawn("supervisord","run_info_cmd",cjson.encode(e:export()),
-                                   "status",cjson.encode(toaddr))
+            p[i]=e:export()
         end
-
+        local err,id=glr.spawn("supervisord","run_info_cmd",p, "status",cjson.encode(toaddr))
     end
     Cmds.status=cmd_skel(status,"status")
 
     function Cmds.list(msg_table,toaddr)
-        rest_message_number("list",1,toaddr)
-        msg_table.result=sup:get_all_process()
-        glr.send(toaddr,cjson.encode(msg_table))
+        local procs=sup:get_all_process()
+        local sumary={}
+        for i,v in pairs(STATE_NAME) do
+            sumary[v]=0
+        end
+        local result={}
+        for i,p in ipairs(procs) do
+            if p.state then
+                local state=STATE_NAME[p.state]
+                result[i]={name=p.name,state=state}
+                sumary[state]=sumary[state]+1
+            end
+        end
+        response(toaddr,{sumary=sumary,processes=result})
     end
 
     --update process 
@@ -752,18 +764,16 @@ function cmds(sup,log)
     end
 
     function Cmds.config(msg_table,toaddr)
-        rest_message_number("config",1,toaddr)
         local result=sup:get_config(DefaultGroup,msg_table.name)
-        response(toaddr,msg_table.cmd,msg_table.name,result)
+        response(toaddr,result)
 
     end
     function Cmds.auto_restart(msg_table)
         local proc=sup:get_processes_by_id(msg_table.name)
         if proc then
             log:warn("process:%s is stopped unexpected!",msg_table.name)
-            log:info("restart it now:%s",msg_table.name)
-            local err,id=glr.spawn("supervisord","run_ctrl_cmd",
-                                   cjson.encode(proc:export()),"restart_if_exited",__id__)
+            log:info("restart it now: %s",msg_table.name)
+            local err,id=glr.spawn("supervisord","run_ctrl_cmd", {proc},"restart_if_exited",__id__)
         end
     end
 
@@ -797,33 +807,34 @@ end
 --  }
 --
 --]]
-function _run_ctrl_cmd(proc,cmd,main_gpid,addr,log)
-    local proc=cjson.decode(proc) 
-    local _p=process(proc)
-    local name=string.format("%s%.4d",proc.module,proc.index)
-    log:info("cmd:%s %s",cmd,name)
+function _run_ctrl_cmd(procs,cmd,main_gpid,addr,log)
+    local result={}
+    for i,proc in ipairs(procs) do
+        local _p=process(proc)
+        local name=proc.name
 
-    local ok,emsg=pcall(_p[cmd],_p)
-    if not ok then
-        log:error("ctrl cmd error:%s",emsg)
-        if addr then
-            response(addr,cmd,name,emsg,1)
+        log:info("cmd:%s %s",cmd,name)
+        local _proc
+        local state_code
+        local ok,emsg=pcall(_p[cmd],_p)
+        if not ok then
+            log:error("ctrl cmd error:%s",emsg)
+            state_code=STATE.UNKNOWN
+        else
+            _proc=_p:export()
+            state_code=_proc.state
+            response(main_gpid or 0,_proc,0,"update")
         end
-        return
+        if addr then
+            result[i]={
+                state=STATE_NAME[state_code],
+                name=name,
+                group=proc.group,
+            }
+        end
     end
+    response(addr,result)   --to supervisord client
 
-    local _proc=_p:export()
-    response(main_gpid or 0,"update",name,_proc)
-
-    if addr then
-        local result={
-            state=STATE_NAME[_proc.state],
-            name=name,
-            group=_proc.group,
-        }
-
-        response(addr,cmd,name,result) --to supervisord client
-    end
     log:info("ctrl cmd done")
 end
 
@@ -853,32 +864,32 @@ end
 --  }
 --
 ]]
-function _run_info_cmd(proc,cmd,addr,log)
+function _run_info_cmd(procs,cmd,addr,log)
     local addr=assert(addr,"must pass addr")
-    local proc=cjson.decode(proc) 
-    local name=string.format("%s%.4d",proc.module,proc.index)
+    local result={}
+    for i,proc in ipairs(procs) do
+        local name=proc.name
 
-    log:info("cmd:%s %s",cmd,name)
-    local _p=process(proc)
-
-    local ok,ret=pcall(_p[cmd],_p)
-    if not ok then
-        log:error("info cmd error:%s",ret)
-        response(addr,cmd,name,ret,1)
-    else
-        local _proc=_p:export()
-
-        local result={
-            state=STATE_NAME[ret.state],
+        log:info("cmd:%s %s",cmd,name)
+        local _p=process(proc)
+        local state_code
+        local ok,ret=pcall(_p[cmd],_p)
+        if not ok then
+            log:error("info cmd error:%s",ret)
+            state_code=STATE.UNKNOWN
+        else
+            state_code=ret.state
+        end
+        result[i]={
+            state=STATE_NAME[state_code],
             pid=ret.pid,
             name=name,
-            group=_proc.group,
+            group=proc.group,
             nodes=ret.status,
         }
-        
-        --to supervisord client
-        response(addr,cmd,name,result)
     end
+    --to supervisord client
+    response(addr,result)
     log:info("info cmd done")
 end
 function run_info_cmd(proc,cmd,addr)
@@ -897,10 +908,9 @@ function main()
     local command=cmds(node,log)
     while true do
         local msg_type, addr, msg = glr.recv()
-        addr=addr.addr
         if msg_type == glr.CLOSED then
-            log:warn("get CLOSED msg:%s",addr.host)
-            command.auto_restart({name=addr.host})
+            log:warn("get CLOSED msg:%s",addr.addr.host)
+            command.auto_restart({name=addr.addr.host})
         elseif MSG_TYPE.APP==msg_type then
             log:info("get msg:%s",msg)
             local msg_table=cjson.decode(msg)

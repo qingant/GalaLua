@@ -9,6 +9,7 @@ local pprint=require "pprint"
 local cjson=require "cjson"
 local io=require "io"
 local conf=require "supervisor_conf"
+local osext=require "osext"
 
 function get_supervisord_arg()
     local sup_conf=conf.watchConf(conf.create())
@@ -46,6 +47,8 @@ function Interface:init()
     self.host=self.conf.host
     self.port=tonumber(self.conf.port)
     self.addr_token=string.format("%s::%s",self.host,self.port) 
+    --用pid来确保消息是本进程的。
+    self.attr={corrid=osext.getpid()}
 end
 
 
@@ -75,10 +78,11 @@ function Interface:register_and_get_gpid()
     local reg={cmd="register",name="supervisord"}
     local addr={host=self.host,port=self.port,gpid=0}
     assert(glr.send(addr,cjson.encode(reg)))
-    local msg_type, addr, msg = glr.recv_by_condition(_cond)
-    if msg_type==glr.CLOSED then
+    local msg_type, addr, msg = glr.recv_by_condition(_cond,3)
+    if msg_type==nil or msg_type==glr.CLOSED then
         error("supervisord is not running")
     end
+    
     self.gpid=parse_gpid(msg)
     self.addr={host=self.host,port=self.port,gpid=self.gpid}
 end
@@ -104,38 +108,40 @@ function Interface:isStarted(sec)
     return nil,"supervisord is not running"
 end
 
---return an array of what we received, throw error if supervisord is not started.
-function Interface:recv_from_supervisord() 
-    local ret={}
-    local first_msg=true
-    local rest=0
-    --XXX:wait for command reply
-    repeat 
-        --TODO: ignore unexpected msg
-        local msg_type,addr,msg=glr.recv()
-        if msg_type==glr.CLOSED then
-            if self.addr_token==addr.host then
-                error("supervisord is exited unexpectedly!")
-            end
-        else
-            local t=cjson.decode(msg)
-
-            --first message will return the number of rest messages
-            if first_msg then   
-                rest=t.rest or 0
-                first_msg=false
-            else
-                ret[#ret+1]=t
-            end
-            rest=rest-1
-        end
-    until (rest<0)
-    return ret
+local function expected_msg(attr1,attr2)
+    return  attr1.msgid==attr2.msgid and attr1.corrid==attr2.corrid
 end
+
+--[[
+return an array of what we received, throw error if supervisord is not started.
+TODO: 增加超时
+]]
+function Interface:recv_from_supervisord(attr)
+    while true do
+        local msg_type,maddr,msg=glr.recv()
+        if msg_type==nil then
+            error("timeout")
+        end
+        local addr=maddr.addr
+        local _attr=maddr.attr
+        if msg_type==glr.CLOSED then
+            assert(self.addr_token~=addr.host, "supervisord is exited unexpectedly!")
+        elseif msg_type==glr.APP then
+            print(msg)
+            pprint.pprint(attr)
+            pprint.pprint(_attr)
+            if expected_msg(attr,_attr) then
+                return cjson.decode(msg)
+            end
+        end
+    end
+end
+
+
 
 --send message @content to supervisord
 function Interface:send_to_supervisord(content)
-    assert(glr.send(self.addr,content))
+    return assert(glr.send(self.addr,content,self.attr))
 end
 
 --stop supervisord
@@ -184,9 +190,9 @@ end
 function Interface:send_cmd(cmd,name)
     assert(cmd,"command is nil")
     assert(self:isStarted())
-    self:send_to_supervisord(cjson.encode({cmd=cmd,name=name}))
+    local attr=self:send_to_supervisord(cjson.encode({cmd=cmd,name=name}))
     --XXX:waiting one reply.
-    return self:recv_from_supervisord()
+    return self:recv_from_supervisord(attr)
 end
 
 
@@ -197,7 +203,13 @@ function Interface:all_cmds(cmd)
             if name=="*all" then
                 name=nil
             end
-            return self:send_cmd(cmd,name)
+            local ret=self:send_cmd(cmd,name)
+            if ret.status==0 then
+                return ret.result
+            else
+                return nil,ret.result
+            end
+
         else
             error("argument can't be nil")
         end
@@ -229,30 +241,11 @@ function Interface:status(name)
 end
 
 function Interface:config(name)
-    return self:send_cmd("config",name)
+    return self:all_cmds("config")(name or "*all")
 end
 
 function Interface:list()
-    function init()
-        local s={}
-        for i,v in pairs(STATE_NAME) do
-            s[v]=0
-        end
-        return s
-    end
-    local msg,errmsg=self:send_cmd("list",name)
-    if msg then
-        local statistics=init()
-        local process=msg[1].result or {}
-        for i=1,#process do
-            local state=STATE_NAME[process[i].state]
-            process[i].state=state
-
-            statistics[state]=statistics[state]+1
-        end
-        msg[1].result={status=statistics,process=process}
-    end
-    return msg,errmsg
+    return self:all_cmds("list")("*all")
 end
 
 function new()
