@@ -8,14 +8,12 @@
 
 module(..., package.seeall)
 
-
-
 local base = require("core.processor").server
 local http = require("http.http").http
 local response = require("http.response").response
 local context = require(_PACKAGE .. "context").context
 local session_manager = require(_PACKAGE .. "session").session_manager
-local vaild_static_path = require(_PACKAGE .. "utils").vaild_static_path
+local path_cls = require("os.path").path
 local pprint = require("pprint")
 
 local processor = base:new()
@@ -23,8 +21,7 @@ local processor = base:new()
 server = processor
 
 function processor:new(app_name, pool_name, idx, params)
-    base.init(self, app_name, pool_name, idx)
-    self.urls = params.urls
+    base.init(self, app_name, pool_name, idx) self.urls = params.urls
     self._session_storage_path = params.session_storage_path
     self._static_path  = params.static_path
     self._session_mgr = session_manager:new():init(self._session_storage_path)
@@ -91,6 +88,7 @@ function processor:_request_dispatch(request)
             end
         end
     end
+    self.response_404:set_content(self.response_404.content)
     return self.response_404
 end
 
@@ -129,7 +127,7 @@ function processor:_read_file_content(path)
     return content
 end
 
-function processor:_is_file_exist(path)
+function processor:is_file_exist(path)
     local fd,err,errno = io.open(path,"rb")
     if fd then
         io.close(fd)
@@ -139,9 +137,10 @@ function processor:_is_file_exist(path)
     end
 end
 
-function processor:_is_file_vaild(path)
+function processor:is_file_vaild(path)
     print(path,self._static_path,"----compare-----")
-    if string.match(path,self._static_path) then
+    path_cls = path_cls:new():init(path)
+    if path_cls:is_prefix_of(self._static_path) and path_cls:isfile(path) then
         print(path,self._static_path,"----match----")
         local fd,err,errno = io.open(path,"rb")
         if fd then
@@ -165,9 +164,15 @@ function processor:_static_handle(request)
     local uri = request.uri
     local fname =  assert(string.match(uri, "^/statics(/.*)"))
     local full_path = self._static_path .. fname
-    full_path = vaild_static_path(full_path)
+    path_cls = path_cls:new():init(full_path)
+    print("full_path",full_path)
+    full_path = path_cls:normpath(full_path)
     print("image path : ", full_path)
-    if not self:_is_file_vaild(full_path) then
+    if not self:is_file_vaild(full_path) then
+        print(self.response_404.status)
+        print(self.response_404.statusCode)
+        print(self.response_404.content)
+        self.response_404:set_content(self.response_404.content)
         return self.response_404
     end
     local response = response:new():init()

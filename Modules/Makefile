@@ -7,3 +7,4 @@ cp:
 	cp -rf glr $(HOME)/lib/lua/
 	cp -rf native ${HOME}/lib/lua/
 	cp -rf http $(HOME)/lib/lua/
+	cp -rf os $(HOME)/lib/lua/

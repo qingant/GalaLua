@@ -13,7 +13,7 @@ local session_manager = require(_PACKAGE .. "session").session_manager
 local session = require(_PACKAGE .. "session").session
 local pprint = require("pprint")
 local response = require("http.response").response
-local get_date = require(_PACKAGE .. "utils").get_date
+local get_date = require("http.utils").get_date
 
 
 context = {}

@@ -24,15 +24,16 @@ function response:init()
 end
 function response:set_status_code(code)
     self.statusCode = tostring(code)
-    self.status = "Not Found"
     if self.statusCode == "404" then
+        self.status = "Not Found"
         self.content = "Not Found"
     end
     return self
 end
 function response:set_content(content)
     self.content = content
-    local len = #content
+    local len = content ~= nil and #content or 0
+    print("----Content-Length----", len)
     self["Content-Length"] = tostring(len)
     if len > 50000 then
         self.chunked = true
