@@ -49,7 +49,8 @@ function app_mgr:_init()
     self.app_inst_name = self.base_name:sub(1, #self.base_name - 1)
     self.root_sup = rpc.create_client(kernel_sup_name)
     self.supervisor_id = fmt("%ssupervisor", self.base_name)
-    self._logger = logger:new():init(self)  --TODO:
+    local log_file_path = string.format("%s/app.log", self.app.log_path)
+    self._logger = logger:new():init(self, log_file_path)  --TODO:
 end
 function app_mgr:_start_pool(com)
     -- start pool
@@ -88,7 +89,7 @@ function app_mgr:_start_app()
             process_params = {
                 mod_name = "core.supervisor",
                 bind_gpid = _get_free_bgpid(),
-                parameters = {self.supervisor_id},
+                parameters = {self.supervisor_id, self.app.log_path},
             },
         }
         local rt = self.root_sup:call("start_process", app_sup_start_arguments)
