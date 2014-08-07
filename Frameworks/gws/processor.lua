@@ -167,7 +167,7 @@ function processor:_static_handle(request)
     local full_path = self._static_path .. fname
     local path_cls = path_cls:new():init(full_path)
     print("full_path",full_path)
-    full_path = path_cls:norm_path(full_path)
+    full_path = path_cls:norm_path(full_path):get_path()
     print("image path : ", full_path)
     if not self:is_file_vaild(full_path) then
         print(self.response_404.status)
