@@ -39,6 +39,7 @@ local _logger = {
 }
 local _logger_Flag ={"DEBUG", "TRACE", "INFO ","WARN ", "ERROR", "FATAL"}
 logger = _logger
+_logger.format = pprint.format
 
 function _logger:new(o)
     local o = o or {}
@@ -137,7 +138,7 @@ function _logger:_wirte_v() -- used for text
     if 0 == n then  -- there is no data to flush
         return
     end
-    local iov = self:_new_c_buf("iovec[?]", n, buf)  
+    local iov = self:_new_c_buf("iovec[?]", n, buf)
     if fd ~= -1 then
         res=cio.writev(fd,iov,n)
         if -1 == res then

@@ -39,7 +39,7 @@ function server:_flush()
 end
 
 function server:on_timeout()
-    self._logger:flush()
+    self:flush()
 end
 
 function server:log(params)
