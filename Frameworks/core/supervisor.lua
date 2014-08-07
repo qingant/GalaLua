@@ -41,12 +41,16 @@ function process_table:__newindex(k,v)
     end
 end
 
-function server:new(name)
+function server:new(name, log_path)
     self:init(name)
     self._processes = process_table:new()
     self._id = 0
     self._processes_indexed_by_id = {}
-    self._logger = logger:new():init(self,"../../log/test.log")
+    local log_file_path = nil
+    if log_path then
+        log_file_path = string.format("%s/%s.log", log_path, name)
+    end
+    self._logger = logger:new():init(self, log_file_path)
     self._logger:info("supervisor(%s) started", name)
     return self
 end

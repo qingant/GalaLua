@@ -383,7 +383,7 @@ void Process::Preempt(lua_State *l, lua_Debug *ar)
 {
 
     lua_getinfo(l, "n", ar);
-    printf("Line hook %d\n", ar->currentline);
+    GALA_ERROR("Line hook %d\n", ar->currentline);
     lua_yield(l, 0);
 }
 

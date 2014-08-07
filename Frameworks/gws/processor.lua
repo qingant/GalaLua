@@ -58,6 +58,7 @@ function processor:on_message(mtype, desc, msg)
         end
         self._logger:info(err)
         self:_back_to_pool()
+        self._logger:info("back to pool")
         -- glr.net.close(self._fd)
         -- self:_back_to_pool()
     end
@@ -164,7 +165,7 @@ function processor:_static_handle(request)
     local uri = request.uri
     local fname =  assert(string.match(uri, "^/statics(/.*)"))
     local full_path = self._static_path .. fname
-    path_cls = path_cls:new():init(full_path)
+    local path_cls = path_cls:new():init(full_path)
     print("full_path",full_path)
     full_path = path_cls:normpath(full_path)
     print("image path : ", full_path)

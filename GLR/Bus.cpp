@@ -128,16 +128,15 @@ void GLR::Bus::TimerSignal( int pid, int tick )
         if (tick != nd._Status._Tick)
         {
 
-            GALA_ERROR("Now Tick: %d, Last Tick: %d\n", nd._Status._Tick, tick);
+            GALA_DEBUG("Now Tick: %d, Last Tick: %d\n", nd._Status._Tick, tick);
             return;
         }
-        Galaxy::GalaxyRT::CLockGuard _ll(&nd._Lock, true);
         Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, true);
+        Galaxy::GalaxyRT::CLockGuard _ll(&nd._Lock, true);
         if (tick != nd._Status._Tick)
         {
             return;
         }
-        GALA_ERROR("Pid(%d) Status(%d)", pid, nd._Status._State);
         if (nd._Status._State != Process::ProcessStatus::INT_WAIT &&
             nd._Status._State != Process::ProcessStatus::RECV_WAIT)
         {
@@ -145,7 +144,6 @@ void GLR::Bus::TimerSignal( int pid, int tick )
         }
         nd._Status._NArg = 0;
         nd._Status._State = Process::ProcessStatus::INT_RESP;  
-        nd.StackDump();
         Runtime::GetInstance().GetSchedule().PutTask(nd);
     }
     catch (const Galaxy::GalaxyRT::CException &e)
@@ -186,10 +184,9 @@ bool Bus::ResponseEx(int pid, int tick, int narg, ...)
             GALA_ERROR("process(%ld) call(%ld) canceled", pid, tick);
             return false;
         }
-        GALA_ERROR("");
-        Galaxy::GalaxyRT::CLockGuard _LL(&nd._Lock, false);
+
         Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, true); // ???
-        GALA_ERROR("Pid(%d) Status(%d)", pid, nd._Status._State);
+        Galaxy::GalaxyRT::CLockGuard _LL(&nd._Lock, true);
         if (nd._Status._State != Process::ProcessStatus::INT_WAIT &&
             nd._Status._State != Process::ProcessStatus::RECV_WAIT)
         {

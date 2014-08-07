@@ -36,7 +36,9 @@ function app:set_static_path(path)
 end
 function app:set_log_path(path)
     os.execute("mkdir -p " .. path)
-    self.components[1].params.log_path = path
+    self.log_path = path
+    self.components[1].params.log_path = path .. "/web/"
+    os.execute("mkdir -p " .. self.components[1].params.log_path)
 end
 app:add_component{
     catagory = "pool",
