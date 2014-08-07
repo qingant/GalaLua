@@ -12,7 +12,7 @@
     file privilege control
 ]]
 
---module(...,package.seeall)
+module(...,package.seeall)
 --TODO parse pPattern replace %. as %s\ 
 --@param : pString : str what to split
 --@param : pPattern : character is splited by
