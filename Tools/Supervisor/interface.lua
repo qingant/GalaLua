@@ -114,26 +114,31 @@ end
 
 --[[
 return an array of what we received, throw error if supervisord is not started.
-TODO: 增加超时
 ]]
 function Interface:recv_from_supervisord(attr)
-    while true do
-        local msg_type,maddr,msg=glr.recv()
-        if msg_type==nil then
-            error("timeout")
-        end
-        local addr=maddr.addr
-        local _attr=maddr.attr
+    function _cond(msg)
+        local msg_type=msg[1]
         if msg_type==glr.CLOSED then
-            assert(self.addr_token~=addr.host, "supervisord is exited unexpectedly!")
-        elseif msg_type==glr.APP then
-            print(msg)
-            pprint.pprint(attr)
-            pprint.pprint(_attr)
-            if expected_msg(attr,_attr) then
-                return cjson.decode(msg)
-            end
+            return true
+        elseif  msg_type==glr.APP and expected_msg(attr,msg[2].attr) then
+            return true
         end
+    end
+
+    local msg_type,maddr,msg=glr.recv_by_condition(_cond,60*3)
+    if msg_type==nil then
+        error("timeout")
+    end
+    local addr=maddr.addr
+    if msg_type==glr.CLOSED then
+        assert(self.addr_token~=addr.host, "supervisord is exited unexpectedly!")
+    elseif msg_type==glr.APP then
+        --[[
+        print(msg)
+        pprint.pprint(attr)
+        pprint.pprint(_attr)
+        ]]
+        return cjson.decode(msg)
     end
 end
 
@@ -205,7 +210,9 @@ function Interface:all_cmds(cmd)
             end
             local ret=self:send_cmd(cmd,name)
             if ret.status==0 then
-                return ret.result
+                local result=ret.result
+                table.sort(result,function (v1,v2) return v1.name<v2.name end)
+                return result
             else
                 return nil,ret.result
             end
