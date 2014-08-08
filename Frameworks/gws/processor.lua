@@ -48,6 +48,9 @@ function processor:on_message(mtype, desc, msg)
         while true do
             r, err = pcall(function ()
                     local request = self._protocol:get_request()
+                    for i,k in pairs(request) do 
+                        self._logger:debug("%s : %s", i, k)
+                    end
                     -- self._logger:debug(pprint.format(request, "request"))
                     local rsp = self:_request_dispatch(request)
                     self._protocol:send_response(rsp)
@@ -66,8 +69,10 @@ end
 function processor:_is_static_request(uri)
     local pattern = "^/statics/.*"
     if string.match(uri, pattern) then
+        self._logger:debug("statics file : true")
         return true
     else
+        self._logger:debug("statics file : false")
         return false
     end
 end
@@ -110,8 +115,10 @@ function processor:_call_hander(h, request)
 
     local response
     if request.method == "GET" then
+        self._logger:info("method: GET")
         response = handle:get(context, params)
     elseif request.method == "POST" then
+        self._logger:info("method: POST")
         response = handle:post(context, params)
     end
 
@@ -139,15 +146,17 @@ function processor:is_file_exist(path)
 end
 
 function processor:is_file_vaild(path)
-    print(path,self._static_path,"----compare-----")
+    self._logger:debug("compare : %s %s",path,self._static_path)
     path_cls = path_cls:new():init(path)
     if path_cls:is_prefix_of(self._static_path) and path_cls:is_file(path) then
-        print(path,self._static_path,"----match----")
+        self._logger:debug("%s %s : %",path, self._static_path," match ")
         local fd,err,errno = io.open(path,"rb")
         if fd then
             io.close(fd)
+            self._logger:debug("statics file is vaild")
             return true
         else
+            self._logger:debug("statics file isn't vaild")
             return false
         end
     else
@@ -166,19 +175,24 @@ function processor:_static_handle(request)
     local fname =  assert(string.match(uri, "^/statics(/.*)"))
     local full_path = self._static_path .. fname
     local path_cls = path_cls:new():init(full_path)
-    print("full_path",full_path)
     full_path = path_cls:norm_path(full_path):get_path()
-    print("image path : ", full_path)
+    self._logger:debug("full path : ", full_path)
     if not self:is_file_vaild(full_path) then
-        print(self.response_404.status)
-        print(self.response_404.statusCode)
-        print(self.response_404.content)
+        self._logger:debug("status : %s \nstatusCode : %s \n content : %s",
+                self.response_404.status,self.response_404.statusCode,self.response_404.content)
         self.response_404:set_content(self.response_404.content)
+        self._logger:info("statusCode : %s", self.response_404.statusCode)
         return self.response_404
     end
     local response = response:new():init()
     response:set_content(self:_read_file_content(full_path))
     response:set_content_type(CONTENT_TYPE[string.lower(string.match(uri,"%.(%w+)$"))])
+    self._logger:info("statusCode : %s", response.statusCode)
+    for i, k in pairs(response) do
+        if i ~= "content" then
+            self._logger:debug("%s : %s",i,k)
+        end
+    end
     return response
 end
 

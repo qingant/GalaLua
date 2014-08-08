@@ -50,10 +50,8 @@ function session:is_expired(origin_expire)
     local now = get_date()
     local t = diff_date(now, origin_expire)
     if t >= 0 then
-        --print("has expired")
         return true
     else
-        --print("hasn't expired")
         return false
     end
 end

@@ -64,12 +64,10 @@ function strip(pString)
     if not e1 then
         e1 = 0
     end
-    --print(s1,e1)
     local s2,e2 = string.find(pString,"%s+$")
     if not s2 then
         s2 = #pString + 1
     end
-    --print(s2,e2)
     return string.sub(pString,e1+1,s2-1)
 end
 --------------------------------------
@@ -116,8 +114,6 @@ function diff_date(date1, date2)
     if date1 == date2 then
         return 0
     end
-    --print("date1",date1)
-    --print("date1",date2)
     date1 = parse_date(date1)
     date2 = parse_date(date2)
     if date1["year"] < date2["year"] then
