@@ -240,6 +240,22 @@ function httpClient:get_Response(req,timeout)
     return ok,msg
 end
 
+function httpClient:concurrent(url,times)
+    local req = httpRequest:new():init("GET", url)
+    co = coroutine.create(function()
+        for i=1,times do
+            local response= self:get_Response(req,20)
+            coroutine.yield()
+        end
+    end
+    )
+
+    for i  = 1,times do
+        print("times : ", i)
+        coroutine.resume(co)
+    end
+end
+
 function find_all_urls(uri, response)
     local len = #response["content"]
     local content = response["content"]
@@ -259,12 +275,12 @@ function find_all_urls(uri, response)
     return urls
 end
 
-function auto_request(uri,url,depth)
+function httpClient:auto_request(uri,url,depth)
     ---print("--------url-----------",url)
     depth = depth + 1
     local req = httpRequest:new():init("GET", url)
-    local cli = httpClient:new()
-    local response= cli:get_Response(req,20)
+    --local cli = httpClient:new()
+    local response= self:get_Response(req,20)
     urls  = find_all_urls(uri,response)
     if urls == "" then
 	return ""
@@ -272,8 +288,7 @@ function auto_request(uri,url,depth)
     pprint.pprint(urls,"-------depth:".. depth .. "-------index:".. 0 .. "---- url:".. url .."--------------")
     for i,_url in pairs(urls) do
         print("-------depth:".. depth .. "-------index:".. i .. "---- url:".. _url .."--------------")
-        auto_request(uri,_url,depth)
-        
+        self:auto_request(uri,_url,depth)
     end
 end
 
@@ -287,10 +302,18 @@ if ... == "__main__" then
     -- uri = "http://qt-project.org/doc/qt-5.0/qtmultimedia/audiooverview.html"
     -- uri = "http://dlang.org/phobos/std_container.html"
     -- uri = "http://www.iteye.com"
-    uri = "192.168.33.10:8080"
+    uri = "127.0.0.1:8080"
     local path = "/statics/index.html"
     url= uri .. path
     local depth = 0
-    auto_request(uri,url,depth)
-    
+    local cli = httpClient:new()
+    concurrent = false
+    auto_request = true 
+    if concurrent then
+        cli:concurrent(url,100)
+    end
+
+    if auto_request then
+        cli:auto_request(uri,url,depth)
+    end
 end
