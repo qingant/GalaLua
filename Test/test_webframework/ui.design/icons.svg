@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1052.3622"
+   height="744.09448"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="icons.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.676229"
+     inkscape:cx="210.99289"
+     inkscape:cy="304.7031"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1366"
+     inkscape:window-height="706"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-308.2677)">
+    <g
+       id="g4442"
+       transform="translate(-9.4038544,0.59655762)"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.line.chart.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <rect
+         style="fill:#ff6600;fill-opacity:1;stroke:none"
+         id="rect4417"
+         width="60"
+         height="60"
+         x="283.23816"
+         y="677.4342"
+         rx="2.5310626"
+         ry="2.5310626"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.bar.chart.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <g
+         id="g4419"
+         transform="matrix(0.94030497,0,0,0.94030497,202.10586,10.871899)">
+        <path
+           id="path4421"
+           transform="translate(0,308.2677)"
+           d="m 121.875,414.53125 -1.03125,1.90625 -16.8125,30.53125 -15.1875,-25.0625 -0.65625,0.375 0,4.34375 14.625,24.125 1.34375,2.21875 1.25,-2.28125 17,-30.90625 23.28125,27.28125 2.28125,-1.9375 -24.6875,-28.9375 -1.40625,-1.65625 z"
+           style="fill:#f9f9f9;fill-opacity:1;stroke:none"
+           inkscape:connector-curvature="0" />
+        <path
+           id="path4423"
+           transform="translate(0,308.2677)"
+           d="m 137.5625,407.53125 -1.03125,1.75 -15.5,26.4375 -12.25,-24.65625 -1.5,-3 -1.21875,3.125 -17.875,45.21875 2.78125,1.09375 16.625,-42.0625 12,24.125 1.21875,2.46875 1.40625,-2.375 15.84375,-27.0625 9.03125,10.09375 1.09375,-0.96875 0,-2.3125 -9.25,-10.34375 -1.375,-1.53125 z"
+           style="fill:#f9f9f9;fill-opacity:1;stroke:none"
+           inkscape:connector-curvature="0" />
+      </g>
+    </g>
+    <g
+       id="g4435"
+       transform="translate(-1.5293121,4.772644)"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.bar.chart.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <rect
+         inkscape:export-ydpi="90"
+         inkscape:export-xdpi="90"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.bar.chart.png"
+         ry="2.5310626"
+         rx="2.5310626"
+         y="673.25812"
+         x="187.49203"
+         height="60"
+         width="60"
+         id="rect4425"
+         style="fill:#55d400;fill-opacity:1;stroke:none" />
+      <rect
+         ry="0"
+         rx="0"
+         y="689.06696"
+         x="195.34198"
+         height="38.349052"
+         width="9.2402353"
+         id="rect4427"
+         style="fill:#f9f9f9;stroke:none"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.bar.chart.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <rect
+         style="fill:#f9f9f9;stroke:none"
+         id="rect4429"
+         width="9.2402353"
+         height="21.656998"
+         x="207.37764"
+         y="705.75903"
+         rx="0"
+         ry="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.bar.chart.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <rect
+         ry="0"
+         rx="0"
+         y="679.72546"
+         x="219.4133"
+         height="47.690475"
+         width="9.2402353"
+         id="rect4431"
+         style="fill:#f9f9f9;stroke:none"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.bar.chart.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <rect
+         style="fill:#f9f9f9;stroke:none"
+         id="rect4433"
+         width="9.2402353"
+         height="21.656998"
+         x="231.44896"
+         y="705.75903"
+         rx="0"
+         ry="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.bar.chart.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+    </g>
+    <g
+       id="g4466"
+       transform="translate(-1.1931697,111.88031)"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <rect
+         inkscape:export-ydpi="90"
+         inkscape:export-xdpi="90"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         ry="2.5310626"
+         rx="2.5310626"
+         y="566.15045"
+         x="362.89905"
+         height="60"
+         width="60"
+         id="rect4468"
+         style="fill:#800080;fill-opacity:1;stroke:none" />
+      <path
+         style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 403.01853,577.85422 1.61756,0.71986 -2.52064,5.65884 -1.61757,-0.71986 z"
+         id="path4470"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 412.13967,584.08649 1.18479,1.31523 -4.60544,4.14484 -1.18479,-1.31524 z"
+         id="path4472"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 417.93612,593.4882 0.54717,1.68319 -5.89393,1.91416 -0.54716,-1.68319 z"
+         id="path4474"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 419.40568,604.43359 -0.18508,1.76012 -6.16328,-0.64749 0.18508,-1.76011 z"
+         id="path4476"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 366.57749,605.9486 -0.18509,-1.76012 6.16329,-0.64748 0.18508,1.76012 z"
+         id="path4478"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 367.41673,594.93697 0.54716,-1.6832 5.89392,1.91417 -0.54716,1.6832 z"
+         id="path4480"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 372.66439,585.21861 1.18478,-1.31523 4.60544,4.14484 -1.18478,1.31523 z"
+         id="path4482"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 381.41302,578.47386 1.61756,-0.71984 2.52064,5.65883 -1.61756,0.71985 z"
+         id="path4484"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+         d="m 392.14989,575.86883 1.77064,0 0,6.19436 -1.77064,0 z"
+         id="path4486"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         sodipodi:type="arc"
+         style="fill:#ffffff;fill-opacity:1;stroke:#f9f9f9;stroke-width:2.08928561;stroke-miterlimit:4;stroke-dasharray:none"
+         id="path4488"
+         sodipodi:cx="65.913094"
+         sodipodi:cy="381.41431"
+         sodipodi:rx="4.112977"
+         sodipodi:ry="4.112977"
+         d="m 70.026071,381.41431 c 0,2.27153 -1.841443,4.11297 -4.112977,4.11297 -2.271535,0 -4.112977,-1.84144 -4.112977,-4.11297 0,-2.27154 1.841442,-4.11298 4.112977,-4.11298 2.271534,0 4.112977,1.84144 4.112977,4.11298 z"
+         transform="matrix(0.68644175,0,0,0.65617005,348.86354,352.45033)"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         sodipodi:nodetypes="cccc"
+         inkscape:connector-curvature="0"
+         id="path4490"
+         d="m 399.34632,583.7252 -3.6013,20.23375 -4.22138,-0.62038 z"
+         style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:0.5;stroke-miterlimit:4;stroke-dasharray:none"
+         inkscape:transform-center-y="-9.917316"
+         inkscape:transform-center-x="-2.05637"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <text
+         xml:space="preserve"
+         style="font-size:11.06278419px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;font-family:Sans"
+         x="379.06516"
+         y="616.99811"
+         id="text4492"
+         sodipodi:linespacing="125%"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           sodipodi:role="line"
+           id="tspan4494"
+           x="379.06516"
+           y="616.99811">59.58</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:7.5821929px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;font-family:Arial;-inkscape-font-specification:Arial Bold"
+         x="389.6561"
+         y="591.03448"
+         id="text4496"
+         sodipodi:linespacing="125%"
+         inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           sodipodi:role="line"
+           id="tspan4498"
+           x="389.6561"
+           y="591.03448">%</tspan></text>
+    </g>
+    <g
+       id="g4518"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.indicator.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <rect
+         style="fill:#5a63ff;fill-opacity:1;stroke:none"
+         id="rect4500"
+         width="60"
+         height="60"
+         x="98.091141"
+         y="678.03076"
+         rx="2.5310626"
+         ry="2.5310626"
+         inkscape:export-filename="C:\Users\Leo.Lei\Desktop\indicator.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <g
+         id="g4502"
+         transform="matrix(0.9719817,0,0,0.9719817,-54.425265,58.363248)"
+         inkscape:export-filename="C:\Users\Leo.Lei\Desktop\indicator.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"
+         style="fill:#f9f9f9;fill-opacity:1">
+        <g
+           id="g4504"
+           transform="translate(-297.03668,0.52746971)"
+           style="fill:#f9f9f9;fill-opacity:1">
+          <text
+             transform="scale(0.90453239,1.1055436)"
+             xml:space="preserve"
+             style="font-size:13.48389626px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+             x="509.08139"
+             y="598.37128"
+             id="text4506"
+             sodipodi:linespacing="125%"><tspan
+               sodipodi:role="line"
+               id="tspan4508"
+               x="509.08139"
+               y="598.37128">STATUS</tspan><tspan
+               sodipodi:role="line"
+               x="509.08139"
+               y="615.22614"
+               id="tspan4510" /></text>
+          <text
+             sodipodi:linespacing="125%"
+             id="text4512"
+             y="684.81177"
+             x="469.83118"
+             style="font-size:20.48424339px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;font-family:Sans"
+             xml:space="preserve"><tspan
+               style="font-weight:bold;fill:#f9f9f9;fill-opacity:1;-inkscape-font-specification:Sans Bold"
+               y="684.81177"
+               x="469.83118"
+               id="tspan4514"
+               sodipodi:role="line">ON</tspan><tspan
+               id="tspan4516"
+               y="710.41705"
+               x="469.83118"
+               sodipodi:role="line" /></text>
+        </g>
+      </g>
+    </g>
+    <rect
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       ry="2.5310626"
+       rx="2.5310626"
+       y="758.56866"
+       x="93.84272"
+       height="60"
+       width="60"
+       id="rect3022"
+       style="fill:#892ca0;fill-opacity:1;stroke:none" />
+    <path
+       style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 133.9622,770.27245 1.61756,0.71986 -2.52064,5.65884 -1.61757,-0.71986 z"
+       id="path3024"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 143.08334,776.50472 1.18479,1.31523 -4.60544,4.14484 -1.18479,-1.31524 z"
+       id="path3026"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 148.87979,785.90643 0.54717,1.68319 -5.89393,1.91416 -0.54716,-1.68319 z"
+       id="path3028"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 150.34935,796.85182 -0.18508,1.76012 -6.16328,-0.64749 0.18508,-1.76011 z"
+       id="path3030"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 97.52116,798.36683 -0.18509,-1.76012 6.16329,-0.64748 0.18508,1.76012 z"
+       id="path3032"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 98.3604,787.3552 0.54716,-1.6832 5.89392,1.91417 -0.54716,1.6832 z"
+       id="path3034"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 103.60806,777.63684 1.18478,-1.31523 4.60544,4.14484 -1.18478,1.31523 z"
+       id="path3036"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 112.35669,770.89209 1.61756,-0.71984 2.52064,5.65883 -1.61756,0.71985 z"
+       id="path3038"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:1.40219331;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 123.09356,768.28706 1.77064,0 0,6.19436 -1.77064,0 z"
+       id="path3040"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ffffff;fill-opacity:1;stroke:#f9f9f9;stroke-width:2.08928561;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path3042"
+       sodipodi:cx="65.913094"
+       sodipodi:cy="381.41431"
+       sodipodi:rx="4.112977"
+       sodipodi:ry="4.112977"
+       d="m 70.026071,381.41431 a 4.112977,4.112977 0 1 1 -8.225954,0 4.112977,4.112977 0 1 1 8.225954,0 z"
+       transform="matrix(0.68644175,0,0,0.65617005,79.80721,544.86856)"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:nodetypes="cccc"
+       inkscape:connector-curvature="0"
+       id="path3044"
+       d="m 130.28999,776.14343 -3.6013,20.23375 -4.22138,-0.62038 z"
+       style="fill:#f9f9f9;fill-opacity:1;stroke:#f9f9f9;stroke-width:0.5;stroke-miterlimit:4;stroke-dasharray:none"
+       inkscape:transform-center-y="-9.917316"
+       inkscape:transform-center-x="-2.05637"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:11.06278419px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;font-family:Sans"
+       x="110.00883"
+       y="809.41632"
+       id="text3046"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan3048"
+         x="110.00883"
+         y="809.41632">59.58</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.5821929px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;font-family:Arial;-inkscape-font-specification:Arial Bold"
+       x="120.59977"
+       y="783.4527"
+       id="text3050"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="E:\Workspace\am\amCloud\statics\images\ctrl.meter.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan3052"
+         x="120.59977"
+         y="783.4527">%</tspan></text>
+  </g>
+</svg>

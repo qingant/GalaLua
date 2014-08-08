@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>amCloud Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="header" onselectstart="return false;" ondragstart="return false;">
+    <div class="logo">
+        <img src="/images/logo.png">
+    </div>
+    <div class="navBar">
+        <ul>
+            <li name="sysinfo" url="/html/sysinfo.html">系统信息</li>
+            <li name="cluster" url="/html/treeview.html" class="tabSelected">集群管理</li>
+            <li name="analysis" url="/html/analysts.html" >数据分析</li>
+        </ul>
+    </div>
+    <div class="toolBox">
+        <ul>
+            <li><img src="/images/toolbox.collection.png"></li>
+            <li><img src="/images/toolbox.logout.png"></li>
+            <li><img src="/images/toolbox.setup.png"></li>
+            <li><img src="/images/toolbox.info.png"></li>
+        </ul>
+
+    </div>
+</div>
+
+<div id='leftPanel' class="leftPanel">
+    <ul></ul>
+    <div id="analysisCtrls" style="display: none">
+        <div id="amMeter" class="ctrlItem" draggable="true" ondrag="dragAdd(event)">
+            <img draggable="false" src="/images/ctrl.meter.png"/>
+            <label>Meter</label>
+        </div>
+        <div id="amLine" class="ctrlItem" draggable="true" ondrag="dragAdd(event)">
+            <img draggable="false" src="/images/ctrl.line.chart.png"/>
+            <label>Line Chart</label>
+        </div>
+        <div id="amBar" class="ctrlItem" draggable="true" ondrag="dragAdd(event)">
+            <img draggable="false" src="/images/ctrl.bar.chart.png"/>
+            <label>Bar Chart</label>
+        </div>
+        <div id="amIndicator" class="ctrlItem" draggable="true" ondrag="dragAdd(event)">
+            <img draggable="false" src="/images/ctrl.indicator.png"/>
+            <label>Indicator</label>
+        </div>
+    </div>
+</div>
+
+<div id="mainView" class="mainView">
+    <iframe id="mainFrame" name="mainFrame" style="height: 100%; width: 100%;" scrolling="auto" frameborder="0" src="/html/treeview.html"></iframe>
+</div>
+
+<script src="/js/trees.js"></script>
+<script src="/js/amTree.js"></script>
+<script src="/js/jquery.js"></script>
+
+<script>
+    $(function(){
+        window.onresize = resizeMainView;
+        resizeMainView();
+
+        $('.navBar li').click( function(){
+            $('.navBar .tabSelected').removeClass('tabSelected');
+            $(this).addClass('tabSelected');
+            $('#mainFrame').attr('src',$(this).attr('url'));
+            setLeftMenu($(this).attr('name'));
+        });
+
+        $('.navBar li').mouseenter( function(){
+            $('.navBar .tabHovered').removeClass('tabHovered');
+            $(this).addClass('tabHovered');
+        });
+
+        $('.navBar li').mouseleave( function(){
+            $(this).removeClass('tabHovered');
+        });
+
+        $('.toolBox li').mouseenter(function(){
+            $('.toolBox .hovered').removeClass('hovered');
+            $(this).addClass('hovered');
+        });
+
+        $('.toolBox li').mouseleave(function(){
+            $(this).removeClass('hovered');
+        });
+
+        $('.toolBox li img').mousedown(function(){
+            $(this).addClass('pressed');
+        });
+
+        $('.toolBox li img').mouseup(function(){
+            $(this).removeClass('pressed');
+        });
+
+        setLeftMenu('cluster');
+
+    });
+
+    function dragAdd(evt){
+        evt.preventDefault();
+        mainFrame.dragAdd(evt);
+    }
+
+    function resizeMainView(){
+        var panel = document.getElementById('leftPanel');
+        var mainView = document.getElementById('mainView');
+        var height = document.body.offsetHeight - 54 + 'px';
+
+        panel.style.width = '200px';
+        panel.style.height = height;
+        mainView.style.height = height;
+        mainView.style.width = document.body.offsetWidth - 200 + 'px';
+        mainView.style.width = document.body.offsetWidth - 200 + 'px';
+    }
+
+    function setLeftMenu(menu){
+        var menuData = getLeftTreeData(menu);
+        var panelList = $('#leftPanel ul');
+        panelList.empty();
+        $.each(menuData, function(i)
+        {
+            $('<li></li>')
+                    .attr('data', menuData[i].data)
+                    .attr('id', menuData[i].name)
+                    .text(menuData[i].name)
+                    .mouseenter(function(){
+                        $('.leftPanel .hovered').removeClass('hovered');
+                        $(this).addClass('hovered');
+                    })
+                    .mouseleave(function(){
+                        $(this).removeClass('hovered');
+                    })
+                    .click( function() {
+                        $('.leftPanel .selected').removeClass('selected');
+                        $(this).addClass('selected');
+                    })
+                    .appendTo(panelList);
+        });
+
+        $('#leftPanel ul li').first().addClass('selected');
+    }
+
+    function getLeftTreeData(menu){
+        var ctrl = document.getElementById('analysisCtrls');
+        ctrl.style.display = 'none';
+        switch (menu){
+            case 'sysinfo':
+                return [
+                    {name:'系统信息',data:null},
+                ]
+            case 'cluster':
+                return [
+                    {name:'集群1',data:tree1},
+                    {name:'集群2',data:tree2},
+                    {name:'集群3',data:tree3},
+                ];
+            case 'analysis':
+                ctrl.style.display = 'block';
+                return [];
+        }
+    }
+
+</script>
+
+</body>
+</html>

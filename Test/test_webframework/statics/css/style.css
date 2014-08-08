@@ -1,0 +1,233 @@
+html,body{
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
+    min-height: 580px;
+    min-width: 1000px;
+    overflow: hidden;
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.header{
+    width: 100%;
+    height: 54px;
+    color: #ccc;
+    background-color: #333;
+}
+
+.header .logo{
+    float: left;
+    width: 80px;
+    height: 54px;
+    /*width: 54px;*/
+    background-color: #555;
+    border-right: 2px solid #ccc;
+}
+
+.header .logo img{
+    height:40px;
+    /*width: 52px;*/
+    margin-top: 6px;
+    margin-left: 8px;
+}
+
+.header ul{
+    padding:0 0;
+    margin:0 0;
+    color: #ccc;
+    height: 100%;
+    font-size: 15pt;
+}
+
+.header ul>li{
+    height: 100%;
+    line-height: 54px;
+    vertical-align: middle;
+    list-style-type: none;
+}
+
+.header .navBar{
+    float: left;
+    margin-left: 20px;
+    width: auto;
+    height: 100%;
+}
+
+.header .navBar ul>li{
+    float: left;
+    padding:0 10px;
+}
+
+.header .navBar .tabHovered{
+    background-color: #3e3e3e;
+}
+
+.header .navBar .tabSelected{
+    background-color: #2a2a2a;
+}
+
+.header .toolBox {
+    float: right;
+    width: auto;
+    height: 100%;
+}
+
+.header .toolBox ul>li{
+    float: right;
+    width: 54px;
+    font-size: 14pt;
+}
+
+.header .toolBox img{
+    height: 26px;
+    display: block;
+    margin:14px auto;
+}
+
+.header .toolBox .pressed{
+    height: 22px;
+    display: block;
+    margin: 16px auto;
+}
+
+.header .toolBox .hovered{
+    background-color: #3f3f3f;
+}
+
+.leftPanel{
+    float: left;
+    width: 200px;
+    height: 100%;
+    background-color: #3f3f3f;
+}
+
+.leftPanel ul{
+    padding:0px 0px;
+    color: #ccc;
+    height: auto;
+    font-size: 13pt;
+}
+
+.leftPanel ul>li{
+    padding:0px 10px;
+    height: 100%;
+    line-height: 36px;
+    vertical-align: middle;
+    list-style-type: none;
+    border-bottom: solid 2px #444;
+}
+
+.leftPanel .hovered{
+    background-color: #666;
+}
+
+.leftPanel .selected{
+    background-color: #333;
+}
+
+
+.leftPanel .ctrlItem{
+    padding-top: 5px;
+    padding-left: 8px;
+    width: 100%;
+    height: 36px;
+}
+
+.leftPanel .ctrlItem label{
+    padding-left: 10px;
+    height: 30px;
+    line-height: 30px;
+    vertical-align: middle;
+    color: #ccc;
+}
+
+.leftPanel .ctrlItem img{
+    float: left;
+    width: 30px;
+    height: 30px;
+}
+
+.mainView{
+    float: left;
+    height: auto;
+    width: auto;
+    background-color: #ddd;
+}
+
+.mainCanvas{
+    float: left;
+    width: 1136px;
+    height: 100%;
+}
+
+.nodeInfoPanel{
+    float: right;
+    padding: 0px;
+    margin: 0px;
+    width: 220px;
+    height: 100%;
+    color: #333;
+    position: relative;
+    background-color: #ccc;
+    display: table;
+}
+
+.nodeInfoPanel .title{
+    margin: 0px;
+    padding: 5px;
+    height: 20px;
+    text-align: center;
+    font-size: 13pt;
+    font-weight: bold;
+    background-color: #bbb;
+    line-height: 20px;
+    vertical-align: middle;
+}
+
+.nodeInfoPanel .comment{
+    margin: 0px;
+    padding: 5px 10px;
+    font-size: 11pt;
+}
+
+.nodeInfoPanel .toolBox{
+    width: 100%;
+    height: 32px;
+    display: table-row;
+    background-color: #999;
+    vertical-align : bottom;
+    align-content: center;
+}
+
+
+.nodeInfoPanel .nodeButton{
+    margin: 0;
+    padding: 0;
+    float: left;
+    height: 32px;
+    width: 50px;
+    align-content: center;
+    font-size: 12pt;
+    text-align: center;
+}
+
+.nodeButton img{
+    margin: 0px 16px;
+    height: 30px;
+    width: 30px;
+}
+
+.nodeButton label{
+    padding: 0 0;
+    font-size: 11pt;
+    width: 50px;
+    text-align: center;
+    margin-right: 0;
+    margin-left: 16px;
+    font-family: 'Microsoft YaHei';
+}
