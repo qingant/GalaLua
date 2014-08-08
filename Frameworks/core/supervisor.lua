@@ -46,6 +46,7 @@ function server:new(name, log_path)
     self._processes = process_table:new()
     self._id = 0
     self._processes_indexed_by_id = {}
+
     local log_file_path = nil
     if log_path then
         log_file_path = string.format("%s/%s.log", log_path, name)
