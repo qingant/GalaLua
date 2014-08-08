@@ -98,8 +98,7 @@ local function show_status(status)
     local sep1=("*"):rep(40)
     local sep2=("-"):rep(20)
     out.add(sep1)
-
-    local status=status.result
+    
     local pid=""
     if status.pid then
         pid=string.format("[pid:%s]",status.pid)
@@ -120,7 +119,8 @@ end
 
 local function show_config(conf)
     local out=output()
-    local token=string.format("%s%.4d",conf.module,conf.index)
+--    local token=string.format("%s%.4d",conf.module,conf.index)
+    local token=conf.name
     out.add(token)
     out.add(("*"):rep(50))
     out.add(token..":")
@@ -176,7 +176,7 @@ function all_cmds(name,cmd,argc)
                 return cmd(...)
             end
         end
-        return cmd_template.cmd_error("Not enough argument!\nUsage:%s",help_more[name])
+        return cmd_template.cmd_error("wrong argument!\nUsage:%s",help_more[name])
     end
     return _cmd
 end
@@ -184,34 +184,24 @@ end
 
 function status(name)
     local interface=_interface.new()
-    local st=interface:status(name)
-    local ret={}
+    local st,emsg=interface:status(name)
     local out=cmd_output()
-    for i,s in pairs(st) do
-        ret[s.name]=s
-    end
-    for k,s in pairByKey(ret) do
-        if s.status==0 then
+    if st then
+        for i,s in ipairs(st) do
             show_status(s)
-        else
-            out.error(s.result)
         end
-
+    else
+        out.error(emsg)
     end
 end
 
-local function start_stop_show(ret,out)
-    local sort_ret={}
-    for i,v in ipairs(ret) do
-        local content=v.result
-        sort_ret[v.name]=v
-    end
-    for name,v in pairByKey(sort_ret) do
-        if v.status==0 then
-            out.result(name,v.result.state)
-        else
-            out.error(v.result)
+local function start_stop_show(out,ret,emsg)
+    if ret then
+        for i,v in ipairs(ret) do
+            out.result(v.name,v.state)
         end
+    else
+        out.error(emsg)
     end
 
 end
@@ -220,9 +210,8 @@ function start(name)
     local out=cmd_output()
     out.show(string.format("starting %s......",name))
     local interface=_interface.new()
-    local sort_ret={}
-    local ret=interface:start(name)
-    start_stop_show(ret,out)
+    local ret,emsg=interface:start(name)
+    start_stop_show(out,ret,emsg)
 end
 
 
@@ -230,9 +219,8 @@ function stop(name)
     local out=cmd_output()
     out.show(string.format("stopping %s......",name))
     local interface=_interface.new()
-    local sort_ret={}
-    local ret=interface:stop(name)
-    start_stop_show(ret,out)
+    local ret,emsg=interface:stop(name)
+    start_stop_show(out,ret,emsg)
 end
 
 
@@ -261,33 +249,26 @@ local function config(name)
     local interface=_interface.new()
     local ret,errmsg=interface:config(name)
     if ret then
-        ret=ret[1]
-        if not (ret and ret.result and next(ret.result)) then 
-            return out.warn(string.format("No valid configures"))
-        end
-        if ret.status==0 then
-            for i,c in ipairs(ret.result) do
-                show_config(c)
-            end
-        else
-            out.error(ret.result)
+        for i,c in ipairs(ret) do
+            show_config(c)
         end
     else
+        --return out.warn(string.format("No valid configures"))
         out.error(errmsg)
     end
 end
 
-local function show_supervisord(result)
+local function list_processes(result)
     local out=output()
     out.add(("+"):rep(30))
-    local statistics=result.status
-    for k,v in pairs(statistics) do
+    for k,v in pairs(result.sumary) do
         out.add(string.format("%-10s%s",k,v))
     end
     out.add(("+"):rep(30))
-    for i,v in ipairs(result.process) do
-        local token=string.format("%s%.4d",v.module,tonumber(v.index) or -1)
-        out.add(string.format("%-10s[%s]",token,v.state))
+    local procs=result.processes
+    table.sort(procs,function (v1,v2) return v1.name<v2.name end)
+    for i,v in ipairs(procs) do
+        out.add(string.format("%-10s[%s]",v.name,v.state))
     end
     out.write()
 
@@ -299,7 +280,7 @@ local function list()
     local interface=_interface.new()
     local ret,errmsg=interface:list()
     if ret then
-        show_supervisord(ret[1].result)
+        list_processes(ret)
     else
         out.error(errmsg)
     end
