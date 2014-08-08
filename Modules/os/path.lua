@@ -12,7 +12,7 @@
     file privilege control
 ]]
 
-module(...,package.seeall)
+--module(...,package.seeall)
 --TODO parse pPattern replace %. as %s\ 
 --@param : pString : str what to split
 --@param : pPattern : character is splited by
@@ -303,7 +303,7 @@ end
 
 function path:is_prefix_of(prefix)
     local path = self._path
-    local path_prefix = "^" .. prefix.."[%w-_/.]+"
+    local path_prefix = "^" .. string.gsub(prefix,"-","%%-") .. "[%w-_/.]+"
     if string.match(path, path_prefix) then
         return true
     else
@@ -313,7 +313,7 @@ end
 
 function path:is_suffix_of(suffix)
     local path = self._path
-    local path_suffix = "^[%w-_/.]-" .. suffix .. "$"
+    local path_suffix = "^[%w-_/.]-" .. string.gsub(suffix,"-","%%-") .. "$"
     if string.match(self._path, path_suffix) then
         return true
     else
@@ -784,6 +784,9 @@ function test_path()
     p = "a/b/c"
     local prefix ="b/c"
     test_is_prefix_of(p,prefix)
+    p = "a-b-c"
+    local prefix ="b-c"
+    test_is_prefix_of(p,prefix)
 
     print("------ test is_suffix_of -------")
     p = ""
@@ -797,5 +800,8 @@ function test_path()
     test_is_suffix_of(p,suffix)
     p = "a/b/c"
     local suffix = "ab/c"
+    test_is_suffix_of(p,suffix)
+    p = "a-b-c"
+    local suffix = "ab-c"
     test_is_suffix_of(p,suffix)
 end
