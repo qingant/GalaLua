@@ -338,11 +338,8 @@ function process(entry,max)
     
     --[[
         restart process when it exited accidentally
-        TODO:清理所有mdb
     ]]
     function Process:restart_if_exited()
-        mdb.lock_clear(db_path.router)
-        mdb.reader_free(db_path.router)
         local state=self:get_state()
         if state==STATE.EXITED then
             self:start()
