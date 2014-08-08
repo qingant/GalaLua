@@ -152,7 +152,7 @@ function processor:is_file_vaild(path)
     self._logger:debug("compare : %s %s",path,self._static_path)
     path_cls = path_cls:new():init(path)
     if path_cls:is_prefix_of(self._static_path) and path_cls:is_file(path) then
-        self._logger:debug("%s %s : %",path, self._static_path," match ")
+        self._logger:debug("%s %s : %s",path, self._static_path," match ")
         local fd,err,errno = io.open(path,"rb")
         if fd then
             io.close(fd)
