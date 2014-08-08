@@ -60,12 +60,15 @@ function _logger:init(process,log_path)
     self._max_file_num = 10
     self._times_to_get_filesize = 1 --每_times_to_get_filesize次flush buf，检查一次文件大小；为了测试方便，这里暂时设为1
     self._times = 0
+    self._fd = -1
     self._output = print
     self:set_path(self._log_path)
     --self._timeout = 3
     return self
 end
 function _logger:set_path(path)
+    self._log_path = path
+    self:finalize()
     local flag = bit.bor(c_flag.O_CREAT,c_flag.O_APPEND,c_flag.O_RDWR)
     local right = bit.bor(c_flag.S_IFMT,c_flag.S_IREAD,c_flag.S_IWRITE)
     self._fd = cio.open(self._log_path, flag, right)
