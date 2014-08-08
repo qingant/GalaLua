@@ -275,7 +275,7 @@ function find_all_urls(uri, response)
     return urls
 end
 
-function httpClient:auto_request(uri,url,depth)
+function httpClient:recur_request(uri,url,depth)
     ---print("--------url-----------",url)
     depth = depth + 1
     local req = httpRequest:new():init("GET", url)
@@ -288,7 +288,7 @@ function httpClient:auto_request(uri,url,depth)
     pprint.pprint(urls,"-------depth:".. depth .. "-------index:".. 0 .. "---- url:".. url .."--------------")
     for i,_url in pairs(urls) do
         print("-------depth:".. depth .. "-------index:".. i .. "---- url:".. _url .."--------------")
-        self:auto_request(uri,_url,depth)
+        self:recur_request(uri,_url,depth)
     end
 end
 
@@ -308,12 +308,12 @@ if ... == "__main__" then
     local depth = 0
     local cli = httpClient:new()
     concurrent = false
-    auto_request = true 
+    recur_request = true 
     if concurrent then
         cli:concurrent(url,100)
     end
 
-    if auto_request then
-        cli:auto_request(uri,url,depth)
+    if recur_request then
+        cli:recur_request(uri,url,depth)
     end
 end
