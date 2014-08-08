@@ -58,16 +58,19 @@ function processor:on_message(mtype, desc, msg)
             if not r then
                 break
             end
+            -- glr.net.poll(self._fd)
+            -- return
         end
         self._logger:info(err)
         self:_back_to_pool()
         self._logger:info("back to pool")
-        -- glr.net.close(self._fd)
+        glr.net.close(self._fd)
+        self._fd = -1
         -- self:_back_to_pool()
     end
 end
 function processor:_is_static_request(uri)
-    local pattern = "^/statics/.*"
+    local pattern = "^/statics?/.*"
     if string.match(uri, pattern) then
         self._logger:debug("statics file : true")
         return true
@@ -172,7 +175,7 @@ function processor:_static_handle(request)
                           ["css"] = "text/css",
                           ["txt"] = "text/plain"}
     local uri = request.uri
-    local fname =  assert(string.match(uri, "^/statics(/.*)"))
+    local fname =  assert(string.match(uri, "^/statics?(/.*)"))
     local full_path = self._static_path .. fname
     local path_cls = path_cls:new():init(full_path)
     full_path = path_cls:norm_path(full_path):get_path()
