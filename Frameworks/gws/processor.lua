@@ -55,13 +55,14 @@ function processor:on_message(mtype, desc, msg)
             if not r then
                 break
             end
-            glr.net.poll(self._fd)
-            return
+            -- glr.net.poll(self._fd)
+            -- return
         end
         self._logger:info(err)
         self:_back_to_pool()
         self._logger:info("back to pool")
-        -- glr.net.close(self._fd)
+        glr.net.close(self._fd)
+        self._fd = -1
         -- self:_back_to_pool()
     end
 end
