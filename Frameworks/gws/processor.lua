@@ -69,13 +69,20 @@ function processor:on_message(mtype, desc, msg)
         -- self:_back_to_pool()
     end
 end
+local CONTENT_TYPE = {["jpg"] = "image/jpg",
+                          ["js"] =  "application/x-javascript",
+                          ["png"] = "image/png",
+                          ["html"] = "text/html",
+                          ["css"] = "text/css",
+                          ["txt"] = "text/plain"}
 function processor:_is_static_request(uri)
-    local pattern = "^/statics?/.*"
-    if string.match(uri, pattern) then
-        self._logger:debug("statics file : true")
+    local pattern = "^/.*%.([^.]*)$"
+    local result = string.match(uri, pattern)
+    if  result and CONTENT_TYPE[result] then
+        self._logger:debug("static request : %s", uri)
         return true
     else
-        self._logger:debug("statics file : false")
+        self._logger:debug("not static request : %s", uri)
         return false
     end
 end
@@ -168,14 +175,8 @@ function processor:is_file_vaild(path)
 end
 
 function processor:_static_handle(request)
-    local CONTENT_TYPE = {["jpg"] = "image/jpg",
-                          ["js"] =  "application/x-javascript",
-                          ["png"] = "image/png",
-                          ["html"] = "text/html",
-                          ["css"] = "text/css",
-                          ["txt"] = "text/plain"}
     local uri = request.uri
-    local fname =  assert(string.match(uri, "^/statics?(/.*)"))
+    local fname =  assert(string.match(uri, "^/(.*)$"))
     local full_path = self._static_path .. fname
     local path = path_cls:new():init(full_path)
     full_path = path:norm_path(full_path):get_path()
