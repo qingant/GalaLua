@@ -48,7 +48,7 @@ function processor:on_message(mtype, desc, msg)
         while true do
             r, err = pcall(function ()
                     local request = self._protocol:get_request()
-                    for i,k in pairs(request) do 
+                    for i,k in pairs(request) do
                         self._logger:debug("%s : %s", i, k)
                     end
                     -- self._logger:debug(pprint.format(request, "request"))
@@ -150,8 +150,8 @@ end
 
 function processor:is_file_vaild(path)
     self._logger:debug("compare : %s %s",path,self._static_path)
-    path_cls = path_cls:new():init(path)
-    if path_cls:is_prefix_of(self._static_path) and path_cls:is_file(path) then
+    local o = path_cls:new():init(path)
+    if o:is_prefix_of(self._static_path) and o:is_file() then
         self._logger:debug("%s %s : %s",path, self._static_path," match ")
         local fd,err,errno = io.open(path,"rb")
         if fd then
@@ -177,8 +177,8 @@ function processor:_static_handle(request)
     local uri = request.uri
     local fname =  assert(string.match(uri, "^/statics?(/.*)"))
     local full_path = self._static_path .. fname
-    local path_cls = path_cls:new():init(full_path)
-    full_path = path_cls:norm_path(full_path):get_path()
+    local path = path_cls:new():init(full_path)
+    full_path = path:norm_path(full_path):get_path()
     self._logger:debug("full path : ", full_path)
     if not self:is_file_vaild(full_path) then
         self._logger:debug("status : %s \nstatusCode : %s \n content : %s",
