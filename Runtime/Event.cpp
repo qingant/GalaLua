@@ -381,6 +381,7 @@ namespace Galaxy
             CBaseSelector::EV_PAIRS evs;
 
 restart:
+            evs.clear();
             std::vector<POLLEVENT> _events;
             {
                 CLockGuard _Gl(&_Mutex);
@@ -1187,7 +1188,7 @@ restart:
             {
                 // printf("No Event\n");
                 return;
-                OnEvent(-1,0, _thread); //≥¨ ±
+                OnEvent(-1,0, _thread); //≥¨ ±
             }
         }
 
