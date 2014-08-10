@@ -1,7 +1,7 @@
 module(...,package.seeall)
 
 response = {}
-response.Fields = {"Set-Cookie","Date","Content-Type" , "Server", "Last-Modified","Content-Length", "Expire","Cache-Control","Transfer-Encoding"}
+response.Fields = {"Set-Cookie","Date","Content-Type" , "Server", "Last-Modified","Content-Length", "Expire","Cache-Control","Transfer-Encoding", "Location"}
 function response:new(o)
     local o = o or {}
     setmetatable(o, self)
@@ -47,7 +47,10 @@ function response:set_cookie(v)
     --self["Set-Cookie"] = self["Set-Cookie"] or {}
     --self["Set-Cookie"][k] = tostring(v)
 end
-
+function response:redirect(location)
+    self:set_status_code(302)
+    self["Location"] = location
+end
 function response:set_chunk()
     if self.chunked then
         self["Transfer-Encoding"] = "chunked"
@@ -109,7 +112,7 @@ function response:encode_chunk(content)
         if not data then
             chunk = "0"
             self.chunk[#self.chunk + 1] = string.format("%s\r\n",chunk)
-            self.chunk[#self.chunk + 1] = "\r\n" 
+            self.chunk[#self.chunk + 1] = "\r\n"
         else
             chunk = string.format("%s\r\n%s\r\n",header,data)
             self.chunk[#self.chunk + 1] = chunk
