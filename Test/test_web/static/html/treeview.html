@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>amCloud Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body ng-app="app">
+<div style="width: 100%;height: 100%">
+    <canvas id="mainCanvas" class="mainCanvas"></canvas>
+    <div id="nodeInfoPanel" class="nodeInfoPanel">
+        <div id="nodeInfoTitle" class="title"></div>
+        <div id="nodeInfoComment" class="comment"></div>
+        <div id="nodeInfoToolBox" class="toolBox" >
+            <div style="padding-top: 6px; padding-bottom: 0px; padding-left: 30px;">
+                <div id="nodeStart" class="nodeButton">
+                    <img src="/images/node.start.png">
+                </div>
+                <div id="nodeStop" class="nodeButton">
+                    <img src="/images/node.stop.png">
+                </div>
+                <div id="nodeRestart" class="nodeButton">
+                    <img src="/images/node.restart.png">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/trees.js"></script>
+<script src="/js/amTree.js"></script>
+<script src="/3rdparty/jquery.js"></script>
+
+<script>
+    var tree = new amTree('mainCanvas');
+    window.onresize = resizeCanvas;
+    tree.setTree(tree2);
+    resizeCanvas();
+
+    tree.addEventHandler('nodeClicked',function(node){
+        $('#nodeInfoTitle').html(node.name);
+        $('#nodeInfoComment').html(node.description);
+    });
+
+    tree.addEventHandler('treeChanged',function(tree){
+
+    })
+
+    function resizeCanvas(){
+        var canvas = document.getElementById('mainCanvas');
+        canvas.style.width = document.body.offsetWidth - 220 + 'px';
+        canvas.width = document.body.offsetWidth - 220;
+        canvas.height = document.body.clientHeight;
+        tree.initNodes();
+        tree.repaint();
+    }
+
+    function update(content){
+        alert(content);
+    }
+</script>
+</body>
+</html>
