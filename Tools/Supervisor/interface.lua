@@ -10,6 +10,7 @@ local cjson=require "cjson"
 local io=require "io"
 local conf=require "supervisor_conf"
 local osext=require "osext"
+local aim_rpc=require "aim_rpc"
 
 function get_supervisord_arg()
     local sup_conf=conf.watchConf(conf.create())
@@ -154,17 +155,14 @@ function Interface:stop_supervisord()
     if self:isStarted()then
         local addr={host=self.host,port=self.port,gpid=1}
 
-        glr.send(addr,cjson.encode({Type="NODE",Action="EXEC",Cmd="kill"}))
-
-        --XXX: we must recv the CLOSED msg here. Otherwise it will mess the rest
-        --command.
-        while true do
-            local msg_type,addr,msg=glr.recv_by_type(glr.CLOSED)
-            addr=addr.addr
-            if msg_type==glr.CLOSED and self.addr_token==addr.host then
-                break
-            end
+        local c=aim_rpc.new_client({host=self.host,port=self.port,gpid=1})
+        local r=c:call("suicide")
+        --因为进程已退出，所以get肯定会失败。
+        local ok=pcall(r.get,r)
+        if not ok then
+            return true
         end
+        return nil
     end
     return true
 end

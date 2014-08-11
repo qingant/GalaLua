@@ -13,6 +13,8 @@ local conf=require "supervisor_conf"
 local db_path=require "db_path"
 local path=require "path"
 local mdb=(require "mdb").mdb
+local aim_rpc=require "aim_rpc"
+local aim=require "aim"
 
 local function response(addr,result,status,cmd)
     local _t=type(addr)
@@ -262,11 +264,11 @@ function process(entry,max)
             local addr={host=self.entry.host,port=self.entry.port,gpid=1}
 
             log:info("send msg to %s",pprint.format(addr))
-            local ret=glr.send(addr,cjson.encode({Type="NODE",Action="EXEC",Cmd="kill"})) 
-            if ret then  --send "kill" command success
-                --FIXME: some time delay before get_state?
-                sleep(1)
-            end
+
+            local c=aim_rpc.new_client({host=self.entry.host,port=self.entry.port,gpid=1})
+            c:call("suicide")
+            --FIXME: some time delay before get_state?
+            sleep(1)
             state=self:get_state()
             if (state~=STATE.STOPPED) then
                 -- just kill -9 it
@@ -429,27 +431,9 @@ function process(entry,max)
     -- get information from glr process's "spyer server(gpid: 1)"
     --
     --]]
-    function Process:get_info_from_inspector(cmd)
-        local addr={host=glr.sys.host,port=glr.sys.port,gpid=__id__}
-
-        local msg={Type="NODE",Action="GET",Cmd=cmd,ToAddr=addr,Nonstop=true}
-        if not glr.send({host=self.entry.host,port=self.entry.port,gpid=1},cjson.encode(msg)) then
-            --must not into here
-            self:update_state(STATE.UNKNOWN)
-            return {}
-        end
-
-        while true do
-            --FIXME:add timeout
-            local msg_type,addr,msg=glr.recv()
-            local msg_table=cjson.decode(msg)
-            pprint.pprint(msg_table,"NODE RES")
-            if msg_table.Type=="NODE" and 
-               msg_table.Action=="RES"  and 
-               msg_table.Cmd==cmd then
-                return msg_table.Content
-            end
-        end
+    function Process:get_info_from_inspector(method,params)
+        local c=aim_rpc.new_client({host=self.entry.host,port=self.entry.port,gpid=1})
+        return c:call(method,params):get()
     end
 
     --[[
@@ -459,10 +443,8 @@ function process(entry,max)
         pprint.pprint(self.entry,"getpid...........")
         local state=self:get_state()
         if state==STATE.RUNNING then
-            pid=self:get_info_from_inspector("pid").pid
-            return pid
+            return self:get_info_from_inspector("get_pid")
         end
-        print("get pid:",pid)
     end
     
     --FIXME: what should return when the process is stopped
@@ -471,7 +453,7 @@ function process(entry,max)
         local state=self:get_state()
         if state==STATE.RUNNING then
             ret.pid=self:getpid()
-            ret.status=self:get_info_from_inspector("status")
+            ret.status=self:get_info_from_inspector("get_status")
 
             --XXX:update state?? 
             --self:update_state(STATE.RUNNING)
@@ -901,6 +883,7 @@ end
 function main()
     local log=init_logger()
     log:info("supervisor running.............")
+    aim.init("supervisord")
     local node=supervisor()
     local command=cmds(node,log)
     while true do
