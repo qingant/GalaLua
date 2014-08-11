@@ -58,7 +58,7 @@ function amIndicator(element) {
         var height = canvas.height - 10;
         var width = canvas.width - 10;
         context.clearRect(0, 0, canvas.width, canvas.height);
-        context.fillStyle = '#b5b9ff';
+        context.fillStyle = 'rgba(95,178,255,0.5)';
         context.fillRect(5, 5, width, height);
         context.textAlign = 'center';
         context.fillStyle = 'black';
