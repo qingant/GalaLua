@@ -13,8 +13,8 @@ lmdb:
 lua-lmdb:
 	$(MAKE) -C lua-lmdb
 mdb:
-	cp -rf mdb.lua $(HOME)/lib/lua
-
+	cp -rf mdb.lua $(HOME)/lib/lua/
+	cp -rf mdb_xml.lua $(HOME)/lib/lua/
 clean:
 	$(MAKE) -C lmdb clean
 	$(MAKE) -C lua-lmdb clean
