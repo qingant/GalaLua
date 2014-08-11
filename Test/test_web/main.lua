@@ -10,7 +10,7 @@ function index:new()
 end
 
 function index:get(context,...)
-    context:get_response():redirect("/statics/index.html")
+    context:get_response():redirect("/html/index.html")
     return "wait while redirect..."
 end
 
