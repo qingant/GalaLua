@@ -86,3 +86,33 @@ function request:parse_cookie()
     end
     return nil
 end
+
+function request:parse_content_type()
+    if self["Content-Type"] then
+        local content_type = split(self["Content-Type"])
+        self["Content-Type"]["Type"] = concat_type[1]
+        if concat_type[1] == "application/x-www-form-urlencoded" then
+            self["Content-Type"]["encode"] = concat_type[2]
+        elseif concat_type[1] == "multipart/form-data" then
+            --TODO
+        else
+            error("not support Content-Type " .. self["Content-Type"]["Type"] )
+        end
+    end
+end
+
+function request:parse_content()
+    if self["body"] then
+        local body = self["body"]
+        if self["Content-Type"]["Type"] == "application/x-www-form-urlencoded"  then
+            self["content"] = {}
+            local content = split(body,"&")
+            for _,k in pairs(content) do
+                key,value = split(k,"=")
+                self["content"][key] = value
+            end
+        else
+            error("not support Content-Type " .. self["Content-Type"]["Type"] )
+        end
+    end
+end

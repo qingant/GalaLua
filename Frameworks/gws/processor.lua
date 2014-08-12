@@ -125,9 +125,11 @@ function processor:_call_hander(h, request)
 
     local response
     if request.method == "GET" then
+        local params = request.query
         self._logger:info("method: GET")
         response = handle:get(context, params)
     elseif request.method == "POST" then
+        local params = request.content
         self._logger:info("method: POST")
         response = handle:post(context, params)
     end
