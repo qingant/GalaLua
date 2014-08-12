@@ -750,9 +750,11 @@ function cmds(sup,log)
     function Cmds.auto_restart(msg_table)
         local proc=sup:get_processes_by_id(msg_table.name)
         if proc then
-            log:warn("process:%s is stopped unexpected!",msg_table.name)
-            log:info("restart it now: %s",msg_table.name)
-            local err,id=glr.spawn("supervisord","run_ctrl_cmd", {proc},"restart_if_exited",__id__)
+            local s=proc:get_state()
+            if s~=STATE.STOPPED and s~=STATE.STOPPING then
+                log:warn("process:%s is stopped unexpected, restart it now.",msg_table.name)
+                local err,id=glr.spawn("supervisord","run_ctrl_cmd", {proc:export()},"restart_if_exited",__id__)
+            end
         end
     end
 
