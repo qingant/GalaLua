@@ -10,6 +10,10 @@ function put(addr,msg)
 end
 
 function get(addr)
-    return _glr.int(AMQ_INT_NO, 1, addr, msg) -- amq get
+    return _glr.int(AMQ_INT_NO, 1, addr) -- amq get
 end
 
+--设置私有队列号
+function set_queue(queue)
+    return _glr.int(AMQ_INT_NO, 2, queue)
+end

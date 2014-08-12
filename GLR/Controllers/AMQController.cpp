@@ -102,7 +102,30 @@ void AMQController::Put(lua_State *l)
     }
     catch (IGalaxyException &e)
     {
-        GALA_DEBUG("%s\n",e.what());
+        const char *errmsg=e.what();
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg,strlen(errmsg));
+        return;
+    }
+    Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
+}
+
+void AMQController::SetQueue(lua_State *l)
+{
+    int queue=luaL_checkinteger(l,3);
+    lua_getglobal(l,"__id__");
+    int pid = luaL_checkinteger(l,-1);
+    try
+    {
+        StartWorker(queue);
+    }
+    catch (IGalaxyException &e)
+    {
+        const char *errmsg=e.what();
+        Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg,strlen(errmsg));
+        return;
+    }
+    catch (const Galaxy::GalaxyRT::CException &e)
+    {
         const char *errmsg=e.what();
         Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg,strlen(errmsg));
         return;
@@ -132,26 +155,51 @@ void AMQController::Request( lua_State *l)
     case AMQ_GET:
         Get(l);
         break;
+    case AMQ_SET_QUEUE:
+        SetQueue(l);
+        break;
     default:
         InvalidType(l);
         break;
     }
 }
 
-AMQController::AMQController(const std::string &path,short queueno)
-    :m_amq_path(path),
-     m_queue(queueno),
-     m_amq(path),
-     m_worker(m_amq[queueno])
+void AMQController::StartWorker(int queue)
 {
-    DeviceId(3);
-    m_thread = new Galaxy::GalaxyRT::CThread(m_worker, 0x1234);
+    
+    if (ValidQueue(m_queue))
+    {
+        //TODO:支持改变私有队列号
+        THROW_EXCEPTION_EX("private queue had set");
+    }
+    if (!ValidQueue(queue))
+    {
+        THROW_EXCEPTION_EX("invalid private queue");
+    }
+
+    m_queue=queue;
+    m_worker=new AMQWorker(m_amq[m_queue]);
+    m_thread = new Galaxy::GalaxyRT::CThread(*m_worker, 0x1234);
     m_thread->Start();
+}
+
+AMQController::AMQController(const std::string &path,int queueno)
+    :m_amq_path(path),
+    m_queue(INVALID_QUEUE),
+    m_amq(path),
+    m_worker(NULL)
+{
+    if (ValidQueue(queueno))
+    {
+        StartWorker(queueno);
+    }
+    DeviceId(3);
+    
 }
 
 AMQController::~AMQController()
 {
-
+    //TODO:应该退出线程，释放内存
 }
 
 IController *Initialize(void *arg)
