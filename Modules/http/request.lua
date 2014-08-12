@@ -21,7 +21,11 @@ function request:parse_path()
     end
     --local query = split(self.uri,"#")[1]
     --query = split(query,"%?")[1]
-    local path, query = string.match(self.uri, "(/.*)%?(.*)#?")
+    if not string.match(self.uri,"?") then
+        local path = string.match(self.uri, "(/.*)")
+    else
+        local path, query = string.match(self.uri, "(/.*)%?(.*)#?")
+    end
     self.path = path 
 end
 
