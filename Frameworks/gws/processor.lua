@@ -122,7 +122,7 @@ function processor:_call_hander(h, request)
 
     local handle = self:_get_handle(h)
     local context = context:new():init(request,self._session_mgr)
-
+    local params = request.query
     local response
     if request.method == "GET" then
         self._logger:info("method: GET")
