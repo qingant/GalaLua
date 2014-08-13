@@ -66,6 +66,23 @@ void AMQController::Get(lua_State *l)
 
 void AMQController::Put(lua_State *l)
 {
+    //XXX:必须先处理可选参数，避免栈被修改。
+    int corrid=0;
+    int msgid=0;
+    if (lua_gettop(l) == 5 && lua_istable(l, -1))
+    {
+        lua_getfield(l, 5, "msgid");
+        if (!lua_isnil(l, -1))
+        {
+            msgid = luaL_checkinteger(l, -1);
+        }
+        lua_pop(l,1);
+
+        lua_getfield(l, 5, "corrid");
+        corrid = luaL_checkinteger(l, -1);
+        lua_pop(l,1);
+    }
+
     lua_getglobal(l,"__id__");
     int pid = luaL_checkinteger(l,-1);
 
@@ -76,6 +93,8 @@ void AMQController::Put(lua_State *l)
     int des_pid = luaL_checkinteger(l, -1);
 
     const char *host = "AMQ";
+
+
 
     try
     {
@@ -88,6 +107,9 @@ void AMQController::Put(lua_State *l)
         header->_Protocol._Type=AMQHeader::APP;
         header->_Route._FromGpid=pid;
         header->_Route._ToGpid=des_pid;
+        header->_Msg._CorrId = corrid;
+        header->_Msg._MsgId = msgid;
+        CRT_time((time_t*)&header->_Protocol._Stamp);
 
         memcpy(header->_Host._V2._Host,host,strlen(host));
         header->_Host._V2._Port=m_queue;
@@ -99,6 +121,12 @@ void AMQController::Put(lua_State *l)
         const Galaxy::AMQ::CSQSuite &nq=m_amq[port];
         
         nq.Put(buf.c_str(),buf.length());
+
+        std::map<std::string, int> attr;
+        attr["corrid"] = corrid;
+        attr["msgid"] = msgid;
+        Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TTABLE, attr);
+
     }
     catch (IGalaxyException &e)
     {
@@ -106,7 +134,7 @@ void AMQController::Put(lua_State *l)
         Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNIL, LUA_TSTRING, errmsg,strlen(errmsg));
         return;
     }
-    Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TBOOLEAN, 1);
+
 }
 
 void AMQController::SetQueue(lua_State *l)
