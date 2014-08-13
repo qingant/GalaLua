@@ -96,7 +96,6 @@ function processor:_request_dispatch(request)
     else
         if self.urls then
             for uri,func in pairs(self.urls) do
-                print("-----uri----- ",uri, "----- func ----",func)
                 local m = string.match(string.match(request.uri,"^(/[^?]+)"), uri)
                 self._logger:debug("match %s-%s ", uri, func)
                 if m ~= nil then
@@ -125,9 +124,10 @@ function processor:_call_hander(h, request)
     local handle = self:_get_handle(h)
     local context = context:new():init(request,self._session_mgr)
 
+    local params = {string.match(request.uri,uri)}
+
     local response
     if request.method == "GET" then
-        local params = request.query
         self._logger:info("method: GET")
         response = handle:get(context, params)
     elseif request.method == "POST" then
