@@ -74,6 +74,7 @@ function request:parse_query()
             self.query[t[1]] = t[2]
         end
     end
+    self.params = self.query
     --pprint.pprint(self.query,"--query--")
 end
 
