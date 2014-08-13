@@ -8,6 +8,78 @@ status = {}
 start = {}
 restart = {}
 
+local clusters = {
+                     {id="cluster1",name="核心集群A"},
+                     {id="cluster2",name="核心集群B"}
+                 }
+
+
+local cluster_topo = {}
+
+cluster_topo[clusters[1].id] = {
+                      id = 1,
+                      name = "核心集群A",
+                      status = "normal",
+                      description = "This is the cluster 1",
+                      children = {
+                                    ["1"]={
+                                      id = 1,
+                                      name = "N1",
+                                      status = "normal",
+                                      description = "This is the N 1",
+                                      children = {}
+                                    },
+                                    ["2"]={
+                                      id = 2,
+                                      name = "N2",
+                                      status = "normal",
+                                      description = "This is the N 2",
+                                      children = {}
+                                    }
+                                 }
+                  }
+
+cluster_topo[clusters[2].id] = {
+                      id = 2,
+                      name = "核心集群A",
+                      status = "normal",
+                      description = "This is the cluster 2",
+                      children = {
+                                    ["1"]={
+                                      id = 1,
+                                      name = "N1",
+                                      status = "normal",
+                                      description = "This is the N 1",
+                                      children = {}
+                                    },
+                                    ["2"]={
+                                      id = 2,
+                                      name = "N2",
+                                      status = "normal",
+                                      description = "This is the N 2",
+                                      children = {}
+                                    },
+                                    ["3"]={
+                                      id = 3,
+                                      name = "N3",
+                                      status = "normal",
+                                      description = "This is the N 3",
+                                      children = {}
+                                    }
+                                 }
+           }
+
+local cluster_status = {}
+cluster_status[clusters[1]] = {
+                                  {id=1,status="Normal"},
+                                  {id=2,status="Warning"}
+                              }
+cluster_status[clusters[2]] = {
+                                  {id=1,status="Normal"},
+                                  {id=2,status="Warning"},
+                                  {id=3,status="Normal"}
+                              }
+
 function list:new()
     local o = {}
     setmetatable(o, self)
@@ -18,10 +90,7 @@ end
 function list:get(context,query,...)
     local node = {}
     node.err_code = 0
-    node.clusters={
-                     {id="cluster1",name="核心集群A"},
-                     {id="cluster2",name="核心集群B"}
-                  }
+    node.clusters = clusters
     local res=json.encode(node)
     return res
 end
@@ -37,35 +106,22 @@ function topo:new()
 end
 
 function topo:get(context,query,...)
-    --context:get_response():redirect("/html/index.html")
     pprint.pprint(query,"topo input")
-    local node={}
-    node={
-            err_code = 0,
-            topo = {
-                      id = 0,
-                      name = "Root",
-                      status = "normal",
-                      description = "This is the root N",
-                      children = {
-                                    {
-                                      id = 1,
-                                      name = "N1",
-                                      status = "normal",
-                                      description = "This is the N 1",
-                                      children = {}
-                                    },
-                                    {
-                                      id = 2,
-                                      name = "N2",
-                                      status = "normal",
-                                      description = "This is the N 2",
-                                      children = {}
-                                    }
-                                 }
-                    }  
-           }
+    local cid = query.cid
+    
+    local node = {}
+    if cluster_topo[cid] ~= nil then
+        node = {
+                  err_code = 0,
+                  topo = cluster_topo[query.cid]
+               }
+    else
+        node = {
+                  err_code = 0x11,
+                  topo = nil
+               }
 
+    end
     local res=json.encode(node)
     return res
 end
@@ -82,7 +138,6 @@ function save:new()
 end
 
 function save:get(context,query,...)
-    --context:get_response():redirect("/html/index.html")
     pprint.pprint(query,"save input")
     local node = {}
     node.err_code = 0
@@ -102,14 +157,22 @@ function status:new()
 end
 
 function status:get(context,...)
-    --context:get_response():redirect("/html/index.html")
+    pprint.pprint(query,"status input")
+    local cid = query.cid
+    
     local node = {}
-    node.err_code = 0
-    node.status={
-                    {id=0,status="Normal"},
-                    {id=1,status="Warning"},
-                    {id=2,status="Error"}
-                }
+    if cluster_status[cid] ~= nil then
+        node = {
+                  err_code = 0,
+                  status = cluster_status[query.cid]
+               }
+    else
+        node = {
+                  err_code = 0x11,
+                  status = nil
+               }
+
+    end
     local res=json.encode(node)
     return res
 end
@@ -125,10 +188,19 @@ function start:new()
 end
 
 function start:get(context,query,...)
-    --context:get_response():redirect("/html/index.html")
     pprint.pprint(query,"start input")
+    local cid = query.cid
+    local nid = query.nid
+    
     local node = {}
-    node.err_code = 0
+    if nil == cluster_topo[cid] then
+        node.err_code = 0x11
+    elseif nil == cluster_topo[cid].children[nid] then
+        node.err_code = 0x11
+    else
+        node.err_code = 0
+    end
+    
     local res=json.encode(node)
     return res
 end
@@ -145,10 +217,20 @@ function restart:new()
 end
 
 function restart:get(context,query,...)
-    --context:get_response():redirect("/html/index.html")
     pprint.pprint(query,"restart input")
+    local cid = query.cid
+    local nid = query.nid
+    
     local node = {}
-    node.err_code = 0
+    
+    if nil == cluster_topo[cid] then
+        node.err_code = 0x11
+    elseif nil == cluster_topo[cid].children[nid] then
+        node.err_code = 0x11
+    else
+        node.err_code = 0
+    end
+    
     local res=json.encode(node)
     return res
 end

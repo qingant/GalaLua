@@ -7,6 +7,22 @@ list = {}
 load = {}
 save = {}
 
+local datas = {}
+datas = {
+["meter"] = {
+                { key = "12:01:52",value = 22 },
+                { key = "12:01:53",value = 60 }    
+            },
+["bar"] = {
+                { key = "06:30:11",value = 22 },
+                { key = "07:01:53",value = 60 }    
+            },
+["line"] = {
+                { key = "09:45:10",value = 22 },
+                { key = "10:01:53",value = 60 }    
+            }          
+}
+
 function data:new()
     local o = {}
     setmetatable(o, self)
@@ -17,11 +33,13 @@ end
 function data:get(context,query,...)
     pprint.pprint(query,"data input")
     local node = {}
-    node.err_code = 0
-    node.data = {
-                  { key = "12:01:52",value = 22 },
-                  { key = "12:01:53",value = 60 }    
-                }
+    
+    if nil ~= query.id then
+        node.err_code = 0
+        node.datas = datas[query.id]
+    else
+        node.err_code = 0x11
+    end
     local res=json.encode(node)
     return res
 end

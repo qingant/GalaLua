@@ -29,6 +29,7 @@ app:set_urls{
     ["^/cluster/status$"] = _PACKAGE .. "cluster.status",
     ["^/cluster/start$"] = _PACKAGE .. "cluster.start",
     ["^/cluster/restart$"] = _PACKAGE .. "cluster.restart",
+    ["^/cluster/stop$"] = _PACKAGE .. "cluster.stop",
     ["^/analysis/data$"] = _PACKAGE .. "analysis.data",
     ["^/analysis/list$"] = _PACKAGE .. "analysis.list",
     ["^/analysis/load$"] = _PACKAGE .. "analysis.load",
