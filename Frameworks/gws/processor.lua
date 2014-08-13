@@ -21,7 +21,8 @@ local processor = base:new()
 server = processor
 
 function processor:new(app_name, pool_name, idx, params)
-    base.init(self, app_name, pool_name, idx) self.urls = params.urls
+    base.init(self, app_name, pool_name, idx)
+    self.urls = params.urls
     self._session_storage_path = params.session_storage_path
     self._static_path  = params.static_path
     self._session_mgr = session_manager:new():init(self._session_storage_path)
@@ -95,7 +96,8 @@ function processor:_request_dispatch(request)
     else
         if self.urls then
             for uri,func in pairs(self.urls) do
-                local m = string.match(request.uri, uri)
+                print("-----uri----- ",uri, "----- func ----",func)
+                local m = string.match(string.match(request.uri,"^(/[^?]+)"), uri)
                 self._logger:debug("match %s-%s ", uri, func)
                 if m ~= nil then
                     local response = self:_call_hander(func, request)
