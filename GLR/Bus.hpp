@@ -1,3 +1,6 @@
+#ifndef _GLR_BUS_HPP
+#define _GLR_BUS_HPP
+
 #include "stdafx.h"
 #include "lua.hpp"
 #include <vector>
@@ -113,3 +116,4 @@ private:
     //DEVICE_MAP   _DevMap;
 };
 };
+#endif // _GLR_BUS_HPP

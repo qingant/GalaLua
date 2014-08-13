@@ -2,7 +2,7 @@ WHICH_LUA=lua
 PLATFORM = $(shell uname)
 ifeq ($(PLATFORM), Linux)
 	MAKE = make
-	WHICH_LUA=luajit
+#	WHICH_LUA=luajit
 else
 	MAKE = gmake
 endif
@@ -54,6 +54,8 @@ endif
 	$(MAKE) -C GLR static
 	$(MAKE) -C LuaObject static
 	$(MAKE) -C Lib static
+	$(MAKE) -C Modules
+	$(MAKE) -C Tools/
 
 clean:
 	$(MAKE) -C Stub clean

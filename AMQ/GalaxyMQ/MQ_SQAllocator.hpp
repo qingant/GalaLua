@@ -26,8 +26,8 @@ public:
 	void Next(const CSQPage *_Page) const;
 	const CSQPage *Next() const;
 	
-	USHORT Write(const PSTR _Buffer,USHORT _DataLen) const;
-	USHORT Read(PSTR _Buffer,USHORT _MaxLen) const;
+	USHORT Write(const PSTR _Buffer,UINT _DataLen) const;
+	USHORT Read(PSTR _Buffer,UINT _MaxLen) const;
 	
 	void Length(USHORT _TheLength) const;
 	USHORT Length() const;
