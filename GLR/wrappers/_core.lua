@@ -200,5 +200,8 @@ sys = {
 
 time = {
 	now = function () return _glr.int(CLOK_INT_NO,0) end;
-	sleep = function (sec)  return _glr.int(CLOK_INT_NO,1,sec) end
+    --秒级
+	sleep = function (sec)  return _glr.int(CLOK_INT_NO,1,sec*1000) end,
+    --毫秒级
+	msleep = function (msec)  return _glr.int(CLOK_INT_NO,1,msec) end
 }
