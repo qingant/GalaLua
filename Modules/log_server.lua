@@ -1,141 +1,174 @@
 module(..., package.seeall)
-
-local rpc = require(_PACKAGE .. "rpc")
 local cjson = require("cjson")
 local pprint = require("pprint")
 local memcached = require("memcached").GlrBuffer
-local slog = require("slog")
-local bit = require("bit")
-local c_flag = require("c_flag")
-local io = require(_PACKAGE .. "io")
-
-server = rpc.server:new()
-
-function server:new(name)
-    self:init(name)
-    self._buf = {}
-    self._buf_len = 0
-    self._buf_max_len = 500
-    self._timeout = 3
-    self._file_size = 2000
-    self._log_path = "../../log/65535.log"
-    self._max_file_num = 10
-    self._times_to_get_filesize = 20
-    self._times = 0
-    self._fd=io.open(self._log_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)))
-    return self
+--获取文件大小
+local function fSize( file )
+    local current = file:seek()	-- 获取当前位置
+    local size = file:seek("end")   -- 获取文件大小
+    file:seek("set", current)
+    return size
 end
-
-function server:__gc()
-    if -1 ~= self._fd then
-        local rt = io.close(self._fd)
-        if 0~= rt then
-            print("destructed!")
-        end
+--获取路径
+local function getFilePath(filename)
+    return string.match(filename, "(.+)/[^/]*%.%w+$")
+end
+--获取文件名
+local function getFileName(filename)
+    return string.match(filename, ".+/([^/]*%.%w+)$")
+end
+--去除扩展名
+local function getFileNameWithoutExtension(filename)
+    local idx = filename:match(".+()%.%w+$")
+    if(idx) then
+        return filename:sub(1, idx-1)
+    else
+        return filename
     end
 end
 
-function server:_fSize( fd )
-    local fsize = io.lseek(fd, 0, c_flag.SEEK_END)
-    print("******************size",fsize,"***********************")
-    return fsize
+--获取扩展名
+function getFileExtension(filename)
+    return filename:match(".+%.(%w+)$")
 end
-
-function server:_log_full(file_path)
-    local fd = self._fd
-    local filesize = self:_fSize(fd)
-    if filesize >= self._file_size then
-        local rt=io.close(fd)
-        for i = self._max_file_num-1,1,-1 do
-            io.rename(file_path..'.'..i-1,file_path..'.'..i)
-        end
-        local rt=io.rename(file_path,file_path..'.'.. 0)
-        print("******************pathchange:",rt,"**********************")
-        self._fd=io.open(file_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)))
+function timedFlusher(timeVal, pid)
+    while true do
+        glr.time.sleep(timeVal or 5)
+        glr.send(pid, "!!")     -- flush
     end
 end
-
-function server:_wirte_v(file_path) -- used for text
-    buf = self._buf[file_path];
-    local fd = self._fd
-    if buf ~= nil then -- 定时写入时检测是否需要
-        n=#buf
-        if n ~= 0 then -- 异常保护
-            local iov = io.new("iovec[?]", n)
-             for i=0,n-1 do
-                iov[i].iov_len=string.len(buf[i+1])
-                local ptr = io.cast("char *",buf[i+1])
-                iov[i].iov_base = ptr
-            end
-            --local path=io.cast("char *",file_path)
-            --local fd=io.open(file_path,bit.bor(c_flag.O_CREAT,bit.bor(c_flag.O_APPEND,c_flag.O_RDWR)));
-            if -1 ~= fd then
-                res=io.writev(fd,iov,n)
-                if -1 == res then
-                    print("write failed")
+local timedFlushered = 12
+function glrLogServerDispatch(info)
+    local info = cjson.decode(info)
+    local _, timer = glr.spawn_ex(timedFlushered, "log_server", "timedFlusher", 30, __id__)
+    local nameDict = {}
+    local pidDict = {}
+    while true do
+        repeat
+            local msgType, maddr, msg = glr.recv()
+            local addr=maddr.addr
+            if msgType == glr.EXIT then
+                local key = pidDict[addr.gpid]
+                if key ~= nil then
+                    nameDict[key] = nil
+                    pidDict[addr.gpid] = nil
                 end
-                self._buf[file_path] = nil
+                break
+            elseif msgType ~= glr.APP then
+                break
+            end
+            if msg:sub(1,2) == "!@" then -- open logger
+--                print(msg)
+                -- local len = #msg - 2
+                local entry = string.sub(msg, 3, #msg)
+                local info = cjson.decode(entry)
+--                pprint.pprint(info)
+                if info.path == nil or info.path == "" then
+                    info.path = "stdout"
+                    if nameDict["stdout"] == nil then
+                        local rt, pid = glr.spawn("log_server", "glrStdLoggerProcessor")
+                        nameDict["stdout"] = pid
+                    end
+                elseif nameDict[info.path] == nil then
+                    local rt, pid = glr.spawn("log_server", "glrFileLoggerProcessor",info.path,info.size,info.copys)
+                    nameDict[info.path] = pid
+                    pidDict[pid] = info.path
+                end
+                local childaddr = {}
+                local child_pid=nameDict[info.path]
+                childaddr.host = glr.sys.host
+                childaddr.port = glr.sys.port
+                childaddr.gpid = child_pid
+                glr.send(child_pid,"^^")
+                glr.send(addr,cjson.encode(childaddr))
+            elseif msg:sub(1,2) == "!!" then -- flush
+                for pid, name in pairs(pidDict) do
+--                    print("flush", pid, name)
+                    glr.send(pid, "!!")
+                end
+            elseif msg:sub(1,2) == '!*' then
+                for pid,name in pairs(pidDict) do
+--                    print("reset",pid,name)
+                    glr.send(pid,"!#")
+                end
+                nameDict = {}
+                pidDict = {}
+            end
+        until true
+    end
+end
+function glrStdLoggerProcessor()
+    while true do
+        local msgType, addr, msg = glr.recv()
+        if msgType ~= glr.APP then
+            break
+        end
+        if msg:sub(1,2) == "!!" then
+        else
+--            print(msg)
+        end
+    end
+end
+
+function glrFileLoggerProcessor( targetPath,sizePerFile,Files)
+    local filepath = targetPath
+    local size = sizePerFile
+    local files = Files
+    local fileid = 0
+    local cache = memcached:new():init(1024)
+    local fileHandle = io.open(filepath, "a")
+    local refCount=0
+    fileHandle:setvbuf("no")
+    while true do
+        local filesize = fSize(fileHandle)
+        local msgType, addr, msg = glr.recv()
+        local msglen = #msg
+        if filesize  >= size then
+            fileid = fileid % files
+            local strpath = string.format("%s_%d.%s",getFileNameWithoutExtension(filepath),
+                                          fileid,getFileExtension(filepath))
+            fileHandle:close()
+            os.rename(filepath,strpath)
+            fileHandle = io.open(filepath, "a")
+            fileHandle:setvbuf("no")
+            fileid = fileid + 1
+        end
+        if msg=="^^" then
+            refCount=refCount+1
+        elseif msg:sub(1,2) == "!!" or msg:sub(1,2) == "!#" then -- flush
+--            print("flush!")
+            --fileHandle:flush()
+            local cachedata = cache:get()
+            for _, v in pairs(cachedata) do
+                fileHandle:write(v)
+                fileHandle:write("\n")
+            end
+            if msg:sub(1,2) == "!#" then
+                refCount=refCount-1
+                if refCount==0 then
+                    return
+                end
+            end
+            cache:clean()
+        else
+            --fileHandle:write(msg)
+            --fileHandle:write("\n")
+            if (cache:size() + msglen) >= cache:cap() then
+                local cachedata = cache:get()
+                for _, v in pairs(cachedata) do
+                    fileHandle:write(v)
+                    fileHandle:write("\n")
+                end
+                cache:clean()
+            end
+            if(msglen >= cache:cap()) then
+                fileHandle:write(msg)
+                fileHandle:write("\n")
+            else
+                cache:put(msg)
             end
         end
     end
 end
 
-function server:_write_buf(file_path,msg)
-    if (nil == self._buf[file_path]) then
-        self._buf[file_path]={}
-        self._buf[file_path][1]=msg
-        self._buf_len=string.len(msg)
-    else
-        self._buf[file_path][#(self._buf[file_path])+1]=msg
-        self._buf_len=self._buf_len+string.len(msg)
-        
-    end
-    if (self._buf[file_path] ~= nil) and (self._buf_len >= self._buf_max_len) then
-        self:_wirte_v(file_path)
-    end
-end
---[[
-function server:_write_log(file_path) --used for slog
-        local writer = slog.create_writer(file_path)          --打开0.log日志文件,added for test
-        if nil == writer then
-            print("creat writer failed")
-        end
-        writer:write_array(self._buf[file_path])
-end
-]]
 
-function server:_flush()
-    if nil ~= self._buf then 
-        for file_path,_ in pairs(self._buf) do
-            if nil ~= self._buf[file_path] then
-                self:_wirte_v(file_path)
-            end
-        end
-    end
-end
-
-function server:on_timeout()
-    self:_flush()
-end
-
-function server:log(params)
-    local level = params.level
-    local msg = params.msg
-    if nil == msg then
-        print("msg is null")
-    end
-    if nil == self._log_path then
-        print("path unlegal")
-    end 
-    if self._times + 1 < self._times_to_get_filesize then
-        self._times=self._times+1
-    else
-        self._times=0
-        self:_log_full(self._log_path)
-    end
-    self:_warn(params.level,params.msg)
-    self:_write_buf(self._log_path,msg) --这里只负责往buf里写，buf写满了会自动将内容写入log中
-end
-
-function server:_warn(level,msg)
-end
