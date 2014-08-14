@@ -58,11 +58,15 @@ namespace Galaxy
             bool operator < (const TIMEREVENT &rhs){
                 return (*this<rhs._Val);
             }
+
             bool operator < (const TPType &rhs){
                 return ((_Val.tv_sec > rhs.tv_sec) || ((_Val.tv_sec == rhs.tv_sec) && (_Val.tv_usec > rhs.tv_usec)));
             }
+            //XXX:由于poll是毫秒级的，而tv_usec是微秒级，当只是相差小于1ms时，应该认为其相等，
+            //否则会导致在微秒时间差内在计算最小超时时间返回0ms，但却没有定时器到期的错误。
             bool operator == (const TPType &t){
-                return (_Val.tv_sec == t.tv_sec) && (_Val.tv_usec == t.tv_usec);
+                GALA_DEBUG("%ld.%ld::%ld.%ld",_Val.tv_sec,_Val.tv_usec,rhs.tv_sec,rhs.tv_usec);
+                return (_Val.tv_sec == t.tv_sec) && (abs(_Val.tv_usec - t.tv_usec) < 1000);
             }
             //返回值是毫秒级的。 
             INT operator - (const TPType &rhs){
