@@ -40,7 +40,7 @@ end
 local timedFlushered = 12
 function glrLogServerDispatch(info)
     local info = cjson.decode(info)
-    local _, timer = glr.spawn_ex(timedFlushered, "log_server", "timedFlusher", 30, __id__)
+    glr.spawn_ex(timedFlushered, "log_server", "timedFlusher", 30, __id__)
     local nameDict = {}
     local pidDict = {}
     while true do
@@ -66,11 +66,13 @@ function glrLogServerDispatch(info)
                 if info.path == nil or info.path == "" then
                     info.path = "stdout"
                     if nameDict["stdout"] == nil then
-                        local rt, pid = glr.spawn("log_server", "glrStdLoggerProcessor")
+                        local pid = glr.spawn("log_server", "glrStdLoggerProcessor")
+                        pid=pid.gpid
                         nameDict["stdout"] = pid
                     end
                 elseif nameDict[info.path] == nil then
-                    local rt, pid = glr.spawn("log_server", "glrFileLoggerProcessor",info.path,info.size,info.copys)
+                    local pid = glr.spawn("log_server", "glrFileLoggerProcessor",info.path,info.size,info.copys)
+                    pid=pid.gpid
                     nameDict[info.path] = pid
                     pidDict[pid] = info.path
                 end
