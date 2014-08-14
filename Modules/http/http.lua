@@ -50,13 +50,9 @@ function http:get_request(timeout)
         value = string.sub(line,e+1,#line)
         --print("key",key)
         --print("value",value)
-        request[strip(key)] = value:trim()
+        request[key:trim()] = value:trim()
     end
-    request:parse_query()
-    request:parse_path(request)
-    request:parse_accept_encoding()
-    request:parse_accept_language()
-    request:parse_cookie()
+    request:parse()
     return request
 end
 
