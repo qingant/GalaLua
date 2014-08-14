@@ -39,10 +39,11 @@ static:
 	cd lua-cjson-2.1.0 && $(MAKE) static && $(MAKE) clean
 	cd lua-struct && $(MAKE) static && $(MAKE) clean
 	cd lua-zip && $(MAKE) static
-	cd lua-sigar/src && make static && cd ../bindings/lua/ && make static
-	cd lua-time/ && make static
-	cd lua-snappy/snappy/ && make static
-	cd lua-snappy && make static
+	cd lua-sigar/src && $(MAKE) static && cd ../bindings/lua/ && $(MAKE) static
+	cd lua-time/ && $(MAKE) static
+	cd lua-snappy/snappy/ && $(MAKE) static
+	cd lua-snappy && $(MAKE) static
+	cd lua-aimagtpls && $(MAKE) static
 	$(MAKE) -C lua-time static
 	$(MAKE) -C lua-codec static
 #	$(MAKE) -C lua-xml/lua-iconv-7 static
@@ -61,3 +62,4 @@ clean::
 	$(MAKE) -C lua-sigar/src clean
 	$(MAKE) -C lua-sigar/bindings/lua/ clean
 	$(MAKE) -C lua-time/ clean
+	$(MAKE) -C lua-aimagtpls clean

@@ -94,7 +94,7 @@ function _logger:_log(level, format, ...)
         local info = debug.getinfo(3)
         info.level = _loggerFlag[level]
         info.msg = str
-        info.gpid = self._handler.gpid
+        info.gpid = __id__
         local timeformat
         local log_str
         if self.flag ~= 0 then

@@ -16,8 +16,13 @@ void Clock::Request( lua_State *l, int tick )
     }
     else if (type == Clock::DO_TIMEOUT)
     {
+        //XXX: timeval单位为毫秒
         int timeval = luaL_checkinteger(l, 3);
-        Galaxy::GalaxyRT::TIMEREVENT ev(0, timeval*1000);
+        
+        int sec=timeval/1000;
+        int msec=timeval%1000;
+
+        Galaxy::GalaxyRT::TIMEREVENT ev(sec, msec*1000);
         ClockEvent cev = {pid, -1};
         ev._Data = std::string((const char*)&cev, sizeof(cev));
         _Timer.SetTimer(ev);
@@ -27,8 +32,10 @@ void Clock::Request( lua_State *l, int tick )
     {
 
         int timeval = luaL_checkinteger(l, 3);
+        int sec=timeval/1000;
+        int msec=timeval%1000;
         //int tick = luaL_checkinteger(l, 4);
-        Galaxy::GalaxyRT::TIMEREVENT ev(0, timeval*1000);
+        Galaxy::GalaxyRT::TIMEREVENT ev(sec, msec*1000);
         ClockEvent cev = {pid, tick};
         ev._Data = std::string((const char*)&cev, sizeof(cev));
         _Timer.SetTimer(ev);
