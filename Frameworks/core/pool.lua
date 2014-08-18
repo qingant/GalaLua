@@ -197,8 +197,7 @@ function pool:start_processes(nums_of_processes_starting)
                 nums_of_processes = self._max
             end
         end
-    pprint.pprint(nums_of_processes, "start_processes_nums")
-        local started_process_addr = nil
+    local started_process_addr = nil
         for i = self._count+1, nums_of_processes do
             started_process_addr = self:_create_process()
             started_processes[#started_processes+1] = started_process_addr.gpid
@@ -273,6 +272,10 @@ end
 
 
 function pool:start_dispatcher()
+    if self._dispatch.status == "started" then
+        return self._dispatch
+    end
+
     local rt = self._sup:call("start_process", {
                                   process_type = "gen",
                                   process_params = {
@@ -292,6 +295,11 @@ function pool:start_dispatcher()
 end 
 --停止dispatcher
 function pool:stop_dispatcher()
+
+    if self._dispatch.status == "stopped" then
+        return self._dispatch
+    end
+
     local stop_params = {}
     local gpid = nil
     stop_params.process_type = "gen"
