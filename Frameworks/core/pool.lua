@@ -150,7 +150,8 @@ Desc  : 提供外部访问、管理进程池的API
 --返回值：此次停止的进程id列表，{gpid1, gpid2,...}
 function pool:stop_processes(params)
     local stop_params = {}
-    stop_params.process_type = self._start_argv_template
+    stop_params.process_type="gen"
+    stop_params.process_params = self._start_argv_template.process_params
     local stop_processes = {}
     local gpid
     if type(params) == "number" then
@@ -166,10 +167,8 @@ function pool:stop_processes(params)
             self._logger:info("stopping processor(%d) not exist", gpid) 
         end
     elseif type(params) == "table" then
-        pprint.pprint(params, "pool.stopping.processes")
         for _, gpid in pairs(params) do
             local rt = self._processes[gpid]
-            --pprint.pprint(rt, "loop.stop.addr")
             if rt and rt.addr then
                 stop_params.process = rt.addr
                 self._sup:call("stop_process", stop_params)
@@ -294,17 +293,23 @@ end
 --停止dispatcher
 function pool:stop_dispatcher()
     local stop_params = {}
+    local gpid = nil
     stop_params.process_type = "gen"
     stop_params.process_params = {
                                       mod_name = self._dispatcher,
                                       group = self._pool_name,
                                       parameters = {self._app_name, self._pool_name, self._params},
                                   }
-    stop_params.process = self._dispatch.addr                               
-    self._sup:call("stop_process", stop_params)
-    self._dispatch.status = "stopped"
-    self._dispatch.addr = nil
-    self._dispatch.gpid = nil
+    if self._dispatch and self._dispatch.addr then
+        gpid = self._dispatch.addr.gpid
+        stop_params.process = self._dispatch.addr                               
+        local rt = self._sup:call("stop_process", stop_params)
+        --pprint.pprint(rt, "pool.rt")
+        self._dispatch.status = "stopped"
+        self._dispatch.addr = nil
+        self._dispatch.gpid = nil
+        self._logger:info(" dispatcher(%d) stopped", gpid)
+    end 
     return self._dispatch
 end
 
