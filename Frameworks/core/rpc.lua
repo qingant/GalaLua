@@ -118,6 +118,9 @@ function server:stop(params, desc)
 ]]
 
 --[[ changed by Zhou Xiaopeng]]
+    if self.on_stop then
+        self:on_stop()
+    end
     self._stop_caller_addr = desc.addr
     self._stop_caller_attr = desc.attr
     self.stop_error.message = string.format("Server Stoped by %s", pprint.format(desc.addr))
