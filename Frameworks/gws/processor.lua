@@ -21,7 +21,8 @@ local processor = base:new()
 server = processor
 
 function processor:new(app_name, pool_name, idx, params)
-    base.init(self, app_name, pool_name, idx) self.urls = params.urls
+    base.init(self, app_name, pool_name, idx)
+    self.urls = params.urls
     self._session_storage_path = params.session_storage_path
     self._static_path  = params.static_path
     self._session_mgr = session_manager:new():init(self._session_storage_path)
@@ -95,10 +96,10 @@ function processor:_request_dispatch(request)
     else
         if self.urls then
             for uri,func in pairs(self.urls) do
-                local m = string.match(request.uri, uri)
+                local m = string.match(request.path, uri)
                 self._logger:debug("match %s-%s ", uri, func)
                 if m ~= nil then
-                    local response = self:_call_hander(func, request)
+                    local response = self:_call_hander(uri, func, request)
                     return response
                 end
             end
@@ -118,18 +119,20 @@ function processor:_get_handle(h)
     return self._handle_cache[h]
 end
 
-function processor:_call_hander(h, request)
+function processor:_call_hander(uri_pattern, h, request)
 
     local handle = self:_get_handle(h)
     local context = context:new():init(request,self._session_mgr)
 
+    local params = {string.match(request.path,uri_pattern)}
+
     local response
     if request.method == "GET" then
         self._logger:info("method: GET")
-        response = handle:get(context, params)
+        response = handle:get(context, unpack(params))
     elseif request.method == "POST" then
         self._logger:info("method: POST")
-        response = handle:post(context, params)
+        response = handle:post(context, unpack(params))
     end
 
     if response then

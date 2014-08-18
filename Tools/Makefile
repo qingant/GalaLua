@@ -6,4 +6,3 @@ grepl:
 	chmod +x $(HOME)/bin/grepl
 tool:
 	cp *.lua $(HOME)/lib/lua
-	cp Supervisor/*.lua $(HOME)/lib/lua

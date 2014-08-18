@@ -740,8 +740,10 @@ inline UINT F_WriteData(const CSQPage &_ThePage,PSTR _Buffer,UINT _DataLength)
 	for(_TheNext = &_ThePage,_CurrLen=0;(_TheNext!=NULL) && (_CurrLen< _DataLength);_TheNext = _TheNext->Next())
 	{
 		_CurrLen += _TheNext->Write(&_Buffer[_CurrLen],_DataLength - _CurrLen);
+        //printf("in for: Data:%d, _CurrLen Length:%d  \n",_DataLength,_CurrLen);
 	};
 	
+    //printf("Data:%d, _CurrLen Length:%d  \n",_DataLength,_CurrLen);
 	return _CurrLen;
 }
 
@@ -763,6 +765,7 @@ void CSQSuite::Put(PCSTR _Buffer,UINT _Length) const
 			THROW_MQEXCEPTION("NO ANY MORE PAGES");		
 			return;
 		}	
+        //printf("Length:%d  \n",_Length);
 		_NurseryPageFree.Set(*_ThePage);
 		
 		if(F_WriteData(*_ThePage,(PSTR)_Buffer,_Length)!=_Length)

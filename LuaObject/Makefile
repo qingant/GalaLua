@@ -35,7 +35,7 @@ cmsgpack.so:lua_cmsgpack.o
 .PHONY: static
 
 
-static: _dir.a xml.a platform.a hexdump.a
+static: _dir.a xml.a platform.a hexdump.a global.a
 
 platform.a: LuaPlatform.o
 	$(AR) $(ARFLAGS) $@ $^
@@ -59,3 +59,8 @@ hexdump.a: LuaDump.o
 	$(AR) $(ARFLAGS) $@ $^
 	$(RANLIB) $(RANLIBFLAGS) $@
 	mv hexdump.a $(HOME)/share/static/lua
+global.a:LuaGlobal.o
+	$(AR) $(ARFLAGS) $@ $^
+	$(RANLIB) $(RANLIBFLAGS) $@
+	mv $@ $(HOME)/share/static/lua
+

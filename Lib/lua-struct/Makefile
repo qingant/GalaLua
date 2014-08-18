@@ -31,6 +31,7 @@ struct.a: $(OBJ)
 	$(AR) $(ARFLAGS) struct.a $(OBJ)
 	$(RANLIB) $(RANLIBFLAGS) struct.a
 	cp struct.a $(HOME)/share/static/lua
+	cp structX.lua stringop.lua $(HOME)/share/static/lua
 
 clean:
 	rm -f $(OBJ)

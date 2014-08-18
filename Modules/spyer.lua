@@ -38,6 +38,7 @@ function main()
     while true do
         print("STATUS_SERVER:")
         local msg_type, addr, msg = glr.recv()
+        local addr=addr.addr
         msg_table =cjson.decode(msg) 
 
         if msg_table.Type=="NODE" then
@@ -46,8 +47,7 @@ function main()
                     glr.exit()
                 end
             elseif msg_table.Action=="GET" then
-                local err,gpids=glr.status.processes()
-                assert(err,gpids)
+                local gpids=assert(glr.status.processes())
                 pprint.pprint(gpids,"status::gpids")
                 local msg={Type="NODE",Action="RES",Cmd=msg_table.Cmd}
 

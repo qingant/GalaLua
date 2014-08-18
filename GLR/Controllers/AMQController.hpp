@@ -32,6 +32,8 @@ struct AMQHeader
 #endif
 
 
+#define ValidQueue(q) (((q)>=0)&&(q)<65535)
+#define INVALID_QUEUE  -1
 
 
 namespace GLR
@@ -93,10 +95,11 @@ namespace GLR
         {
             AMQ_PUT,
             AMQ_GET,
+            AMQ_SET_QUEUE,
         };
 
     public:
-        AMQController(const std::string &path,short queueno=0);
+        AMQController(const std::string &path,int queueno=INVALID_QUEUE);
         ~AMQController();
 
         using IController::Request;
@@ -106,11 +109,14 @@ namespace GLR
         void Put(lua_State *);
         void Get(lua_State *);
         void InvalidType(lua_State *l);
+        void SetQueue(lua_State *l);
+    private:
+        void StartWorker(int queue);
     private:
         const std::string m_amq_path;
-        short m_queue;
+        int m_queue;
         Galaxy::AMQ::CGalaxyMQ m_amq;
-        AMQWorker m_worker;
+        AMQWorker *m_worker;
         Galaxy::GalaxyRT::CThread *m_thread;
     };
 }

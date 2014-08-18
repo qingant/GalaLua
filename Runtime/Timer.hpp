@@ -56,34 +56,45 @@ namespace Galaxy
                 return ((*this)==t) || !((*this) < t);
             }
             bool operator < (const TIMEREVENT &rhs){
-                return ((_Val.tv_sec > rhs._Val.tv_sec) || ((_Val.tv_sec == rhs._Val.tv_sec) && (_Val.tv_usec > rhs._Val.tv_usec)));
-                //return (sec>rhs.sec);
+                return (*this<rhs._Val);
             }
+
             bool operator < (const TPType &rhs){
                 return ((_Val.tv_sec > rhs.tv_sec) || ((_Val.tv_sec == rhs.tv_sec) && (_Val.tv_usec > rhs.tv_usec)));
-                //return (sec>rhs.sec);
             }
+            //XXX:由于poll是毫秒级的，而tv_usec是微秒级，当只是相差小于1ms时，应该认为其相等，
+            //否则会导致在微秒时间差内在计算最小超时时间返回0ms，但却没有定时器到期的错误。
             bool operator == (const TPType &t){
-                return (_Val.tv_sec == t.tv_sec) && (_Val.tv_usec == t.tv_usec);
+                GALA_DEBUG("%ld.%ld::%ld.%ld",_Val.tv_sec,_Val.tv_usec,rhs.tv_sec,rhs.tv_usec);
+                return (_Val.tv_sec == t.tv_sec) && (abs(_Val.tv_usec - t.tv_usec) < 1000);
             }
+            //返回值是毫秒级的。 
             INT operator - (const TPType &rhs){
+                /*
                 INT rt = 0;
                 rt = ( _Val.tv_sec - rhs.tv_sec)*1000;
                 if (_Val.tv_usec > rhs.tv_usec)
                 {
-                    rt += (_Val.tv_usec - rhs.tv_usec)/(1000*1000);        
+                    rt += (_Val.tv_usec - rhs.tv_usec)/(1000);        
                 }
                 else
                 {
-                    rt -= (rhs.tv_usec -_Val.tv_usec )/(1000*1000);        
+                    rt -= (rhs.tv_usec -_Val.tv_usec )/(1000);        
                 }
-                
                 return rt;
+                */
+                return ((_Val.tv_sec - rhs.tv_sec )*1000 + (_Val.tv_usec - rhs.tv_usec)/1000);
+                    
             }
             TIMEREVENT operator+ (const TPType &t) const{
                 TPType tmp = _Val;
                 tmp.tv_sec += t.tv_sec;
                 tmp.tv_usec += t.tv_usec;
+                
+                //XXX: 必须确保tv_usec里的值不大于1s才能保证operator < 的正确性。
+                tmp.tv_sec +=tmp.tv_usec/(1000*1000);
+                tmp.tv_usec =tmp.tv_usec%(1000*1000);
+
                 return TIMEREVENT(tmp, _Data);
             }
         };

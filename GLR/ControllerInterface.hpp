@@ -1,3 +1,5 @@
+#ifndef _GLR_CONTROLLERINTERFACE_HPP
+#define _GLR_CONTROLLERINTERFACE_HPP
 #include "Runtime/Exception.hpp"
 #include "lua.hpp"
 
@@ -27,3 +29,4 @@ extern "C"{
     IController *Initialize(void *);
     void         Finalize(void *);
 }
+#endif //_GLR_CONTROLLERINTERFACE_HPP
