@@ -124,13 +124,16 @@ function server:stop_process(params, desc)
         return {status="error", errmsg = "not found"}
     end
     self._processes[params.process] = nil
-    if params.process_type == self.gen_process_type then
-        local rt = info.client:call("stop", nil, 5)
-        if rt == nil then
-            glr.kill(params.process)
+    if params.process_type == self.gen_process_type then        
+        local addr = info.client._server_addr
+        local rt = info.client:call("stop", {nil,addr}, 15)
+        pprint(rt, "rt")        
+        if rt == nil then            
+            glr.kill(params.process.gpid)
         end
+        
     elseif params.process_type == self.raw_process_type then
-        glr.kill(params.process)
+        glr.kill(params.process.gpid)
     end
     local mtype, desc, msg = glr.recv_by_addr(params.process, 5)
     if not mtype then
