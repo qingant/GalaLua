@@ -57,7 +57,7 @@ function pool:_init()
 
     for i = 1, self._min do
         self._logger:info("start processor:%d of %d", i, self._min)
-        self._count = self._count + 1
+        --self._count = self._count + 1
         self:_create_process()
     end
 
@@ -153,7 +153,7 @@ function pool:stop_processes(params)
     stop_params.process_type = self._start_argv_template
     local stop_processes = {}
     local gpid
-    if type(params) == "integer" then
+    if type(params) == "number" then
         gpid = params
         local rt = self._processes[gpid]
         if rt and rt.addr then
@@ -166,7 +166,7 @@ function pool:stop_processes(params)
             self._logger:info("stopping processor(%d) not exist", gpid) 
         end
     elseif type(params) == "table" then
-        --pprint.pprint(params, "pool.stopping.processes")
+        pprint.pprint(params, "pool.stopping.processes")
         for _, gpid in pairs(params) do
             local rt = self._processes[gpid]
             --pprint.pprint(rt, "loop.stop.addr")
@@ -181,11 +181,32 @@ function pool:stop_processes(params)
             end
         end
     end
+    self._count = self._count - #stop_processes
     return stop_processes
 end
 
-
-
+--批量地创建进程
+--入参:创建的进程个数
+--
+function pool:start_processes(nums_of_processes_starting)
+    local started_processes = {}
+    local nums_of_processes = 0
+    if type(nums_of_processes_starting) == "number" then
+        if nums_of_processes_starting > 0 then
+            nums_of_processes = self._count + nums_of_processes_starting
+            if nums_of_processes > self._max then
+                nums_of_processes = self._max
+            end
+        end
+    pprint.pprint(nums_of_processes, "start_processes_nums")
+        local started_process_addr = nil
+        for i = self._count+1, nums_of_processes do
+            started_process_addr = self:_create_process()
+            started_processes[#started_processes+1] = started_process_addr.gpid
+        end        
+    end
+    return started_processes
+end
 
 --查询params列表指定的进程状态
 --返回值：{gpid1="used" or "idle", gpid2="used" or "idle" }
@@ -233,7 +254,7 @@ end
 function pool:get_status_of_dispatcher()
     return {status = self._dispatch.status,
             gpid = self._dispatch.gpid, 
-            add = self._dispatch.addr}
+            addr = self._dispatch.addr}
 end
 
 --查询指定类型进程的id
@@ -267,7 +288,7 @@ function pool:start_dispatcher()
         self._dispatch.status = "started"
         self._dispatch.addr = rt.result.process
     end
-    print("start dispatcher")
+    return self._dispatch
 
 end 
 --停止dispatcher
@@ -280,12 +301,11 @@ function pool:stop_dispatcher()
                                       parameters = {self._app_name, self._pool_name, self._params},
                                   }
     stop_params.process = self._dispatch.addr                               
-    self._sup:call("stop_processes", stop_params)
+    self._sup:call("stop_process", stop_params)
     self._dispatch.status = "stopped"
     self._dispatch.addr = nil
     self._dispatch.gpid = nil
-    print("stop dispatcher")
-
+    return self._dispatch
 end
 
 
