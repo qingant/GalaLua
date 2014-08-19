@@ -21,6 +21,8 @@ function request:parse()
     self:parse_accept_encoding()
     self:parse_accept_language()
     self:parse_cookie()
+    self:parse_content_type()
+    self:parse_content()
     return self
 end
 
@@ -69,7 +71,7 @@ function request:parse_query()
         error("request uri is nil")
     end
     local query = self.query
-    print("Q", query)
+    --print("Q", query)
     self.query = self.params
     if query == nil then
         return
@@ -102,13 +104,16 @@ function request:parse_cookie()
 end
 
 function request:parse_content_type()
+    --print("---Content-Type----",self["Content-Type"])
     if self["Content-Type"] then
-        local content_type = split(self["Content-Type"])
-        self["Content-Type"]["Type"] = concat_type[1]
-        if concat_type[1] == "application/x-www-form-urlencoded" then
-            self["Content-Type"]["encode"] = concat_type[2]
-        elseif concat_type[1] == "multipart/form-data" then
+        local content_type,content_encode= string.match(self["Content-Type"],"([%w/-]+);?")
+        self["Content-Type"] = {}
+        self["Content-Type"]["Type"] = content_type
+        if content_type == "application/x-www-form-urlencoded" then
+            self["Content-Type"]["encode"] = content_encode
+        elseif content_type == "multipart/form-data" then
             --TODO
+            error("not support Content-Type " .. self["Content-Type"]["Type"] )
         else
             error("not support Content-Type " .. self["Content-Type"]["Type"] )
         end
@@ -118,15 +123,21 @@ end
 function request:parse_content()
     if self["body"] then
         local body = self["body"]
-        if self["Content-Type"]["Type"] == "application/x-www-form-urlencoded"  then
-            self["params"] = {}
-            local content = split(body,"&")
-            for _,k in pairs(content) do
-                key,value = split(k,"=")
-                self["params"][key] = value
+        --print("----body----",body)
+        --print("--- Content-Type ---",self["Content-Type"]["Type"])
+        if self["Content-Type"] then
+            if self["Content-Type"]["Type"] == "application/x-www-form-urlencoded"  then
+                self["body"] = {}
+                local content = split(body,"&")
+                for _,k in pairs(content) do
+                    key,value = string.match(k,"(.+)=(.*)")
+                    self["body"][key] = value
+                end
+            else
+                error("not support Content-Type " .. self["Content-Type"]["Type"] )
             end
         else
-            error("not support Content-Type " .. self["Content-Type"]["Type"] )
+            error("Content-Type empty")
         end
     end
 end

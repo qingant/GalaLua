@@ -1,7 +1,6 @@
 --[[
     Author : Ma Tao
-	Date   : 2014/07/07
-
+	Date   : 2014/07/07 
 	== Introduction ==
     gws test case
 
@@ -33,5 +32,12 @@ function index:get(context,...)
 end
 
 function index:post(context,...)
+    local body = context:get_request()
+    ---pprint.pprint(body["body"])
+    local str = ""
+    for i,k in pairs(body["body"]) do
+        str = string.format("%s%s=%s;",str,i,k)
+    end
+    return str.."\n"
 end
 

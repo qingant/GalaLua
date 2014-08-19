@@ -36,10 +36,6 @@ function http:get_request(timeout)
         if line == "" then
             break
         end
-        if pre_line == "\r\n" then
-            request["body"] = line
-            break
-        end
         pre_line = line
         -- header[#header+1] = line
         --local key, value = unpack(string.split(line, ":"))
@@ -52,6 +48,12 @@ function http:get_request(timeout)
         --print("value",value)
         request[key:trim()] = value:trim()
     end
+    if request.method == "POST" then
+        local len = request["Content-Length"]
+        local body = assert(self._socket:recv(len,30)):trim()
+        request["body"] = body
+    end
+
     request:parse()
     return request
 end
