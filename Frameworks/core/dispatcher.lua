@@ -27,11 +27,15 @@ function dispatcher:init(app_name, pool_name)
     rpc.server.init(self, full_name)
     self._app_name = app_name
     self._pool_name = pool_name
+    self._id = {host=glr.sys.host, port=glr.sys.port, gpid=__id__}
     self._logger = logger:new():init(self)
     self._pool = rpc.create_client(string.format("%s.%s", app_name, pool_name))
     return self
 end
 
+function dispatcher:_back_to_pool()
+    self._pool:request("put_dispatcher", self._id)
+end
 function dispatcher:on_init()
     error("not implemented")
 end
