@@ -68,25 +68,25 @@ function pool:_init()
                                       parameters = {self._app_name, self._pool_name, self._params},
                                   }
     })
-    if rt and rt.result and rt.result.process and rt.result.process.gpid then
-        local dispatcher_gpid = rt.result.process.gpid
-        self._dispatch.gpid = dispatcher_gpid
-        self._dispatch.status = "started"
-        self._dispatch.addr = rt.result.process
-    end
     self._logger:info("dispatcher started:%s", self._logger.format(rt, "rt"))
 end
 
-
+function pool:put_dispatcher(params, desc)
+    if params and params.gpid then
+        self._dispatch.gpid = params.gpid
+        self._dispatch.status = "started"
+        self._dispatch.addr = params
+    end
+end
 function pool:_get_process(params, desc)
     local p = self:get(params, desc)
     while true do
-        if  self._processes[p.gpid] then
-            if glr.status.status(p.gpid) then 
+        if glr.status.status(p.gpid) then
+            if self._processes[p.gpid] then
                 return p
             else 
-                self._count = self._count -1
-                self._processes[p.gpid] = nil
+                self._count = self._count - 1
+                self._processes[p.gpid]=nil
             end
         end
         p = self:get(params, desc)
@@ -113,6 +113,7 @@ function pool:_create_process()
     if rt and rt.result and rt.result.process and rt.result.process.gpid then
         local gpid = rt.result.process.gpid
         self._count = self._count + 1
+        local idx = self._count
         self._processes[gpid] = {}
         self._processes[gpid].status = "idle"
         self._processes[gpid].gpid = gpid
