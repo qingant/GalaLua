@@ -62,9 +62,13 @@ function server:on_message(mtype, desc, msg)
     if mtype == glr.EXIT then
         -- TODO: logging restart info
         local params = self._processes[desc.addr]
-        self._logger:info("restarting...", params)
+        self._logger:info("restarting...", params)        
         self._processes[desc.addr] = nil
         if params then
+            if params.tcp_handle then
+                print("supervisor.tcp", params.tcp_handle)
+                glr.net.close(params.tcp_handle)
+            end
             self:start_process(params.start_params)
             self._logger:info(pformat(glr.status.processes(), "processes"))
             self._logger:info(pformat(get_proxy(self._processes), "records"))
@@ -87,11 +91,16 @@ function server:start_process(params, desc)
     self._logger:info("params: %s", pformat(params, "params"))
     local addr, errmsg
     local cli
+    local tcp_handle = nil
     if params.process_type == self.gen_process_type then
         -- TODO: error handling(when rpc.create_server fails)
         cli = rpc.create_server(params.process_params)
         self._logger:info("process created", pformat(cli))
         addr = cli._server_addr
+        local rt = cli:call("get_tcp_handle")
+        if rt.result then
+            tcp_handle = rt.result
+        end
     elseif params.process_type == self.raw_process_type then
         addr, errmsg = self:_start_raw_process(params, desc)
     end
@@ -106,16 +115,22 @@ function server:start_process(params, desc)
 
     if addr then
         self._id = self._id + 1
-        self._processes[addr] = {start_params = params,
-                                 group = params.group,
-                                 id = self._id,
-                                 client = cli}
+        local paddr = {
+            start_params = params,
+            group = params.group,
+            id = self._id,
+            client = cli
+        }
+        if tcp_handle then
+            paddr.tcp_handle = tcp_handle
+        end
+        self._processes[addr] = paddr
         self._processes_indexed_by_id[self._id] = self._processes[addr]
     else
         self._logger:info("error", errmsg)
         error(errmsg)
     end
-    self._logger:debug("process %d started", addr.gpid)
+    self._logger:debug("process %d started", addr.gpid)   
     return {process=addr}
 end
 function server:stop_process(params, desc)
