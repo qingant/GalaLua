@@ -6,6 +6,17 @@ local cmsgpack = require("cmsgpack")
 local packer = cmsgpack.pack
 local unpack = cmsgpack.unpack
 
+function for_each1(mod_name,entry,map)
+    local timeout = 3000
+    local result = {}
+    for proc,params in pairs(map) do
+        local ret, err_msg = glr.spawn("parellel","http_conn",timeout)
+        if not ret then
+            error("spawn error")
+        end
+    end
+end
+
 function for_each(mod_name,entry,map)
     local timeout = 3000
     local result = {}
