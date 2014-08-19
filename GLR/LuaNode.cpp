@@ -882,7 +882,6 @@ int Process::Status(lua_State *l)
     {
         Process& nd = GetNodeById(pid);
 
-        lua_pushboolean(l, 1);
         lua_newtable(l);
         lua_pushinteger(l, nd._Status._State);
         lua_setfield(l, -2, "state");
@@ -909,7 +908,7 @@ int Process::Status(lua_State *l)
 //        }
 //
         
-        return 2;
+        return 1;
     }
     catch (Galaxy::GalaxyRT::CException& e)
     {

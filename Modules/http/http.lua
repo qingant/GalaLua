@@ -30,11 +30,17 @@ function http:get_request(timeout)
     request.uri = path:trim()
     request.version = version:trim()
     local header = {}
+    local pre_line = ""
     while true do
         local line = assert(self._socket:recvLine(30)):trim()
         if line == "" then
             break
         end
+        if pre_line == "\r\n" then
+            request["body"] = line
+            break
+        end
+        pre_line = line
         -- header[#header+1] = line
         --local key, value = unpack(string.split(line, ":"))
         --print("line",line)
@@ -44,13 +50,9 @@ function http:get_request(timeout)
         value = string.sub(line,e+1,#line)
         --print("key",key)
         --print("value",value)
-        request[strip(key)] = value:trim()
+        request[key:trim()] = value:trim()
     end
-    request:parse_query()
-    request:parse_path(request)
-    request:parse_accept_encoding()
-    request:parse_accept_language()
-    request:parse_cookie()
+    request:parse()
     return request
 end
 

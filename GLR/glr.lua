@@ -39,5 +39,11 @@ require "gar_loader"
 -- NamedProcessTable
 npt = _glr.npt
 
+function run_spyer( ... )
+    local spyerModuleName = get_option("spyer") or "spyer"
+    local spyerModule = require(spyerModuleName)
+    return spyerModule.main( ... )
+end
+
 return M
 

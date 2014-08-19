@@ -152,10 +152,10 @@ function Console()
     
     local gar=require "pack_gar"
     local configi=require "configi"
-    local sup=require "supervisor"
+--    local sup=require "supervisor"
     local mdb_copy=require "mdb_copy"
 
-    c.register("supervisor",sup.helper,sup.completion,sup.info)
+--    c.register("supervisor",sup.helper,sup.completion,sup.info)
     c.register("gar",gar.helper,gar.completion,gar.info)
     c.register("config",configi.helper,configi.completion,configi.info)
     c.register("mdb_copy",mdb_copy.helper,mdb_copy.completion,mdb_copy.info)

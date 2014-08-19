@@ -68,3 +68,19 @@ function context:get_response()
     return self._response
 end
 
+function context:redirect(url,content)
+  --self._response:redirect(url)
+  local  response_301=self._response:set_status_code(301)
+ -- print(response_301)
+  self._response["Location"]=url
+  self._response.status="Found"
+  if content then
+     self._response:set_content(content)
+  end
+  return response_301
+end
+
+
+
+ 
+

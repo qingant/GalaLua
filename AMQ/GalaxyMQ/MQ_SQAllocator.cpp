@@ -157,19 +157,18 @@ PBYTE CSQPage::NearPtr() const
 }
 
 
-USHORT CSQPage::Write(const PSTR _Buffer,USHORT _DataLen) const
+USHORT CSQPage::Write(const PSTR _Buffer,UINT _DataLen) const
 {
 	USHORT _Result = PageSize();
 	_Result = (_Result > _DataLen) ? _DataLen : _Result; 
 	__MQCarrier_F((PSTR)this->_Data,_Buffer,_Result);
 	//memcpy((PSTR)this->_Data,_Buffer,_Result);
-	//printf("Write Len = %d\n",_Result);
 	Length(_Result);
 
 	return _Result;
 }
 
-USHORT CSQPage::Read(PSTR _Buffer,USHORT _MaxLen) const
+USHORT CSQPage::Read(PSTR _Buffer,UINT _MaxLen) const
 {
 	USHORT _Result = Length();
 	_Result = (_Result > _MaxLen) ? _MaxLen : _Result; 

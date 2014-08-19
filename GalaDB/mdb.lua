@@ -76,15 +76,25 @@ function mdb._create_env(path, size)
     return e
 end
 
-function mdb.reader_free(path,e)
+function mdb.reader_free(path,size)
+    local e
     if type(path)=="string" then
-        local e=e or mdb.create_env(path)
+        e=mdb.create_env(path,size)
+    elseif type(path)=="userdata" then
+        e=path
+    end
+    if e then
         e:reader_check()
     end
 end
-function mdb.lock_clear(path,e)
+function mdb.lock_clear(path,size)
+    local e
     if type(path)=="string" then
-        local e=e or mdb.create_env(path)
+        e=mdb.create_env(path,size)
+    elseif type(path)=="userdata" then
+        e=path
+    end
+    if e then
         local t = e:txn_begin(nil,0)
         t:abort()
     end
@@ -1270,7 +1280,7 @@ if ... == "__main__" then
     for i=1,limit do
         db:with(test)
 
-        -- db:with(test1)
+        db:with(test1)
         -- db:with(test_xquery_xpath)
         -- db:withReadOnly(test_xpath)
         -- db:withReadOnly(test_value)
