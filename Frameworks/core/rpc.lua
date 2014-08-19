@@ -108,12 +108,23 @@ function server:_main_loop( ... )
 	end
 end
 
-function server:stop(params, addr)
+function server:stop(params, desc)
+--[[ coded by Ma.tao
     if params.password and params.password == self._password then
         self.stop_error.message = string.format("Server Stoped by %s",
                                                 pprint.format(addr))
         error(self.stop_error)
     end
+]]
+
+--[[ changed by Zhou Xiaopeng]]
+    if self.on_stop then
+        self:on_stop()
+    end
+    self._stop_caller_addr = desc.addr
+    self._stop_caller_attr = desc.attr
+    self.stop_error.message = string.format("Server Stoped by %s", pprint.format(desc.addr))
+    error(self.stop_error)
 end
 local function _collect_methods(t, mt)
     for k,v in pairs(t) do
@@ -164,7 +175,13 @@ function server:_main(...)
     if not ret and err == self.restart_error then
         goto entry
     elseif not ret and err == self.stop_error then
-        error(err)
+        glr.send(self._stop_caller_addr, self._packer{
+                id = 1,
+                result = {status="stopped"}
+                },
+                self._stop_caller_attr
+            )
+
     else
         print(err)
         -- TODO: logging

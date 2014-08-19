@@ -3,7 +3,7 @@ var count = 0;
 var dragInfo = {};
 var currCtrl = null;
 var mainViewBaseHeight;
-window.onresize = resize();
+//window.onresize = resize();
 
 function resize() {
     var mainView = document.getElementById('mainView');
@@ -25,20 +25,67 @@ function dragAdd(evt) {
 }
 
 function dragMove(evt){
+    evt.preventDefault();
+    this.style.opacity = 0.8;
     dragInfo.operator = 'move';
     dragInfo.target = evt.target.id;
 }
 
 function drop(evt) {
     evt.preventDefault();
-    var pos = layoutPos(evt);
     switch (dragInfo.operator){
         case 'add':
+            var pos = layoutPos(evt);
             createCtrl(dragInfo.type, pos);
             resizeCtrls();
             break;
         case 'move':
+            swapCtrl(dragInfo.target,evt.toElement.id);
             break;
+    }
+    return false;
+}
+
+function swapCtrl(srcId,dstId) {
+    var src = document.getElementById(srcId);
+    var dst = document.getElementById(dstId);
+    src.style.opacity = 1;
+    if( dst != src && dst.parentNode === src.parentNode ){
+        var parent = src.parentNode;
+        var sibling = parent.children;
+        var srcIndex = -1;
+        var dstIndex = -1;
+        for(var i = 0; i < sibling.length; ++i){
+            if(sibling[i] == src)
+                srcIndex = i;
+            else if(sibling[i] == dst)
+                dstIndex = i;
+            if(dstIndex != - 1 && srcIndex != -1)
+                break;
+        }
+
+        if(dstIndex == - 1 || srcIndex == -1)
+            return;
+
+        if(dstIndex - srcIndex == -1) {
+            parent.insertBefore(src, dst);
+            return;
+        }
+
+        if(dstIndex - srcIndex == 1) {
+            parent.insertBefore(dst, src);
+            return;
+        }
+
+        if(srcIndex < dstIndex){
+            var dstPos = src.nextSibling;
+            parent.insertBefore(src,dst);
+            parent.insertBefore(dst,dstPos);
+        } else {
+            var dragPos = dst.nextSibling;
+            parent.insertBefore(dst,src);
+            parent.insertBefore(src,dragPos);
+        }
     }
 }
 
@@ -47,6 +94,8 @@ function createCtrl(type, pos){
     var ele = document.createElement('canvas');
     ele.id = type.substr(2) + count++;
     ele.style.float = 'left';
+    ele.draggable = true;
+    ele.ondrag = dragMove;
 
     if(pos.col == layout[pos.row].items.length)
         view.appendChild(ele);
@@ -65,8 +114,7 @@ function resizeCtrls(){
         return;
 
     var mainView = document.getElementById('mainView');
-    var i;
-    var j;
+    var i,j;
     var autoSize = [];
     var fixedRowCount = 0;
 
@@ -101,19 +149,19 @@ function resizeCtrls(){
         restHeight -= rowHeight;
     }
 
-    var autoHeight = mainView.height / layout.length;
+    var autoHeight = mainViewBaseHeight / layout.length;
     if(fixedRowCount > 0 && fixedRowCount != layout.length)
         autoHeight = restHeight / (layout.length - fixedRowCount);
     if(autoHeight < 240)
         autoHeight = 240;
     var fixedHeight = mainView.height - restHeight;
-    var height = fixedHeight + autoHeight * (layout.length - fixedRowCount);
-    if( height < mainViewBaseHeight)
-        height = mainViewBaseHeight;
-    mainView.height = height;
+    var realHeight = fixedHeight + autoHeight * (layout.length - fixedRowCount);
+    if (realHeight < mainViewBaseHeight)
+        realHeight = mainViewBaseHeight;
+    mainView.height = realHeight;
     mainView.style.height = mainView.height + 'px';
-    for(i = 0; i < autoSize.length; ++i){
-        if( autoSize[i].rowHeight != -1 )
+    for (i = 0; i < autoSize.length; ++i) {
+        if (autoSize[i].rowHeight != -1)
             continue;
         autoSize[i].rowHeight = autoHeight;
     }
@@ -150,15 +198,13 @@ function layoutPos(evt) {
     var view = document.getElementById('mainView');
     var len = layout.length;
 
-    console.log(view.height, evt.y, view.height * (len - 0.5) / len)
-    if( evt.y > view.height * (len - 0.5) / len || evt.y > view.height - 100){
+    if(evt.pageY > view.height * (len - 0.5) / len){
         addBox();
-        console.log('Adding Box');
         res.row = layout.length - 1;
         return res;
     }
-    res.row = parseInt(evt.y * len / view.height + 0.5);
-    res.col = parseInt(evt.x * layout[res.row].items.length / view.width - 0.5);
+    res.row = parseInt(evt.pageY * len / view.height + 0.5);
+    res.col = parseInt(evt.pageX * layout[res.row].items.length / view.width - 0.5);
     return res;
 }
 
@@ -208,9 +254,31 @@ function delCtrl(){
     hideConfigPage();
 }
 
-function contextMenu(e) {
-    currCtrl = findCtrl(e.toElement.id);
-    showConfigPage();
+function showConfigPage(){
+    var mainView = document.getElementById('mainView');
+    var confPage = document.getElementById('configPage');
+    var url = document.getElementById('configSrcUrl');
+    var interval = document.getElementById('configUpdateInterval');
+    var name = document.getElementById('configCtrlName');
+    var width = document.getElementById('configCtrlWidth');
+    var height = document.getElementById('configCtrlHeight');
+    var size = currCtrl.getSize();
+    url.value = currCtrl.getUrl();
+    name.value = currCtrl.getLabel();
+    interval.value = currCtrl.getInterval() / 1000;
+    width.value = size[0];
+    height.value = size[1];
+    confPage.style.display = 'block';
+    var top = (mainViewBaseHeight - confPage.offsetHeight) * 0.5;
+    confPage.style.top =  top + window.pageYOffset + 'px';
+    confPage.style.left = (window.innerWidth - confPage.offsetWidth) * 0.5 + 'px';
+    console.log( top, mainView.scrollHeight);
+}
+
+function hideConfigPage(){
+    var confPage = document.getElementById('configPage');
+    confPage.style.display = 'none';
+    currCtrl = null;
     return false;
 }
 
@@ -235,29 +303,9 @@ function updateConfig(){
     hideConfigPage();
 }
 
-function showConfigPage(){
-    var mainView = document.getElementById('mainView');
-    var confPage = document.getElementById('configPage');
-    var url = document.getElementById('configSrcUrl');
-    var interval = document.getElementById('configUpdateInterval');
-    var name = document.getElementById('configCtrlName');
-    var width = document.getElementById('configCtrlWidth');
-    var height = document.getElementById('configCtrlHeight');
-    var size = currCtrl.getSize();
-    url.value = currCtrl.getUrl();
-    name.value = currCtrl.getLabel();
-    interval.value = currCtrl.getInterval() / 1000;
-    width.value = size[0];
-    height.value = size[1];
-    confPage.style.display = 'block';
-    confPage.style.top = (mainView.height - confPage.offsetHeight) * 0.5 + 'px';
-    confPage.style.left = (window.innerWidth - confPage.offsetWidth) * 0.5 + 'px';
-}
-
-function hideConfigPage(){
-    var confPage = document.getElementById('configPage');
-    confPage.style.display = 'none';
-    currCtrl = null;
+function contextMenu(e) {
+    currCtrl = findCtrl(e.toElement.id);
+    showConfigPage();
     return false;
 }
 

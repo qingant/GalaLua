@@ -2,28 +2,28 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>赞同云管理端</title>
-    <link rel="stylesheet" href="/statics/css/style.css">
+    <title>amCloud Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
 <div class="header" onselectstart="return false;" ondragstart="return false;">
     <div class="logo">
-        <img src="/statics/images/logo.png">
+        <img src="/images/logo.png">
     </div>
     <div class="navBar">
         <ul>
-            <li name="sysinfo" url="/statics/html/sysinfo.html">系统信息</li>
-            <li name="cluster" url="/statics/html/treeview.html" class="tabSelected">集群管理</li>
-            <li name="analysis" url="/statics/html/analysts.html" >数据分析</li>
+            <li name="sysinfo" url="/html/sysinfo.html">系统信息</li>
+            <li name="cluster" url="/html/treeview.html" class="tabSelected">集群管理</li>
+            <li name="analysis" url="/html/analysts.html" >数据分析</li>
         </ul>
     </div>
     <div class="toolBox">
         <ul>
-            <li><img src="/statics/images/toolbox.collection.png"></li>
-            <li><img src="/statics/images/toolbox.logout.png"></li>
-            <li><img src="/statics/images/toolbox.setup.png"></li>
-            <li><img src="/statics/images/toolbox.info.png"></li>
+            <li><img src="/images/toolbox.collection.png"></li>
+            <li><img src="/images/toolbox.logout.png"></li>
+            <li><img src="/images/toolbox.setup.png"></li>
+            <li><img src="/images/toolbox.info.png"></li>
         </ul>
 
     </div>
@@ -33,32 +33,34 @@
     <ul></ul>
     <div id="analysisCtrls" style="display: none">
         <div id="amMeter" class="ctrlItem" draggable="true" ondrag="dragAdd(event)">
-            <img draggable="false" src="/statics/images/ctrl.meter.png"/>
+            <img draggable="false" src="/images/ctrl.meter.png"/>
             <label>Meter</label>
         </div>
         <div id="amLine" class="ctrlItem" draggable="true" ondrag="dragAdd(event)">
-            <img draggable="false" src="/statics/images/ctrl.line.chart.png"/>
+            <img draggable="false" src="/images/ctrl.line.chart.png"/>
             <label>Line Chart</label>
         </div>
         <div id="amBar" class="ctrlItem" draggable="true" ondrag="dragAdd(event)">
-            <img draggable="false" src="/statics/images/ctrl.bar.chart.png"/>
+            <img draggable="false" src="/images/ctrl.bar.chart.png"/>
             <label>Bar Chart</label>
         </div>
-        <div id="amIndicator" class="ctrlItem" draggable="true" ondrag="dragAdd(event)">
-            <img draggable="false" src="/statics/images/ctrl.indicator.png"/>
+        <div id="amIndicator" class="ctrlItem"
+             draggable="true"
+
+             ondragstart="dragAdd(event)">
+            <img draggable="false" src="/images/ctrl.indicator.png"/>
             <label>Indicator</label>
         </div>
     </div>
 </div>
 
 <div id="mainView" class="mainView">
-    <iframe id="mainFrame" name="mainFrame" style="height: 100%; width: 100%;"
-    scrolling="auto" frameborder="0" src="/statics/html/treeview.html"></iframe>
+    <iframe id="mainFrame" name="mainFrame" style="height: 100%; width: 100%;" scrolling="auto" frameborder="0" src="/html/treeview.html"></iframe>
 </div>
 
-<script src="/statics/js/trees.js"></script>
-<script src="/statics/js/amTree.js"></script>
-<script src="/statics/js/jquery.js"></script>
+<script src="/js/trees.js"></script>
+<script src="/js/amTree.js"></script>
+<script src="/3rdparty/jquery.js"></script>
 
 <script>
     $(function(){
@@ -103,6 +105,7 @@
     });
 
     function dragAdd(evt){
+        console.log('drag adding');
         evt.preventDefault();
         mainFrame.dragAdd(evt);
     }

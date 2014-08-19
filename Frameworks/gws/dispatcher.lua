@@ -32,6 +32,9 @@ function dispatcher:on_init()
     glr.net.accept_poll(self._fd)
 end
 
+function dispatcher:on_stop()
+    glr.net.close(self._fd)
+end
 function dispatcher:on_message(mtype, desc, msg)
     if mtype == glr.IOCP then
         local fd = self._unpacker(msg)
