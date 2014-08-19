@@ -30,8 +30,11 @@ function dispatcher:on_init()
     end
     self._logger:info("HTTP server(%s:%d) listen", self._host, self._port)
     glr.net.accept_poll(self._fd)
+    self:_back_to_pool()
 end
-
+function dispatcher:get_tcp_handle()
+    return self._fd
+end
 function dispatcher:on_stop()
     glr.net.close(self._fd)
 end
