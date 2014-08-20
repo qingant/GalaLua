@@ -57,7 +57,6 @@ function pool:_init()
 
     for i = 1, self._min do
         self._logger:info("start processor:%d of %d", i, self._min)
-        --self._count = self._count + 1
         self:_create_process()
     end
 
@@ -81,29 +80,38 @@ function pool:put_dispatcher(params, desc)
     end
 end
 function pool:_get_process(params, desc)
-    local p = self:get(params, desc)
-    while true do
-        if p.gpid and glr.status.status(p.gpid) then
+    local p = self:get(params, desc)    
+    while p do
+        if p == self.no_response then
+            return nil
+        end
+
+        if p.gpid then
             if self._processes[p.gpid] then
-                return p
-            else 
-                self._count = self._count - 1
-                self._processes[p.gpid]=nil
+                if glr.status.status(p.gpid)  then
+                    if self._processes[p.gpid].status == "idle" then
+                        return p
+                    end
+                else
+                    self._count = self._count -1;
+                    self._processes[p.gpid] = nil
+                end
             end
         end
         p = self:get(params, desc)
     end
 end
 
-function pool:get_process(params, desc)
+function pool:get_process(params, desc)    
     self._logger:info("worker remain: %s", self._logger.format(self._dataq))
-    p = self:_get_process(params, desc)
-    if p == self.no_response and self._count < self._max then
+    local p = self:_get_process(params, desc)
+    if p then
+        self._processes[p.gpid].status = "used"
+        return p
+    elseif self._count < self._max then
         pool:_create_process()
     end
-    local gpid = p.gpid
-    self._processes[gpid].status = "used"
-    return p
+    return self.no_response
 end
 function pool:on_timeout()
     self._logger:debug(self._logger.format(glr.status.processes()))
@@ -113,19 +121,14 @@ end
 function pool:_create_process()
     local rt = self._sup:call("start_process", self._start_argv_template)
     if rt and rt.result and rt.result.process and rt.result.process.gpid then
-        local gpid = rt.result.process.gpid
-        self._processes[gpid] = {}
-        self._processes[gpid].status = "idle"
-        self._processes[gpid].gpid = gpid
-        self._processes[gpid].addr = rt.result.process
-        self._logger:info("start processor:%d %s", self._count, self._logger.format(rt))
-        self._count = self._count + 1
         return rt.result.process
-    end
+    else
+       return nil
+   end
     -- TODO: error handling and logging
 end
 
-function pool:put_process(params, desc)
+function pool:put_process(params, desc)    
     local gpid = params.gpid
     if gpid and self._processes[gpid] then
         self._processes[gpid].status = "idle"
