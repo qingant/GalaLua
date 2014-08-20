@@ -81,7 +81,7 @@ end
 function pool:_get_process(params, desc)
     local p = self:get(params, desc)
     while true do
-        if glr.status.status(p.gpid) then
+        if p.gpid and glr.status.status(p.gpid) then
             if self._processes[p.gpid] then
                 return p
             else 
@@ -113,7 +113,6 @@ function pool:_create_process()
     if rt and rt.result and rt.result.process and rt.result.process.gpid then
         local gpid = rt.result.process.gpid
         self._count = self._count + 1
-        local idx = self._count
         self._processes[gpid] = {}
         self._processes[gpid].status = "idle"
         self._processes[gpid].gpid = gpid
