@@ -16,7 +16,7 @@ app = modular.inherit("gws.app")
 
 app:set_addr(nil, 8080)
 app:set_session_storage_path(os.getenv("HOME") .. "/session/")
-app:set_static_path(norm_path(os.getenv("PWD") .. "../../Test/test_webframework/"))
+app:set_static_path(norm_path(os.getenv("PWD") .. "../../Test/test_web/"))
 app:set_log_path(os.getenv("HOME") .. "/log")
 app:set_urls{
     ["^/([^/]*)$"] = _PACKAGE .. "main.index",
