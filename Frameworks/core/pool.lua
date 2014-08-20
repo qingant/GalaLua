@@ -57,8 +57,10 @@ function pool:_init()
 
     for i = 1, self._min do
         self._logger:info("start processor:%d of %d", i, self._min)
+        --self._count = self._count + 1
         self:_create_process()
     end
+
     -- start dispatcher
     local rt = self._sup:call("start_process", {
                                   process_type = "gen",
@@ -96,7 +98,7 @@ end
 function pool:get_process(params, desc)
     self._logger:info("worker remain: %s", self._logger.format(self._dataq))
     p = self:_get_process(params, desc)
-    if p == nil and self._count < self._max then
+    if p == self.no_response and self._count < self._max then
         pool:_create_process()
     end
     local gpid = p.gpid
@@ -112,13 +114,12 @@ function pool:_create_process()
     local rt = self._sup:call("start_process", self._start_argv_template)
     if rt and rt.result and rt.result.process and rt.result.process.gpid then
         local gpid = rt.result.process.gpid
-        self._count = self._count + 1
         self._processes[gpid] = {}
         self._processes[gpid].status = "idle"
         self._processes[gpid].gpid = gpid
         self._processes[gpid].addr = rt.result.process
         self._logger:info("start processor:%d %s", self._count, self._logger.format(rt))
-        
+        self._count = self._count + 1
         return rt.result.process
     end
     -- TODO: error handling and logging
@@ -126,13 +127,15 @@ end
 
 function pool:put_process(params, desc)
     local gpid = params.gpid
-    if self._processes[gpid] then
+    if gpid and self._processes[gpid] then
         self._processes[gpid].status = "idle"
-    else 
+    elseif gpid then
         self._processes[gpid] = {}
         self._processes[gpid].status = "idle"
         self._processes[gpid].gpid = gpid
-        self._processes[gpid].addr = desc.addr
+        self._processes[gpid].addr = params
+        self._logger:info("start processor:%d %s", self._count, self._logger.format(rt))
+        self._count = self._count + 1
     end
 end
 
