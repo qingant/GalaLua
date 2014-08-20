@@ -19,120 +19,13 @@ local unpack = cmsgpack.unpack
 
 local _queue = require("collections.init").queue
 
-
-queue_server = {}
-
-function queue_server:new()
-    o = {}
-    setmetatable(o,self)
-    self.__index = self
-    return o
-end
-
-function queue_server:init()
-    self._customerq = _queue:new()
-    self._dequeue_timeout = 300
-    self._data_timeout = 30000
-    return self
-end
-
-function queue_server:get()
-    self._customerq:pop_left()
-end
-
-function queue_server:put(desc)
-    self._customerq:push_right(desc)
-end
-
-function queue_server:call(mod_name,entry,...)
-    local ret, err = proc.spawn(mod_name, entry,...)
-    if err then
-        pprint(err,"err")
-    end
-end
-
-pool = {}
-
-function pool:new()
-    o = {}
-    setmetatable(o,self)
-    self.__index = self
-    return o
-end
+local for_each = require(_PACKAGE .. "parellel").queue
+local spawn_cnt = require(_PACKAGE .. "parellel").spawn_cnt
+local rpc_call = require(_PACKAGE .. "parellel").rpc_call
+local write_timer = require(_PACKAGE .. "tps").write_timer
 
 
---params = { ["timeout"] = 30, ["min"] = 32, ["max"]=1024 }
-function pool:init(sup,params)
-    self._sup = sup
 
-    self._count = 0
-    self._min = params.min or 10
-    self._max = params.max or 1000
-    self._step = params.setp or 10
-
-    self._timeout = params.timeout
-
-    self.queue = queue_server:new():init()
-
-    for i = 1, self._min do
-        self:_create_process(self._sup)
-    end
-
-    return self
-end
-
-
-function pool:get_process()
-    --local p = self.queue:get()
-    print("call get_process")
-    --local p = self.queue._customerq:pop_left()
-    local p = self.queue:get()
-    print("queue object",p)
-    if not p  and self._count < self._max then
-        print("p is nil")
-        self:_create_process(self._sup)
-
-        --TODO step
-        --for i  = 1, self._step do
-        --    self:_create_process(self._sup)
-        --end
-        --p = self.queue:get()
-        p = self.queue._customerq:pop_left()
-    end
-    return p
-end
-
-function pool:_create_process(sup)
-    print("call create_process")
-    self.queue:put(sup)
-    self._count = self._count + 1
-    print("count",self._count)
-    -- TODO: error handling and logging
-end
-
-function pool:call(mod_name,entry,...)
-    local ret, err = self._sup.spawn(mod_name, entry,...)
-    if err then
-        pprint(err,"err")
-    end
-end
-
-function pool:capacity()
-    return self._max
-end
-
-function http_connect(timer,cnt,url)
-    local cli = httpClient:new()
-    timer[cnt] = {}
-    timer[cnt]["begin"] =  glr.time.now()
-    for i = 1,1 do
-        local req = httpRequest:new():init("GET", url)
-        local res = cli:get_Response(req,20)
-    end
-    timer[cnt]["end"] = glr.time.now()
-    --return res
-    --glr.exit()
-end
 
 --params = {["url"] = "http://url",["times"] = times}
 function http_conn(params)
@@ -157,103 +50,122 @@ function http_conn(params)
     return result
 end
 
+-- params = {
+--          ["parellel_cnt"] = parellel_cnt,
+--          ["parellel_per"] = parellel_per,
+--          ["mod_name"]= mod_name
+--          ["entry"]= entry
+--          ["params"]= params
+--         }
+-- for example
+-- params = {
+--    ["parellel_cnt"] = 1,
+--    ["parellel_per"] = 1,
+--    ["mod_name"] = "test_http",
+--    ["params"] = {"http://127.0.0.1:8080/statics/index.html",1}
+--}
 function test_http_parellel(params)
-    local parellel_cnt = params["parellel_cnt"]
-    local parellel_per = params["parellel_per"]
-    local urls = params["urls"]
-    for i,k in pairs(urls) do
-        for i = 1,parellel_cnt do
-            http_connect()
+    local parellel_cnt = params["parellel_cnt"] or 2
+    local parellel_per = params["parellel_per"] or 2
+
+    local mod_name = params["mod_name"] or "test_http"
+    local entry = params["entry"] or "http_conn"
+    local args = params["params"] or {"http://127.0.0.1:8080/statics/index.html",1}
+
+    local process = spawn_cnt(parellel_cnt, "parellel", "main_loop", args)
+    --pprint(process,"process")
+
+    local opts = {}
+    local result = {}
+    opts["mod_name"] = mod_name
+    opts["entry"] = entry
+    opts["params"] = args
+    for i,addr in pairs(process) do
+        result[i] = {}
+        for j = 1,parellel_per do
+            opts["id"] = j
+            --pprint(opts,"--- opts ----")
+            result[i][j] = rpc_call(addr,opts)
+        end
+    end
+    --pprint(result,"---- result -----")
+
+    local timer = {}
+    for i,k in pairs(result) do
+        timer[i] = {}
+        for j,v in pairs(k) do
+            timer[i][j] = v["timer"]
         end
     end
 
+    pprint(timer,"timer")
+    local path = string.format("./timer_%d_%d", parellel_cnt, parellel_per)
+    write_timer(path, timer)
+
+    return result
 end
 
 
-
-
-
-function write_timer(timer, times)
-    local path = os.getenv("PWD") .. "/timer." .. times
-    local fd = assert(io.open(path, "wa"))
-
-    for i,k in pairs(timer) do
-        local bg = timer[i]["begin"]
-        local ed = timer[i]["end"]
-        fd:write(string.format("timer %d begin %d  end %d  gap %d\n",i,bg, ed, ed-bg))
-    end
-
-    fd:close()
-end
-
-function tps(times)
-    local BUFSIZE = 2^13
-    local path_timer = os.getenv("PWD") .. "/timer." .. times
-    local fd_timer = assert(io.open(path_timer, "r"))
-
-    local _times = {}
-    local bg = {}
-    local ed = {}
-    local gap = {}
-
-    local i = 1
-    --local lines, rest = fd_timer:read(BUFSIZE, "*line")
-    local lines, rest = fd_timer:read("*line")
-    while lines do
-        _times[i], bg[i], ed[i], gap[i] = string.match(lines, "([0-9]+)%D*([0-9]+)%D*([0-9]+)")
-        --print("lines : " .. lines .. "rest")
-        lines = fd_timer:read("*line")
-        i = i + 1
-    end
-
-    fd_timer:close()
-
-
-    local tps = {}
-    local index = 1
-    for i, k  in pairs(bg) do
-        if bg[i] == bg[i+1] then
-            tps[index] = (tps[index] or 0) + 1
-        else
-            index = index + 1
-            tps[index] = 0
-        end
-    end
-
-    local path_tps = os.getenv("PWD") .. "/tps." .. times
-    local fd_tps = assert(io.open(path_tps, "wa"))
-    for i, k in pairs(tps) do
-        fd_tps:write(string.format("index %d tps %d\n", i, tps[i]))
-    end
-    fd_tps:close()
-end
-
-if ... == "__main__" then
+function test_http_parellel_for_each()
     local mod_name = "test_http"
-    local entry = "http_connect"
-    local url = "http://127.0.0.1:8080/statics/index.html"
-    local timer =  {}
-    local cnt = 0
-    local params = {
-        ["timeout"] = 30,
-        ["min"] = 1,
-        ["step"] = 2,
-        ["max"] = 10
+    local entry = "http_conn"
+    local result = for_each("test_http","http_conn",map)
+    local timer = {}
+
+    local params_list = {
+        {"http://127.0.0.1:8080/statics/index.html",1},
+        {"http://127.0.0.1:8080/statics/index.html",1},
+        {"http://127.0.0.1:8080/statics/index.html",1},
+        {"http://127.0.0.1:8080/statics/index.html",1},
+        {"http://127.0.0.1:8080/statics/index.html",1},
     }
 
-    local sup = glr
+    local result = for_each(mod_name,entry,params_list)
 
-    local http_pool = pool:new():init(sup,params)
-
-
-    p = http_pool:get_process()
-    while p do
-        cnt = cnt + 1
-        p.spawn(mod_name,entry,timer,cnt,url)
-        p = http_pool:get_process()
+    for i,k in pairs(result) do
+        timer[i] = result["timer"]
     end
+    write_timer(timer)
+    tps(#timer)
 
-    local times = cnt
+    return result
+end
+
+
+
+
+
+if ... == "__main__" then
+
+
+
+    params = {}
+    test_http_parellel(params)
+    --local mod_name = "test_http"
+    --local entry = "http_connect"
+    --local url = "http://127.0.0.1:8080/statics/index.html"
+    --local timer =  {}
+    --local cnt = 0
+    --local params = {
+    --    ["timeout"] = 30,
+    --    ["min"] = 1,
+    --    ["step"] = 2,
+    --    ["max"] = 10
+    --}
+
+    --local sup = glr
+
+    --local http_pool = pool:new():init(sup,params)
+
+
+    --p = http_pool:get_process()
+    --while p do
+    --    cnt = cnt + 1
+    --    p.spawn(mod_name,entry,timer,cnt,url)
+    --    p = http_pool:get_process()
+    --end
+
+    --local times = cnt
     --write_timer(timer, times)
     --tps(times)
 end
