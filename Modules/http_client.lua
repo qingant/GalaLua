@@ -84,7 +84,7 @@ function httpClient:get(req)
     assert(self._socket:connect(req._host, req._port))
     --print("Connected!")
     self._socket:send(req:toString())
-    local err,msg = pcall(httpClient._getResponse, self, 30)
+    local err,msg = pcall(httpClient._getResponse, self, 3000)
     self._socket:close()
     assert(err, msg)
     return err
@@ -92,9 +92,12 @@ end
 
 function httpClient:_getResponse(timeout)
     --print("GetResponse")
-    local timeout = timeout or 30
+    local timeout = timeout or 3000
     local response = {}
     local initLine = assert(self._socket:recvLine(timeout)):trim()
+    if not initLine then
+        return false,errmsg or "timeout"
+    end
     
     --print(initLine)
     local header = {}
@@ -103,18 +106,13 @@ function httpClient:_getResponse(timeout)
         if line == "" then
             break
         end
-        -- header[#header+1] = line
-        --print("LINE",line)
-        --pprint.pprint(line)
         local key, value = unpack(string.split(line, ":"))
         response[string.upper(key)] = value:trim()
-        --print(key, value)
     end
     if response["CONTENT-LENGTH"] then
         local content = assert(self._socket:recv(tonumber(response["CONTENT-LENGTH"]), timeout))
         response.content = content
     elseif response["TRANSFER-ENCODING"] == "chuncked" then
-        
     end
     --pprint.pprint(response, "response")
     return response
@@ -136,53 +134,6 @@ function httpClient:get2(req)
     return ok,msg
 end
 
-
-function getStatusCode(line)
-    return tonumber(string.match(line," (%d%d%d) "))
-end
-
-function httpClient:_getResponse2(timeout)
-    local timeout = timeout or 30
-    local response = {}
-    local initLine,errmsg = self._socket:recvLine(timeout)
-
-    if not initLine then
-        return false,errmsg or "timeout"
-    end
-
-    initLine=initLine:trim()
-    
-    local header = {}
-    while true do
-        local line,errmsg = self._socket:recvLine(timeout)
-        if not line then
-            return false,errmsg or "timeout"
-        end
-        line=line:trim()
-        if line == "" then
-            break
-        end
-    end
-
-    return pcall(getStatusCode,initLine)
-end
-
-function httpClient:get2(req,timeout)
-    self._socket = socket.socket:new()
-    local ok,errmsg=self._socket:connect(req._host, req._port)
-    if not ok then
-        return false,errmsg
-    end
-    local ok,errmsg=self._socket:send(req:toString())
-    if not ok then
-        return false,errmsg
-    end
-    local ok,msg = self:_getResponse2(timeout)
-    self._socket:close()
-    return ok,msg
-end
-
-
 function getStatusCode(line)
     local s=assert(string.match(line,"^%s*HTTP/%d%.%d%s+(%d%d%d)%s+.+$"),"not status line")
     return tonumber(s)
@@ -198,7 +149,7 @@ function httpClient:_getResponse2(timeout)
     end
 
     initLine=initLine:trim()
-    
+
     while true do
         local line,errmsg = self._socket:recvLine(timeout)
         if not line then
@@ -225,37 +176,6 @@ function httpClient:_getResponse2(timeout)
     return pcall(getStatusCode,initLine)
 end
 
-function httpClient:get_Response(req,timeout)
-    self._socket = socket.socket:new()
-    local ok,errmsg=self._socket:connect(req._host, req._port)
-    if not ok then
-        return false,errmsg
-    end
-    local ok,errmsg=self._socket:send(req:toString())
-    if not ok then
-        return false,errmsg
-    end
-    local ok,msg = self:_getResponse(timeout)
-    self._socket:close()
-    return ok,msg
-end
-
-function httpClient:concurrent(url,times)
-    local req = httpRequest:new():init("GET", url)
-    co = coroutine.create(function()
-        for i=1,times do
-            local response= self:get_Response(req,20)
-            coroutine.yield()
-        end
-    end
-    )
-
-    for i  = 1,times do
-        print("times : ", i)
-        coroutine.resume(co)
-    end
-end
-
 function find_all_urls(uri, response)
     local len = #response["content"]
     local content = response["content"]
@@ -280,7 +200,7 @@ function httpClient:recur_request(uri,url,depth)
     depth = depth + 1
     local req = httpRequest:new():init("GET", url)
     --local cli = httpClient:new()
-    local response= self:get_Response(req,20)
+    local response= self:get(req)
     urls  = find_all_urls(uri,response)
     if urls == "" then
 	return ""
