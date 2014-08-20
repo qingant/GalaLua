@@ -94,12 +94,15 @@ function server:start_process(params, desc)
     local tcp_handle = nil
     if params.process_type == self.gen_process_type then
         -- TODO: error handling(when rpc.create_server fails)
+        
         cli = rpc.create_server(params.process_params)
         self._logger:info("process created", pformat(cli))
         addr = cli._server_addr
-        local rt = cli:call("get_tcp_handle")
-        if rt.result then
-            tcp_handle = rt.result
+        if params.mod_name and string.find(params.mod_name, "dispatcher",1) then
+            local rt1 = cli:call("get_tcp_handle")
+            if rt1.result then
+                tcp_handle = rt1.result
+            end
         end
     elseif params.process_type == self.raw_process_type then
         addr, errmsg = self:_start_raw_process(params, desc)
