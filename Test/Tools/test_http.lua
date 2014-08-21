@@ -19,10 +19,11 @@ local unpack = cmsgpack.unpack
 
 local _queue = require("collections.init").queue
 
-local for_each = require(_PACKAGE .. "parellel").queue
+local for_each = require(_PACKAGE .. "parellel").for_each
 local spawn_cnt = require(_PACKAGE .. "parellel").spawn_cnt
 local rpc_call = require(_PACKAGE .. "parellel").rpc_call
 local write_timer = require(_PACKAGE .. "tps").write_timer
+local tps = require(_PACKAGE .. "tps").tps
 
 
 
@@ -64,9 +65,9 @@ end
 --    ["mod_name"] = "test_http",
 --    ["params"] = {"http://127.0.0.1:8080/statics/index.html",1}
 --}
-function test_http_parellel(params)
-    local parellel_cnt = params["parellel_cnt"] or 2
-    local parellel_per = params["parellel_per"] or 2
+function http_parellel(params)
+    local parellel_cnt = params["parellel_cnt"] or 3
+    local parellel_per = params["parellel_per"] or 3
 
     local mod_name = params["mod_name"] or "test_http"
     local entry = params["entry"] or "http_conn"
@@ -105,67 +106,76 @@ function test_http_parellel(params)
     return result
 end
 
+-----------------------  test http ----------------------
+
+function test_http_parellel()
+     params = {
+        ["parellel_cnt"] = 1,
+        ["parellel_per"] = 1,
+        ["mod_name"] = "test_http",
+        ["entry"] = "http_conn",
+        ["params"] = {"http://127.0.0.1:8080/statics/index.html",1}
+    }
+    http_parellel(params)
+end
 
 function test_http_parellel_for_each()
     local mod_name = "test_http"
     local entry = "http_conn"
-    local result = for_each("test_http","http_conn",map)
     local timer = {}
 
     local params_list = {
         {"http://127.0.0.1:8080/statics/index.html",1},
-        {"http://127.0.0.1:8080/statics/index.html",1},
-        {"http://127.0.0.1:8080/statics/index.html",1},
-        {"http://127.0.0.1:8080/statics/index.html",1},
-        {"http://127.0.0.1:8080/statics/index.html",1},
+        {"http://127.0.0.1:8080/statics/index.html",1}
     }
 
     local result = for_each(mod_name,entry,params_list)
+    pprint(result,"result")
 
-    for i,k in pairs(result) do
-        timer[i] = result["timer"]
-    end
-    write_timer(timer)
-    tps(#timer)
+    --for i,k in pairs(result) do
+    --    timer[i] = result["timer"]
+    --end
+    --write_timer(timer)
+    --tps(#timer)
 
     return result
 end
 
+function test_http_pool()
+    local mod_name = "test_http"
+    local entry = "http_connect"
+    local url = "http://127.0.0.1:8080/statics/index.html"
+    local timer =  {}
+    local cnt = 0
+    local params = {
+        ["timeout"] = 30,
+        ["min"] = 1,
+        ["step"] = 2,
+        ["max"] = 10
+    }
+
+    local sup = glr
+
+    local http_pool = pool:new():init(sup,params)
+
+
+    p = http_pool:get_process()
+    while p do
+        cnt = cnt + 1
+        p.spawn(mod_name,entry,timer,cnt,url)
+        p = http_pool:get_process()
+    end
+
+    local times = cnt
+    write_timer(timer, times)
+    tps(times)
+end
 
 
 
 
 if ... == "__main__" then
 
-
-
-    params = {}
-    test_http_parellel(params)
-    --local mod_name = "test_http"
-    --local entry = "http_connect"
-    --local url = "http://127.0.0.1:8080/statics/index.html"
-    --local timer =  {}
-    --local cnt = 0
-    --local params = {
-    --    ["timeout"] = 30,
-    --    ["min"] = 1,
-    --    ["step"] = 2,
-    --    ["max"] = 10
-    --}
-
-    --local sup = glr
-
-    --local http_pool = pool:new():init(sup,params)
-
-
-    --p = http_pool:get_process()
-    --while p do
-    --    cnt = cnt + 1
-    --    p.spawn(mod_name,entry,timer,cnt,url)
-    --    p = http_pool:get_process()
-    --end
-
-    --local times = cnt
-    --write_timer(timer, times)
-    --tps(times)
+    --test_http_parellel()
+    --test_http_parellel_for_each()
 end
