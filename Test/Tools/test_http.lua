@@ -26,7 +26,28 @@ local write_timer = require(_PACKAGE .. "tps").write_timer
 local tps = require(_PACKAGE .. "tps").tps
 
 
+--params = {["url"] = "http://url",["times"] = times}
+function http_conn_interrupt(params)
+    url = params[1]
+    times = params[2] or 1
 
+    local timer = {}
+    local result = {}
+    for cnt = 1,times do
+        timer[cnt] = {}
+        result[cnt] = {}
+        timer[cnt]["begin"] = glr.time.now()
+
+        local cli = httpClient:new()
+        local req = httpRequest:new():init("GET", url)
+        local res = cli:try_exception(req)
+
+        timer[cnt]["end"] = glr.time.now()
+        result[cnt]["result"] = res
+        result[cnt]["timer"] = timer[cnt]
+    end
+    return result
+end
 
 --params = {["url"] = "http://url",["times"] = times}
 function http_conn(params)
@@ -66,12 +87,12 @@ end
 --    ["params"] = {"http://127.0.0.1:8080/statics/index.html",1}
 --}
 function http_parellel(params)
-    local parellel_cnt = params["parellel_cnt"] or 3
-    local parellel_per = params["parellel_per"] or 3
+    local parellel_cnt = assert(params["parellel_cnt"])
+    local parellel_per = assert(params["parellel_per"]) 
 
-    local mod_name = params["mod_name"] or "test_http"
-    local entry = params["entry"] or "http_conn"
-    local args = params["params"] or {"http://127.0.0.1:8080/statics/index.html",1}
+    local mod_name = assert(params["mod_name"])
+    local entry = assert(params["entry"])
+    local args = assert(params["params"])
 
     local process = spawn_cnt(parellel_cnt, "parellel", "main_loop", args)
     --pprint(process,"process")
@@ -110,8 +131,8 @@ end
 
 function test_http_parellel()
      params = {
-        ["parellel_cnt"] = 1,
-        ["parellel_per"] = 1,
+        ["parellel_cnt"] = 4,
+        ["parellel_per"] = 2,
         ["mod_name"] = "test_http",
         ["entry"] = "http_conn",
         ["params"] = {"http://127.0.0.1:8080/statics/index.html",1}
@@ -176,6 +197,6 @@ end
 
 if ... == "__main__" then
 
-    --test_http_parellel()
+    test_http_parellel()
     --test_http_parellel_for_each()
 end
