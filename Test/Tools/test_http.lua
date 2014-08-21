@@ -42,7 +42,7 @@ function http_conn(params)
 
         local cli = httpClient:new()
         local req = httpRequest:new():init("GET", url)
-        local res = cli:get_Response(req,20)
+        local res = cli:get2(req)
 
         timer[cnt]["end"] = glr.time.now()
         result[cnt]["result"] = res

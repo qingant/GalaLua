@@ -66,6 +66,10 @@ function httpRequest:toString(...)
 end
 
 
+local getStatusCode =  function(line)
+    local s=assert(string.match(line,"^%s*HTTP/%d%.%d%s+(%d%d%d)%s+.+$"),"not status line")
+    return tonumber(s)
+end
 
 
 httpClient = {}
@@ -98,8 +102,8 @@ function httpClient:_getResponse(timeout)
     if not initLine then
         return false,errmsg or "timeout"
     end
-    
     --print(initLine)
+    -- get header
     local header = {}
     while true do
         local line = assert(self._socket:recvLine(timeout)):trim()
@@ -109,10 +113,25 @@ function httpClient:_getResponse(timeout)
         local key, value = unpack(string.split(line, ":"))
         response[string.upper(key)] = value:trim()
     end
+    -- get body
     if response["CONTENT-LENGTH"] then
         local content = assert(self._socket:recv(tonumber(response["CONTENT-LENGTH"]), timeout))
         response.content = content
-    elseif response["TRANSFER-ENCODING"] == "chuncked" then
+    elseif response["TRANSFER-ENCODING"] == "chunked" then
+        response["content"] = ""
+        while true do
+            local len,errmsg = assert(self._socket:recvLine(timeout))
+            if len ~= 0 then
+                len = "0x" .. len
+                len = string.format("%d",len) + 2
+            else
+                local content,errmsg = self._socket:recv(len,timeout)
+                break
+            end
+
+            local content,errmsg = assert(self._socket:recv(len,timeout))
+            response["content"] = string.format("%s%s",response["content"],content:trim())
+        end
     end
     --pprint.pprint(response, "response")
     return response
@@ -129,18 +148,14 @@ function httpClient:get2(req)
     if not ok then
         return false,errmsg
     end
-    local ok,msg = self:_getResponse2(30)
+    local ok,msg = self:_getResponse2(300)
     self._socket:close()
     return ok,msg
 end
 
-function getStatusCode(line)
-    local s=assert(string.match(line,"^%s*HTTP/%d%.%d%s+(%d%d%d)%s+.+$"),"not status line")
-    return tonumber(s)
-end
 
 function httpClient:_getResponse2(timeout)
-    local timeout = timeout or 5
+    local timeout = timeout or 5000
     local response = {}
     local initLine,errmsg = self._socket:recvLine(timeout)
 
@@ -149,31 +164,52 @@ function httpClient:_getResponse2(timeout)
     end
 
     initLine=initLine:trim()
-
+    -- get header
     while true do
         local line,errmsg = self._socket:recvLine(timeout)
         if not line then
             return false,errmsg or "timeout"
         end
         line=line:trim()
-        
         if line == "" then
             break
         end
         local key, value = unpack(string.split(line, ":"))
         response[string.upper(key)] = value:trim()
     end
+
+    -- get body
     if response["CONTENT-LENGTH"] then
         local content,errmsg = self._socket:recv(tonumber(response["CONTENT-LENGTH"]), timeout)
         if not content then
             return false,errmsg or "timeout"
         end
         response.content = content
-    elseif response["TRANSFER-ENCODING"] == "chuncked" then
-        
+    elseif response["TRANSFER-ENCODING"] == "chunked" then
+        response["content"] = ""
+        while true do
+            local len,errmsg = self._socket:recvLine(timeout)
+            if not len then
+                return false,errmsg or "timeout"
+            elseif len ~= 0 then
+                len = "0x" .. len
+                len = string.format("%d",len) + 2
+            else
+                local content,errmsg = self._socket:recv(len,timeout)
+                break
+            end
+
+            local content,errmsg = self._socket:recv(len,timeout)
+            if not content then
+                return false,errmsg or "timeout"
+            else
+                response["content"] = string.format("%s%s",response["content"],content:trim())
+            end
+
+        end
     end
-    
-    return pcall(getStatusCode,initLine)
+
+    return pcall(self.getStatusCode,initLine)
 end
 
 function find_all_urls(uri, response)
