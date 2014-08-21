@@ -97,7 +97,7 @@ function app_mgr:_start_app()
             error(rt.error)
         end
     end
-    glr.time.sleep(30)          -- wait register
+    glr.time.msleep(30)          -- wait register
     local sup_client = rpc.create_client(self.supervisor_id)
     self._supervisor = sup_client
 
