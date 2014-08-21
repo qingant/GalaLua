@@ -11,31 +11,28 @@
 module(...,package.seeall)
 
 function write_timer(path,timer)
+    print(" ---- ",path,timer)
     local path = path or os.getenv("PWD") .. "/timer." .. #timer
     local fd = assert(io.open(path, "w"))
 
     for i,k in pairs(timer) do
-        if type(k) == "table" then
-            for j,v in pairs(k) do
-                local bg = v["begin"]
-                local ed = v["end"]
-                fd:write(string.format("processID %d index %d begin %d  end %d  gap %d\n",i,j,bg, ed, ed-bg))
-            end
-        else
-            local bg = k["begin"]
-            local ed = k["end"]
-            fd:write(string.format("processID %d begin %d  end %d  gap %d\n",i,bg, ed, ed-bg))
+        --print("i",i,"k",k)
+        for j,v in pairs(k) do
+            local bg = v["begin"]
+            local ed = v["end"]
+            fd:write(string.format("processID %d index %d begin %d  end %d  gap %d\n",i,j,bg, ed, ed-bg))
         end
     end
     fd:close()
 end
 
-function tps(times)
+function tps(timer_path, tps_path)
     local BUFSIZE = 2^13
-    local path_timer = os.getenv("PWD") .. "/timer." .. times
+    local path_timer = assert(timer_path)
     local fd_timer = assert(io.open(path_timer, "r"))
 
-    local _times = {}
+    local process = {}
+    local index = {}
     local bg = {}
     local ed = {}
     local gap = {}
@@ -44,7 +41,7 @@ function tps(times)
     --local lines, rest = fd_timer:read(BUFSIZE, "*line")
     local lines, rest = fd_timer:read("*line")
     while lines do
-        _times[i], bg[i], ed[i], gap[i] = string.match(lines, "([0-9]+)%D*([0-9]+)%D*([0-9]+)")
+        process[i], index[i], bg[i], ed[i], gap[i] = string.match(lines, "([0-9]+)%D*([0-9]+)%D*([0-9]+)%D*([0-9]+)")
         --print("lines : " .. lines .. "rest")
         lines = fd_timer:read("*line")
         i = i + 1
@@ -64,44 +61,50 @@ function tps(times)
         end
     end
 
-    local path_tps = os.getenv("PWD") .. "/tps." .. times
-    local fd_tps = assert(io.open(path_tps, "wa"))
+    local path_tps = assert(tps_path)
+    local fd_tps = assert(io.open(path_tps, "w"))
     for i, k in pairs(tps) do
         fd_tps:write(string.format("index %d tps %d\n", i, tps[i]))
     end
     fd_tps:close()
 end
 
-if ... == "__main__" then
-    timer = {
+function test_timer()
+    local timer1 = {
         {
-        ["begin"] = 1,
-        ["end"] = 2
+            ["begin"] = 1,
+            ["end"] = 2
         },
         {
-        ["begin"] = 2,
-        ["end"] = 3
+            ["begin"] = 2,
+            ["end"] = 3
         }
     }
 
-    timer = {
-        {
-            {
+    local timer2 = {
+        [1] = {
+            [1] = {
                 ["begin"] = 1,
                 ["end"] = 2
             },
-            {
+            [2] = {
                 ["begin"] = 1,
                 ["end"] = 2
             },
         },
-        {
-            {
+        [2] = {
+            [1] = {
                 ["begin"] = 2,
                 ["end"] = 3
             }
         }
     }
-    local path = "./timer"
-    write_timer(path,timer)
+    local timer_path = os.getenv("PWD") .. "/timer"
+    local tps_path = os.getenv("PWD") .. "/tps"
+    write_timer(timer_path, timer2)
+    tps(timer_path,tps_path)
+end
+
+if ... == "__main__" then
+    test_timer()
 end
