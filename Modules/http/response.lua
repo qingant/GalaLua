@@ -32,12 +32,13 @@ function response:set_status_code(code)
 end
 function response:set_content(content)
     self.content = content
-    local len = content ~= nil and #content or 0
-    print("----Content-Length----", len)
-    self["Content-Length"] = tostring(len)
-    if len > 50000 then
-        self.chunked = true
-    end
+    --local len = content ~= nil and #content or 0
+    --print("----Content-Length----", len)
+    --if len > 5000 then
+    --    self.chunked = true
+    --else
+    --    self["Content-Length"] = tostring(len)
+    --end
 end
 function response:set_content_type(content_type)
     self["Content-Type"] = content_type
@@ -80,9 +81,14 @@ function response:set_content_encode(request)
 end
 
 function response:to_string()
-    if self.chunked then
+    local len = #self.content
+    print("---- Content ----",len)
+    if len > 500000 then
         self["Transfer-Encoding"] = "chunked"
     	self["Content-Length"] = nil
+    else
+        print("---- Content-Length ----",len)
+    	self["Content-Length"] = len
     end
     local lines = {}
     lines[#lines+1] = string.format("%s %s %s\r\n", self.version, self.statusCode, self.status)

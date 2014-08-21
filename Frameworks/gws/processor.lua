@@ -196,7 +196,7 @@ function processor:_static_handle(request)
     response:set_content_type(CONTENT_TYPE[string.lower(string.match(uri,"%.(%w+)$"))])
     self._logger:info("statusCode : %s", response.statusCode)
     for i, k in pairs(response) do
-        if i ~= "content" then
+        if i ~= "body" then
             self._logger:debug("%s : %s",i,k)
         end
     end
