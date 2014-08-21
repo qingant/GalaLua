@@ -1,4 +1,5 @@
 module(...,package.seeall)
+local pprint = require("pprint").pprint
 
 local socket  = require("glr.socket")
 local strUtils = require("str_utils")
@@ -12,7 +13,7 @@ function httpRequest:new(...)
    self.__index = self
    return o
 end
-local pprint = require("pprint")
+
 function _parseUri(uri)
     --print(uri)
     local err, host, port, path
@@ -111,13 +112,16 @@ function httpClient:_getResponse(timeout)
             break
         end
         local key, value = unpack(string.split(line, ":"))
-        response[string.upper(key)] = value:trim()
+        response[key] = value:trim()
     end
+    pprint(response,"response")
     -- get body
-    if response["CONTENT-LENGTH"] then
-        local content = assert(self._socket:recv(tonumber(response["CONTENT-LENGTH"]), timeout))
+    if response["Content-Length"] then
+        local content =
+                       assert(self._socket:recv(tonumber(response["Content-Length"]), timeout))
         response.content = content
-    elseif response["TRANSFER-ENCODING"] == "chunked" then
+        --print("--- response body ---" , response.content)
+    elseif response["Transfer-Encoding"] == "chunked" then
         response["content"] = ""
         while true do
             local len,errmsg = assert(self._socket:recvLine(timeout))
@@ -133,8 +137,8 @@ function httpClient:_getResponse(timeout)
             response["content"] = string.format("%s%s",response["content"],content:trim())
         end
     end
-    --pprint.pprint(response, "response")
-    return response
+    --print(response.content, "response")
+    return response["content"]
 
 end
 
@@ -175,17 +179,19 @@ function httpClient:_getResponse2(timeout)
             break
         end
         local key, value = unpack(string.split(line, ":"))
-        response[string.upper(key)] = value:trim()
+        response[key] = value:trim()
     end
 
     -- get body
-    if response["CONTENT-LENGTH"] then
-        local content,errmsg = self._socket:recv(tonumber(response["CONTENT-LENGTH"]), timeout)
+    if response["Content-Length"] then
+        local content,errmsg =
+        self._socket:recv(tonumber(response["Content-Length"]), timeout)
         if not content then
             return false,errmsg or "timeout"
         end
         response.content = content
-    elseif response["TRANSFER-ENCODING"] == "chunked" then
+        --print("--- response body ---" , response.content)
+    elseif response["Transfer-Encoding"] == "chunked" then
         response["content"] = ""
         while true do
             local len,errmsg = self._socket:recvLine(timeout)
@@ -209,7 +215,8 @@ function httpClient:_getResponse2(timeout)
         end
     end
 
-    return pcall(self.getStatusCode,initLine)
+    --return pcall(self.getStatusCode,initLine)
+    return pcall(getStatusCode,initLine)
 end
 
 function find_all_urls(uri, response)
@@ -241,35 +248,49 @@ function httpClient:recur_request(uri,url,depth)
     if urls == "" then
 	return ""
     end
-    pprint.pprint(urls,"-------depth:".. depth .. "-------index:".. 0 .. "---- url:".. url .."--------------")
+    pprint(urls,"-------depth:".. depth .. "-------index:".. 0 .. "---- url:".. url .."--------------")
     for i,_url in pairs(urls) do
         print("-------depth:".. depth .. "-------index:".. i .. "---- url:".. _url .."--------------")
         self:recur_request(uri,_url,depth)
     end
 end
 
-if ... == "__main__" then
-    --local uri = "http://joncraton.org/blog/46/netcat-for-windows"
-    ---- uri="192.188.150.119:8888"
-    --uri = "www.google.com"
-    --uri = "www.baidu.com"
-    --uri = "www.youtube.com"
-    --uri = "127.0.0.1:8080"
-    -- uri = "http://qt-project.org/doc/qt-5.0/qtmultimedia/audiooverview.html"
-    -- uri = "http://dlang.org/phobos/std_container.html"
-    -- uri = "http://www.iteye.com"
+function test_get()
     uri = "127.0.0.1:8080"
-    local path = "/statics/index.html"
+    local path = "/static/index.html"
     url= uri .. path
     local depth = 0
     local cli = httpClient:new()
-    concurrent = false
-    recur_request = true 
-    if concurrent then
-        cli:concurrent(url,100)
-    end
+    local req = httpRequest:new():init("GET",url)
+    local ret, err_msg = cli:get(req)
+    return ret,err_msg
+end
+
+function test_get2()
+    uri = "127.0.0.1:8080"
+    local path = "/static/index.html"
+    url= uri .. path
+    local depth = 0
+    local cli = httpClient:new()
+    local req = httpRequest:new():init("GET",url)
+    local ret, err_msg = cli:get2(req)
+    return ret,err_msg
+end
+
+function test_recur_request()
+    uri = "127.0.0.1:8080"
+    local path = "/static/index.html"
+    url= uri .. path
+    local depth = 0
+    local cli = httpClient:new()
 
     if recur_request then
         cli:recur_request(uri,url,depth)
     end
+end
+
+
+if ... == "__main__" then
+    --print(test_get())
+    print(test_get2())
 end
