@@ -26,6 +26,20 @@ function write_timer(path,timer)
     fd:close()
 end
 
+function write_timer2(pid, timer,path)
+    local pid = pid
+    local path = path or string.format("%s/timer/%d_%d",os.getenv("PWD"), pid, #timer)
+    local fd = assert(io.open(path, "a"))
+
+    for i,k in pairs(timer) do
+        local bg = k["timer"]["begin"]
+        local ed = k["timer"]["end"]
+        fd:write(string.format("processID %d index %d begin %d  end %d  gap %d\n",pid, i, bg, ed, ed-bg))
+    end
+    fd:close()
+    print(string.format("write to %s ",path))
+end
+
 function tps(timer_path, tps_path)
     local BUFSIZE = 2^13
     local path_timer = assert(timer_path)

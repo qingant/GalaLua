@@ -52,23 +52,26 @@ end
 --params = {["url"] = "http://url",["times"] = times}
 function http_conn(params)
     url = params[1]
-    times = params[2] or 1
+    times = params[2]
 
     local timer = {}
     local result = {}
     for cnt = 1,times do
         timer[cnt] = {}
         result[cnt] = {}
-        timer[cnt]["begin"] = glr.time.now()
+        --timer[cnt]["begin"] = glr.time.now()
+        timer[cnt]["begin"] = os.time()
 
         local cli = httpClient:new()
         local req = httpRequest:new():init("GET", url)
-        local res = cli:get2(req)
+        local res,err_msg = cli:get2(req)
 
-        timer[cnt]["end"] = glr.time.now()
-        result[cnt]["result"] = res
+        --timer[cnt]["end"] = glr.time.now()
+        timer[cnt]["end"] = os.time()
+        result[cnt]["result"] = string.format("res:%s  err_msg:%s",res,err_msg)
         result[cnt]["timer"] = timer[cnt]
     end
+    pprint(result,"--- result ---")
     return result
 end
 
