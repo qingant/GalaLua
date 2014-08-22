@@ -263,7 +263,8 @@ function main_loop2(timeout)
                 local len = #ret
                 local gpid = rec_msg["process"]["id"]
                 local  pwd = os.getenv("PWD")
-                local path = string.format("%s/timer/%d_%d",pwd, gpid,len)
+                --local path = string.format("%s/timer/%d_%d",pwd, gpid,len)
+                local path = string.format("%s/timer/timer",pwd)
                 print("path", path)
                 write_timer2(gpid, ret, path)
                 local send_msg = {}
@@ -320,8 +321,8 @@ function test_for_each2()
     local timeout = 3000
     local timer = {}
     local params_list = {}
-    for i = 1, 2 do
-        params_list[i] = {"http://127.0.0.1:8080/static/index.html",5}
+    for i = 1, 5 do
+        params_list[i] = {"http://127.0.0.1:8080/static/index.html",100}
     end
 
     for_each2("test_http","http_conn",params_list)
