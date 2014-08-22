@@ -161,7 +161,7 @@ function httpClient:get2(req)
     if not ok then
         return false,errmsg
     end
-    local ok,msg = self:_getResponse2(300)
+    local ok,msg = self:_getResponse2(3000)
     self._socket:close()
     return ok,msg
 end
@@ -224,7 +224,6 @@ function httpClient:_getResponse2(timeout)
         end
     end
 
-    --return pcall(self.getStatusCode,initLine)
     return pcall(getStatusCode,initLine)
 end
 
@@ -300,6 +299,6 @@ end
 
 
 if ... == "__main__" then
-    --print(test_get())
+    print(test_get())
     print(test_get2())
 end
