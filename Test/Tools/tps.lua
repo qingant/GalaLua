@@ -43,7 +43,7 @@ end
 function tps(timer_path, tps_path)
     local BUFSIZE = 2^13
     local path_timer = assert(timer_path)
-    local fd_timer = assert(io.open(path_timer, "r"))
+    local fd_timer = assert(io.open(timer_path, "r"))
 
     local process = {}
     local index = {}
@@ -68,10 +68,10 @@ function tps(timer_path, tps_path)
     local index = 1
     for i, k  in pairs(bg) do
         if bg[i] == bg[i+1] then
-            tps[index] = (tps[index] or 0) + 1
+            tps[index] = (tps[index] or 1) + 1
         else
             index = index + 1
-            tps[index] = 0
+            tps[index] = 1
         end
     end
 
@@ -82,6 +82,7 @@ function tps(timer_path, tps_path)
     end
     fd_tps:close()
 end
+
 
 function test_timer()
     local timer1 = {
@@ -119,6 +120,12 @@ function test_timer()
     tps(timer_path,tps_path)
 end
 
+function test_tps()
+    os.execute("mkdir -p tps")
+    tps("./timer/timer","./tps/tps")
+end
+
 if ... == "__main__" then
-    test_timer()
+    --test_timer()
+    test_tps()
 end
