@@ -4,7 +4,7 @@
 
 	== Introduction ==
 ]]
-    
+
 module(..., package.seeall)
 
 
@@ -43,11 +43,13 @@ end
 local arg_tab
 
 function get_option(key)
+    return get_options()[key]
+end
+
+--@_API_LEVEL >= 200
+function get_options()
 	if not arg_tab then
 		arg_tab = getopt(_glr.get_option(), key)
 	end
-	return arg_tab[key]
+    return arg_tab
 end
-
-    
-    
