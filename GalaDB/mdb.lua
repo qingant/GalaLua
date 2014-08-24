@@ -201,6 +201,8 @@ function mdb:withReadOnly(action, ...)
     self:beginTrans()
     return self:_with(action, ...)
 end
+mdb.api_version = 2
+mdb.with_read_only = mdb.withReadOnly
 function element:new(o)
     -- local key = "/" .. name
     local o =  o or {}
@@ -732,6 +734,13 @@ function element:add_vector_item()
     self:set_attrib(vector_index_key, tostring(tonumber(serial) + 1))
     return self:add_node(serial)
 end
+function element:add_vector_item_as_vector(tag)
+    assert(self:is_vector(), "Element is not Vector Node")
+    local serial = self:get_attrib()[vector_index_key]
+    self:set_attrib(vector_index_key, tostring(tonumber(serial) + 1))
+    return self:add_vector_node(serial, tag)
+end
+
 function element:add_node(k)
     assert(k, "Key Cannot be nil")
     -- assert(not self.is_leaf())
@@ -923,46 +932,49 @@ function merge_to_xml( els ) -- static method
     return _to_xml(path)
 end
 
-function element:to_xml(str)
+function element:to_xml(str, indent)
     -- not that pretty  but it does work well ...
     if str == nil then
         str = ""
+    end
+    if indent == nil then
+        indent = 0
     end
     --local tmp = split(self.real_key or self.key, "/")
     local root = self:tag()
     local values = self:get_value()
     local attrs = self:get_attrib()
     if #values == 0 then
-        str = str .. string.format("<%s", root)
+        str = str .. string.rep(" ", indent*2) .. string.format("<%s", root)
         for k,v in pairs(attrs) do
             if string.sub(k, 1, 2) ~= "__" then  -- hiden attribute
                 str = str .. string.format(" %s=\"%s\"", k, v)
             end
         end
-        if self._count then
-          str = str .. string.format(" %s=\"%s\"", "__count", self._count)
-        end
-        str = str .. ">"
+        -- if self._count then
+        --   str = str .. string.format(" %s=\"%s\"", "__count", self._count)
+        -- end
+        str = str .. ">\n"
         local childs = self:get_child()
         if self:is_vector() then
             local item_key = self:get_attrib()[vector_item_tag]
             for k,v in pairs(childs) do
                 v._tag = item_key
                 v._count = k
-                str = v:to_xml(str)
+                str = v:to_xml(str, indent + 1)
             end
         else
 
             for k,v in pairs(childs) do
-                str = v:to_xml(str)
+                str = v:to_xml(str, indent + 1)
             end
         end
-        str = str .. string.format("</%s>", root)
+        str = str .. string.rep(" ", indent*2) .. string.format("</%s>\n", root)
 
     else
 
         for _,v in pairs(values) do
-            str = str .. string.format("<%s>%s</%s>", root, v, root)
+            str = str .. string.rep(" ", indent*2) .. string.format("<%s>%s</%s>\n", root, v, root)
         end
 
     end
