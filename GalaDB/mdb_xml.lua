@@ -24,15 +24,23 @@ function xml_to_mdb(root, path)
             db_element:add_attrib(k,v)
         end
         if xml_element:is_vector() then
+            local e = db_element
             for i,v in ipairs(xml_element:sub_elements()) do
-                local e = db_element:add_vector_item()
-                _import(e, v)
+
+                local e1
+                if v:is_vector() then
+                    e1 = e:add_vector_item_as_vector(v:key())
+                else
+                    e1 = e:add_vector_item()
+                end
+                _import(e1, v)
             end
         else
             for i,v in ipairs(xml_element:sub_elements()) do
-                local e
-                if v:is_vector() then
-                    e = db_element:add_vector_node(v:key())
+
+                local e = db_element
+                if  v:is_vector() then
+                    e = e:add_vector_node(v:key(), v:sub_elements()[1]:key())
                 else
                     e = db_element:add_node(v:key())
                 end
@@ -49,10 +57,10 @@ end
 
 if ... == "__main__" then
     local mdb = require("mdb").mdb
-    local path = "/tmp/temp/bar"
+    local path = os.getenv("HOME") .. "/acloud/clusters"
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
     local db = mdb:new():init(mdb.create_env(path))
-    local root = db:get_root("Test")
+    local root = db:get_root("clusters")
     db:with(function (db)
             print("import")
             xml_to_mdb(root, "./cluster.xml")
