@@ -15,6 +15,11 @@ function request:init()
     self.params = {}
     return self
 end
+
+function request:to_string()
+    self.header[#self.header + 1] = ""
+    return table.concat(self.header, "\r\n")
+end
 function request:parse()
     self:parse_path()
     self:parse_query()
@@ -34,6 +39,7 @@ function request:parse_path()
     self.path = path
     self.query = query
 end
+
 
 function request:parse_accept_encoding()
     local value = {}
