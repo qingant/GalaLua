@@ -39,7 +39,7 @@ function server:init(name)
 	self._name = name
     self._stamp = glr.time.now()
     self._log_level = 0
-    self._timeout = 1000*3
+    self._timeout = 1000*60
     self._packer = cmsgpack.pack
     self._unpacker = cmsgpack.unpack
     self._tick = 0
