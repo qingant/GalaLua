@@ -40,6 +40,14 @@ function app:set_log_path(path)
     self.components[1].params.log_path = path .. "/web/"
     os.execute("mkdir -p " .. self.components[1].params.log_path)
 end
+function app:set_pool(max, min)
+    if max then
+        self.components[1].params.max = max
+    end
+    if min then
+        self.components[1].params.min = min
+    end
+end
 app:add_component{
     catagory = "pool",
     pool_name = "http",
