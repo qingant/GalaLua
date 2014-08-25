@@ -46,6 +46,7 @@ function dispatcher:on_message(mtype, desc, msg)
         self._logger:debug("get worker:%s", pprint.format(worker))
         self._worker._server_addr = worker
         self._worker:call("add_task", {fd = fd})
+        self._logger:debug("task added to: %d", worker.gpid)
     else
         -- TODO: loggging
     end
