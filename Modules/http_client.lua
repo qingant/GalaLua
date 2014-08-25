@@ -132,21 +132,27 @@ function httpClient:_getResponse(timeout)
         --print("--- response body ---" , response.content)
     elseif response["Transfer-Encoding"] == "chunked" then
         response["content"] = ""
+        local cnt = 0
         while true do
             local len,errmsg = assert(self._socket:recvLine(timeout))
-            if len ~= 0 then
+            --print("lines :",len:trim())
+            if len:trim() ~= "0" then
+                len = "0x" .. len
+                len = tonumber(len) + 2
+                local content,errmsg = assert(self._socket:recv(len,timeout))
+                response["content"] = string.format("%s%s",response["content"],content:trim())
+                --print("len:",len)
+                --print(string.format("chunked: %s",content))
+            else
                 len = "0x" .. len
                 len = string.format("%d",len) + 2
-            else
-                local content,errmsg = self._socket:recv(len,timeout)
+                local content,errmsg = assert(self._socket:recv(len,timeout))
                 break
             end
 
-            local content,errmsg = assert(self._socket:recv(len,timeout))
-            response["content"] = string.format("%s%s",response["content"],content:trim())
         end
     end
-    --print(response.content, "response")
+    --print("response",response.content)
     return response["content"]
 
 end
@@ -202,28 +208,27 @@ function httpClient:_getResponse2(timeout)
         --print("--- response body ---" , response.content)
     elseif response["Transfer-Encoding"] == "chunked" then
         response["content"] = ""
+        local cnt = 0
         while true do
-            local len,errmsg = self._socket:recvLine(timeout)
-            if not len then
-                return false,errmsg or "timeout"
-            elseif len ~= 0 then
+            local len,errmsg = assert(self._socket:recvLine(timeout))
+            --print("lines :",len:trim())
+            if len:trim() ~= "0" then
+                len = "0x" .. len
+                len = tonumber(len) + 2
+                local content,errmsg = assert(self._socket:recv(len,timeout))
+                response["content"] = string.format("%s%s",response["content"],content:trim())
+                --print("len:",len)
+                --print(string.format("chunked: %s",content))
+            else
                 len = "0x" .. len
                 len = string.format("%d",len) + 2
-            else
-                local content,errmsg = self._socket:recv(len,timeout)
+                local content,errmsg = assert(self._socket:recv(len,timeout))
                 break
-            end
-
-            local content,errmsg = self._socket:recv(len,timeout)
-            if not content then
-                return false,errmsg or "timeout"
-            else
-                response["content"] = string.format("%s%s",response["content"],content:trim())
             end
 
         end
     end
-
+    --print("response",response.content)
     return pcall(getStatusCode,initLine)
 end
 
