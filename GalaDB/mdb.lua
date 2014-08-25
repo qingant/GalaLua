@@ -479,6 +479,31 @@ function element:xpath_set( xpath, value )
     end
     return num
 end
+
+--[[
+确保table key的添加顺序和pairs获取时的先后顺序一致。
+]]
+local function sequential_table()
+    local dict = {}
+    local key_dict={}
+    setmetatable(dict,{
+        __pairs=function (t)
+        local i=0
+        return function ()
+                i=i+1
+                local k=key_dict[i]
+                return k,t[k]
+            end
+        end,
+        __newindex=function (t,k,v)
+            key_dict[#key_dict+1]=k
+            rawset(t,k,v)
+        end
+    })
+
+    return dict
+end
+
 function element:_get_dup(op)
     local cur = self._db.txn:cursor_open(self._db.dbi)
 
@@ -488,7 +513,7 @@ function element:_get_dup(op)
     local k,v = cur:get(self.key, flag)
 
 
-    local dict = {}
+    local dict = sequential_table()
     if k == nil or v == nil then
         cur:close()
         return dict
@@ -933,6 +958,7 @@ function merge_to_xml( els ) -- static method
 end
 
 function element:to_xml(ignore_func,str, indent)
+
     -- not that pretty  but it does work well ...
     if str == nil then
         str = ""
