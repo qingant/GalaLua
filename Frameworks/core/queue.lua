@@ -48,8 +48,8 @@ function queue_server:status(params, desc)
     return {dataq=self._dataq, customerq=self._customerq, timeout=self._dequeue_timeout}
 end
 function queue_server:put(params, desc)
-    if self.put_process then
-        self:put_process(params, desc)
+    if self.on_put then
+        self:on_put(params, desc)
     end
     self._logger:info("put by %d", desc.addr.gpid)
     self._logger:info("data size: %d", self._dataq:length())
