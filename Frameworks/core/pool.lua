@@ -79,39 +79,17 @@ function pool:put_dispatcher(params, desc)
         self._dispatch.addr = params
     end
 end
-function pool:_get_process(params, desc)
-    local p = self:get(params, desc)    
-    while p do
-        if p == self.no_response then
-            return nil
-        end
 
-        if p.gpid then
-            if self._processes[p.gpid] then
-                if glr.status.status(p.gpid)  then
-                    if self._processes[p.gpid].status == "idle" then
-                        return p
-                    end
-                else
-                    self._count = self._count -1;
-                    self._processes[p.gpid] = nil
-                end
-            end
-        end
-        p = self:get(params, desc)
-    end
-end
 
-function pool:get_process(params, desc)    
+function pool:get_process(params, desc)
     self._logger:info("worker remain: %s", self._logger.format(self._dataq))
-    local p = self:_get_process(params, desc)
-    if p then
+    local p = self:get(params, desc)
+    if p == self.no_response and self._count < self._max then
+        self:_create_process()
+    else
         self._processes[p.gpid].status = "used"
-        return p
-    elseif self._count < self._max then
-        pool:_create_process()
     end
-    return self.no_response
+    return p
 end
 function pool:on_timeout()
     self._logger:debug(self._logger.format(glr.status.processes()))
@@ -128,17 +106,17 @@ function pool:_create_process()
     -- TODO: error handling and logging
 end
 
-function pool:put_process(params, desc)    
+function pool:on_put(params, desc)
     local gpid = params.gpid
     if gpid and self._processes[gpid] then
         self._processes[gpid].status = "idle"
     elseif gpid then
+        -- 
         self._processes[gpid] = {}
         self._processes[gpid].status = "idle"
         self._processes[gpid].gpid = gpid
         self._processes[gpid].addr = params
         self._logger:info("start processor:%d %s", self._count, self._logger.format(rt))
-        self._count = self._count + 1
     end
 end
 
