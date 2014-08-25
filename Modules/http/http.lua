@@ -24,7 +24,7 @@ function http:close()
     self._socket:close()
 end
 function http:get_request(timeout)
-    local timeout = timeout or 3000 -- ms
+    local timeout = timeout or 1000*5 -- ms
     local request = request:new():init()
     local initLine = assert(self._socket:recvLine(timeout)):trim()
     local method, path, version = unpack(string.split(initLine, " "))
