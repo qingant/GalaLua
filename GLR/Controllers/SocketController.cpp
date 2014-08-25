@@ -70,7 +70,7 @@ void GLR::SocketWorker::Clean( const Galaxy::GalaxyRT::CThread & )
 
 void GLR::SocketWorker::OnErr( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev )
 {
-    GALA_ERROR("Fd(%d)", ev.first);
+    //GALA_ERROR("Fd(%d)", ev.first);
     Galaxy::GalaxyRT::CLockGuard _Gl(&_Mutex);
     LinkStack *ls = _LinkMap[ev.first];
     if (ls == NULL)
