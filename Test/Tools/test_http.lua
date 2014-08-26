@@ -30,20 +30,23 @@ local tps = require(_PACKAGE .. "tps").tps
 function http_conn_interrupt(params)
     url = params[1]
     times = params[2] or 1
+    e_type = params[3] 
 
     local timer = {}
     local result = {}
     for cnt = 1,times do
         timer[cnt] = {}
         result[cnt] = {}
-        timer[cnt]["begin"] = glr.time.now()
+        timer[cnt]["begin"] = os.time()
 
         local cli = httpClient:new()
         local req = httpRequest:new():init("GET", url)
-        local res = cli:try_exception(req)
-
-        timer[cnt]["end"] = glr.time.now()
-        result[cnt]["result"] = res
+        print("-----------before  try_exception------------",cnt)
+        local res,err_msg = cli:try_exception(req,e_type)
+        pprint(res,"res")
+        print("-----------after  try_exception------------",cnt)
+        timer[cnt]["end"] = os.time()
+        result[cnt]["result"] = string.format("ret:%s err:%s",res,err_msg)
         result[cnt]["timer"] = timer[cnt]
     end
     return result

@@ -83,13 +83,19 @@ function httpClient:new()
    return o
 end
 
-function httpClient:try_exception(e_type)
-    self._socket = socket.socket:new()
+function httpClient:try_exception(req,e_type)
     if e_type == "only_connect" then
+    	self._socket = socket.socket:new()
         assert(self._socket:connect(req._host, req._port))
+        return "only_connect"
     elseif e_type == "only_send" then
+    	self._socket = socket.socket:new()
         assert(self._socket:connect(req._host, req._port))
         self._socket:send(req:toString())
+        return "only_send"
+    else
+        local ret,msg = self:get2(req)
+        return ret,msg
     end
 end
 
@@ -167,7 +173,7 @@ function httpClient:get2(req)
     if not ok then
         return false,errmsg
     end
-    local ok,msg = self:_getResponse2(3000)
+    local ok,msg = self:_getResponse2(6000)
     self._socket:close()
     return ok,msg
 end
@@ -179,7 +185,7 @@ function httpClient:_getResponse2(timeout)
     local initLine,errmsg = self._socket:recvLine(timeout)
 
     if not initLine then
-        return false,errmsg or "timeout"
+        return false,errmsg or "initLine timeout"
     end
 
     initLine=initLine:trim()
@@ -187,7 +193,7 @@ function httpClient:_getResponse2(timeout)
     while true do
         local line,errmsg = self._socket:recvLine(timeout)
         if not line then
-            return false,errmsg or "timeout"
+            return false,errmsg or "recvLine timeout"
         end
         line=line:trim()
         if line == "" then
@@ -202,7 +208,7 @@ function httpClient:_getResponse2(timeout)
         local content,errmsg =
         self._socket:recv(tonumber(response["Content-Length"]), timeout)
         if not content then
-            return false,errmsg or "timeout"
+            return false,errmsg or "recv timeout"
         end
         response.content = content
         --print("--- response body ---" , response.content)

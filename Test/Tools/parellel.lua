@@ -321,11 +321,24 @@ function test_for_each2()
     local timeout = 3000
     local timer = {}
     local params_list = {}
-    for i = 1, 5 do
-        params_list[i] = {"http://127.0.0.1:8080/static/index.html",100}
+    local num_concurrent = 10
+    local num_requestper = 1000/num_concurrent
+    local e_type= "only_send" --"only_send"
+    --local e_type= "only_send"
+    for i = 1,num_concurrent do--并发数
+        if i>num_concurrent then
+            print("---------------it is going to  status : " .. e_type .. "-------------",i)
+            params_list[i] = {"http://192.168.1.114:8080/static/index1.html",num_requestper,e_type}--请求数/并发
+            --if i ==num_concurrent/2 then glr.time.sleep(3) end
+        else --先正常
+            print("---------------it is going to  status : normal------------",i)
+            params_list[i] = {"http://192.168.1.114:8080/static/index.html",num_requestper} 
+            --if i ==num_concurrent/2 then glr.time.sleep(3) end
+        end  
     end
-
-    for_each2("test_http","http_conn",params_list)
+    glr.time.sleep(5) 
+    for_each2("test_http","http_conn_interrupt",params_list)
+    --for_each2("test_http","http_conn",params_list)
 
 end
 
