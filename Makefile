@@ -1,9 +1,9 @@
-WHICH_LUA=lua
 PLATFORM = $(shell uname)
 ifeq ($(PLATFORM), Linux)
 	MAKE = make
-	WHICH_LUA=luajit
+	WHICH_LUA?=luajit
 else
+	WHICH_LUA?=lua
 	MAKE = gmake
 endif
 
