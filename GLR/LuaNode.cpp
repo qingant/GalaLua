@@ -57,12 +57,12 @@ void Process::SendMsg(const LN_MSG_TYPE& msg)
 
     GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
 
-    if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
+    while (_Channel.Empty() && (State() == ProcessStatus::RECV_WAIT))
     {
         // TODO: expose more info to lua
         try
         {
-            Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock);
+            Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock, false);
 
             BuildMessageReturnValues(head);
             _Status._NArg = 3;
