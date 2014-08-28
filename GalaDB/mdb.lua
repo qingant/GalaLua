@@ -932,7 +932,7 @@ function merge_to_xml( els ) -- static method
     return _to_xml(path)
 end
 
-function element:to_xml(str, indent)
+function element:to_xml(ignore_func,str, indent)
     -- not that pretty  but it does work well ...
     if str == nil then
         str = ""
@@ -940,6 +940,11 @@ function element:to_xml(str, indent)
     if indent == nil then
         indent = 0
     end
+
+    if ignore_func and ignore_func(self) then
+        return str
+    end
+    
     --local tmp = split(self.real_key or self.key, "/")
     local root = self:tag()
     local values = self:get_value()
@@ -961,12 +966,12 @@ function element:to_xml(str, indent)
             for k,v in pairs(childs) do
                 v._tag = item_key
                 v._count = k
-                str = v:to_xml(str, indent + 1)
+                str = v:to_xml(ignore_func, str, indent + 1)
             end
         else
 
             for k,v in pairs(childs) do
-                str = v:to_xml(str, indent + 1)
+                str = v:to_xml(ignore_func, str, indent + 1)
             end
         end
         str = str .. string.rep(" ", indent*2) .. string.format("</%s>\n", root)
@@ -1070,9 +1075,10 @@ if ... == "__main__" then
 
         local el = db:get_root(root1)
 
-        pprint.pprint(el:to_xml())
+        print(el:to_xml())
+        print(el:to_xml(function (elm) return elm:tag()=="Branch" end))
         el:remove("Bank/Branch2")
-        pprint.pprint(el:to_xml())
+        print(el:to_xml())
     end
     local another = "Define"
     function test_symlink(db)
@@ -1292,27 +1298,28 @@ if ... == "__main__" then
     for i=1,limit do
         db:with(test)
 
-        db:with(test1)
+--        db:with(test1)
         -- db:with(test_xquery_xpath)
         -- db:withReadOnly(test_xpath)
         -- db:withReadOnly(test_value)
-        -- db:with(test_xml)
+        db:with(test_xml)
         -- db:with(test_symlink)
         -- db:with(test_more_sym)
         -- db:with(test_more_xpath)
         -- db:withReadOnly(test_more_more_xpath)
         -- db:withReadOnly(test_walk)
         -- db:with(test5)
-        db:with(test_remove_root_child)
+        --db:with(test_remove_root_child)
         -- collectgarbage("collect")
 
         -- db:withReadOnly(test_exist)
         -- db:with(test_vector)
         -- db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
-        -- db:withReadOnly(test_merge)
+--        db:withReadOnly(test_merge)
         -- db:withReadOnly(test_xquery_xpath)
         -- db:with(test_create_xpath)
         -- db:with(test_xpath_match)
     end
+    db:close()
 
 end
