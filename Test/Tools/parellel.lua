@@ -43,7 +43,7 @@ function for_each2(mod_name,entry,params_list)
     local result = {}
 
     local cnt = #params_list
-    local timeout = 3000
+    local timeout = 6000
     local process = {}
     process = spawn_cnt(cnt,"parellel","main_loop2",timeout)
 
@@ -250,21 +250,23 @@ function main_loop2(timeout)
         ::beg::
         local timeout = timeout or 3000
         local mtype,desc,rec_msg = glr.recv(timeout)
+
+        local  pwd = os.getenv("PWD")
+        local path = string.format("%s/timer/timer",pwd)
+
         if rec_msg and desc and desc.attr and desc.attr.corrid == 1 then
             rec_msg = unpack(rec_msg)
             pprint("--- main_loop receive ----",rec_msg["id"])
             local mod_name = require(rec_msg["module"]["mod_name"])
             local entry = rec_msg["module"]["entry"]
+            local gpid = rec_msg["process"]["id"]
             if mod_name and mod_name[entry] then
                 --print("mod_name[entry]:",mod_name[entry])
                 local func = mod_name[entry]
                 local ret,err_msg = func(rec_msg["module"]["params"])
                 --pprint(ret,"ret")
                 local len = #ret
-                local gpid = rec_msg["process"]["id"]
-                local  pwd = os.getenv("PWD")
                 --local path = string.format("%s/timer/%d_%d",pwd, gpid,len)
-                local path = string.format("%s/timer/timer",pwd)
                 print("path", path)
                 write_timer2(gpid, ret, path)
                 local send_msg = {}
@@ -289,6 +291,7 @@ function main_loop2(timeout)
                 glr.send(desc.addr,packer(send_msg),attr)
             else
                 local err_msg = "mod_name or entry doesn't exist"
+                write_error(gpid, err_msg, path)
                 local send_msg = {
                         ["id"] = rec_msg["id"],
                         ["process"] = rec_msg["process"],
@@ -302,6 +305,14 @@ function main_loop2(timeout)
             goto beg
         end
     end
+end
+
+function write_error(pid,err_msg,path)
+    local pid = pid
+    local err_msg = err_msg
+    local fd = assert(io.open(path, "a"))
+    fd:write(string.format("processID %d err_msg %s\n",pid,err_msg))
+    fd:close()
 end
 
 function test_for_each()
@@ -321,14 +332,21 @@ function test_for_each2()
     local timeout = 3000
     local timer = {}
     local params_list = {}
-    local num_concurrent = 10
+    local num_concurrent = 50
     local num_requestper = 1000/num_concurrent
-    local e_type= "only_send" --"only_send"
+    local err_rate =0.2--总差错率
+    local err_rate_onlyconnect =0--connect差错率 
+    --local e_type= "only_connect" --"only_send"
     --local e_type= "only_send"
     for i = 1,num_concurrent do--并发数
-        if i>num_concurrent then
-            print("---------------it is going to  status : " .. e_type .. "-------------",i)
-            params_list[i] = {"http://192.168.1.114:8080/static/index1.html",num_requestper,e_type}--请求数/并发
+        if i<=num_concurrent*err_rate then
+            if i <= num_concurrent*err_rate_onlyconnect then
+            	print("---------------it is going to  status :  only_connect-------------",i)
+            	params_list[i] = {"http://192.168.1.114:8080/static/index.html",num_requestper,"only_connect"}--请求数/并发
+            else
+            	print("---------------it is going to  status :  only_send -------------",i)
+            	params_list[i] = {"http://192.168.1.114:8080/static/index.html",num_requestper,"only_send"}--请求数/并发
+            end
             --if i ==num_concurrent/2 then glr.time.sleep(3) end
         else --先正常
             print("---------------it is going to  status : normal------------",i)
@@ -336,7 +354,7 @@ function test_for_each2()
             --if i ==num_concurrent/2 then glr.time.sleep(3) end
         end  
     end
-    glr.time.sleep(5) 
+    glr.time.sleep(6) 
     for_each2("test_http","http_conn_interrupt",params_list)
     --for_each2("test_http","http_conn",params_list)
 
