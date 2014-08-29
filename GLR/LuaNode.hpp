@@ -150,6 +150,7 @@ namespace GLR
         lua_State *_Stack;
 
         LN_CHL_TYPE _Channel;
+        Galaxy::GalaxyRT::CPthreadMutex              _Lock;
         Galaxy::GalaxyRT::CPthreadMutex              _IntLock;   //Interrupt Lock
         //std::condition_variable _Cond;
         int32_t                 _Id;

@@ -53,18 +53,14 @@ void Process::SendMsg(const LN_MSG_TYPE& msg)
     GALA_DEBUG("This(%p) LuaState(%p)", this, _Stack);
 
 
-    try
+    Galaxy::GalaxyRT::CLockGuard _gl(&_Lock);
+    bool isEmpty = _Channel.Empty();
+
+
+    if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
     {
-
-        Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock,true);
-        Galaxy::GalaxyRT::CQEmptyGuard<typeof(this->_Channel)> _(this->_Channel);
-        (void)_;
-        if (State() != ProcessStatus::RECV_WAIT)
-        {
-            THROW_EXCEPTION_EX("Alreadly Return");
-        }
-        (void)_gl;
-
+        // TODO: expose more info to lua
+        Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock);
         GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
         BuildMessageReturnValues(head);
         _Status._NArg = 3;
@@ -72,10 +68,11 @@ void Process::SendMsg(const LN_MSG_TYPE& msg)
         //StackDump();
         GALA_DEBUG("PutTask");
         Runtime::GetInstance().GetSchedule().PutTask(*this);
-    }
-    catch (const Galaxy::GalaxyRT::CException &e)
+        GALA_DEBUG("Return");
+
+    } else
     {
-        (void)e;
+        GALA_DEBUG("Put!");
         _Channel.Put(msg);
     }
 }
@@ -465,32 +462,43 @@ int Process::Recieve(lua_State *l)
     //lua_pushlstring("id");
     LN_ID_TYPE self_id = luaL_checkinteger(l, -1);
     Process& self = GetNodeById(self_id);
+    {
+        Galaxy::GalaxyRT::CLockGuard _gl(&self._Lock);
+        if (self._Channel.Empty())
+        {
+
+            self._Status._State = ProcessStatus::RECV_WAIT;
+            if (lua_gettop(self._Stack) == 2 && lua_isnumber(self._Stack,1))
+            {
+                GALA_DEBUG("Call Timeout Version");
+                int timeout = lua_tointeger(self._Stack, 1);
+                self.SetTimeOut(timeout);
+            }
+
+
+            //lua_pushstring(l, "SUSPEND");
+            //return lua_yield(self._Stack, 0);
+            GALA_DEBUG("No Msg %d", self_id);
+            return self.Yield();
+        }
+    }
     try
     {
-        Galaxy::GalaxyRT::CQEmptyGuard<typeof(self._Channel)> _g(self._Channel);
-        (void)_g;
-        self._Status._State = ProcessStatus::RECV_WAIT;
-        if (lua_gettop(self._Stack) == 2 && lua_isnumber(self._Stack,1))
-        {
-            GALA_DEBUG("Call Timeout Version");
-            int timeout = lua_tointeger(self._Stack, 1);
-            self.SetTimeOut(timeout);
-        }
-
-        //lua_pushstring(l, "SUSPEND");
-        //return lua_yield(self._Stack, 0);
-        GALA_DEBUG("No Msg %d", self_id);
-        return self.Yield();
-    }
-    catch (const Galaxy::GalaxyRT::CException &e)
-    {
-        (void)e;
         LN_MSG_TYPE msg = self.RecvMsg();
 
         GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
         self.BuildMessageReturnValues(head);
         return 3;
     }
+    catch (Galaxy::GalaxyRT::CException& e)
+    {
+        GALA_DEBUG("%s", e.what());
+        lua_pushnil(l);
+        lua_pushstring(l, e.what());
+        return 2;
+    }
+
+
 }
 
 void Process::DoString(const std::string& code)

@@ -132,6 +132,7 @@ void GLR::Bus::TimerSignal( int pid, int tick )
             return;
         }
         Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, true);
+        Galaxy::GalaxyRT::CLockGuard _ll(&nd._Lock, true);
         if (tick != nd._Status._Tick)
         {
             return;
@@ -185,6 +186,7 @@ bool Bus::ResponseEx(int pid, int tick, int narg, ...)
         }
 
         Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, true); // ???
+        Galaxy::GalaxyRT::CLockGuard _LL(&nd._Lock, true);
         if (nd._Status._State != Process::ProcessStatus::INT_WAIT &&
             nd._Status._State != Process::ProcessStatus::RECV_WAIT)
         {
