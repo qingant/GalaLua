@@ -18,6 +18,8 @@ local packer = cmsgpack.pack
 local unpack = cmsgpack.unpack
 
 local _queue = require("collections.init").queue
+local write_timer = require(_PACKAGE .. "tps").write_timer
+local tps = require(_PACKAGE .. "tps").tps
 
 queue_server = {}
 
@@ -118,4 +120,34 @@ end
 
 function pool:capacity()
     return self._max
+end
+
+function test_http_pool()
+    local mod_name = "test_http"
+    local entry = "http_connect"
+    local url = "http://127.0.0.1:8080/statics/index.html"
+    local timer =  {}
+    local cnt = 0
+    local params = {
+        ["timeout"] = 30,
+        ["min"] = 1,
+        ["step"] = 2,
+        ["max"] = 10
+    }
+
+    local sup = glr
+
+    local http_pool = pool:new():init(sup,params)
+
+
+    p = http_pool:get_process()
+    while p do
+        cnt = cnt + 1
+        p.spawn(mod_name,entry,timer,cnt,url)
+        p = http_pool:get_process()
+    end
+
+    local times = cnt
+    write_timer(timer, times)
+    tps(times)
 end
