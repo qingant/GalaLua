@@ -83,13 +83,19 @@ function httpClient:new()
    return o
 end
 
-function httpClient:try_exception(e_type)
-    self._socket = socket.socket:new()
+function httpClient:conn_by_type(req,e_type)
     if e_type == "only_connect" then
+        self._socket = socket.socket:new()
         assert(self._socket:connect(req._host, req._port))
+        return "one_connect success"
     elseif e_type == "only_send" then
+        self._socket = socket.socket:new()
         assert(self._socket:connect(req._host, req._port))
         self._socket:send(req:toString())
+        return "one_send success"
+    else
+        local ret, msg = self:get2(req)
+        return ret, msg
     end
 end
 
