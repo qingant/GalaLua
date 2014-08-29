@@ -36,14 +36,14 @@ function http_conn_interrupt(params)
     for cnt = 1,times do
         timer[cnt] = {}
         result[cnt] = {}
-        timer[cnt]["begin"] = glr.time.now()
+        timer[cnt]["begin"] = os.time()
 
         local cli = httpClient:new()
         local req = httpRequest:new():init("GET", url)
-        local res = cli:try_exception(req)
+        local res,msg = cli:try_exception(req)
 
-        timer[cnt]["end"] = glr.time.now()
-        result[cnt]["result"] = res
+        timer[cnt]["end"] = os.time()
+        result[cnt]["result"] = string.format("result:%s msg:%s",res,msg)
         result[cnt]["timer"] = timer[cnt]
     end
     return result
