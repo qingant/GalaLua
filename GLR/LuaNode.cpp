@@ -53,9 +53,7 @@ void Process::SendMsg(const LN_MSG_TYPE& msg)
 
 
     Galaxy::GalaxyRT::CLockGuard _gl(&_Lock);
-    bool isEmpty = _Channel.Empty();
 
-    GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
 
     while (_Channel.Empty() && (State() == ProcessStatus::RECV_WAIT))
     {
@@ -63,7 +61,12 @@ void Process::SendMsg(const LN_MSG_TYPE& msg)
         try
         {
             Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock, false);
+            if (State() != ProcessStatus::RECV_WAIT)
+            {
+                break;
+            }
 
+            GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
             BuildMessageReturnValues(head);
             _Status._NArg = 3;
             _Status._State = Process::ProcessStatus::RECV_RETURN;
@@ -75,8 +78,8 @@ void Process::SendMsg(const LN_MSG_TYPE& msg)
         {
 
             //assert(false);
-            GALA_ERROR("SendTo %d from %d", _Id, head->_Route._FromGpid);
-            GALA_ERROR(e.what());
+            GALA_DEBUG("SendTo %d from %d", _Id, head->_Route._FromGpid);
+            GALA_DEBUG(e.what());
         }
 
     }
