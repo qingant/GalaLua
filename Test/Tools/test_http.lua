@@ -41,10 +41,10 @@ function http_conn_interrupt(params)
 
         local cli = httpClient:new()
         local req = httpRequest:new():init("GET", url)
-        print("-----------before  try_exception------------",cnt)
-        local res,err_msg = cli:try_exception(req,e_type)
+        print("-----------before  conn_by_type ---- ",cnt)
+        local res,err_msg = cli:conn_by_type(req,e_type)
         pprint(res,"res")
-        print("-----------after  try_exception------------",cnt)
+        print("-----------after  conn_by_type ---- ",cnt)
         timer[cnt]["end"] = os.time()
         result[cnt]["result"] = string.format("ret:%s err:%s",res,err_msg)
         result[cnt]["timer"] = timer[cnt]

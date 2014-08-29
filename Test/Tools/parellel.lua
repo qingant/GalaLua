@@ -55,11 +55,6 @@ function for_each2(mod_name,entry,params_list)
         params["params"] = params_list[i]
         rpc_send(addr, params)
     end
-    --[[
-    for i,addr in pairs(process) do
-        rpc_recv()
-    end
-    ]]--
 end
 
 function spawn_cnt(cnt,mod_name,entry,...)
@@ -334,10 +329,8 @@ function test_for_each2()
     local params_list = {}
     local num_concurrent = 50
     local num_requestper = 1000/num_concurrent
-    local err_rate =0.2--总差错率
-    local err_rate_onlyconnect =0--connect差错率 
-    --local e_type= "only_connect" --"only_send"
-    --local e_type= "only_send"
+    local err_rate = 0.2--总差错率
+    local err_rate_only_connect =0--connect差错率
     for i = 1,num_concurrent do--并发数
         if i<=num_concurrent*err_rate then
             if i <= num_concurrent*err_rate_onlyconnect then
@@ -347,16 +340,13 @@ function test_for_each2()
             	print("---------------it is going to  status :  only_send -------------",i)
             	params_list[i] = {"http://192.168.1.114:8080/static/index.html",num_requestper,"only_send"}--请求数/并发
             end
-            --if i ==num_concurrent/2 then glr.time.sleep(3) end
         else --先正常
             print("---------------it is going to  status : normal------------",i)
-            params_list[i] = {"http://192.168.1.114:8080/static/index.html",num_requestper} 
-            --if i ==num_concurrent/2 then glr.time.sleep(3) end
-        end  
+            params_list[i] = {"http://192.168.1.114:8080/static/index.html",num_requestper}
+        end
     end
-    glr.time.sleep(6) 
+    glr.time.sleep(6)
     for_each2("test_http","http_conn_interrupt",params_list)
-    --for_each2("test_http","http_conn",params_list)
 
 end
 
