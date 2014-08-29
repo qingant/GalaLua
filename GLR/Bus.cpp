@@ -173,15 +173,12 @@ bool Bus::ResponseEx(int pid, int tick, int narg, ...)
 
     try
     {
-        GALA_ERROR("");
         // 保护代码块，避免返回的进程被销毁 
         Galaxy::GalaxyRT::CRWLockAdapter _RL(GLR::Process::ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
         Galaxy::GalaxyRT::CLockGuard _(&_RL);
-        GALA_ERROR("");
         Process &nd = Runtime::GetInstance().GetProcess(pid);
         if (tick != nd._Status._Tick)
         {
-            GALA_ERROR("process(%ld) call(%ld) canceled", pid, tick);
             return false;
         }
 
