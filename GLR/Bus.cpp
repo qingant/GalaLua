@@ -131,8 +131,8 @@ void GLR::Bus::TimerSignal( int pid, int tick )
             GALA_DEBUG("Now Tick: %d, Last Tick: %d\n", nd._Status._Tick, tick);
             return;
         }
-        Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, true);
-        Galaxy::GalaxyRT::CLockGuard _ll(&nd._Lock, true);
+        Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, false);
+        Galaxy::GalaxyRT::CLockGuard _ll(&nd._Lock, false);
         if (tick != nd._Status._Tick)
         {
             return;
@@ -173,20 +173,17 @@ bool Bus::ResponseEx(int pid, int tick, int narg, ...)
 
     try
     {
-        GALA_ERROR("");
         // 保护代码块，避免返回的进程被销毁 
         Galaxy::GalaxyRT::CRWLockAdapter _RL(GLR::Process::ProcessMapLock, Galaxy::GalaxyRT::CRWLockInterface::RDLOCK);
         Galaxy::GalaxyRT::CLockGuard _(&_RL);
-        GALA_ERROR("");
         Process &nd = Runtime::GetInstance().GetProcess(pid);
         if (tick != nd._Status._Tick)
         {
-            GALA_ERROR("process(%ld) call(%ld) canceled", pid, tick);
             return false;
         }
 
-        Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, true); // ???
-        Galaxy::GalaxyRT::CLockGuard _LL(&nd._Lock, true);
+        Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, false); // ???
+        Galaxy::GalaxyRT::CLockGuard _LL(&nd._Lock, false);
         if (nd._Status._State != Process::ProcessStatus::INT_WAIT &&
             nd._Status._State != Process::ProcessStatus::RECV_WAIT)
         {
@@ -236,7 +233,6 @@ bool Bus::ResponseEx(int pid, int tick, int narg, ...)
 
         nd._Status._NArg = narg;
         nd._Status._State = Process::ProcessStatus::INT_RESP;  
-        nd.StackDump();
         Runtime::GetInstance().GetSchedule().PutTask(nd);
         return true;
     }

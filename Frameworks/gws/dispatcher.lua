@@ -30,8 +30,14 @@ function dispatcher:on_init()
     end
     self._logger:info("HTTP server(%s:%d) listen", self._host, self._port)
     glr.net.accept_poll(self._fd)
+    self:_back_to_pool()
 end
-
+function dispatcher:get_tcp_handle()
+    return self._fd
+end
+function dispatcher:on_stop()
+    glr.net.close(self._fd)
+end
 function dispatcher:on_message(mtype, desc, msg)
     if mtype == glr.IOCP then
         local fd = self._unpacker(msg)
@@ -40,6 +46,7 @@ function dispatcher:on_message(mtype, desc, msg)
         self._logger:debug("get worker:%s", pprint.format(worker))
         self._worker._server_addr = worker
         self._worker:call("add_task", {fd = fd})
+        self._logger:debug("task added to: %d", worker.gpid)
     else
         -- TODO: loggging
     end

@@ -49,9 +49,9 @@ function processor:on_message(mtype, desc, msg)
         while true do
             r, err = pcall(function ()
                     local request = self._protocol:get_request()
-                    for i,k in pairs(request) do
-                        self._logger:debug("%s : %s", i, k)
-                    end
+                    -- for i,k in pairs(request) do
+                    --     self._logger:debug("%s : %s", i, k)
+                    -- end
                     -- self._logger:debug(pprint.format(request, "request"))
                     local rsp = self:_request_dispatch(request)
                     self._protocol:send_response(rsp)
@@ -63,10 +63,11 @@ function processor:on_message(mtype, desc, msg)
             -- return
         end
         self._logger:info(err)
-        self:_back_to_pool()
-        self._logger:info("back to pool")
         glr.net.close(self._fd)
         self._fd = -1
+        self:_back_to_pool()
+        self._logger:info("back to pool")
+
         -- self:_back_to_pool()
     end
 end
@@ -97,8 +98,8 @@ function processor:_request_dispatch(request)
         if self.urls then
             for uri,func in pairs(self.urls) do
                 local m = string.match(request.path, uri)
-                self._logger:debug("match %s-%s ", uri, func)
                 if m ~= nil then
+                    self._logger:debug("match %s-%s ", uri, func)
                     local response = self:_call_hander(uri, func, request)
                     return response
                 end

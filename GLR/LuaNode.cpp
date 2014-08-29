@@ -49,32 +49,41 @@ Process::~Process(void)
 
 void Process::SendMsg(const LN_MSG_TYPE& msg)
 {
-    GALA_DEBUG("Send %d", _Id);
     GALA_DEBUG("This(%p) LuaState(%p)", this, _Stack);
 
 
     Galaxy::GalaxyRT::CLockGuard _gl(&_Lock);
-    bool isEmpty = _Channel.Empty();
 
 
-    if (isEmpty && (State() == ProcessStatus::RECV_WAIT))
+    while (_Channel.Empty() && (State() == ProcessStatus::RECV_WAIT))
     {
         // TODO: expose more info to lua
-        Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock);
-        GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
-        BuildMessageReturnValues(head);
-        _Status._NArg = 3;
-        _Status._State = Process::ProcessStatus::RECV_RETURN;
-        //StackDump();
-        GALA_DEBUG("PutTask");
-        Runtime::GetInstance().GetSchedule().PutTask(*this);
-        GALA_DEBUG("Return");
+        try
+        {
+            Galaxy::GalaxyRT::CLockGuard _gl(&_IntLock, false);
+            if (State() != ProcessStatus::RECV_WAIT)
+            {
+                break;
+            }
 
-    } else
-    {
-        GALA_DEBUG("Put!");
-        _Channel.Put(msg);
+            GLRPROTOCOL *head = (GLRPROTOCOL *)&msg[0];
+            BuildMessageReturnValues(head);
+            _Status._NArg = 3;
+            _Status._State = Process::ProcessStatus::RECV_RETURN;
+            //StackDump();
+            Runtime::GetInstance().GetSchedule().PutTask(*this);
+            return;
+        }
+        catch(const Galaxy::GalaxyRT::CException &e)
+        {
+
+            //assert(false);
+            GALA_DEBUG("SendTo %d from %d", _Id, head->_Route._FromGpid);
+            GALA_DEBUG(e.what());
+        }
+
     }
+    _Channel.Put(msg);
 }
 
 LN_MSG_TYPE Process::RecvMsg()

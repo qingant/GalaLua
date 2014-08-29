@@ -62,9 +62,13 @@ function server:on_message(mtype, desc, msg)
     if mtype == glr.EXIT then
         -- TODO: logging restart info
         local params = self._processes[desc.addr]
-        self._logger:info("restarting...", params)
+        self._logger:info("restarting...", params)        
         self._processes[desc.addr] = nil
         if params then
+            if params.tcp_handle then
+                print("supervisor.tcp", params.tcp_handle)
+                glr.net.close(params.tcp_handle)
+            end
             self:start_process(params.start_params)
             self._logger:info(pformat(glr.status.processes(), "processes"))
             self._logger:info(pformat(get_proxy(self._processes), "records"))
@@ -87,17 +91,25 @@ function server:start_process(params, desc)
     self._logger:info("params: %s", pformat(params, "params"))
     local addr, errmsg
     local cli
+    local tcp_handle = nil
     if params.process_type == self.gen_process_type then
         -- TODO: error handling(when rpc.create_server fails)
+        
         cli = rpc.create_server(params.process_params)
         self._logger:info("process created", pformat(cli))
         addr = cli._server_addr
+        if params.mod_name and string.find(params.mod_name, "dispatcher",1) then
+            local rt1 = cli:call("get_tcp_handle")
+            if rt1.result then
+                tcp_handle = rt1.result
+            end
+        end
     elseif params.process_type == self.raw_process_type then
         addr, errmsg = self:_start_raw_process(params, desc)
     end
     self._logger:info("spawn:", addr, errmsg)
     -- 处理启动失败的情况
-    local mtype, desc, msg = glr.recv_by_condition(function (msg) return msg[2].addr.gpid == addr.gpid and msg[1] == glr.EXIT end, 300)
+    local mtype, desc, msg = glr.recv_by_condition(function (msg) return msg[2].addr.gpid == addr.gpid and msg[1] == glr.EXIT end, 30)
     self._logger:debug("mtype:" ..  (mtype or "nil"))
     if mtype == glr.EXIT then
         self._logger:info("Fail to start:%d, %s %s %s", mtype, pformat(desc), pformat(msg),  pformat(params))
@@ -106,16 +118,22 @@ function server:start_process(params, desc)
 
     if addr then
         self._id = self._id + 1
-        self._processes[addr] = {start_params = params,
-                                 group = params.group,
-                                 id = self._id,
-                                 client = cli}
+        local paddr = {
+            start_params = params,
+            group = params.group,
+            id = self._id,
+            client = cli
+        }
+        if tcp_handle then
+            paddr.tcp_handle = tcp_handle
+        end
+        self._processes[addr] = paddr
         self._processes_indexed_by_id[self._id] = self._processes[addr]
     else
         self._logger:info("error", errmsg)
         error(errmsg)
     end
-    self._logger:debug("process %d started", addr.gpid)
+    self._logger:debug("process %d started", addr.gpid)   
     return {process=addr}
 end
 function server:stop_process(params, desc)
@@ -124,13 +142,16 @@ function server:stop_process(params, desc)
         return {status="error", errmsg = "not found"}
     end
     self._processes[params.process] = nil
-    if params.process_type == self.gen_process_type then
-        local rt = info.client:call("stop", nil, 5)
-        if rt == nil then
-            glr.kill(params.process)
+    if params.process_type == self.gen_process_type then        
+        local addr = info.client._server_addr
+        local rt = info.client:call("stop", {nil,addr}, 15)
+        pprint(rt, "rt")        
+        if rt == nil then            
+            glr.kill(params.process.gpid)
         end
+        
     elseif params.process_type == self.raw_process_type then
-        glr.kill(params.process)
+        glr.kill(params.process.gpid)
     end
     local mtype, desc, msg = glr.recv_by_addr(params.process, 5)
     if not mtype then

@@ -28,7 +28,7 @@ void * GLR::BusWorker::Run( const Galaxy::GalaxyRT::CThread & )
 {
     while (true)
     {
-        Galaxy::GalaxyRT::CSelector::EV_PAIRS evs = _Poller.WaitEvent(30);
+        Galaxy::GalaxyRT::CSelector::EV_PAIRS evs = _Poller.WaitEvent(3000);
         for (size_t i = 0; i!= evs.size(); ++i)
         {
             Galaxy::GalaxyRT::CSelector::EV_PAIR &ev = evs[i];
