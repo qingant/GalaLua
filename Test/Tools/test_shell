@@ -1,8 +1,8 @@
 #! /bin/sh
 
-echo "实际请求数: `cat timer | grep "processID" | wc -l `"
-echo "总失败数:`cat timer | grep "ret:false" | wc -l `"
-echo "glr.recLine() timeout : `cat timer | grep "initLine timeout" | wc -l `" 
-echo "glr.recv() timeout: `cat timer | grep "recv timeout" | wc -l `"
-echo "Sokcet Send timeout: `cat timer | grep "SendWait timeou" | wc -l`" 
-mv timer /tmp/
+echo "实际请求数: `cat timer/timer | grep "processID" | wc -l `"
+echo "总失败数:`cat timer/timer | grep "ret:false" | wc -l `"
+echo "glr.recLine() timeout : `cat timer/timer | grep "initLine timeout" | wc -l `" 
+echo "glr.recv() timeout: `cat timer/timer | grep "recv timeout" | wc -l `"
+echo "Sokcet Send timeout: `cat timer/timer | grep "SendWait timeou" | wc -l`" 
+mv timer/ /tmp

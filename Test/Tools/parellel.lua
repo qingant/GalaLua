@@ -246,12 +246,15 @@ function main_loop2(timeout)
         local timeout = timeout or 3000
         local mtype,desc,rec_msg = glr.recv(timeout)
 
-        local  pwd = os.getenv("PWD")
-        local path = string.format("%s/timer/timer",pwd)
 
         if rec_msg and desc and desc.attr and desc.attr.corrid == 1 then
             rec_msg = unpack(rec_msg)
+
+            local  pwd = os.getenv("PWD")
+            local path = string.format("%s/timer/timer_%d",pwd,res_msg["process"]["id"])
+            --os.execute(string.format("mkdir -p %s",path))
             pprint("--- main_loop receive ----",rec_msg["id"])
+
             local mod_name = require(rec_msg["module"]["mod_name"])
             local entry = rec_msg["module"]["entry"]
             local gpid = rec_msg["process"]["id"]
@@ -262,39 +265,11 @@ function main_loop2(timeout)
                 --pprint(ret,"ret")
                 local len = #ret
                 --local path = string.format("%s/timer/%d_%d",pwd, gpid,len)
-                print("path", path)
+                --print("path", path)
                 write_timer2(gpid, ret, path)
-                local send_msg = {}
-                if ret then
-                    send_msg = {
-                        ["id"] = rec_msg["id"],
-                        ["process"] = rec_msg["process"],
-                        ["result"]=ret,
-                        ["error"] ="nil"
-                    }
-                else
-                    send_msg = {
-                        ["id"] = rec_msg["id"],
-                        ["process"] = rec_msg["process"],
-                        ["result"]="nil",
-                        ["error"]=err_msg
-                    }
-                end
-                local attr = {corrid = 2, msgid = 1}
-                print("--- main_loop send ----",send_msg["id"])
-                --pprint(" result ", ret)
-                glr.send(desc.addr,packer(send_msg),attr)
             else
                 local err_msg = "mod_name or entry doesn't exist"
                 write_error(gpid, err_msg, path)
-                local send_msg = {
-                        ["id"] = rec_msg["id"],
-                        ["process"] = rec_msg["process"],
-                        ["error"]=err_msg,
-                        ["result"]=nil}
-                local attr = {corrid = 2, msgid = 1}
-                --print("--- main_loop send ----",send_msg["id"])
-                glr.send(desc.addr,packer(send_msg),attr)
             end
         else
             goto beg
@@ -331,7 +306,7 @@ function test_for_each2()
     local num_requestper = 1000/num_concurrent
     local err_rate = 0.2--总差错率
     local err_rate_only_connect =0--connect差错率
-    for i = 1,num_concurrent do--并发数
+    for i = 1,num_concurrent do --并发数
         if i<=num_concurrent*err_rate then
             if i <= num_concurrent*err_rate_onlyconnect then
             	print("---------------it is going to  status :  only_connect-------------",i)
@@ -346,7 +321,7 @@ function test_for_each2()
         end
     end
     glr.time.sleep(6)
-    for_each2("test_http","http_conn_interrupt",params_list)
+    for_each2("test_http","http_conn_by_type",params_list)
 
 end
 

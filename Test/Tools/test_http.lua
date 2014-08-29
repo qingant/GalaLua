@@ -26,11 +26,16 @@ local write_timer = require(_PACKAGE .. "tps").write_timer
 local tps = require(_PACKAGE .. "tps").tps
 
 
---params = {["url"] = "http://url",["times"] = times}
-function http_conn_interrupt(params)
+--params = {["url"] = "http://url",["times"] = times,["type"] = type}
+-- times : default 1
+-- type :
+--      "only_connect" socket connect only
+--      "only_send" : socket connect and send only
+--      "normal" : socket connect, send and recv
+function http_conn_by_type(params)
     url = params[1]
     times = params[2] or 1
-    e_type = params[3] 
+    e_type = params[3]
 
     local timer = {}
     local result = {}
@@ -57,25 +62,7 @@ function http_conn(params)
     url = params[1]
     times = params[2]
 
-    local timer = {}
-    local result = {}
-    for cnt = 1,times do
-        timer[cnt] = {}
-        result[cnt] = {}
-        --timer[cnt]["begin"] = glr.time.now()
-        timer[cnt]["begin"] = os.time()
-
-        local cli = httpClient:new()
-        local req = httpRequest:new():init("GET", url)
-        local res,err_msg = cli:get2(req)
-
-        --timer[cnt]["end"] = glr.time.now()
-        timer[cnt]["end"] = os.time()
-        result[cnt]["result"] = string.format("res:%s  err_msg:%s",res,err_msg)
-        result[cnt]["timer"] = timer[cnt]
-    end
-    pprint(result,"--- result ---")
-    return result
+    http_conn_by_type(url,times)
 end
 
 -- params = {
@@ -133,6 +120,54 @@ function http_parellel(params)
     return result
 end
 
+--[[
+params = {
+    ["parellel_total"] = num_of_times,
+    ["req_of_per_parellel"] = num_of_times,
+    ["url"] = url,
+    ["only_send_ratio"] = float_with_rate_of_send,
+    ["only_connect_ratio"] = float_with_rate_of_conn,
+
+]]--
+function http_parellel_for_each2(params)
+    local parellel_total = params["parellel_total"]
+    local req_of_per_parellel = params["req_of_per_parellel"]
+    local url = params["url"]
+    local only_send_ratio = params["only_send_ratio"] -- only_send 差错率
+    local only_connect_ratio = params["only_connect_ratio"] -- only_connect 差错率
+    local normal_ratio = 1 - only_send_ratio - only_connect_ratio
+
+    os.execute("mkdir -p ./timer")
+    os.execute("mkdir -p ./tps")
+
+    local timeout = 3000
+    local timer = {}
+    local params_list = {}
+    for i = 1,parellel_total do --并发数
+        if i > normal_ratio then
+            if i <= normal_ratio + only_connect_ratio then
+            	print("---------------it is going to  status :  only_connect-------------",i)
+            	params_list[i] = {url,req_of_per_parellel, "only_connect"}--请求数/并发
+            else
+            	print("---------------it is going to  status :  only_send -------------",i)
+            	params_list[i] = {url,req_of_per_parellel,"only_send"}--请求数/并发
+            end
+        else -- Normal 并发数
+            print("---------------it is going to  status : normal------------",i)
+            params_list[i] = {url,req_of_per_parellel}
+        end
+    end
+    glr.time.sleep(6)
+    for_each2("test_http","http_conn_by_type",params_list)
+
+    os.execute("for i in `ls timer/timer_*`; do cat timer/$i >> timer/timer; done")
+    local pwd = os.getenv("PWD")
+    local timer_path = string.format("%s/timer/timer",pwd)
+    local tps_path = string.format("%s/tps/tps",pwd)
+    tps(timer_path, tps_path)
+    os.execute("/bin/sh test_shell")
+end
+
 -----------------------  test http ----------------------
 
 function test_http_parellel()
@@ -168,35 +203,6 @@ function test_http_parellel_for_each()
     return result
 end
 
-function test_http_pool()
-    local mod_name = "test_http"
-    local entry = "http_connect"
-    local url = "http://127.0.0.1:8080/statics/index.html"
-    local timer =  {}
-    local cnt = 0
-    local params = {
-        ["timeout"] = 30,
-        ["min"] = 1,
-        ["step"] = 2,
-        ["max"] = 10
-    }
-
-    local sup = glr
-
-    local http_pool = pool:new():init(sup,params)
-
-
-    p = http_pool:get_process()
-    while p do
-        cnt = cnt + 1
-        p.spawn(mod_name,entry,timer,cnt,url)
-        p = http_pool:get_process()
-    end
-
-    local times = cnt
-    write_timer(timer, times)
-    tps(times)
-end
 
 
 
