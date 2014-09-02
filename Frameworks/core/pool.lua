@@ -31,6 +31,8 @@ function pool:new(app_name, pool_name, dispatcher, worker, params)
     self._worker = worker
     self._dispatcher = dispatcher
     self._params = params
+    self._processes = {}
+    self._dispatch = {}
     self:_init()
     return self
 end
@@ -55,7 +57,6 @@ function pool:_init()
 
     for i = 1, self._min do
         self._logger:info("start processor:%d of %d", i, self._min)
-        self._count = self._count + 1
         self:_create_process()
     end
 
@@ -70,11 +71,23 @@ function pool:_init()
     })
     self._logger:info("dispatcher started:%s", self._logger.format(rt, "rt"))
 end
+
+function pool:put_dispatcher(params, desc)
+    if params and params.gpid then
+        self._dispatch.gpid = params.gpid
+        self._dispatch.status = "started"
+        self._dispatch.addr = params
+    end
+end
+
+
 function pool:get_process(params, desc)
     self._logger:info("worker remain: %s", self._logger.format(self._dataq))
     local p = self:get(params, desc)
     if p == self.no_response and self._count < self._max then
-        pool:_create_process()
+        self:_create_process()
+    else
+        self._processes[p.gpid].status = "used"
     end
     return p
 end
@@ -85,8 +98,221 @@ function pool:on_timeout()
 end
 function pool:_create_process()
     local rt = self._sup:call("start_process", self._start_argv_template)
-    self._logger:info("start processor:%d %s", self._count, self._logger.format(rt))
-    self._count = self._count + 1
+    if rt and rt.result and rt.result.process and rt.result.process.gpid then
+        return rt.result.process
+    else
+       return nil
+   end
     -- TODO: error handling and logging
 end
 
+function pool:on_put(params, desc)
+    local gpid = params.gpid
+    if gpid and self._processes[gpid] then
+        self._processes[gpid].status = "idle"
+    elseif gpid then
+        -- 
+        self._processes[gpid] = {}
+        self._processes[gpid].status = "idle"
+        self._processes[gpid].gpid = gpid
+        self._processes[gpid].addr = params
+        self._logger:info("start processor:%d %s", self._count, self._logger.format(rt))
+    end
+end
+
+function pool:on_timeout()
+    self._logger:debug(self._logger.format(glr.status.processes()))
+    self._logger:debug(self._logger.format(self._sup:call("query")))
+    self._logger:flush()
+end
+
+--[[
+pool 提供的管理接口
+
+Author: Zhouxiaopeng
+Date  : 2014/8/14
+Desc  : 提供外部访问、管理进程池的API
+]]
+
+--停止进程
+--入参：{gpid1, gpid2, gpid3,...}
+--返回值：此次停止的进程id列表，{gpid1, gpid2,...}
+function pool:stop_processes(params)
+    local stop_params = {}
+    stop_params.process_type="gen"
+    stop_params.process_params = self._start_argv_template.process_params
+    local stop_processes = {}
+    local gpid
+    if type(params) == "number" then
+        gpid = params
+        local rt = self._processes[gpid]
+        if rt and rt.addr then
+            stop_params.process = rt.addr
+            self._sup:call("stop_process",stop_params)
+            self._processes[gpid] = nil
+            self._logger:info("processor(%d) has stopped", gpid)
+            stop_processes[#stop_processes+1] = gpid
+        else
+            self._logger:info("stopping processor(%d) not exist", gpid) 
+        end
+    elseif type(params) == "table" then
+        for _, gpid in pairs(params) do
+            local rt = self._processes[gpid]
+            if rt and rt.addr then
+                stop_params.process = rt.addr
+                self._sup:call("stop_process", stop_params)
+                self._logger:info("processor(%d) has stopped", gpid)
+                self._processes[gpid] = nil
+                stop_processes[#stop_processes+1] = gpid
+            else
+                self._logger:info("stopping processor(%d) not exist", gpid) 
+            end
+        end
+    end
+    self._count = self._count - #stop_processes
+    return stop_processes
+end
+
+--批量地创建进程
+--入参:创建的进程个数
+--
+function pool:start_processes(nums_of_processes_starting)
+    local started_processes = {}
+    local nums_of_processes = 0
+    if type(nums_of_processes_starting) == "number" then
+        if nums_of_processes_starting > 0 then
+            nums_of_processes = self._count + nums_of_processes_starting
+            if nums_of_processes > self._max then
+                nums_of_processes = self._max
+            end
+        end
+    local started_process_addr = nil
+        for i = self._count+1, nums_of_processes do
+            started_process_addr = self:_create_process()
+            started_processes[#started_processes+1] = started_process_addr.gpid
+        end        
+    end
+    return started_processes
+end
+
+--查询params列表指定的进程状态
+--返回值：{gpid1="used" or "idle", gpid2="used" or "idle" }
+function  pool:get_status_of_processes(params)
+    local gpid_list = {}
+    local process = nil
+    if type(params) == "table" then
+        for _,gpid in pairs(params) do
+            process = self._processes[gpid]
+            if process then
+                gpid_list[gpid] = self._processes[gpid].status
+            else
+                gpid_list[gpid] = "unkonw process"
+            end
+        end
+    end
+
+    return gpid_list
+end
+
+
+--查询进程池状态
+--返回值：{进程池最大支持的进程数，目前进程池中的进程数}
+function pool:get_status_of_pool()
+    local max = 0
+    local idle = 0
+    local used = 0
+    local min = 0
+    max = self._max
+    min = self._min
+
+    for gpid, p in pairs(self._processes) do
+        if p.status == "used" then
+            used = used + 1
+        elseif p.status == "idle" then
+            idle = idle + 1
+        end
+    end
+
+    return {max_count=max, min_count=min, used_count=used, idle_count=idle}
+end
+
+--查询dispatcher的状态
+--返回值："started" or "stopped"
+function pool:get_status_of_dispatcher()
+    return {status = self._dispatch.status,
+            gpid = self._dispatch.gpid, 
+            addr = self._dispatch.addr}
+end
+
+--查询指定类型进程的id
+--入参："all"（全部）, "used"（正在使用）, "idle"（空闲）中的一个，
+--返回值：{id1，id2, id3,...}
+function pool:get_processes_list(params)
+    local gpid_list = {}
+    for gpid, p in pairs(self._processes) do
+        if params == "all" then
+            gpid_list[#gpid_list + 1] = gpid
+        elseif p.status == params then
+            gpid_list[#gpid_list + 1] = gpid
+        end
+    end
+    return gpid_list
+end
+
+
+function pool:start_dispatcher()
+    if self._dispatch.status == "started" then
+        return self._dispatch
+    end
+
+    local rt = self._sup:call("start_process", {
+                                  process_type = "gen",
+                                  process_params = {
+                                      mod_name = self._dispatcher,
+                                      group = self._pool_name,
+                                      parameters = {self._app_name, self._pool_name, self._params},
+                                  }
+    })
+    if rt and rt.result and rt.result.process and rt.result.process.gpid then
+        local dispatcher_gpid = rt.result.process.gpid
+        self._dispatch.gpid = dispatcher_gpid
+        self._dispatch.status = "started"
+        self._dispatch.addr = rt.result.process
+    end
+    return self._dispatch
+
+end 
+--停止dispatcher
+function pool:stop_dispatcher()
+
+    if self._dispatch.status == "stopped" then
+        return self._dispatch
+    end
+
+    local stop_params = {}
+    local gpid = nil
+    stop_params.process_type = "gen"
+    stop_params.process_params = {
+                                      mod_name = self._dispatcher,
+                                      group = self._pool_name,
+                                      parameters = {self._app_name, self._pool_name, self._params},
+                                  }
+    if self._dispatch and self._dispatch.addr then
+        gpid = self._dispatch.addr.gpid
+        stop_params.process = self._dispatch.addr                               
+        local rt = self._sup:call("stop_process", stop_params)
+        --pprint.pprint(rt, "pool.rt")
+        self._dispatch.status = "stopped"
+        self._dispatch.addr = nil
+        self._dispatch.gpid = nil
+        self._logger:info(" dispatcher(%d) stopped", gpid)
+    end 
+    return self._dispatch
+end
+
+
+--重启dispatcher
+function pool:restart_dispatcher()
+    self:stop_dispatcher()
+    self:start_dispatcher()
+end

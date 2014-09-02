@@ -20,9 +20,11 @@ function http:init(fd)
     self._socket = socket.socket:new():init(fd)
     return self
 end
-
+function http:close()
+    self._socket:close()
+end
 function http:get_request(timeout)
-    local timeout = timeout or 3000 -- ms
+    local timeout = timeout or 1000*5 -- ms
     local request = request:new():init()
     local initLine = assert(self._socket:recvLine(timeout)):trim()
     local method, path, version = unpack(string.split(initLine, " "))
@@ -30,28 +32,24 @@ function http:get_request(timeout)
     request.uri = path:trim()
     request.version = version:trim()
     local header = {}
-    local pre_line = ""
+    header[#header + 1] = initLine
     while true do
-        local line = assert(self._socket:recvLine(30)):trim()
+        local line = assert(self._socket:recvLine(timeout)):trim()
+        header[#header + 1] = line
         if line == "" then
+            if request["Content-Length"] then
+                local body = assert(self._socket:recv(tonumber(request["Content-Length"]), timeout))
+                request.body = body
+            end
             break
         end
-        if pre_line == "\r\n" then
-            request["body"] = line
-            break
-        end
-        pre_line = line
-        -- header[#header+1] = line
-        --local key, value = unpack(string.split(line, ":"))
-        --print("line",line)
-        local s,e = string.find(line,"%s*:%s*") 
-        --print(s,e)
+        -- TODO: instead using string.match
+        local s,e = string.find(line,"%s*:%s*")
         key = string.sub(line,1,s-1)
         value = string.sub(line,e+1,#line)
-        --print("key",key)
-        --print("value",value)
         request[key:trim()] = value:trim()
     end
+    request.header = header
     request:parse()
     return request
 end

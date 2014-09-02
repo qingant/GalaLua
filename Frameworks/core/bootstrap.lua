@@ -29,10 +29,11 @@ local function _get_free_bgpid() -- get free binded gpid
 end
 
 local app_mgr = {}
-function app_mgr:new(app_name, inst_name)
+function app_mgr:new(app_name, inst_name, args)
     local o = {}
     setmetatable(o, self)
     self.__index = self
+    o.args = args
     o.app_name = app_name
     o.inst_name = inst_name
     o:_init()
@@ -41,6 +42,7 @@ end
 function app_mgr:_init()
     self.app_module = require(fmt("%s.app", self.app_name))
     self.app = self.app_module.app
+    self.app:init(self.args)
     if inst_name then
         self.base_name = fmt("%s.%s.", self.app_name, self.inst_name)
     else
@@ -55,6 +57,16 @@ end
 function app_mgr:_start_pool(com)
     -- start pool
     print("start pool")
+    local services = com.services or {}
+    for i,v in ipairs(services) do
+        self._supervisor:call("start_process", {
+                                  process_type = "gen",
+                                  process_params = {
+                                      mod_name = v,
+                                      parameters = {self.app_inst_name, com.pool_name, com.params}
+                                  }
+        })
+    end
     self._supervisor:call("start_process", {
                 process_type = "gen",
                 process_params = {
@@ -143,7 +155,7 @@ function start_app(app_name, inst_name)
     end
 
     -- real start up
-    app_mgr:new(app_name, inst_name):_start_app()
+    app_mgr:new(app_name, inst_name, glr.get_options()):_start_app()
 end
 
 function stop_app(app_name, inst_name)

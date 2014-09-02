@@ -201,6 +201,8 @@ function mdb:withReadOnly(action, ...)
     self:beginTrans()
     return self:_with(action, ...)
 end
+mdb.api_version = 2
+mdb.with_read_only = mdb.withReadOnly
 function element:new(o)
     -- local key = "/" .. name
     local o =  o or {}
@@ -477,6 +479,31 @@ function element:xpath_set( xpath, value )
     end
     return num
 end
+
+--[[
+确保table key的添加顺序和pairs获取时的先后顺序一致。
+]]
+local function sequential_table()
+    local dict = {}
+    local key_dict={}
+    setmetatable(dict,{
+        __pairs=function (t)
+        local i=0
+        return function ()
+                i=i+1
+                local k=key_dict[i]
+                return k,t[k]
+            end
+        end,
+        __newindex=function (t,k,v)
+            key_dict[#key_dict+1]=k
+            rawset(t,k,v)
+        end
+    })
+
+    return dict
+end
+
 function element:_get_dup(op)
     local cur = self._db.txn:cursor_open(self._db.dbi)
 
@@ -486,7 +513,7 @@ function element:_get_dup(op)
     local k,v = cur:get(self.key, flag)
 
 
-    local dict = {}
+    local dict = sequential_table()
     if k == nil or v == nil then
         cur:close()
         return dict
@@ -732,6 +759,13 @@ function element:add_vector_item()
     self:set_attrib(vector_index_key, tostring(tonumber(serial) + 1))
     return self:add_node(serial)
 end
+function element:add_vector_item_as_vector(tag)
+    assert(self:is_vector(), "Element is not Vector Node")
+    local serial = self:get_attrib()[vector_index_key]
+    self:set_attrib(vector_index_key, tostring(tonumber(serial) + 1))
+    return self:add_vector_node(serial, tag)
+end
+
 function element:add_node(k)
     assert(k, "Key Cannot be nil")
     -- assert(not self.is_leaf())
@@ -923,46 +957,55 @@ function merge_to_xml( els ) -- static method
     return _to_xml(path)
 end
 
-function element:to_xml(str)
+function element:to_xml(ignore_func,str, indent)
+
     -- not that pretty  but it does work well ...
     if str == nil then
         str = ""
     end
+    if indent == nil then
+        indent = 0
+    end
+
+    if ignore_func and ignore_func(self) then
+        return str
+    end
+    
     --local tmp = split(self.real_key or self.key, "/")
     local root = self:tag()
     local values = self:get_value()
     local attrs = self:get_attrib()
     if #values == 0 then
-        str = str .. string.format("<%s", root)
+        str = str .. string.rep(" ", indent*2) .. string.format("<%s", root)
         for k,v in pairs(attrs) do
             if string.sub(k, 1, 2) ~= "__" then  -- hiden attribute
                 str = str .. string.format(" %s=\"%s\"", k, v)
             end
         end
-        if self._count then
-          str = str .. string.format(" %s=\"%s\"", "__count", self._count)
-        end
-        str = str .. ">"
+        -- if self._count then
+        --   str = str .. string.format(" %s=\"%s\"", "__count", self._count)
+        -- end
+        str = str .. ">\n"
         local childs = self:get_child()
         if self:is_vector() then
             local item_key = self:get_attrib()[vector_item_tag]
             for k,v in pairs(childs) do
                 v._tag = item_key
                 v._count = k
-                str = v:to_xml(str)
+                str = v:to_xml(ignore_func, str, indent + 1)
             end
         else
 
             for k,v in pairs(childs) do
-                str = v:to_xml(str)
+                str = v:to_xml(ignore_func, str, indent + 1)
             end
         end
-        str = str .. string.format("</%s>", root)
+        str = str .. string.rep(" ", indent*2) .. string.format("</%s>\n", root)
 
     else
 
         for _,v in pairs(values) do
-            str = str .. string.format("<%s>%s</%s>", root, v, root)
+            str = str .. string.rep(" ", indent*2) .. string.format("<%s>%s</%s>\n", root, v, root)
         end
 
     end
@@ -1058,9 +1101,10 @@ if ... == "__main__" then
 
         local el = db:get_root(root1)
 
-        pprint.pprint(el:to_xml())
+        print(el:to_xml())
+        print(el:to_xml(function (elm) return elm:tag()=="Branch" end))
         el:remove("Bank/Branch2")
-        pprint.pprint(el:to_xml())
+        print(el:to_xml())
     end
     local another = "Define"
     function test_symlink(db)
@@ -1280,27 +1324,28 @@ if ... == "__main__" then
     for i=1,limit do
         db:with(test)
 
-        db:with(test1)
+--        db:with(test1)
         -- db:with(test_xquery_xpath)
         -- db:withReadOnly(test_xpath)
         -- db:withReadOnly(test_value)
-        -- db:with(test_xml)
+        db:with(test_xml)
         -- db:with(test_symlink)
         -- db:with(test_more_sym)
         -- db:with(test_more_xpath)
         -- db:withReadOnly(test_more_more_xpath)
         -- db:withReadOnly(test_walk)
         -- db:with(test5)
-        db:with(test_remove_root_child)
+        --db:with(test_remove_root_child)
         -- collectgarbage("collect")
 
         -- db:withReadOnly(test_exist)
         -- db:with(test_vector)
         -- db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
-        -- db:withReadOnly(test_merge)
+--        db:withReadOnly(test_merge)
         -- db:withReadOnly(test_xquery_xpath)
         -- db:with(test_create_xpath)
         -- db:with(test_xpath_match)
     end
+    db:close()
 
 end

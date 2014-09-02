@@ -25,6 +25,9 @@ function app_base:new()
     return o
 end
 
+function app_base:init()
+end
+
 function app_base:add_component(component)
     self.components[#self.components + 1] = component
 end

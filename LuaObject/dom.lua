@@ -13,7 +13,8 @@ local xStr = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root></root>"
 local reader = xml.cxml_reader(xStr,#xStr)
 local root = reader:document()
 local _XML = getmetatable(root)
-form_text = xml.cxml_reader
+from_text = function (text) return xml.cxml_reader(text, #text) end
+print(from_text)
 function _XML:get_element_by_tag( tag )
     local result = {}
     for i,v in ipairs(self:sub_elements()) do

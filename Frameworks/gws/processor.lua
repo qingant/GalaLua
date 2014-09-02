@@ -52,9 +52,9 @@ function processor:on_message(mtype, desc, msg)
                     timer["before_request"] = glr.time.now()
                     local request = self._protocol:get_request()
                     timer["before_call"] = glr.time.now()
-                    for i,k in pairs(request) do
-                        self._logger:debug("%s : %s", i, k)
-                    end
+                    --for i,k in pairs(request) do
+                    --    self._logger:debug("%s : %s", i, k)
+                    --end
                     -- self._logger:debug(pprint.format(request, "request"))
                     local rsp = self:_request_dispatch(request)
                     timer["after_call"] = glr.time.now()
@@ -69,10 +69,11 @@ function processor:on_message(mtype, desc, msg)
             -- return
         end
         self._logger:info(err)
-        self:_back_to_pool()
-        self._logger:info("back to pool")
         glr.net.close(self._fd)
         self._fd = -1
+        self:_back_to_pool()
+        self._logger:info("back to pool")
+
         -- self:_back_to_pool()
     end
 end
@@ -103,8 +104,8 @@ function processor:_request_dispatch(request)
         if self.urls then
             for uri,func in pairs(self.urls) do
                 local m = string.match(request.path, uri)
-                self._logger:debug("match %s-%s ", uri, func)
                 if m ~= nil then
+                    self._logger:debug("match %s-%s ", uri, func)
                     local response = self:_call_hander(uri, func, request)
                     return response
                 end
@@ -202,7 +203,7 @@ function processor:_static_handle(request)
     response:set_content_type(CONTENT_TYPE[string.lower(string.match(uri,"%.(%w+)$"))])
     self._logger:info("statusCode : %s", response.statusCode)
     for i, k in pairs(response) do
-        if i ~= "body" then
+        if i ~= "content" then
             self._logger:debug("%s : %s",i,k)
         end
     end

@@ -20,7 +20,7 @@ function socket:connect(host, port)
     if not fd then
         return false,errmsg
     end
-    self._fd =fd 
+    self._fd =fd
     return self
 end
 function socket:accept(timeout)
@@ -35,12 +35,14 @@ function socket:recvLine(timeout)
     return glr.net.get_line(self._fd, timeout)
 end
 
+socket.recv_line = socket.recvLine
+
 function socket:close()
     return glr.net.close(self._fd)
 end
 
-function socket:send(buf)
-    return glr.net.send(self._fd, buf)
+function socket:send(buf, timeout)
+    return glr.net.send(self._fd, buf, timeout)
 end
 
 function socket:__gc()
