@@ -77,7 +77,8 @@ function tps(timer_path, tps_path)
 
     local path_tps = assert(tps_path)
     local fd_tps = assert(io.open(path_tps, "w"))
-    for i, k in pairs(tps) do
+    --for i, k in pairs(tps) do
+    for i = 1,#tps-1 do
         fd_tps:write(string.format("index %d tps %d\n", i, tps[i]))
     end
     fd_tps:close()

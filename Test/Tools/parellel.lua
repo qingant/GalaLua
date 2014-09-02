@@ -251,7 +251,7 @@ function main_loop2(timeout)
             rec_msg = unpack(rec_msg)
 
             local  pwd = os.getenv("PWD")
-            local path = string.format("%s/timer/timer_%d",pwd,res_msg["process"]["id"])
+            local path = string.format("%s/timer/timer_%d",pwd,rec_msg["process"]["id"])
             --os.execute(string.format("mkdir -p %s",path))
             pprint("--- main_loop receive ----",rec_msg["id"])
 

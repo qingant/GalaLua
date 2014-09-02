@@ -20,6 +20,7 @@ local unpack = cmsgpack.unpack
 local _queue = require("collections.init").queue
 
 local for_each = require(_PACKAGE .. "parellel").for_each
+local for_each2 = require(_PACKAGE .. "parellel").for_each2
 local spawn_cnt = require(_PACKAGE .. "parellel").spawn_cnt
 local rpc_call = require(_PACKAGE .. "parellel").rpc_call
 local write_timer = require(_PACKAGE .. "tps").write_timer
@@ -143,9 +144,13 @@ function http_parellel_for_each2(params)
     local timeout = 3000
     local timer = {}
     local params_list = {}
+    local normal_count = parellel_total * normal_ratio
+    local only_connect_count = parellel_total * only_connect_ratio
+    local only_send_count = parellel_total - normal_count - only_connect_count 
+
     for i = 1,parellel_total do --并发数
-        if i > normal_ratio then
-            if i <= normal_ratio + only_connect_ratio then
+        if i > normal_count then
+            if i <= normal_count + only_connect_count  then
             	print("---------------it is going to  status :  only_connect-------------",i)
             	params_list[i] = {url,req_of_per_parellel, "only_connect"}--请求数/并发
             else
@@ -157,15 +162,18 @@ function http_parellel_for_each2(params)
             params_list[i] = {url,req_of_per_parellel}
         end
     end
-    glr.time.sleep(6)
+    glr.time.sleep(4)
     for_each2("test_http","http_conn_by_type",params_list)
 
-    os.execute("for i in `ls timer/timer_*`; do cat timer/$i >> timer/timer; done")
+    glr.time.sleep(4)
+    os.execute("/bin/sh test_shell")
     local pwd = os.getenv("PWD")
     local timer_path = string.format("%s/timer/timer",pwd)
     local tps_path = string.format("%s/tps/tps",pwd)
     tps(timer_path, tps_path)
-    os.execute("/bin/sh test_shell")
+    os.execute("cat tps/tps")
+    --os.execute("mv --backup=t tps/ /tmp/")
+    --os.execute("mv --backup=t timer/ /tmp/")
 end
 
 -----------------------  test http ----------------------
@@ -203,12 +211,34 @@ function test_http_parellel_for_each()
     return result
 end
 
+function timer_handle()
+    local pwd = os.getenv("PWD")
+    local timer_path = string.format("%s/timer/timer",pwd)
+    local tps_path = string.format("%s/tps/tps",pwd)
+    tps(timer_path, tps_path)
+    os.execute("/bin/sh test_shell")
+    os.execute("mv --backup=t tps/ /tmp/")
+    os.execute("mv --backup=t timer/ /tmp/")
+end
 
+function test_http_parellel_for_each2()
+    params = {
+        ["parellel_total"] = 10,
+        ["req_of_per_parellel"] = 10,
+        ["url"] = "http://127.0.0.1:8080/static/html/index.html",
+        ["only_send_ratio"] = 0,
+        ["only_connect_ratio"] = 0,
+    }
+    http_parellel_for_each2(params)
+end
 
 
 
 if ... == "__main__" then
 
-    test_http_parellel()
-    --test_http_parellel_for_each()
+    -- test_http_parellel()
+    -- test_http_parellel_for_each()
+     test_http_parellel_for_each2()
+    -- timer_handle()
+    --glr.exit()
 end
