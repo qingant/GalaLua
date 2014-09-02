@@ -10,17 +10,32 @@
 ]]
 module(...,package.seeall)
 
-function write_timer(path,timer)
-    print(" ---- ",path,timer)
-    local path = path or os.getenv("PWD") .. "/timer." .. #timer
+function write_timer(path,ret)
+    local path = path or os.getenv("PWD") .. "/timer." .. #ret
     local fd = assert(io.open(path, "w"))
 
-    for i,k in pairs(timer) do
+    for i,k in pairs(ret) do
         --print("i",i,"k",k)
         for j,v in pairs(k) do
             local bg = v["begin"]
             local ed = v["end"]
             fd:write(string.format("processID %d index %d begin %d  end %d  gap %d\n",i,j,bg, ed, ed-bg))
+        end
+    end
+    fd:close()
+end
+
+function write_timer1(path,ret)
+    local path = path or os.getenv("PWD") .. "/timer." .. #ret
+    local fd = assert(io.open(path, "w"))
+
+    for i,k in pairs(ret) do
+        --print("i",i,"k",k)
+        for j,v in pairs(k["result"]) do
+            local bg = v["timer"]["begin"]
+            local ed = v["timer"]["end"]
+            local ret = v["result"]
+            fd:write(string.format("processID %d index %d begin %d  end %d  gap %d ret %s\n",i,j,bg, ed, ed-bg, ret))
         end
     end
     fd:close()
@@ -37,7 +52,7 @@ function write_timer2(pid, ret,path)
         fd:write(string.format("processID %d index %d begin %d  end %d  gap %d retult %s\n",pid, i, bg, ed, ed-bg,k["result"]))
     end
     fd:close()
-    print(string.format("write to %s ",path))
+    --print(string.format("write to %s ",path))
 end
 
 function tps(timer_path, tps_path)
@@ -79,7 +94,7 @@ function tps(timer_path, tps_path)
     local fd_tps = assert(io.open(path_tps, "w"))
     --for i, k in pairs(tps) do
     for i = 1,#tps-1 do
-        fd_tps:write(string.format("index %d tps %d\n", i, tps[i]))
+        fd_tps:write(string.format("seconds %d tps %d\n", i, tps[i]))
     end
     fd_tps:close()
 end

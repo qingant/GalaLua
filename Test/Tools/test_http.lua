@@ -24,6 +24,7 @@ local for_each2 = require(_PACKAGE .. "parellel").for_each2
 local spawn_cnt = require(_PACKAGE .. "parellel").spawn_cnt
 local rpc_call = require(_PACKAGE .. "parellel").rpc_call
 local write_timer = require(_PACKAGE .. "tps").write_timer
+local write_timer1 = require(_PACKAGE .. "tps").write_timer1
 local tps = require(_PACKAGE .. "tps").tps
 
 
@@ -47,10 +48,10 @@ function http_conn_by_type(params)
 
         local cli = httpClient:new()
         local req = httpRequest:new():init("GET", url)
-        print("-----------before  conn_by_type ---- ",cnt)
+        --print("----------- before http_conn_by_type ---- ",cnt)
         local res,err_msg = cli:conn_by_type(req,e_type)
-        pprint(res,"res")
-        print("-----------after  conn_by_type ---- ",cnt)
+        --pprint(res,"res")
+        --print("----------- after  http_conn_by_type ---- ",cnt)
         timer[cnt]["end"] = os.time()
         result[cnt]["result"] = string.format("ret:%s err:%s",res,err_msg)
         result[cnt]["timer"] = timer[cnt]
@@ -122,6 +123,49 @@ function http_parellel(params)
 end
 
 --[[
+result = {
+    [1] = {["id"],["process"],["result"],["error"]}
+    [2] = {}
+    ...
+    [parellel_total] = {}
+]]--
+function http_parellel_for_each(params)
+    local parellel_total = params["parellel_total"]
+    local req_of_per_parellel = params["req_of_per_parellel"]
+    local url = params["url"]
+    local only_send_ratio = params["only_send_ratio"] -- only_send 差错率
+    local only_connect_ratio = params["only_connect_ratio"] -- only_connect 差错率
+    local normal_ratio = 1 - only_send_ratio - only_connect_ratio
+
+    local timeout = 3000
+    local timer = {}
+    local params_list = {}
+    local normal_count = parellel_total * normal_ratio
+    local only_connect_count = parellel_total * only_connect_ratio
+    local only_send_count = parellel_total - normal_count - only_connect_count 
+
+    for i = 1,parellel_total do --并发数
+        if i > normal_count then
+            if i <= normal_count + only_connect_count  then
+            	print("---------------it is going to  status :  only_connect-------------",i)
+            	params_list[i] = {url,req_of_per_parellel, "only_connect"}--请求数/并发
+            else
+            	print("---------------it is going to  status :  only_send -------------",i)
+            	params_list[i] = {url,req_of_per_parellel,"only_send"}--请求数/并发
+            end
+        else -- Normal 并发数
+            print("---------------it is going to  status : normal------------",i)
+            params_list[i] = {url,req_of_per_parellel}
+        end
+    end
+    glr.time.sleep(4)
+    result = for_each("test_http","http_conn_by_type",params_list)
+    -- pprint(result,"--result--")
+
+    write_timer1(path,result)
+end
+
+--[[
 params = {
     ["parellel_total"] = num_of_times,
     ["req_of_per_parellel"] = num_of_times,
@@ -151,29 +195,30 @@ function http_parellel_for_each2(params)
     for i = 1,parellel_total do --并发数
         if i > normal_count then
             if i <= normal_count + only_connect_count  then
-            	print("---------------it is going to  status :  only_connect-------------",i)
+            	--print("---------------it is going to  status :  only_connect-------------",i)
             	params_list[i] = {url,req_of_per_parellel, "only_connect"}--请求数/并发
             else
-            	print("---------------it is going to  status :  only_send -------------",i)
+            	--print("---------------it is going to  status :  only_send -------------",i)
             	params_list[i] = {url,req_of_per_parellel,"only_send"}--请求数/并发
             end
         else -- Normal 并发数
-            print("---------------it is going to  status : normal------------",i)
+            --print("---------------it is going to  status : normal------------",i)
             params_list[i] = {url,req_of_per_parellel}
         end
     end
     glr.time.sleep(4)
     for_each2("test_http","http_conn_by_type",params_list)
 
-    glr.time.sleep(4)
-    os.execute("/bin/sh test_shell")
-    local pwd = os.getenv("PWD")
-    local timer_path = string.format("%s/timer/timer",pwd)
-    local tps_path = string.format("%s/tps/tps",pwd)
-    tps(timer_path, tps_path)
-    os.execute("cat tps/tps")
-    --os.execute("mv --backup=t tps/ /tmp/")
-    --os.execute("mv --backup=t timer/ /tmp/")
+    --glr.time.sleep(10)
+    --os.execute("/bin/sh test_shell")
+    --local pwd = os.getenv("PWD")
+    --local timer_path = string.format("%s/timer/timer",pwd)
+    --local tps_path = string.format("%s/tps/tps",pwd)
+    --tps(timer_path, tps_path)
+    --os.execute("cat tps/tps")
+    --os.execute("mv --backup=t tps/ timer/ /tmp/")
+
+    print("---------- completed -----------")
 end
 
 -----------------------  test http ----------------------
@@ -189,7 +234,7 @@ function test_http_parellel()
     http_parellel(params)
 end
 
-function test_http_parellel_for_each()
+function test_for_each()
     local mod_name = "test_http"
     local entry = "http_conn"
     local timer = {}
@@ -211,16 +256,6 @@ function test_http_parellel_for_each()
     return result
 end
 
-function timer_handle()
-    local pwd = os.getenv("PWD")
-    local timer_path = string.format("%s/timer/timer",pwd)
-    local tps_path = string.format("%s/tps/tps",pwd)
-    tps(timer_path, tps_path)
-    os.execute("/bin/sh test_shell")
-    os.execute("mv --backup=t tps/ /tmp/")
-    os.execute("mv --backup=t timer/ /tmp/")
-end
-
 function test_http_parellel_for_each2()
     params = {
         ["parellel_total"] = 10,
@@ -232,13 +267,23 @@ function test_http_parellel_for_each2()
     http_parellel_for_each2(params)
 end
 
+function test_http_parellel_for_each()
+    params = {
+        ["parellel_total"] = 10,
+        ["req_of_per_parellel"] = 50,
+        ["url"] = "http://127.0.0.1:8080/static/html/index.html",
+        ["only_send_ratio"] = 0,
+        ["only_connect_ratio"] = 0,
+    }
+    http_parellel_for_each(params)
+end
 
 
 if ... == "__main__" then
 
     -- test_http_parellel()
+    test_http_parellel_for_each2()
     -- test_http_parellel_for_each()
-     test_http_parellel_for_each2()
     -- timer_handle()
-    --glr.exit()
+    -- glr.exit()
 end

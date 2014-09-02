@@ -31,7 +31,7 @@ function for_each(mod_name,entry,params_list)
     params["mod_name"] = mod_name
     params["entry"] = entry
     for i,addr in pairs(process) do
-        params["id"] = 1
+        params["id"] = i
         params["params"] = params_list[i]
         result[i] = rpc_call(addr, params)
         --pprint(result[i],"-- result --")
@@ -107,10 +107,12 @@ function rpc_call(addr,params)
         error(string.format("send to %s:%s:%d error : %s",addr.host,addr.port,addr.gpid, err_msg))
     end
 
-    timer["begin"] = ret["stamp"]
+    --timer["begin"] = ret["stamp"]
+    timer["begin"] = os.time()
     local timeout = timeout or 3000
     local mtype,desc,rec_msg = glr.recv(timeout)
-    timer["end"] = glr.time.now()
+    --timer["end"] = glr.time.now()
+    timer["end"] = os.time()
 
     if desc and rec_msg then
         rec_msg = unpack(rec_msg)
@@ -125,7 +127,7 @@ function rpc_call(addr,params)
             result["timer"]["end"] = timer["end"]
         end
     else
-        error(string.format("receive %s:%s:%d error : %s",addr.host,addr.port,addr.gpid, err_msg))
+        print(string.format("receive %s:%s:%d error : %s",addr.host,addr.port,addr.gpid, err_msg))
     end
     --pprint(result,"--- result ---")
     return result
