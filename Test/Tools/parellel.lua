@@ -225,6 +225,7 @@ function main_loop(timeout)
                 local attr = {corrid = 2, msgid = 1}
                 print("--- main_loop send ----",send_msg["id"])
                 glr.send(desc.addr,packer(send_msg),attr)
+                break
             else
                 local err_msg = "mod_name or entry doesn't exist"
                 local send_msg = {
@@ -235,6 +236,7 @@ function main_loop(timeout)
                 local attr = {corrid = 2, msgid = 1}
                 print("--- main_loop send ----",send_msg["id"])
                 glr.send(desc.addr,packer(send_msg),attr)
+                break
             end
         else
             goto beg
@@ -269,9 +271,11 @@ function main_loop2(timeout)
                 --local path = string.format("%s/timer/%d_%d",pwd, gpid,len)
                 --print("path", path)
                 write_timer2(gpid, ret, path)
+                break
             else
                 local err_msg = "mod_name or entry doesn't exist"
                 write_error(gpid, err_msg, path)
+                break
             end
         else
             goto beg
