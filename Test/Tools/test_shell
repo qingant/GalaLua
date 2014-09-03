@@ -9,8 +9,3 @@ echo "glr.recLine() timeout : `cat timer/timer | grep -E "(init|recv)Line timeou
 echo "glr.recv() timeout: `cat timer/timer | grep "recv timeout" | wc -l `"
 echo "Sokcet Send timeout: `cat timer/timer | grep "SendWait timeout" | wc -l`" 
 
-#mv --backup=t timer/ /tmp/
-
-#echo "----- tps------"
-#cat tps/tps
-#mv --backup=t tps/ /tmp/
