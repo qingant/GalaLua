@@ -93,9 +93,14 @@ function tps(timer_path, tps_path)
     local path_tps = assert(tps_path)
     local fd_tps = assert(io.open(path_tps, "w"))
     --for i, k in pairs(tps) do
+    local sum_tps = 0
+    local average_tps = 0
     for i = 1,#tps-1 do
+        sum_tps = sum_tps + tps[i]
         fd_tps:write(string.format("seconds %d tps %d\n", i, tps[i]))
     end
+    average_tps = sum_tps / (#tps - 1)
+    fd_tps:write(string.format("average_tps: %.2f\n",average_tps))
     fd_tps:close()
 end
 

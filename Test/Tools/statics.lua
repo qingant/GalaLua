@@ -15,13 +15,14 @@ function complete_processing()
     local pwd = os.getenv("PWD")
     local pd = assert(io.popen("cat timer/timer | wc -l","r"))
     local lines = tonumber(pd:read("*a"))
+    print(string.format("Total request : %d", lines))
 
     os.execute("cat timer/timer | sort -t \" \" -k 7 >> timer/timer_complete ")
     local fd = assert(io.open(string.format("%s/timer/timer",pwd),"r"))
     local line =  fd:read("*l")
     local a,b,begin_secs = string.match(line,".-([0-9]+).-([0-9]+).-([0-9]+)")
     fd:close()
-    print("begin_secs: ",begin_secs)
+    --print("begin_secs: ",begin_secs)
 
     fd = assert(io.open(string.format("%s/timer/timer_complete",pwd),"r"))
     line =  fd:read("*l")
@@ -52,10 +53,11 @@ function static_http()
     local tps_path = string.format("%s/tps/tps",pwd)
     tps(timer_path, tps_path)
     os.execute("cat tps/tps")
+    complete_processing()
     os.execute("mv --backup=t tps/ timer/ /tmp/")
 end
 
 if ... == "__main__" then
-    --static_http()
-    complete_processing()
+    static_http()
+    --complete_processing()
 end
