@@ -1,11 +1,196 @@
 #! /bin/sh
 
-for i in `ls timer/timer_*`; do cat $i >> timer/timer_tmp; done
-cat timer/timer_tmp | sort -t " " -k 6 >> timer/timer
+#echo "------------------- 200 Normal  TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html
+#echo "------------------- 200 Normal  TEST END ----------------------------------"
 
-echo "实际请求数: `cat timer/timer | grep "processID" | wc -l `"
-echo "总失败数:`cat timer/timer | grep "ret:false" | wc -l `"
-echo "glr.recLine() timeout : `cat timer/timer | grep -E "(init|recv)Line timeout" | wc -l `" 
-echo "glr.recv() timeout: `cat timer/timer | grep "recv timeout" | wc -l `"
-echo "Sokcet Send timeout: `cat timer/timer | grep "SendWait timeout" | wc -l`" 
+#echo "------------------- 200 ONLY_SEND  TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 1
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 1
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 1
+#echo "------------------- 200 ONLY_SEND  TEST END ----------------------------------"
+
+#echo "------------------- 200 ONLY_CONNECT TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 1 --can not be test
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 1
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 1
+#echo "------------------- 200 ONLY_CONNECT TEST END ----------------------------------"
+
+#echo "------------------- 404 Normal  TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html
+#echo "------------------- 404 Normal  TEST END ----------------------------------"
+#
+#echo "------------------- 404 ONLY_SEND  TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 1
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 1
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 1
+#echo "------------------- 404 ONLY_SEND  TEST END ----------------------------------"
+
+echo "------------------- 404 ONLY_CONNECT TEST BEGIN ----------------------------------"
+sleep 2
+glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 1
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 1
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 1
+echo "------------------- 404 ONLY_CONNECT TEST END ----------------------------------"
+
+#echo "--- 200 ERROR_CONTROL TEST BEGIN ----"
+#
+#echo "------------- 200 NORMAL AND ONLY_SEND TEST BEGIN -------------"
+#
+#echo "------------------- NORMAL 80% ONLY_SEND 20% TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.2
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.2
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.2
+#echo "------------------- NORMAL 80% ONLY_SEND 20% TEST END  ----------------------------------"
+#
+#echo "------------------- NORMAL 50% ONLY_SEND 50% TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.5
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.5
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.5
+#echo "------------------- NORMAL 50% ONLY_SEND 50% TEST END  ----------------------------------"
+#
+#echo "------------------- NORMAL 20% ONLY_SEND 80% TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.8
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.8
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.8
+#echo "------------------- NORMAL 20% ONLY_SEND 80% TEST END  ----------------------------------"
+#
+#echo "------------- 200 NORMAL AND ONLY_SEND TEST END ----------------"
+
+#echo "------------- 200 NORMAL AND ONLY_CONNECT TEST BEGIN -------------"
+#echo "------------------- NORMAL 80% ONLY_CONNECT 20% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 0.2
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 0.2
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 0.2
+#echo "------------------- NORMAL 80% ONLY_CONNECT 20% TEST END  ----------------------------------"
+#
+#echo "------------------- NORMAL 50% ONLY_CONNECT 50% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 0.5
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 0.5
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 0.5
+#echo "------------------- NORMAL 50% ONLY_CONNECT 50% TEST END  ----------------------------------"
+#
+#echo "------------------- NORMAL 20% ONLY_CONNECT 80% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 0.8
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 0.8
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -j 0.8
+#echo "------------------- NORMAL 20% ONLY_CONNECT 80% TEST END  ----------------------------------"
+#
+#echo "------------- 200 NORMAL AND ONLY_CONNECT TEST END ----------------"
+#
+#echo "------------- 200 NORMAL ONLY_CONNECT ONLY_SEND TEST BEGIN -------------"
+#echo "------------------- NORMAL 80% ONLY_SEND 10% ONLY_CONNECT 10% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.1 -j 0.1
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.1 -j 0.1
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.1 -j 0.1
+#echo "------------------- NORMAL 80% ONLY_SEND 10% ONLY_CONNECT 10% TEST END  ----------------------------------"
+#
+#echo "------------------- NORMAL 50% ONLY_SEND 25% ONLY_CONNECT 25% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.25 -j 0.25
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.25 -j 0.25
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.25 -j 0.25
+#echo "------------------- NORMAL 50% ONLY_SEND 25% ONLY_CONNECT 25% TEST END  ----------------------------------"
+#
+#echo "------------------- NORMAL 20% ONLY_SEND 40% ONLY_CONNECT 40% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.4 -j 0.4
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.4 -j 0.4
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index.html -i 0.4 -j 0.4
+#echo "------------------- NORMAL 20% ONLY_SEND 40% ONLY_CONNECT 40% TEST END  ----------------------------------"
+#echo "------------- 200 NORMAL ONLY_CONNECT ONLY_SEND TEST END -------------"
+#
+#echo "--- 200 ERROR_CONTROL TEST END ----"
+#
+#echo "--- 404 ERROR_CONTROL TEST BEGIN ----"
+#
+#echo "------------- 404 NORMAL AND ONLY_SEND TEST BEGIN -------------"
+
+#echo "------------------- NORMAL 80% ONLY_SEND 20% TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.2
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.2
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.2
+#echo "------------------- NORMAL 80% ONLY_SEND 20% TEST END  ----------------------------------"
+
+#echo "------------------- NORMAL 50% ONLY_SEND 50% TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.5
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.5
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.5
+#echo "------------------- NORMAL 50% ONLY_SEND 50% TEST END  ----------------------------------"
+
+#echo "------------------- NORMAL 20% ONLY_SEND 80% TEST BEGIN ----------------------------------"
+#sleep 2
+#glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.8
+#glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.8
+#glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.8
+#echo "------------------- NORMAL 20% ONLY_SEND 80% TEST END  ----------------------------------"
+#
+#echo "------------- 404 NORMAL AND ONLY_SEND TEST END ----------------"
+#
+#echo "------------- 404 NORMAL AND ONLY_CONNECT TEST BEGIN -------------"
+#echo "------------------- NORMAL 80% ONLY_CONNECT 20% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 0.2
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 0.2
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 0.2
+#echo "------------------- NORMAL 80% ONLY_CONNECT 20% TEST END  ----------------------------------"
+#
+#echo "------------------- NORMAL 50% ONLY_CONNECT 50% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 0.5
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 0.5
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 0.5
+#echo "------------------- NORMAL 50% ONLY_CONNECT 50% TEST END  ----------------------------------"
+#
+#echo "------------------- NORMAL 20% ONLY_CONNECT 80% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 0.8
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 0.8
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -j 0.8
+#echo "------------------- NORMAL 20% ONLY_CONNECT 80% TEST END  ----------------------------------"
+#
+#echo "------------- 404 NORMAL AND ONLY_CONNECT TEST END ----------------"
+#
+#echo "------------- 404 NORMAL ONLY_CONNECT ONLY_SEND TEST BEGIN -------------"
+#echo "------------------- NORMAL 80% ONLY_SEND 10% ONLY_CONNECT 10% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.1 -j 0.1
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.1 -j 0.1
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.1 -j 0.1
+#echo "------------------- NORMAL 80% ONLY_SEND 10% ONLY_CONNECT 10% TEST END  ----------------------------------"
+#
+#echo "------------------- NORMAL 50% ONLY_SEND 25% ONLY_CONNECT 25% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.25 -j 0.25
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.25 -j 0.25
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.25 -j 0.25
+#echo "------------------- NORMAL 50% ONLY_SEND 25% ONLY_CONNECT 25% TEST END  ----------------------------------"
+#
+#echo "------------------- NORMAL 20% ONLY_SEND 40% ONLY_CONNECT 40% TEST BEGIN ----------------------------------"
+#sleep 2
+##glr test_http.lua -c 10 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.4 -j 0.4
+##glr test_http.lua -c 50 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.4 -j 0.4
+##glr test_http.lua -c 100 -n 1000 -u http://127.0.0.1:8080/static/html/index1.html -i 0.4 -j 0.4
+#echo "------------------- NORMAL 20% ONLY_SEND 40% ONLY_CONNECT 40% TEST END  ----------------------------------"
+#echo "------------- 404 NORMAL ONLY_CONNECT ONLY_SEND TEST END -------------"
+#
+#echo "--- 404 ERROR_CONTROL TEST END ----"
 
