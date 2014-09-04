@@ -190,7 +190,7 @@ function http_parellel_for_each2(params)
     local params_list = {}
     local normal_count = parellel_total * normal_ratio
     local only_connect_count = parellel_total * only_connect_ratio
-    local only_send_count = parellel_total - normal_count - only_connect_count 
+    local only_send_count = parellel_total - normal_count - only_connect_count
 
     for i = 1,parellel_total do --并发数
         if i > normal_count then
@@ -263,10 +263,32 @@ function test_http_parellel_for_each2(params)
     --}
     http_parellel_for_each2(params)
 
+    local parellel_total = params["parellel_total"]
+    local req_of_per_parellel = params["req_of_per_parellel"]
+    local only_send_ratio = params["only_send_ratio"]
+    local only_connect_ratio = params["only_connect_ratio"]
     local pwd = os.getenv("PWD")
-    local err_path = string.format("%s/statistics/error_statistics_%d_%d.csv",pwd,params["parellel_total"],params["req_of_per_parellel"])
-    local tps_path = string.format("%s/statistics/tps_statistics_%d_%d.csv",pwd,params["parellel_total"],params["req_of_per_parellel"])
-    local complete_path = string.format("%s/statistics/complete_statistics_%d_%d.csv",pwd,params["parellel_total"],params["req_of_per_parellel"])
+    local err_path = string.format("%s/statistics/error_statistics_%d_%d_%d_%d.csv",pwd,
+                        parellel_total,
+                        req_of_per_parellel,
+                        only_send_ratio * 100,
+                        only_connect_ratio * 100
+                        )
+    local tps_path = string.format("%s/statistics/tps_statistics_%d_%d_%d_%d.csv",pwd,
+                        parellel_total,
+                        req_of_per_parellel,
+                        only_send_ratio * 100,
+                        only_connect_ratio * 100
+                        )
+    local complete_path = string.format("%s/statistics/complete_statistics_%d_%d_%d_%d.csv",pwd,
+                        parellel_total,
+                        req_of_per_parellel,
+                        only_send_ratio * 100,
+                        only_connect_ratio * 100
+                        )
+    print(err_path)
+    print(tps_path)
+    print(complete_path)
     statistics_http_response(err_path, tps_path, complete_path)
 end
 
@@ -291,8 +313,8 @@ if ... == "__main__" then
     params["parellel_total"] = parellel_cnt
     params["req_of_per_parellel"] = req_of_per_parellel
     params["url"] = assert(glr.get_option("u"),"-u must be given\n")
-    params["only_send_ratio"] = glr.get_option("only_send_ratio") or 0
-    params["only_connect_ratio"] = glr.get_option("only_connect_ratio") or 0
+    params["only_send_ratio"] = glr.get_option("i") or 0
+    params["only_connect_ratio"] = glr.get_option("j") or 0
     --pprint(params)
     test_http_parellel_for_each2(params)
     -- test_http_parellel()

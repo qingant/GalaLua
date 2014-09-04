@@ -15,7 +15,7 @@ local tps = require(_PACKAGE .. "tps").tps
 function gen_timer_path(timer_path)
     local timer_path = assert(timer_path)
     os.execute("for i in `ls timer/timer_*`; do cat $i >> timer/timer_tmp; done")
-    os.execute(string.format("cat timer/timer_tmp | sort -t \" \" -k 6 >> %s",timer_path))
+    os.execute(string.format("cat timer/timer_tmp | grep \"processID\"| sort -t \" \" -k 6 >> %s",timer_path))
 end
 
 function error_statistics(timer_path,err_path)
@@ -36,7 +36,7 @@ function error_statistics(timer_path,err_path)
     local recv_timeout = tonumber(pfd:read("*l"))
     pfd:close()
 
-    pfd = assert(io.popen(string.format("cat %s | grep \"SendWait timeout\" | wc -l",timer_path)))
+    pfd = assert(io.popen(string.format("cat %s_tmp | grep \"SendWait timeout\" | wc -l",timer_path)))
     local socket_timeout = tonumber(pfd:read("*l"))
     pfd:close()
 
@@ -54,10 +54,10 @@ end
 function complete_statistics(timer_path,complete_path)
     local pwd = os.getenv("PWD")
     local timer_path = assert(timer_path)
-    local pd = assert(io.popen(string.format("cat %s | wc -l",timer_path),"r"))
+    local pd = assert(io.popen(string.format("cat %s | grep \"processID\" | wc -l",timer_path),"r"))
     local lines = tonumber(pd:read("*a"))
 
-    os.execute(string.format("cat %s | sort -t \" \" -k 7 >> timer/timer_complete",timer_path))
+    os.execute(string.format("cat %s | grep \"processID\" | sort -t \" \" -k 8 >> timer/timer_complete",timer_path))
     local fd = assert(io.open(timer_path,"r"))
     local line =  fd:read("*l")
     local a,b,begin_secs = string.match(line,".-([0-9]+).-([0-9]+).-([0-9]+)")
@@ -163,7 +163,7 @@ function statistics_http_response(err_path,tps_path,complete_path)
 
     local complete_path = complete_path or string.format("%s/statistics/complete_statistics.csv",pwd)
     complete_statistics(timer_path,complete_path)
-    --os.execute("mv --backup=t timer/ /tmp/")
+    os.execute("mv --backup=t timer/ /tmp/")
 end
 
 if ... == "__main__" then
