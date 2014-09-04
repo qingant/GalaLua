@@ -206,18 +206,15 @@ function http_parellel_for_each2(params)
             params_list[i] = {url,req_of_per_parellel}
         end
     end
-    glr.time.sleep(4)
+    --glr.time.sleep(4)
     for_each2("test_http","http_conn_by_type",params_list)
 
-    --glr.time.sleep(10)
-    --os.execute("/bin/sh test_shell")
-    --local pwd = os.getenv("PWD")
-    --local timer_path = string.format("%s/timer/timer",pwd)
-    --local tps_path = string.format("%s/tps/tps",pwd)
-    --tps(timer_path, tps_path)
-    --os.execute("cat tps/tps")
-    --os.execute("mv --backup=t tps/ timer/ /tmp/")
-
+    repeat
+        running_process = glr.status.processes()
+        --pprint(running_process,"running_process")
+        --print("len running_process :",table.maxn(running_process))
+        glr.time.sleep(1)
+    until table.maxn(running_process) == 0
     print("---------- completed -----------")
 end
 
