@@ -26,6 +26,7 @@ local rpc_call = require(_PACKAGE .. "parellel").rpc_call
 local write_timer = require(_PACKAGE .. "tps").write_timer
 local write_timer1 = require(_PACKAGE .. "tps").write_timer1
 local tps = require(_PACKAGE .. "tps").tps
+local statistics_http_response = require(_PACKAGE .. "statistics").statistics_http_response
 
 
 --params = {["url"] = "http://url",["times"] = times,["type"] = type}
@@ -158,7 +159,7 @@ function http_parellel_for_each(params)
             params_list[i] = {url,req_of_per_parellel}
         end
     end
-    glr.time.sleep(4)
+    --glr.time.sleep(4)
     result = for_each("test_http","http_conn_by_type",params_list)
     -- pprint(result,"--result--")
 
@@ -262,12 +263,18 @@ function test_http_parellel_for_each2()
         ["only_connect_ratio"] = 0,
     }
     http_parellel_for_each2(params)
+
+    local pwd = os.getenv("PWD")
+    local err_path = string.format("%s/statistics/error_statistics_%d_%d.csv",pwd,params["parellel_total"],params["req_of_per_parellel"])
+    local tps_path = string.format("%s/statistics/tps_statistics_%d_%d.csv",pwd,params["parellel_total"],params["req_of_per_parellel"])
+    local complete_path = string.format("%s/statistics/complete_statistics_%d_%d.csv",pwd,params["parellel_total"],params["req_of_per_parellel"])
+    statistics_http_response(err_path, tps_path, complete_path)
 end
 
 function test_http_parellel_for_each()
     params = {
         ["parellel_total"] = 10,
-        ["req_of_per_parellel"] = 50,
+        ["req_of_per_parellel"] = 100,
         ["url"] = "http://127.0.0.1:8080/static/html/index.html",
         ["only_send_ratio"] = 0,
         ["only_connect_ratio"] = 0,

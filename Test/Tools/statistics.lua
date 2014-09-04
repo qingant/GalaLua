@@ -4,6 +4,7 @@
 
 	== Introduction ==
     static test_http infomation
+    it cannot be use only
 
     == TODO ==
     logging
@@ -69,17 +70,18 @@ function complete_statistics(timer_path,complete_path)
     --a,b,_, end_secs= string.match(line,".-([0-9]+).-([0-9]+).-([0-9]+)")
 
     local fd_process = assert(io.open(assert(complete_path), "a+"))
-    fd_process:write(string.format("total request,%d,,,\n", lines))
+    fd_process:write(string.format("total request,%d\n", lines))
     print(string.format("Total request : %d", lines))
 
     local int,mod = math.modf(lines / 10)
     local times = 1
+    fd_process:write("complete,seconds\n")
     for i=1, lines do
         --print(i)
         if i == math.floor(int * times + mod * times) then
             a, b, _, end_secs = string.match(line,"([0-9]+).-([0-9]+).-([0-9]+).-([0-9]+)") 
             --print("end_secs: ", end_secs)
-            fd_process:write(string.format("complete,%d%%,takes,%d,secs\n",
+            fd_process:write(string.format("%d%%,%d\n",
                         times*10, end_secs - begin_secs + 1))
 
             print(string.format("complete %d%% takes %d secs",
@@ -134,36 +136,36 @@ function tps_statistics(timer_path,tps_path)
     --for i, k in pairs(tps) do
     local sum_tps = 0
     local average_tps = 0
+    fd_tps:write("seconds,tps\n")
     for i = 1,#tps-1 do
         sum_tps = sum_tps + tps[i]
-        fd_tps:write(string.format("seconds,%d,tps,%d\n", i, tps[i]))
-        print(string.format("seconds %d tps %d\n", i, tps[i]))
+        fd_tps:write(string.format("%d,%d\n", i, tps[i]))
+        print(string.format("seconds %d tps %d", i, tps[i]))
     end
     average_tps = sum_tps / (#tps - 1)
-    fd_tps:write(string.format("average_tps,%.2f,,\n",average_tps))
-    print(string.format("average_tps %.2f\n", average_tps))
+    fd_tps:write(string.format("average_tps,%.2f\n",average_tps))
+    print(string.format("average_tps %.2f", average_tps))
     fd_tps:close()
 end
 
-function static_http()
+function statistics_http_response(err_path,tps_path,complete_path)
 
     local pwd = os.getenv("PWD")
     os.execute(string.format("mkdir -p %s/statistics",pwd))
     local timer_path = string.format("%s/timer/timer",pwd)
     gen_timer_path(timer_path)
 
-    local err_path = string.format("%s/statistics/error_statistics.csv",pwd)
+    local err_path = err_path or string.format("%s/statistics/error_statistics.csv",pwd)
     error_statistics(timer_path,err_path)
 
-    local tps_path = string.format("%s/statistics/tps_statistics.csv",pwd)
+    local tps_path = tps_path or string.format("%s/statistics/tps_statistics.csv",pwd)
     tps_statistics(timer_path,tps_path)
 
-    local complete_path = string.format("%s/statistics/complete_statistics.csv",pwd)
+    local complete_path = complete_path or string.format("%s/statistics/complete_statistics.csv",pwd)
     complete_statistics(timer_path,complete_path)
-    os.execute("mv --backup=t timer/ /tmp/")
+    --os.execute("mv --backup=t timer/ /tmp/")
 end
 
 if ... == "__main__" then
-    static_http()
-    --complete_processing()
+    statistics_http_response()
 end
