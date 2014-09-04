@@ -184,7 +184,6 @@ function http_parellel_for_each2(params)
     local normal_ratio = 1 - only_send_ratio - only_connect_ratio
 
     os.execute("mkdir -p ./timer")
-    os.execute("mkdir -p ./tps")
 
     local timeout = 3000
     local timer = {}
@@ -254,14 +253,14 @@ function test_for_each()
     return result
 end
 
-function test_http_parellel_for_each2()
-    params = {
-        ["parellel_total"] = 10,
-        ["req_of_per_parellel"] = 10,
-        ["url"] = "http://127.0.0.1:8080/static/html/index.html",
-        ["only_send_ratio"] = 0,
-        ["only_connect_ratio"] = 0,
-    }
+function test_http_parellel_for_each2(params)
+    --params = {
+    --    ["parellel_total"] = 10,
+    --    ["req_of_per_parellel"] = 10,
+    --    ["url"] = "http://127.0.0.1:8080/static/html/index.html",
+    --    ["only_send_ratio"] = 0,
+    --    ["only_connect_ratio"] = 0,
+    --}
     http_parellel_for_each2(params)
 
     local pwd = os.getenv("PWD")
@@ -285,8 +284,18 @@ end
 
 if ... == "__main__" then
 
+    local params = {}
+    local parellel_cnt = assert(glr.get_option("c"),"-c must be given")
+    local total_request  = assert(glr.get_option("n"),"-n must be given")
+    local req_of_per_parellel = total_request / parellel_cnt
+    params["parellel_total"] = parellel_cnt
+    params["req_of_per_parellel"] = req_of_per_parellel
+    params["url"] = assert(glr.get_option("u"),"-u must be given\n")
+    params["only_send_ratio"] = glr.get_option("only_send_ratio") or 0
+    params["only_connect_ratio"] = glr.get_option("only_connect_ratio") or 0
+    --pprint(params)
+    test_http_parellel_for_each2(params)
     -- test_http_parellel()
-    test_http_parellel_for_each2()
     -- test_http_parellel_for_each()
     -- timer_handle()
     -- glr.exit()
