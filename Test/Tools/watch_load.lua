@@ -105,10 +105,12 @@ cpu_statistics = {
     }
 ]]--
 function cpu_statistics_of_cores(times,time_gap)
-    local cpu_used_0 = 0
-    local cpu_used_1 = 0
-    local cpu_total_0 = 0
-    local cpu_total_1 = 0
+    local cpu_used_0 = {}
+    local cpu_used_1 = {}
+    local cpu_total_0 = {}
+    local cpu_total_1 = {}
+    local test1 = {}
+    local test2 = {}
     local cpu_usage = {}
     local cpu_statistic = {}
 
@@ -125,8 +127,8 @@ function cpu_statistics_of_cores(times,time_gap)
             cpu_total_1[core_id] = info["total"]
         end
         for core_id, info in pairs(cpu_usage[1]) do
-            local test1[core_id] = cpu_used_1[core_id]  - cpu_used_0[core_id]
-            local test2[core_id] = cpu_total_1[core_id] - cpu_total_0[core_id]
+            test1[core_id] = cpu_used_1[core_id]  - cpu_used_0[core_id]
+            test2[core_id] = cpu_total_1[core_id] - cpu_total_0[core_id]
             print("free: ",test1[core_id])--
             print("total: ",test2[core_id])
             print("percent: ",test1[core_id]/test2[core_id])
@@ -540,5 +542,6 @@ function test_mem()
 end
 
 
-test_cpu()
-test_mem()
+--test_cpu()
+--test_mem()
+test_cpu_statistics_of_cores(5,1)
