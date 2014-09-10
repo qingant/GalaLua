@@ -48,7 +48,8 @@ end
 function summary:get(context,...)
     local request = context:get_request()
     local params = request["params"]
-    local path = string.format("/statistics_200/error_statistics_%d_%d_%d_%d.csv",
+    local path = string.format("/%d/error_statistics_%d_%d_%d_%d.csv",
+            params['m'],
             params['c'],
             params['n']/params['c'],
             params['i'],
@@ -72,7 +73,8 @@ end
 function processing:get(context,...)
     local request = context:get_request()
     local params = request["params"]
-    local path = string.format("/statistics_200/complete_statistics_%d_%d_%d_%d.csv",
+    local path = string.format("/%d/complete_statistics_%d_%d_%d_%d.csv",
+            params['m'],
             params['c'],
             params['n']/params['c'],
             params['i'],
@@ -95,7 +97,8 @@ end
 function tps:get(context,...)
     local request = context:get_request()
     local params = request["params"]
-    local path = string.format("/statistics_200/tps_statistics_%d_%d_%d_%d.csv",
+    local path = string.format("/%d/tps_statistics_%d_%d_%d_%d.csv",
+            params['m'],
             params['c'],
             params['n']/params['c'],
             params['i'],

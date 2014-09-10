@@ -40,6 +40,10 @@
 </div>
 
 <div class ="params">
+    请求类型
+    <input id='params0' type='number' value='200'>
+</div>
+<div class ="params">
     并发数
     <input id='params1' type='number' value='100'>
 </div>
@@ -64,6 +68,7 @@
 <div id="TPSStatistic" class="backGround"></div>
 <script>
 
+var http_category = 200
 var pareller_cnt = 100;
 var req_per_pareller = 10;
 var only_send_ratio = 0;
@@ -71,13 +76,14 @@ var only_connect_ratio = 0;
 var url_params = ""
 
 function get_url_params(){
-    alert("aaaaa")
+    //alert("aaaaa")
+    http_category = document.getElementById("params0").value
     pareller_cnt = document.getElementById("params1").value;
     req_per_pareller = document.getElementById("params2").value;
     only_send_ratio = document.getElementById("params3").value;
     only_connect_ratio = document.getElementById("params3").value;
     req_total = pareller_cnt * req_per_pareller
-    url_params = "?c="+ pareller_cnt + "&n=" + req_total + "&i=" + only_send_ratio + "&j=" + only_connect_ratio
+    url_params = "?m=" + http_category + "&c="+ pareller_cnt + "&n=" + req_total + "&i=" + only_send_ratio + "&j=" + only_connect_ratio
 }
 
 
@@ -88,7 +94,7 @@ var tps_average_data = []
 var tpsy = []
 var times = 1;
 
-var freq = 12000;
+var freq = 2000;
 
 require.config({
         paths:{
@@ -372,7 +378,7 @@ function GetTpsData(data) {
             {
                 AverageTps[k] = tmp[1];
             }
-            //alert(TpsDataX.length);
+            //alert(TpsDataX);
             //alert(TpsDataY);
             //alert(AverageTps.length);
             if (times == 1)
