@@ -1,3 +1,7 @@
+# GalaLua
+
+## complie
+
 if Linux platform is suse and gcc version < 4.0
 define compile flag -DHAVE_SUSE
 
@@ -6,3 +10,28 @@ please configure Lib/luadbi.0.5
 
 
 if gcc version < 4.0 ,delete gcc.rules option [-Wextra -Woverloaded-virtual,-Wno-write-strings  -fno-strict-aliasing  -Wno-missing-field-initializers]
+
+
+## 源码目录
+
+```
+.
+├── AMQ           AMQ的源码
+├── Config        mdb实现的配置
+├── Drivers       其他语言访问接口，已废弃，可忽略。
+├── Frameworks    应用框架
+├── GLR           glr的实现
+├── GalaDB        mdb的实现与lua封装
+├── Lib           主要是第三方Lua库
+├── LuaJIT-2.0.0
+├── LuaObject     自己写的Lua库，C/C++代码
+├── Modules       一些公共模块，lua代码
+├── Runtime       基础C++库封装
+├── Samples       可忽略
+├── Stub          C接口封装
+├── Test          一些测试代码
+├── Tools         命令行工具相关
+├── include       公共头文件
+└── lua-5.2.3
+
+```
