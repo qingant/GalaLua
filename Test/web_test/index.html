@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>webframework 测试结果</title>
+<meta name="description" content="">
+<meta name="keywords" content="">
+<link href="stylesheet.css" rel="stylesheet"  type="text/css">
+<script src="js/esl.js"></script>
+<script src="js/jquery.js"></script>
+<style>
+    .params{
+        margin:0;
+        margin-right:10px;
+        height:20px;
+        float:left;
+    }
+    .params input {
+        width:50px;
+        height:20px;
+    }
+</style>
+</head>
+
+<body>
+    <div ID="header">
+    <h1 id="h1size">
+    webframework 测试
+    </h1>
+    <div id="menu">
+        <p style="text-align:center;font-size:22px;margin-top:5px;font-family:Times; ">Frequent</p>
+    </div>
+    <select  id="choose">
+        <option value="1000">60f/min</option>
+        <option value="2000">30f/min</option>
+        <option value="5000">12f/min</option>
+    </select>
+    <br/>
+</div>
+
+<div class ="params">
+    并发数
+    <input id='params1' type='number' value='100'>
+</div>
+<div class ="params">
+    连接数/每并发
+    <input id='params2' type='number' value='10'>
+</div>
+<div class ="params">
+    only_send百分比:
+    <input id='params3' type='number' value='0'>
+</div>
+<div class ="params">
+    only_connect百分比:
+    <input id='params4' type='number' value='0'>
+</div>
+<div>
+    <button onclick="get_url_params()" >确定</button>
+</div>
+
+<div id="CompleteTotal" class="backGround"></div>
+<div id="CompleteProcess" class="backGround"></div>
+<div id="TPSStatistic" class="backGround"></div>
+<script>
+
+var pareller_cnt = 100;
+var req_per_pareller = 10;
+var only_send_ratio = 0;
+var only_connect_ratio = 0;
+var url_params = ""
+
+function get_url_params(){
+    alert("aaaaa")
+    pareller_cnt = document.getElementById("params1").value;
+    req_per_pareller = document.getElementById("params2").value;
+    only_send_ratio = document.getElementById("params3").value;
+    only_connect_ratio = document.getElementById("params3").value;
+    req_total = pareller_cnt * req_per_pareller
+    url_params = "?c="+ pareller_cnt + "&n=" + req_total + "&i=" + only_send_ratio + "&j=" + only_connect_ratio
+}
+
+
+var complete_statistic_data  = []; // 完成情况统计数据
+var complete_process_data = []; //完成度数据
+var tpsx = []
+var tps_average_data = []
+var tpsy = []
+var times = 1;
+
+var freq = 12000;
+
+require.config({
+        paths:{
+            echarts:'./js/echarts',
+            'echarts/chart/bar' : './js/echarts',
+            'echarts/chart/line': './js/echarts'
+        }
+    });
+
+
+var CompleteTotalBar = {
+    title : {
+        text: '完成情况统计'
+    },
+    tooltip : {
+        trigger: 'axis'
+    },
+    tooltip : {
+        trigger: 'ayis'
+    },
+    legend: {
+        data:[""],
+    },
+    toolbox: {
+        show : true,
+        feature : {
+            mark : true,
+            dataView : {readOnly: false},
+            magicType:['line', 'bar'],
+            restore : true,
+            saveAsImage : true
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'category',
+            name : '类别',
+            data : ['实际请求','总错误','Recv TimeOut','RecvLine TimeOut','Send TimeOut']
+        }
+    ],
+    yAxis : [
+        {
+            type : 'value',
+            name : '比例',
+            splitArea : {show : true}
+        }
+    ],
+    series : [{
+            name:'Top Commands',
+            type:'bar',
+            data: complete_statistic_data,
+            itemStyle:{
+            normal:{color:'#008ec1'},
+            type:'default'
+            }
+        },
+    ]
+};
+
+var CompleteProcessBar = {
+    title : {
+        text: '完成度统计'
+    },
+    tooltip : {
+        trigger: 'axis'
+    },
+    tooltip : {
+        trigger: 'ayis'
+    },
+    legend: {
+        data:[''],
+    },
+    toolbox: {
+        show : true,
+        feature : {
+            mark : true,
+            dataView : {readOnly: false},
+            magicType:['line', 'bar'],
+            restore : true,
+            saveAsImage : true
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'category',
+            name : '完成度',
+            data : ['10%','20%','30%','40%','50%','60%','70%','80%','90%','100%']
+        }
+    ],
+    yAxis : [
+        {
+            type : 'value',
+            name : 'Seconds',
+            splitArea : {show : true}
+        }
+    ],
+    series : [{
+            name:'Top Commands',
+            type:'bar',
+            data:complete_process_data,
+            itemStyle:{
+            normal:{color:'#008ec1'},
+            type:'default'
+            }
+        },
+    ]
+};
+
+var TPSBar = {
+    title : {
+        text: 'TPS统计'
+    },
+    tooltip : {
+        trigger: 'axis'
+    },
+    legend: {
+        data:['']
+    },
+    toolbox: {
+        show : true,
+        feature : {
+            mark : true,
+            dataView : {readOnly: false},
+            magicType:['line', 'bar'],
+            restore : true,
+            saveAsImage : true
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'category',
+            name : 'Seconds',
+            data : tpsx
+        }
+    ],
+    yAxis : [
+        {
+            type : 'value',
+            name : 'TPS',
+            splitArea : {show : true}
+        }
+    ],
+    series : [{
+        name:'TPS Value',
+        type:'bar',
+        data:tpsy,
+        itemStyle:{
+            normal:{color:'#008ec1'},
+            type:'default'
+        }
+    },
+    {
+        name:'average',
+        type:'line',
+        data:tps_average_data,
+        itemStyle:{
+            normal:{color:'orange'},
+            type:'default'
+        }
+    },
+    ]
+};
+
+
+require(
+    [
+        'echarts',
+        'echarts/chart/bar',
+        'echarts/chart/line'
+    ],
+    function(ec) {
+        CompleteTotalChart = ec.init(document.getElementById('CompleteTotal'));
+        CompleteTotalChart.setOption(CompleteTotalBar);
+        CompleteProcessChart = ec.init(document.getElementById('CompleteProcess'));
+        CompleteProcessChart.setOption(CompleteProcessBar);
+        TpsChart = ec.init(document.getElementById('TPSStatistic'));
+        TpsChart.setOption(TPSBar);
+        var timeTicket;
+        clearInterval(timeTicket);
+        timeTicket = setInterval(GetData, freq);
+    }
+);
+
+function GetCompleteTotalData(data){
+    $.ajax({
+        type: "GET",
+        url: "/summary"+url_params,
+        dataType: "text",
+        success: function(data) {
+            //alert(data)
+            var allCsvLines = data.split(/\r\n|\n/);
+            var TotalData = [];
+            for (var i = 0; i < allCsvLines.length-1; i++){
+                var items = allCsvLines[i].split(',');
+                TotalData.push(items[1]);
+            }
+            var category =  ['实际请求','总错误','Recv TimeOut','RecvLine TimeOut','Send TimeOut']
+            //alert(TotalData)
+            for (var j = 0; j < TotalData.length; j++)
+            {
+                CompleteTotalChart.addData([
+                    [
+                        0,        // 系列索引
+                        TotalData[j],// 新增数据
+                        false,     // 新增数据是否从队列头部插入
+                        true// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                    ]
+                ]);
+
+            }
+        }
+    });
+}
+
+function GetCompleteProcessData(data) {
+    $.ajax({
+        type: "GET",
+        url: "/processing"+url_params,
+        dataType: "text",
+        success: function(data) {
+            //alert(data)
+            var allCsvLines = data.split(/\r\n|\n/);
+            var tmp = allCsvLines[0].split(',');
+            var TotalRequest = tmp[1];
+            var headers = allCsvLines[1].split(',');
+            var CompletePercent = [];
+            var CompleteCount = [];
+
+            for (var i=2; i<allCsvLines.length; i++) {
+                var data = allCsvLines[i].split(',');
+                if (data.length == headers.length) {
+                    CompletePercent.push(data[0]);
+                    CompleteCount.push(data[1]);
+                }
+            }
+            // alert(CompletePercent);
+            //alert(CompleteCount);
+            for (var i = 0; i < CompleteCount.length; i++)
+            {
+                CompleteProcessChart.addData([
+                    [
+                        0,        // 系列索引
+                        CompleteCount[i],// 新增数据
+                        false,     // 新增数据是否从队列头部插入
+                        true// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                    ]
+                ]);
+
+            }
+        }
+     });
+}
+
+function GetTpsData(data) {
+    $.ajax({
+        type: "GET",
+        url: "/tps"+url_params,
+        dataType: "text",
+        success: function(data) {
+            //alert(data)
+            var allCsvLines = data.split(/\r\n|\n/);
+            var headers = allCsvLines[0].split(',');
+            var TpsDataX = [];
+            var TpsDataY = [];
+            var AverageTps = [];
+
+            var len = allCsvLines.length - 2;
+            for (var i=1; i < len; i++) {
+                var line = allCsvLines[i].split(',');
+                if (line.length == headers.length) {
+                    TpsDataX.push(line[0]);
+                    TpsDataY.push(line[1]);
+                }
+            }
+
+            var tmp = allCsvLines[len].split(',');
+            for (var k = 0; k < TpsDataY.length; k++)
+            {
+                AverageTps[k] = tmp[1];
+            }
+            //alert(TpsDataX.length);
+            //alert(TpsDataY);
+            //alert(AverageTps.length);
+            if (times == 1)
+            {
+                for (var j = 0; j < TpsDataY.length; j++)
+                {
+                    TpsChart.addData([
+                        [
+                            0,        // 系列索引
+                            TpsDataY[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            true,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            TpsDataX[j]
+                        ],
+                        [
+                            1,        // 系列索引
+                            AverageTps[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            true,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                        ],
+                    ]);
+                }
+                times = 2;
+            }
+            else
+            {
+                for (var j = 0; j < TpsDataY.length; j++)
+                {
+                    TpsChart.addData([
+                        [
+                            0,        // 系列索引
+                            TpsDataY[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            false,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            TpsDataX[j]
+                        ],
+                        [
+                            1,        // 系列索引
+                            AverageTps[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            false,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                        ],
+                    ]);
+                }
+            }
+        }
+    });
+}
+
+function GetData(){
+    GetCompleteTotalData();
+    GetCompleteProcessData();
+    GetTpsData();
+}
+
+</script>
+</body>
+</html>
