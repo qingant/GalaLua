@@ -105,10 +105,12 @@ cpu_statistics = {
     }
 ]]--
 function cpu_statistics_of_cores(times,time_gap)
-    local cpu_used_0 = 0
-    local cpu_used_1 = 0
-    local cpu_total_0 = 0
-    local cpu_total_1 = 0
+    local cpu_used_0 = {}
+    local cpu_used_1 = {}
+    local cpu_total_0 = {}
+    local cpu_total_1 = {}
+    local test1 = {}
+    local test2 = {}
     local cpu_usage = {}
     local cpu_statistic = {}
 
@@ -117,19 +119,20 @@ function cpu_statistics_of_cores(times,time_gap)
     for cnt = 2,#cpu_usage do
         cpu_statistic[cnt-1] = {}
         for core_id, info in pairs(cpu_usage[cnt - 1]) do
-            cpu_used_0 = info["free"]
-            cpu_total_0 = info["total"]
+            cpu_used_0[core_id] = info["free"]
+            cpu_total_0[core_id] = info["total"]
         end
         for core_id, info in pairs(cpu_usage[cnt]) do
-            cpu_used_1 = info["free"]
-            cpu_total_1 = info["total"]
-
-            local test1 = cpu_used_1  - cpu_used_0
-            local test2 = cpu_total_1 - cpu_total_0
-            print("free: ",test1)
-            print("total: ",test2)
-            print("percent: ",test1/test2)
-            cpu_statistic[cnt-1][core_id] = (cpu_used_1 - cpu_used_0) / (cpu_total_1 - cpu_total_0) * 100
+            cpu_used_1[core_id] = info["free"]
+            cpu_total_1[core_id] = info["total"]
+        end
+        for core_id, info in pairs(cpu_usage[1]) do
+            test1[core_id] = cpu_used_1[core_id]  - cpu_used_0[core_id]
+            test2[core_id] = cpu_total_1[core_id] - cpu_total_0[core_id]
+            print("free: ",test1[core_id])--
+            print("total: ",test2[core_id])
+            print("percent: ",test1[core_id]/test2[core_id])
+            cpu_statistic[cnt-1][core_id] = (cpu_used_1[core_id] - cpu_used_0[core_id]) / (cpu_total_1[core_id] - cpu_total_0[core_id]) * 100
             cpu_statistic[cnt-1][core_id] = 100 - cpu_statistic[cnt-1][core_id]
         end
     end
@@ -539,5 +542,6 @@ function test_mem()
 end
 
 
-test_cpu()
-test_mem()
+--test_cpu()
+--test_mem()
+test_cpu_statistics_of_cores(5,1)
