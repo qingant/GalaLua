@@ -81,9 +81,10 @@ function get_url_params(){
     pareller_cnt = document.getElementById("params1").value;
     req_per_pareller = document.getElementById("params2").value;
     only_send_ratio = document.getElementById("params3").value;
-    only_connect_ratio = document.getElementById("params3").value;
+    only_connect_ratio = document.getElementById("params4").value;
     req_total = pareller_cnt * req_per_pareller
     url_params = "?m=" + http_category + "&c="+ pareller_cnt + "&n=" + req_total + "&i=" + only_send_ratio + "&j=" + only_connect_ratio
+    alert(url_params)
 }
 
 
@@ -92,9 +93,11 @@ var complete_process_data = []; //完成度数据
 var tpsx = []
 var tps_average_data = []
 var tpsy = []
-var times = 1;
+var times0 = 1;
+var times1 = 1;
+var times2 = 1;
 
-var freq = 2000;
+var freq = 10000;
 
 require.config({
         paths:{
@@ -133,7 +136,7 @@ var CompleteTotalBar = {
         {
             type : 'category',
             name : '类别',
-            data : ['实际请求','总错误','Recv TimeOut','RecvLine TimeOut','Send TimeOut']
+            data : []//['实际请求','总错误','Recv TimeOut','RecvLine TimeOut','Send TimeOut']
         }
     ],
     yAxis : [
@@ -146,10 +149,10 @@ var CompleteTotalBar = {
     series : [{
             name:'Top Commands',
             type:'bar',
-            data: complete_statistic_data,
+            data: [],
             itemStyle:{
-            normal:{color:'#008ec1'},
-            type:'default'
+                normal:{color:'#008ec1'},
+                type:'default'
             }
         },
     ]
@@ -183,7 +186,7 @@ var CompleteProcessBar = {
         {
             type : 'category',
             name : '完成度',
-            data : ['10%','20%','30%','40%','50%','60%','70%','80%','90%','100%']
+            data : []//['10%','20%','30%','40%','50%','60%','70%','80%','90%','100%']
         }
     ],
     yAxis : [
@@ -196,7 +199,7 @@ var CompleteProcessBar = {
     series : [{
             name:'Top Commands',
             type:'bar',
-            data:complete_process_data,
+            data:[],
             itemStyle:{
             normal:{color:'#008ec1'},
             type:'default'
@@ -211,6 +214,9 @@ var TPSBar = {
     },
     tooltip : {
         trigger: 'axis'
+    },
+    tooltip : {
+        trigger: 'ayis'
     },
     legend: {
         data:['']
@@ -230,7 +236,7 @@ var TPSBar = {
         {
             type : 'category',
             name : 'Seconds',
-            data : tpsx
+            data : []
         }
     ],
     yAxis : [
@@ -243,7 +249,7 @@ var TPSBar = {
     series : [{
         name:'TPS Value',
         type:'bar',
-        data:tpsy,
+        data:[],
         itemStyle:{
             normal:{color:'#008ec1'},
             type:'default'
@@ -252,7 +258,7 @@ var TPSBar = {
     {
         name:'average',
         type:'line',
-        data:tps_average_data,
+        data:[],
         itemStyle:{
             normal:{color:'orange'},
             type:'default'
@@ -287,7 +293,7 @@ function GetCompleteTotalData(data){
         url: "/summary"+url_params,
         dataType: "text",
         success: function(data) {
-            //alert(data)
+            alert(data)
             var allCsvLines = data.split(/\r\n|\n/);
             var TotalData = [];
             for (var i = 0; i < allCsvLines.length-1; i++){
@@ -296,17 +302,36 @@ function GetCompleteTotalData(data){
             }
             var category =  ['实际请求','总错误','Recv TimeOut','RecvLine TimeOut','Send TimeOut']
             //alert(TotalData)
-            for (var j = 0; j < TotalData.length; j++)
+            if (times0 == 1)
             {
-                CompleteTotalChart.addData([
-                    [
-                        0,        // 系列索引
-                        TotalData[j],// 新增数据
-                        false,     // 新增数据是否从队列头部插入
-                        true// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
-                    ]
-                ]);
-
+                for (var j = 0; j < TotalData.length; j++)
+                {
+                    CompleteTotalChart.addData([
+                        [
+                            0,        // 系列索引
+                            TotalData[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            true,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            category[j]
+                        ]
+                    ]);
+                }
+                times0 = 2
+            }
+            else
+            {
+                for (var j = 0; j < TotalData.length; j++)
+                {
+                    CompleteTotalChart.addData([
+                        [
+                            0,        // 系列索引
+                            TotalData[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            false,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            category[j]
+                        ]
+                    ]);
+                }
             }
         }
     });
@@ -318,7 +343,7 @@ function GetCompleteProcessData(data) {
         url: "/processing"+url_params,
         dataType: "text",
         success: function(data) {
-            //alert(data)
+            alert(data)
             var allCsvLines = data.split(/\r\n|\n/);
             var tmp = allCsvLines[0].split(',');
             var TotalRequest = tmp[1];
@@ -333,19 +358,40 @@ function GetCompleteProcessData(data) {
                     CompleteCount.push(data[1]);
                 }
             }
+            var category = ['10%','20%','30%','40%','50%','60%','70%','80%','90%','100%'];
             // alert(CompletePercent);
             //alert(CompleteCount);
-            for (var i = 0; i < CompleteCount.length; i++)
+            if (times1 == 1)
             {
-                CompleteProcessChart.addData([
-                    [
-                        0,        // 系列索引
-                        CompleteCount[i],// 新增数据
-                        false,     // 新增数据是否从队列头部插入
-                        true// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
-                    ]
-                ]);
+                for (var i = 0; i < CompleteCount.length; i++)
+                {
+                    CompleteProcessChart.addData([
+                        [
+                            0,        // 系列索引
+                            CompleteCount[i],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            true,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            CompletePercent[i]
+                        ]
+                    ]);
+                }
+                times1 = 2
+            }
+            else
+            {
+                for (var i = 0; i < CompleteCount.length; i++)
+                {
+                    CompleteProcessChart.addData([
+                        [
+                            0,        // 系列索引
+                            CompleteCount[i],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            false,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            CompletePercent[i]
+                        ]
+                    ]);
 
+                }
             }
         }
      });
@@ -381,7 +427,7 @@ function GetTpsData(data) {
             //alert(TpsDataX);
             //alert(TpsDataY);
             //alert(AverageTps.length);
-            if (times == 1)
+            if (times2 == 1)
             {
                 for (var j = 0; j < TpsDataY.length; j++)
                 {
@@ -401,7 +447,7 @@ function GetTpsData(data) {
                         ],
                     ]);
                 }
-                times = 2;
+                times2 = 2;
             }
             else
             {
