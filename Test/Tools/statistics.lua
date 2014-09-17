@@ -40,6 +40,10 @@ function error_statistics(timer_path,err_path)
     local socket_timeout = tonumber(pfd:read("*l"))
     pfd:close()
 
+    pfd = assert(io.popen(string.format("cat %s_tmp | grep \"IO Error\" | wc -l",timer_path)))
+    local io_error = tonumber(pfd:read("*l"))
+    pfd:close()
+
     err_path = assert(err_path)
     local fd = assert(io.open(err_path,"a+"))
     fd:write(string.format("total request,%d\n", total_request))
@@ -47,6 +51,7 @@ function error_statistics(timer_path,err_path)
     fd:write(string.format("glr.recvLine() timeout,%d\n", recvline_timeout))
     fd:write(string.format("glr.recv() timeout,%d\n", recv_timeout))
     fd:write(string.format("socket send timeout,%d\n", socket_timeout))
+    fd:write(string.format("IO Error,%d\n", io_error))
     fd:close()
 
 end
