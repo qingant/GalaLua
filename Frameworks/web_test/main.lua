@@ -111,3 +111,49 @@ function tps:get(context,...)
     context:get_response():set_content_type("text/plain")
     return content
 end
+
+networkThroughput = {}
+function networkThroughput:new()
+    local o = {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function networkThroughput:get(context,...)
+    local request = context:get_request()
+    local params = request["params"]
+    local path = string.format("/web_case_test/throughput/network_%d",
+            params['s'])
+
+    --print("path",path)
+    local pwd = os.getenv("PWD")
+    print(pwd .. path)
+    local fd = assert(io.open(pwd .. path))
+    local content = fd:read("*a")
+    context:get_response():set_content_type("text/plain")
+    return content
+end
+
+ioThroughput = {}
+function ioThroughput:new()
+    local o = {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function ioThroughput:get(context,...)
+    local request = context:get_request()
+    local params = request["params"]
+    local path = string.format("/web_case_test/throughput/io_%d",
+            params['s'])
+
+    --print("path",path)
+    local pwd = os.getenv("PWD")
+    local fd = assert(io.open(pwd .. path))
+    --print(pwd .. path)
+    local content = fd:read("*a")
+    context:get_response():set_content_type("text/plain")
+    return content
+end

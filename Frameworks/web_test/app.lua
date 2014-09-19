@@ -24,5 +24,7 @@ app:set_urls{
     ["^/summary"] = _PACKAGE .. "main.summary",
     ["^/processing"] = _PACKAGE .. "main.processing",
     ["^/tps"] = _PACKAGE .. "main.tps",
+    ["^/throughput/network"] = _PACKAGE .. "main.networkThroughput",
+    ["^/throughput/io"] = _PACKAGE .. "main.ioThroughput",
 
 }
