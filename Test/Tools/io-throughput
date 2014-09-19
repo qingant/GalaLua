@@ -1,0 +1,27 @@
+#! /usr/bin/env bash
+
+function get_throughput_by_procfs()
+{
+    while true; do
+        io_read_begin_bytes=`cat /proc/diskstats | grep "sda " | awk '{ print $6 }'`
+        io_write_begin_bytes=`cat /proc/diskstats | grep "sda " | awk '{ print $10 }'`
+        sleep 1
+        io_read_end_bytes=`cat /proc/diskstats | grep "sda " | awk '{ print $6 }'`
+        io_write_end_bytes=`cat /proc/diskstats | grep "sda " | awk '{ print $10 }'`
+        echo `expr $[($io_read_end_bytes - $io_read_begin_bytes) * 512]` `expr $[($io_write_end_bytes - $io_write_begin_bytes) * 512]`
+    done
+}
+
+function get_throughput_by_sysfs()
+{
+    while true; do
+        io_read_begin_bytes=`cat /sys/block/$1/stat | awk '{ print $3 }'`
+        io_write_begin_bytes=`cat /sys/block/$1/stat | awk '{ print $7 }'`
+        sleep 1
+        io_read_end_bytes=`cat /sys/block/$1/stat | awk '{ print $3 }'`
+        io_write_end_bytes=`cat /sys/block/$1/stat | awk '{ print $7 }'`
+        echo `expr $[($io_read_end_bytes - $io_read_begin_bytes) / 2]` `expr $[($io_write_end_bytes - $io_write_begin_bytes) / 2]`
+    done
+}
+
+get_throughput_by_sysfs sda
