@@ -292,6 +292,9 @@ void Process::InitNode(void)
     lua_pushinteger(_Stack, GLRPROTOCOL::EXIT);
     lua_settable(_Stack, -3);
 
+    lua_pushstring(_Stack, "TIMEOUT_SIGNAL");
+    lua_pushinteger(_Stack, GLRPROTOCOL::TIMEOUT_SIGNAL);
+    lua_settable(_Stack, -3);
 
     //StackDump();
     //lua_pop(_Stack,1);
@@ -805,6 +808,18 @@ void Process::SendExitMsg()
     pExitMsg->_Route._FromGpid = _Id;
     SendMsgToNode(_ParentId, buffer, GLRPROTOCOL::EXIT);
 }
+
+//TODO: 增加消息内容
+void Process::SendTimeoutMsg(LN_ID_TYPE pid)
+{
+    std::string buffer(sizeof(GLRPROTOCOL), 0);
+    GLRPROTOCOL *pExitMsg = (GLRPROTOCOL *)&buffer[0];
+    pExitMsg->_Protocol._Type = GLRPROTOCOL::TIMEOUT_SIGNAL;
+    pExitMsg->_Route._ToGpid = pid;
+    pExitMsg->_Route._FromGpid = pid;
+    SendMsgToNode(pid,buffer,GLRPROTOCOL::TIMEOUT_SIGNAL);
+}
+
 void Process::Destory(LN_ID_TYPE pid)
 {
     Process *p = NodeMap[pid];

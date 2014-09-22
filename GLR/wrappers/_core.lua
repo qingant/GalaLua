@@ -23,6 +23,7 @@ KILL = _glr.KILL
 APP = _glr.APP
 EXIT = _glr.EXIT
 IOCP = 8
+TIMEOUT_SIGNAL = _glr.TIMEOUT_SIGNAL
 
 AF_INET = _glr.AF_INET
 msg_available = _glr.msg_available
@@ -203,5 +204,7 @@ time = {
     --秒级
 	sleep = function (sec)  return _glr.int(CLOK_INT_NO,1,sec*1000) end,
     --毫秒级
-	msleep = function (msec)  return _glr.int(CLOK_INT_NO,1,msec) end
+	msleep = function (msec)  return _glr.int(CLOK_INT_NO,1,msec) end,
+
+	signal = function (msec)  return _glr.int(CLOK_INT_NO,3,msec) end
 }

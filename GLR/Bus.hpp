@@ -72,6 +72,7 @@ struct GLRPROTOCOL
         EXIT = 6,       //Process Exit Message
         ACK = 7,
         IOCP = 8,       //IO notify or IOCP
+        TIMEOUT_SIGNAL=9, //timeout msg
     };
     PRTC_HEADER			_Protocol;
     RTU_HEADER			_Route;

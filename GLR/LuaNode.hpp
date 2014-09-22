@@ -106,6 +106,7 @@ namespace GLR
         static Process &GetNodeById(LN_ID_TYPE);
         static bool GetNodeExceptionHandle(LN_ID_TYPE);
         static void Destory(LN_ID_TYPE);
+        static void SendTimeoutMsg(LN_ID_TYPE pid);
         static void SendMsgToNode(LN_ID_TYPE,
             const std::string &,
             GLRPROTOCOL::MSG_TYPE type = GLRPROTOCOL::APP);

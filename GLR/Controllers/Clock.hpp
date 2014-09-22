@@ -13,6 +13,7 @@ namespace GLR
             GET_TIME = 0,
             DO_TIMEOUT = 1,
             DO_TIMEOUT_C = 2,
+            DO_TIMEOUT_SIGNAL = 3,
         };
         struct ClockEvent
         {
@@ -27,6 +28,8 @@ namespace GLR
         using IController::Request;
         virtual void Request( lua_State* , int);
         virtual int  Version()const {return 2;}
+    private:
+        inline void SetTimer(lua_State *l, ClockEvent &cev);
 
     private:
         Galaxy::GalaxyRT::CTimer _Timer;
