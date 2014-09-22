@@ -51,9 +51,22 @@ function app_mgr:_init()
     self.app_inst_name = self.base_name:sub(1, #self.base_name - 1)
     self.root_sup = rpc.create_client(kernel_sup_name)
     self.supervisor_id = fmt("%ssupervisor", self.base_name)
+
+    self.app.log_path=self.app.log_path or self:default_app_log_path()
+
     local log_file_path = string.format("%s/app.log", self.app.log_path)
     self._logger = logger:new():init(self, log_file_path)  --TODO:
 end
+
+--[[
+日志默认路径：@workdir/log/@init-app/app_name/xxx.log
+]]
+function app_mgr:default_app_log_path()
+    local log_path=string.format("%s/log/%s/%s/",self.args.workdir,self.args["init-app"],self.app_name)
+    os.execute("mkdir -p "..log_path)
+    return log_path
+end
+
 function app_mgr:_start_pool(com)
     -- start pool
     print("start pool")
@@ -79,7 +92,8 @@ end
 
 
 function app_mgr:_start_component(com)
-    if     com.catagory == "server" then
+    com.params.log_path=self.app.log_path
+    if  com.catagory == "server" then
         local rt  = self._supervisor:call("start_process", com)
         -- TODO: error handling and logging
     elseif com.catagory == "pool" then
@@ -94,7 +108,7 @@ function app_mgr:_start_app()
     end
 
     if self.app_module._NAME == "kernel.app" then
-        rpc.create_server{mod_name = "core.supervisor", bind_gpid = _ROOT_SUPERVISOR_GPID, parameters = {self.supervisor_id}} -- root supervisor
+        rpc.create_server{mod_name = "core.supervisor", bind_gpid = _ROOT_SUPERVISOR_GPID, parameters = {self.supervisor_id,self.app.log_path}} -- root supervisor
     else
         local app_sup_start_arguments = {
             process_type = "gen",
@@ -180,6 +194,9 @@ end
 -- system entry
 function main()
     -- TODO: parse comman line arguments
+    workdir=glr.get_option("workdir") or os.getenv("HOME")
+    glr.set_option("workdir",workdir)
+
     if glr.get_option("init-app") then
         bootstrap(glr.get_option("init-app"), glr.get_option("inst-name"))
     else
