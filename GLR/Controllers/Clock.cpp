@@ -13,7 +13,10 @@ void Clock::Request( lua_State *l, int tick )
     switch (type)
     {
     case GET_TIME:
-        Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TNUMBER, _Timer.GetTimeStamp());
+        {
+            Galaxy::GalaxyRT::TPType now=_Timer.GetTimeStamp();
+            Runtime::GetInstance().GetBus().Return(pid, 2, LUA_TNUMBER,now.tv_sec, LUA_TNUMBER ,  now.tv_usec/1000);
+        }
         break;
     case DO_TIMEOUT:
         cev.tick=-1;

@@ -111,10 +111,10 @@ namespace Galaxy
             virtual ~CTimer();
         public:
             //TIMEREVENT GetEvent();
-            time_t GetTimeStamp() const;
+            TPType GetTimeStamp() const;
             
         private:
-            inline void update_stamp(time_t );
+            inline void update_stamp(TPType);
             void wake();
             void eat();
             int  gettimer(TPType);
@@ -127,7 +127,7 @@ namespace Galaxy
             std::vector<TIMEREVENT> _Heap;
             CPthreadMutex _Mutex;
             //TimedQueue    _Events;
-            time_t        _TimeStamp;
+            TPType        _TimeStamp;
         };
     
     } // namespace GalaxyRT end here

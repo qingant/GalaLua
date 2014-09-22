@@ -22,7 +22,7 @@ CTimer::CTimer(TIMERHANDLER handle, INT tick)
     :_Handle(handle),
      _Tick(tick) 
 {
-    time(&_TimeStamp);
+    gettimeofday(&_TimeStamp, NULL);
     std::make_heap(_Heap.begin(), _Heap.end());
 
     _Pair.GetAnother()->SetNonBlocking();
@@ -66,11 +66,12 @@ int CTimer::gettimer(TPType now)
     return rt;
 }
 
-void CTimer::update_stamp(time_t now)
+void CTimer::update_stamp(TPType now)
 {
-    _TimeStamp = now;
+    _TimeStamp.tv_sec = now.tv_sec;
+    _TimeStamp.tv_usec = now.tv_usec;
 }
-time_t CTimer::GetTimeStamp() const
+TPType CTimer::GetTimeStamp() const
 {
     return _TimeStamp;
 }
@@ -113,7 +114,7 @@ void *CTimer::Run(const CThread &)
     {
 
         int timeval = gettimer(now);
-        update_stamp(now.tv_sec); // 更新时间戳
+        update_stamp(now); // 更新时间戳
         timeval = (timeval < _Tick) && (timeval != -1)?timeval:_Tick; // 睡眠一个Tick和timeval中较小的值
         //GALA_ERROR("TIMEVAL: [%d]", timeval);
         if (timeval != 0)
