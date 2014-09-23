@@ -24,4 +24,5 @@ function get_throughput_by_sysfs()
     done
 }
 
-get_throughput_by_sysfs sda
+#get_throughput_by_sysfs sda
+get_throughput_by_procfs sda

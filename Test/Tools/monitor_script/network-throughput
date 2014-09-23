@@ -82,7 +82,7 @@ function calculate_thoughput_by_sysfs()
     fi
 }
 
-get_eth_by_proc
-get_eth_by_sysfs
-#calculate_thoughput_by_proc wlan0
-calculate_thoughput_by_sysfs wlan0
+#get_eth_by_proc
+#get_eth_by_sysfs
+calculate_thoughput_by_proc $1 
+#calculate_thoughput_by_sysfs wlan0

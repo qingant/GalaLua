@@ -1,0 +1,4 @@
+#! /usr/bin/env bash
+
+(./io-throughput >> io_monitor)&
+(./network-throughput eth0 > network_monitor)&

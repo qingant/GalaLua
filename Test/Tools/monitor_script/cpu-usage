@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+
+while true
+do
+    cpu_usage=`awk 'BEGIN { CpuTotal=0; CpuFree=0; }
+    /cpu /{CpuTotal=$2+$3+$4+$5+$6+$7+$8;CpuFree=$5};
+    END{ 
+    printf("%.2f\n",100 * CpuFree/CpuTotal);}' /proc/stat`
+    echo $cpu_usage
+    sleep 1
+done
