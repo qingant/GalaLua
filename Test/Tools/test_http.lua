@@ -204,6 +204,7 @@ params = {
 
 ]]--
 function http_parellel_for_each2(params)
+    local request_type = params["request_type"]
     local parellel_total = params["parellel_total"]
     local req_of_per_parellel = params["req_of_per_parellel"]
     local url = params["url"]
@@ -235,7 +236,13 @@ function http_parellel_for_each2(params)
         end
     end
     --glr.time.sleep(4)
-    for_each2("test_http","http_conn_by_type",params_list)
+    if request_type == "keepalive" then
+        print("keepalive request")
+        for_each2("test_http","http_keepalive_conn_by_type",params_list)
+    else
+        for_each2("test_http","http_conn_by_type",params_list)
+    end
+
 
     repeat
         running_process = glr.status.processes()
@@ -279,6 +286,38 @@ function test_for_each()
     --tps(#timer)
 
     return result
+end
+
+function test_by_http_parellel_for_each2(params)
+    http_parellel_for_each2(params)
+
+    local parellel_total = params["parellel_total"]
+    local req_of_per_parellel = params["req_of_per_parellel"]
+    local only_send_ratio = params["only_send_ratio"]
+    local only_connect_ratio = params["only_connect_ratio"]
+    local pwd = os.getenv("PWD")
+    local err_path = string.format("%s/statistics/error_statistics_%d_%d_%d_%d.csv",pwd,
+                        parellel_total,
+                        req_of_per_parellel,
+                        only_send_ratio * 100,
+                        only_connect_ratio * 100
+                        )
+    local tps_path = string.format("%s/statistics/tps_statistics_%d_%d_%d_%d.csv",pwd,
+                        parellel_total,
+                        req_of_per_parellel,
+                        only_send_ratio * 100,
+                        only_connect_ratio * 100
+                        )
+    local complete_path = string.format("%s/statistics/complete_statistics_%d_%d_%d_%d.csv",pwd,
+                        parellel_total,
+                        req_of_per_parellel,
+                        only_send_ratio * 100,
+                        only_connect_ratio * 100
+                        )
+    print(err_path)
+    print(tps_path)
+    print(complete_path)
+    statistics_http_response(err_path, tps_path, complete_path)
 end
 
 function test_http_parellel_for_each2(params)
@@ -367,8 +406,10 @@ if ... == "__main__" then
     params["url"] = assert(glr.get_option("u"),"-u must be given\n")
     params["only_send_ratio"] = glr.get_option("i") or 0
     params["only_connect_ratio"] = glr.get_option("j") or 0
+    params["request_type"] = glr.get_option("t") or "keepalive"
+    test_by_http_parellel_for_each2(params)
     --pprint(params)
-    test_http_parellel_for_each2(params)
+    --test_http_parellel_for_each2(params)
     -- test_http_parellel()
     -- test_http_parellel_for_each()
     -- timer_handle()
