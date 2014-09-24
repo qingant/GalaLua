@@ -1,0 +1,22 @@
+#! /usr/bin/env bash
+
+echo "========= before pause monitor ========="
+for i in $(ps aux |
+    awk '/\/cpu-usage|\/mem-usage|\/io-throughput|\/network-throughput/{printf("pid:%d,process:%s\n",$2, $12)}')
+do
+    echo $i
+done
+
+for i in $(ps aux |
+            awk '/cpu-usage|mem-usage|io-throughput|network-throughput/{print
+            $2}')
+do
+    kill $i 2>/dev/null
+done
+
+echo "========= after pause monitor ========="
+for i in $(ps aux |
+    awk '/\/cpu-usage|\/mem-usage|\/io-throughput|\/network-throughput/{printf("pid:%d,process:%s\n",$2, $12)}')
+do
+    echo $i
+done
