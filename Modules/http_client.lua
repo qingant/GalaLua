@@ -83,6 +83,19 @@ function httpClient:new()
    return o
 end
 
+function httpClient:init(req)
+    self._socket = socket.socket:new()
+    local ok,errmsg=self._socket:connect(req._host, req._port)
+    if not ok then
+        return false,errmsg
+    end
+    return ok,errmsg
+end
+
+function httpClient:close()
+    self._socket:close()
+end
+
 function httpClient:conn_by_type(req,e_type)
     if e_type == "only_connect" then
         self._socket = socket.socket:new()
@@ -96,6 +109,29 @@ function httpClient:conn_by_type(req,e_type)
     else
         local ret, msg = self:get2(req)
         return ret, msg
+    end
+end
+
+function httpClient:keepalive_conn_by_type(req,e_type)
+    if e_type == "only_connect" then
+        local ok,errmsg=self._socket:connect(req._host, req._port)
+        if not ok then
+            return false,errmsg
+        end
+        return ok,errmsg
+    elseif e_type == "only_send" then
+        local ok,errmsg=self._socket:send(req:toString())
+        if not ok then
+            return false,errmsg
+        end
+        return ok,errmsg
+    else
+        local ok,errmsg=self._socket:send(req:toString())
+        if not ok then
+            return false,errmsg
+        end
+        local ok,msg = self:_getResponse2(6000)
+        return ok,msg
     end
 end
 

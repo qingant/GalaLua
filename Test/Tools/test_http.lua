@@ -17,6 +17,8 @@ local cmsgpack = require("cmsgpack")
 local packer = cmsgpack.pack
 local unpack = cmsgpack.unpack
 
+local socket  = require("glr.socket")
+
 local _queue = require("collections.init").queue
 
 local for_each = require(_PACKAGE .. "parellel").for_each
@@ -35,6 +37,32 @@ local statistics_http_response = require(_PACKAGE .. "statistics").statistics_ht
 --      "only_connect" socket connect only
 --      "only_send" : socket connect and send only
 --      "normal" : socket connect, send and recv
+function http_keepalive_conn_by_type(params)
+    url = params[1]
+    times = params[2] or 1
+    e_type = params[3]
+    local cli = httpClient:new()
+    local req = httpRequest:new():init("GET", url)
+    cli:init(req)
+
+    local timer = {}
+    local result = {}
+    for cnt = 1,times do
+        timer[cnt] = {}
+        result[cnt] = {}
+        timer[cnt]["begin"] = os.time()
+
+        --print("----------- before http_conn_by_type1 ---- ",cnt)
+        local res, err_msg = cli:keepalive_conn_by_type(req, e_type)
+        --print("----------- after  http_conn_by_type1 ---- ",cnt)
+        timer[cnt]["end"] = os.time()
+        result[cnt]["result"] = string.format("ret:%s err:%s",res,err_msg)
+        result[cnt]["timer"] = timer[cnt]
+    end
+    cli:close()
+    return result
+end
+
 function http_conn_by_type(params)
     url = params[1]
     times = params[2] or 1
@@ -304,6 +332,30 @@ function test_http_parellel_for_each()
 end
 
 
+function test_http_keepalive_conn_by_type()
+    params = {}
+    params[1] =  "127.0.0.1:8080/index"
+    params[2] = 5
+    params[3] = "only_send"
+    pprint(http_keepalive_conn_by_type(params),"keepalive result")
+    params[3] = "only_connect"
+    pprint(http_keepalive_conn_by_type(params),"keepalive result")
+    params[3] = "normal"
+    pprint(http_keepalive_conn_by_type(params),"keepalive result")
+end
+
+function test_http_conn_by_type()
+    params = {}
+    params[1] =  "127.0.0.1:8080/index"
+    params[2] = 5
+    params[3] = "only_send"
+    pprint(http_conn_by_type(params),"keepalive result")
+    params[3] = "only_connect"
+    pprint(http_conn_by_type(params),"keepalive result")
+    params[3] = "normal"
+    pprint(http_conn_by_type(params),"keepalive result")
+end
+
 if ... == "__main__" then
 
     local params = {}
@@ -321,4 +373,6 @@ if ... == "__main__" then
     -- test_http_parellel_for_each()
     -- timer_handle()
     -- glr.exit()
+    --test_http_keepalive_conn_by_type()
+    --test_http_conn_by_type()
 end
