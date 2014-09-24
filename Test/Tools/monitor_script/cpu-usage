@@ -2,10 +2,20 @@
 
 while true
 do
-    cpu_usage=`awk 'BEGIN { CpuTotal=0; CpuFree=0; }
-    /cpu /{CpuTotal=$2+$3+$4+$5+$6+$7+$8;CpuFree=$5};
-    END{ 
-    printf("%.2f\n",100 * CpuFree/CpuTotal);}' /proc/stat`
-    echo $cpu_usage
+    cpu_usage_begin=`awk 'BEGIN { CpuTotal=0; CpuFree=0}
+    /cpu /{CpuTotal=$2+$3+$4+$5+$6+$7+$8;CpuFree=$5+$6+$7+$8};
+    END{
+     print CpuFree; print CpuTotal;}' /proc/stat`
+
     sleep 1
+
+    cpu_usage_end=`awk 'BEGIN { CpuTotal=0; CpuFree=0 }
+    /cpu /{CpuTotal=$2+$3+$4+$5+$6+$7+$8;CpuFree=$5+$6+$7+$8};
+    END{
+    print CpuFree; print CpuTotal; }' /proc/stat`
+
+    free=`echo $cpu_usage_begin $cpu_usage_end | awk '{print $3-$1}'`
+    total=`echo $cpu_usage_begin $cpu_usage_end | awk '{print $4-$2}'`
+    cpu_usage=`echo $free $total | awk '{printf("%.2f",100 - 100 * $1/$2)}'`
+    echo $cpu_usage
 done
