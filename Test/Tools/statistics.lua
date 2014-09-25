@@ -11,6 +11,7 @@
 ]]
 module(...,package.seeall)
 local tps = require(_PACKAGE .. "tps").tps
+local pprint = require("pprint").pprint
 
 function gen_timer_path(timer_path)
     local timer_path = assert(timer_path)
@@ -132,9 +133,10 @@ function tps_statistics(timer_path,tps_path)
 
     local tps = {}
     local index = 1
+    tps[index] = 1
     for i, k  in pairs(bg) do
         if bg[i] == bg[i+1] then
-            tps[index] = (tps[index] or 1) + 1
+            tps[index] = tps[index] + 1
         else
             index = index + 1
             tps[index] = 1
