@@ -88,14 +88,6 @@ function http_conn_by_type(params)
     return result
 end
 
---params = {["url"] = "http://url",["times"] = times}
-function http_conn(params)
-    url = params[1]
-    times = params[2]
-
-    http_conn_by_type(url,times)
-end
-
 -- params = {
 --          ["parellel_cnt"] = parellel_cnt,
 --          ["parellel_per"] = parellel_per,
