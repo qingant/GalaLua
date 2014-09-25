@@ -14,7 +14,7 @@ local tps = require(_PACKAGE .. "tps").tps
 
 function gen_timer_path(timer_path)
     local timer_path = assert(timer_path)
-    os.execute("for i in `ls timer/timer_*`; do cat $i >> timer/timer_tmp; done")
+    --os.execute("for i in `ls timer/timer_*`; do cat $i >> timer/timer_tmp; done")
     os.execute(string.format("cat timer/timer_tmp | grep \"processID\"| sort -t \" \" -k 6 >> %s",timer_path))
 end
 
@@ -44,6 +44,10 @@ function error_statistics(timer_path,err_path)
     local io_error = tonumber(pfd:read("*l"))
     pfd:close()
 
+    pfd = assert(io.popen(string.format("cat %s | grep \"Invalid Fd\" | wc -l",timer_path)))
+    local fd_error = tonumber(pfd:read("*l"))
+    pfd:close()
+
     err_path = assert(err_path)
     local fd = assert(io.open(err_path,"a+"))
     fd:write(string.format("total request,%d\n", total_request))
@@ -52,6 +56,7 @@ function error_statistics(timer_path,err_path)
     fd:write(string.format("glr.recv() timeout,%d\n", recv_timeout))
     fd:write(string.format("socket send timeout,%d\n", socket_timeout))
     fd:write(string.format("IO Error,%d\n", io_error))
+    fd:write(string.format("Invalid Fd,%d\n", fd_error))
     fd:close()
 
 end
@@ -60,44 +65,44 @@ function complete_statistics(timer_path,complete_path)
     local pwd = os.getenv("PWD")
     local timer_path = assert(timer_path)
     local pd = assert(io.popen(string.format("cat %s | grep \"processID\" | wc -l",timer_path),"r"))
-    local lines = tonumber(pd:read("*a"))
+    local total_lines = tonumber(pd:read("*a"))
 
-    os.execute(string.format("cat %s | grep \"processID\" | sort -t \" \" -k 8 >> timer/timer_complete",timer_path))
-    local fd = assert(io.open(timer_path,"r"))
-    local line =  fd:read("*l")
+    os.execute(string.format("cat %s | grep \"processID\" | sort -t \" \" -k 6 >> timer/timer_by_begin",timer_path))
+    os.execute(string.format("cat %s | grep \"processID\" | sort -t \" \" -k 8 >> timer/timer_by_end",timer_path))
+    local fd_by_begin = assert(io.open(pwd .. "/timer/timer_by_begin","r"))
+    local line =  fd_by_begin:read("*l")
     local a,b,begin_secs = string.match(line,".-([0-9]+).-([0-9]+).-([0-9]+)")
-    fd:close()
+    fd_by_begin:close()
     --print("begin_secs: ",begin_secs)
 
-    fd = assert(io.open(string.format("%s/timer/timer_complete",pwd),"r"))
-    line =  fd:read("*l")
-    local end_sec = 0
-    --a,b,_, end_secs= string.match(line,".-([0-9]+).-([0-9]+).-([0-9]+)")
+    fd_by_end = assert(io.open(string.format("%s/timer/timer_by_end",pwd),"r"))
+    local end_secs = 0
 
     local fd_process = assert(io.open(assert(complete_path), "a+"))
-    fd_process:write(string.format("total request,%d\n", lines))
-    print(string.format("Total request : %d", lines))
+    fd_process:write(string.format("total request,%d\n", total_lines))
+    print(string.format("Total request : %d", total_lines))
 
-    local int,mod = math.modf(lines / 10)
+    local int,mod = math.modf(total_lines / 10)
     local times = 1
     fd_process:write("complete,seconds\n")
-    for i=1, lines do
+    for i=1, total_lines do
         --print(i)
         if i == math.floor(int * times + mod * times) then
+            line = fd_by_end:read("*l")
+
             a, b, _, end_secs = string.match(line,"([0-9]+).-([0-9]+).-([0-9]+).-([0-9]+)") 
             --print("end_secs: ", end_secs)
             fd_process:write(string.format("%d%%,%d\n",
                         times*10, end_secs - begin_secs + 1))
 
             print(string.format("complete %d%% takes %d secs",
-                        times*10, end_secs-begin_secs))
-            line = fd:read("*l")
+                        times*10, end_secs - begin_secs))
             times = times + 1
         else
-            line = fd:read("*l")
+            line = fd_by_end:read("*l")
         end
     end
-    fd:close()
+    fd_by_end:close()
     fd_process:close()
 end
 

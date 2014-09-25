@@ -10,6 +10,23 @@
 ]]
 module(...,package.seeall)
 
+function write_timer3(ret,path)
+    local path = path or os.getenv("PWD") .. "/timer/timer." .. #ret
+    os.execute(string.format("mkdir -p %s",string.match(path,".*/")))
+    local fd = assert(io.open(path, "w"))
+
+    for i,k in pairs(ret) do
+        --print("i",i,"k",k)
+        for j,v in pairs(k["rec_msg"]["result"]) do
+            local bg = v["timer"]["begin"]
+            local ed = v["timer"]["end"]
+            local ret = v["result"]
+            fd:write(string.format("processID %d index %d begin %d  end %d  gap %d ret %s\n",i,j,bg, ed, ed-bg, ret))
+        end
+    end
+    fd:close()
+end
+
 function write_timer(path,ret)
     local path = path or os.getenv("PWD") .. "/timer." .. #ret
     local fd = assert(io.open(path, "w"))
