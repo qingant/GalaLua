@@ -11,13 +11,12 @@
 
 module(...,package.seeall)
 local pprint = require("pprint").pprint
-local httpClient = require("http_client").httpClient local httpRequest = require("http_client").httpRequest local cmsgpack = require("cmsgpack")
-local packer = cmsgpack.pack
-local unpack = cmsgpack.unpack
+local httpClient = require("http_client").httpClient 
+local httpRequest = require("http_client").httpRequest 
 
-local for_each = require(_PACKAGE .. "for_each").for_each
+local for_each = require(_PACKAGE .. "parellel").for_each
 local statistics_http_response = require(_PACKAGE .. "statistics").statistics_http_response
-local writer_timer = require(_PACKAGE .. "tps").write_timer3
+local writer_timer = require(_PACKAGE .. "tps").write_timer
 
 
 --params = {["url"] = "http://url",["times"] = times,["type"] = type}
@@ -117,32 +116,23 @@ function http_parellel_for_each(params)
     local result = {}
     if request_type == "keepalive" then
         print("keepalive request")
-        result = for_each("test_http","http_keepalive_conn_by_type",params_list)
+        result = for_each("webframework_test_tools","http_keepalive_conn_by_type",params_list)
     else
-        result = for_each("test_http","http_conn_by_type",params_list)
+        result = for_each("webframework_test_tools","http_conn_by_type",params_list)
     end
-    -- pprint(result,"--result--")
-    --repeat
-    --    running_process = glr.status.processes()
-    --    --pprint(running_process,"running_process")
-    --    --print("len running_process :",table.maxn(running_process))
-    --    glr.time.sleep(1)
-    --until table.maxn(running_process) == 0
     print("---------- completed -----------")
     return result
-
-    --write_timer1(path,result)
 end
 
 
 
 function webframewrok_test_by_http_parellel_for_each(params)
     local result = http_parellel_for_each(params)
-    pprint(result,"result")
+    --pprint(result,"result")
 
     local pwd = os.getenv("PWD")
 
-    writer_timer(result,pwd .. "/timer/timer_tmp")
+    writer_timer(result, pwd .. "/timer/timer_tmp")
 
     local parellel_total = params["parellel_total"]
     local req_of_per_parellel = params["req_of_per_parellel"]

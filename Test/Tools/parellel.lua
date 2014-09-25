@@ -19,7 +19,7 @@ function for_each(mod_name,entry,params_list)
     local cnt = #params_list
     local process = {}
     for i = 1, cnt do
-        local ret, err_msg = glr.spawn("for_each1","caller",i, __id__, mod_name, entry, params_list[i])
+        local ret, err_msg = glr.spawn("parellel","caller",i, __id__, mod_name, entry, params_list[i])
         if not ret then
             error(string.format("spawn %s.%s error: %s",mod_name,entry,err_msg))
         end
