@@ -50,6 +50,12 @@ function http:get_request(timeout)
         request[key:trim()] = value:trim()
     end
     request.header = header
+    if request.method == "POST" then
+        local len = request["Content-Length"]
+        local body = assert(self._socket:recv(len,30)):trim()
+        request["body"] = body
+    end
+
     request:parse()
     return request
 end
