@@ -126,11 +126,33 @@ function httpClient:keepalive_conn_by_type(req,e_type)
         end
         return ok,errmsg
     else
-        local ok,errmsg=self._socket:send(req:toString())
-        if not ok then
-            return false,errmsg
+        local retry_times = 0
+        while true do
+            -- if send or recv error, close and init again,
+            -- otherwise, maybe error lasting if errer happen.
+            ::begin::
+            local ok,errmsg=self._socket:send(req:toString(), 6000)
+            if not ok then
+                retry_times = retry_times + 1
+                if retry_times == 10 then
+                    break
+                end
+                self:close()
+                self:init(req)
+                goto begin
+            end
+            local ok,msg = self:_getResponse2(6000)
+            if not ok then
+                retry_times = retry_times + 1
+                if retry_times == 10 then
+                    break
+                end
+                self:close()
+                self:init(req)
+                goto begin
+            end
+            break
         end
-        local ok,msg = self:_getResponse2(6000)
         return ok,msg
     end
 end
