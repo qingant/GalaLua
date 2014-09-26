@@ -236,7 +236,11 @@ function httpClient:_getResponse2(timeout)
             break
         end
         local key, value = unpack(string.split(line, ":"))
-        response[key] = value:trim()
+        if value then
+            response[key] = value:trim()
+        else
+            response[key] = nil
+        end
     end
 
     -- get body
