@@ -29,7 +29,7 @@ function for_each(mod_name,entry,params_list)
     local result = {}
     for i = 1, cnt do
         print("cnt", cnt)
-        local timeout = 30000
+        local timeout = 10000
         local mtype,desc,rec_msg = glr.recv_by_condition( 
                 function (msg)
                     local desc = msg[2]
