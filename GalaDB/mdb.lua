@@ -759,6 +759,17 @@ function element:add_vector_item()
     self:set_attrib(vector_index_key, tostring(tonumber(serial) + 1))
     return self:add_node(serial)
 end
+
+function element:pop_vector_item()
+    assert(self:is_vector(), "Element is not Vector Node")
+    local serial = self:get_attrib()[vector_index_key]
+    serial=tonumber(serial) - 1
+    assert(serial>0,"empty list")
+    serial=tostring(serial)
+    self:set_attrib(vector_index_key, serial)
+    return self:remove(serial)
+end
+
 function element:add_vector_item_as_vector(tag)
     assert(self:is_vector(), "Element is not Vector Node")
     local serial = self:get_attrib()[vector_index_key]
@@ -1215,8 +1226,11 @@ if ... == "__main__" then
         local v = e:add_vector_node("TestVector", "Item")
         local i1 = v:add_vector_item()
         local i2 = v:add_vector_item()
-        i1:add_value("good")
-        i2:add_value("bad")
+        i1:add_node("good"):add_value("iiigood")
+        i2:add_node("bad"):add_value("badbad")
+
+        pprint.pprint(v:get_child())
+
         print(e:to_xml())
 
     end
@@ -1339,7 +1353,7 @@ if ... == "__main__" then
         -- collectgarbage("collect")
 
         -- db:withReadOnly(test_exist)
-        -- db:with(test_vector)
+         db:with(test_vector)
         -- db:with(test_table, {abc="ok",efg={def="laf",test="dddd"}})
 --        db:withReadOnly(test_merge)
         -- db:withReadOnly(test_xquery_xpath)
