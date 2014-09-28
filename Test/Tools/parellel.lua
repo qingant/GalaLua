@@ -29,13 +29,13 @@ function for_each(mod_name,entry,params_list)
     local result = {}
     for i = 1, cnt do
         print("cnt", cnt)
-        local timeout = 300000
+        local timeout = 30000
         local mtype,desc,rec_msg = glr.recv_by_condition( 
                 function (msg)
                     local desc = msg[2]
                     return ( desc and desc.attr.corrid == 2 )
                 end, timeout)
-        assert(mtype, "Recv Timeout")
+        --assert(mtype, "Recv Timeout")
         result[desc.attr.msgid] = cmsgpack.unpack(rec_msg)
     end
 
@@ -51,11 +51,14 @@ function for_each(mod_name,entry,params_list)
 end
 
 function caller(idx, control_id, mod_name, entry, ...)
-    local func = require(mod_name)[entry]
-    assert(func and type(func) == "function", "mod_name doesn't exist OR entry empty")
-    local ret = func(...)
-    local ret, err_msg = glr.send(control_id, cmsgpack.pack(ret), { corrid = 2, msgid = idx})
-    assert(ret, "main loop send error:")
+    function _caller(idx, control_id, mod_name, entry, ...)
+        local func = require(mod_name)[entry]
+        assert(func and type(func) == "function", "mod_name doesn't exist OR entry empty")
+        local ret = func(...)
+        local ret, err_msg = glr.send(control_id, cmsgpack.pack(ret), { corrid = 2, msgid = idx})
+        assert(ret, "main loop send error:")
+    end
+    pcall(_caller, idx, control_id, mod_name, entry, ...)
 end
 
 function test_for_each()
