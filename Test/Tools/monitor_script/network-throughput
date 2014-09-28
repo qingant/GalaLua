@@ -34,7 +34,7 @@ function calculate_thoughput_by_proc()
             if [ $3 ]; then
                 echo "$recv_thoughput,$recv_package_cnt,$trans_thoughput,$trans_package_cnt" >> $4
             fi
-            echo "Recv/Bytes " $recv_thoughput "Packets:" $recv_package_cnt "Trans/Bytes" $trans_thoughput "Packets:" $trans_package_cnt
+            echo "Packets:" $recv_package_cnt "Recv/Bytes " $recv_thoughput "Packets:" $trans_package_cnt "Trans/Bytes" $trans_thoughput
         done
     else
         echo "ethernet-device must be given(eth0,wlan0 etc)"
