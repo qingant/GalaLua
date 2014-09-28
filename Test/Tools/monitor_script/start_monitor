@@ -1,7 +1,13 @@
 #! /usr/bin/env bash
 
-mkdir -p monitor_data
-(./io-throughput >> monitor_data/io_monitor)&
-(./network-throughput eth0 >> monitor_data/network_monitor)&
-(./cpu-usage >> monitor_data/cpu_monitor)&
-(./mem-usage >> monitor_data/mem_monitor)&
+if [ $1 ] 
+then
+    mkdir -p monitor_data
+    (./io-throughput $2 >> monitor_data/io_monitor)&
+    (./network-throughput $1 $2 >> monitor_data/network_monitor)&
+    (./cpu-usage $2 >> monitor_data/cpu_monitor)&
+    (./mem-usage $2 >> monitor_data/mem_monitor)&
+else
+    echo "ethernet must be given(eth1 eth2 wlan0 etc)"
+    exit 1
+fi

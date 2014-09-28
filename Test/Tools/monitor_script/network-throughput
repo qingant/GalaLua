@@ -84,5 +84,5 @@ function calculate_thoughput_by_sysfs()
 
 #get_eth_by_proc
 #get_eth_by_sysfs
-calculate_thoughput_by_proc $1 
+calculate_thoughput_by_proc $1 $2
 #calculate_thoughput_by_sysfs wlan0

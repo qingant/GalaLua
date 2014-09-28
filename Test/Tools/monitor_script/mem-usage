@@ -2,12 +2,14 @@
 
 while true
 do
+    gap_secs=$1
+    gap_secs=${gap_secs:=1}
     mem_usage=`awk 'BEGIN { MemTotal=0; MemFree=0; }
     /MemTotal/{MemTotal=$2};
-    /MemFree/{MemFree=$2}; 
-    END{ 
+    /MemFree/{MemFree=$2};
+    END{
     printf("%.2f\n",100 - 100* MemFree/MemTotal);}' /proc/meminfo`
 
     echo $mem_usage
-    sleep 1
+    sleep $gap_secs
 done

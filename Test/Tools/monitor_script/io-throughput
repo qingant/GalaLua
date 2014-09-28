@@ -3,26 +3,30 @@
 function get_throughput_by_procfs()
 {
     while true; do
+        gap_secs=$1
+        gap_secs=${gap_secs:=1}
         io_read_begin_bytes=`cat /proc/diskstats | grep "sda " | awk '{ print $6 }'`
         io_write_begin_bytes=`cat /proc/diskstats | grep "sda " | awk '{ print $10 }'`
-        sleep 1
+        sleep $gap_secs
         io_read_end_bytes=`cat /proc/diskstats | grep "sda " | awk '{ print $6 }'`
         io_write_end_bytes=`cat /proc/diskstats | grep "sda " | awk '{ print $10 }'`
-        echo `expr $[($io_read_end_bytes - $io_read_begin_bytes) * 512]` `expr $[($io_write_end_bytes - $io_write_begin_bytes) * 512]`
+        echo io-read `expr $[($io_read_end_bytes - $io_read_begin_bytes) * 512]` io-write `expr $[($io_write_end_bytes - $io_write_begin_bytes) * 512]`
     done
 }
 
 function get_throughput_by_sysfs()
 {
     while true; do
-        io_read_begin_bytes=`cat /sys/block/$1/stat | awk '{ print $3 }'`
-        io_write_begin_bytes=`cat /sys/block/$1/stat | awk '{ print $7 }'`
-        sleep 1
-        io_read_end_bytes=`cat /sys/block/$1/stat | awk '{ print $3 }'`
-        io_write_end_bytes=`cat /sys/block/$1/stat | awk '{ print $7 }'`
-        echo `expr $[($io_read_end_bytes - $io_read_begin_bytes) / 2]` `expr $[($io_write_end_bytes - $io_write_begin_bytes) / 2]`
+        gap_secs=$1
+        gap_secs=${gap_secs:=1}
+        io_read_begin_bytes=`cat /sys/block/$2/stat | awk '{ print $3 }'`
+        io_write_begin_bytes=`cat /sys/block/$2/stat | awk '{ print $7 }'`
+        sleep $gap_secs
+        io_read_end_bytes=`cat /sys/block/$2/stat | awk '{ print $3 }'`
+        io_write_end_bytes=`cat /sys/block/$2/stat | awk '{ print $7 }'`
+        echo io-read `expr $[($io_read_end_bytes - $io_read_begin_bytes) / 2]` io-write `expr $[($io_write_end_bytes - $io_write_begin_bytes) / 2]`
     done
 }
 
 #get_throughput_by_sysfs sda
-get_throughput_by_procfs sda
+get_throughput_by_procfs $1
