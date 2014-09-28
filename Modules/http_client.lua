@@ -370,6 +370,23 @@ function test_recur_request()
     end
 end
 
+function test_keepalive_conn_by_type()
+    uri = "127.0.0.1:8080"
+    local path = "/static/html/index.html"
+    url= uri .. path
+    local depth = 0
+    local cli = httpClient:new()
+    local req = httpRequest:new():init("GET",url)
+    pprint(req, "req:")
+    result = {}
+    cli:init(req)
+    for i = 1,1000 do
+        result[i] = cli:keepalive_conn_by_type(req,"normal")
+    end
+    pprint(result,"result")
+    return result
+end
+
 
 if ... == "__main__" then
     print(test_get())
