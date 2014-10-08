@@ -1,6 +1,10 @@
 #! /usr/bin/env bash
 
-if [ $1 ] 
+mkdir -p /tmp/lock
+
+(
+flock -n 9 || exit 1
+if [ $1 ]
 then
     mkdir -p monitor_data
     (./io-throughput $2 >> monitor_data/io_monitor)&
@@ -11,3 +15,4 @@ else
     echo "ethernet must be given(eth1 eth2 wlan0 etc)"
     exit 1
 fi
+) 9>> /tmp/lock/monitor_lock
