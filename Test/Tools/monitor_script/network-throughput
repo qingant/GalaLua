@@ -1,5 +1,18 @@
 #! /usr/bin/env bash
 
+function eth_exist()
+{
+    for i in `ls /sys/class/net`
+    do
+        if [[ $i == $1 ]]
+        then
+            return
+        fi
+    done
+    echo "ethernet doesn't exist"
+    exit 1
+}
+
 function get_eth_by_proc()
 {
     eths=`cat /proc/net/dev | sed -n "3,$ p" | awk '{print $1}' | sed "s/://"`
@@ -8,6 +21,7 @@ function get_eth_by_proc()
 
 function calculate_thoughput_by_proc()
 {
+    eth_exist $1
     if [ $1 ]; then
         gap_secs=$2
         gap_secs=${gap_secs:=1}
@@ -49,6 +63,7 @@ function get_eth_by_sysfs()
 
 function calculate_thoughput_by_sysfs()
 {
+    eth_exist $1
     if [ $1 ]; then
         gap_secs=$2
         gap_secs=${gap_secs:=1}
