@@ -41,7 +41,21 @@ function http_keepalive_conn_by_type(params)
         timer[cnt]["begin"] = os.time()
 
         --print("----------- before http_conn_by_type1 ---- ",cnt)
+        local retry_times = 0
+        ::begin::
         local res, err_msg = cli:keepalive_conn_by_type(req, e_type)
+        if not res then
+            -- if send or recv error, close and init again,
+            -- otherwise, maybe error lasting if errer happen.
+            if retry_times == 1 then
+                goto result
+            end
+            retry_times = retry_times + 1
+            cli:close()
+            cli:init(req)
+            goto begin
+        end
+        ::result::
         --print("----------- after  http_conn_by_type1 ---- ",cnt)
         timer[cnt]["end"] = os.time()
         result[cnt]["result"] = string.format("ret:%s err:%s",res,err_msg)
@@ -114,7 +128,7 @@ function http_parellel_for_each(params)
         end
     end
     local result = {}
-    if request_type == "keepalive" then
+    if request_type == "true" then
         print("keepalive request")
         result = for_each("webframework_test_tools","http_keepalive_conn_by_type",params_list)
     else
@@ -223,7 +237,7 @@ if ... == "__main__" then
     params["url"] = assert(glr.get_option("u"),"-u must be given\n")
     params["only_send_ratio"] = glr.get_option("i") or 0
     params["only_connect_ratio"] = glr.get_option("j") or 0
-    params["request_type"] = glr.get_option("t") or "keepalive"
+    params["request_type"] = glr.get_option("k") or "true"
     webframewrok_test_by_http_parellel_for_each(params)
     --test_http_keepalive_conn_by_type()
     --test_http_conn_by_type()
