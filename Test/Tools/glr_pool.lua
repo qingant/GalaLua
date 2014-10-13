@@ -11,8 +11,8 @@
 
 module(...,package.seeall)
 local pprint = require("pprint").pprint
-local httpClient = require("http_client").httpClient
-local httpRequest = require("http_client").httpRequest
+local httpClient = require("http.client").client
+local httpRequest = require("http.client").request
 local cmsgpack = require("cmsgpack")
 local packer = cmsgpack.pack
 local unpack = cmsgpack.unpack

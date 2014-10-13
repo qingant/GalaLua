@@ -4,9 +4,9 @@ local pprint = require("pprint").pprint
 local socket  = require("glr.socket")
 local strUtils = require("str_utils")
 
-httpRequest = {}
+request = {}
 
-function httpRequest:new(...)
+function request:new(...)
    local o = {}
    o.version = "HTTP/1.1"
    setmetatable(o, self)
@@ -14,7 +14,7 @@ function httpRequest:new(...)
    return o
 end
 
-function _parseUri(uri)
+function _parse_uri(uri)
     --print(uri)
     local err, host, port, path
     err, host, port, path = uri:match("(http://)([^/:]*):?(%d*)(/?.*)")
@@ -33,10 +33,10 @@ function _parseUri(uri)
     end
     return host,port,path
 end
-function httpRequest:init(type, uri, params)
+function request:init(type, uri, params)
     assert(type=="GET" or type=="POST", "Invalid HTTP Method")
     self._type = type
-    local host, port, path = _parseUri(uri)
+    local host, port, path = _parse_uri(uri)
     self._host = host
     self._path = path or "/"
     self._port = port or 80
@@ -44,10 +44,10 @@ function httpRequest:init(type, uri, params)
     self._params = params or {} -- {{k,v},{k1,v1}}
     return self
 end
-function httpRequest:setParam(k,v)
+function request:set_param(k,v)
     self._params[#self._params + 1] = {k,v}
 end
-function httpRequest:toString(...)
+function request:to_string(...)
     local lines = {}
     lines[#lines+1] = string.format("%s %s %s\r\n", self._type, self._path, self.version)
     lines[#lines+1] = string.format("HOST:%s\r\n", self._host)
@@ -67,23 +67,23 @@ function httpRequest:toString(...)
 end
 
 
-local getStatusCode =  function(line)
+local get_statusCode =  function(line)
     local s=assert(string.match(line,"^%s*HTTP/%d%.%d%s+(%d%d%d)%s+.+$"),"not status line")
     return tonumber(s)
 end
 
 
-httpClient = {}
+client = {}
 
 
-function httpClient:new()
+function client:new()
    local o = {}
    setmetatable(o, self)
    self.__index = self
    return o
 end
 
-function httpClient:init(req)
+function client:init(req)
     self._socket = socket.socket:new()
     local ok,errmsg=self._socket:connect(req._host, req._port)
     if not ok then
@@ -92,11 +92,11 @@ function httpClient:init(req)
     return ok,errmsg
 end
 
-function httpClient:close()
+function client:close()
     self._socket:close()
 end
 
-function httpClient:conn_by_type(req,e_type)
+function client:conn_by_type(req,e_type)
     if e_type == "only_connect" then
         self._socket = socket.socket:new()
         assert(self._socket:connect(req._host, req._port))
@@ -104,7 +104,7 @@ function httpClient:conn_by_type(req,e_type)
     elseif e_type == "only_send" then
         self._socket = socket.socket:new()
         assert(self._socket:connect(req._host, req._port))
-        self._socket:send(req:toString())
+        self._socket:send(req:to_string())
         return "only_send success"
     else
         local ret, msg = self:get2(req)
@@ -112,7 +112,7 @@ function httpClient:conn_by_type(req,e_type)
     end
 end
 
-function httpClient:keepalive_conn_by_type(req,e_type)
+function client:keepalive_conn_by_type(req,e_type)
     if e_type == "only_connect" then
         local ok,errmsg=self._socket:connect(req._host, req._port)
         if not ok then
@@ -120,55 +120,36 @@ function httpClient:keepalive_conn_by_type(req,e_type)
         end
         return ok,errmsg
     elseif e_type == "only_send" then
-        local ok,errmsg=self._socket:send(req:toString())
+        local ok,errmsg=self._socket:send(req:to_string())
         if not ok then
             return false,errmsg
         end
         return ok,errmsg
     else
-        local retry_times = 0
-        while true do
-            -- if send or recv error, close and init again,
-            -- otherwise, maybe error lasting if errer happen.
-            ::begin::
-            local ok,errmsg=self._socket:send(req:toString(), 6000)
-            if not ok then
-                retry_times = retry_times + 1
-                if retry_times == 10 then
-                    break
-                end
-                self:close()
-                self:init(req)
-                goto begin
-            end
-            local ok,msg = self:_getResponse2(6000)
-            if not ok then
-                retry_times = retry_times + 1
-                if retry_times == 10 then
-                    break
-                end
-                self:close()
-                self:init(req)
-                goto begin
-            end
-            break
+        local ok,errmsg=self._socket:send(req:to_string(), 6000)
+        if not ok then
+            return ok,errmsg
+        end
+        local ok,msg = self:_get_response2(6000)
+        if not ok then
+            return ok,errmsg
         end
         return ok,msg
     end
 end
 
-function httpClient:get(req)
+function client:get(req)
     self._socket = socket.socket:new()
     assert(self._socket:connect(req._host, req._port))
     --print("Connected!")
-    self._socket:send(req:toString())
-    local err,msg = pcall(httpClient._getResponse, self, 3000)
+    self._socket:send(req:to_string())
+    local err,msg = pcall(client._get_response, self, 3000)
     self._socket:close()
     assert(err, msg)
     return err
 end
 
-function httpClient:_getResponse(timeout)
+function client:_get_response(timeout)
     --print("GetResponse")
     local timeout = timeout or 3000
     local response = {}
@@ -221,23 +202,23 @@ function httpClient:_getResponse(timeout)
 
 end
 
-function httpClient:get2(req)
+function client:get2(req)
     self._socket = socket.socket:new()
     local ok,errmsg=self._socket:connect(req._host, req._port)
     if not ok then
         return false,errmsg
     end
-    local ok,errmsg=self._socket:send(req:toString())
+    local ok,errmsg=self._socket:send(req:to_string())
     if not ok then
         return false,errmsg
     end
-    local ok,msg = self:_getResponse2(6000)
+    local ok,msg = self:_get_response2(6000)
     self._socket:close()
     return ok,msg
 end
 
 
-function httpClient:_getResponse2(timeout)
+function client:_get_response2(timeout)
     local timeout = timeout or 5000
     local response = {}
     local initLine,errmsg = self._socket:recvLine(timeout)
@@ -297,7 +278,7 @@ function httpClient:_getResponse2(timeout)
         end
     end
     --print("response",response.content)
-    return pcall(getStatusCode,initLine)
+    return pcall(get_statusCode,initLine)
 end
 
 function find_all_urls(uri, response)
@@ -319,11 +300,11 @@ function find_all_urls(uri, response)
     return urls
 end
 
-function httpClient:recur_request(uri,url,depth)
+function client:recur_request(uri,url,depth)
     ---print("--------url-----------",url)
     depth = depth + 1
-    local req = httpRequest:new():init("GET", url)
-    --local cli = httpClient:new()
+    local req = request:new():init("GET", url)
+    --local cli = client:new()
     local response= self:get(req)
     urls  = find_all_urls(uri,response)
     if urls == "" then
@@ -341,8 +322,8 @@ function test_get()
     local path = "/static/index.html"
     url= uri .. path
     local depth = 0
-    local cli = httpClient:new()
-    local req = httpRequest:new():init("GET",url)
+    local cli = client:new()
+    local req = request:new():init("GET",url)
     local ret, err_msg = cli:get(req)
     return ret,err_msg
 end
@@ -352,8 +333,8 @@ function test_get2()
     local path = "/static/index.html"
     url= uri .. path
     local depth = 0
-    local cli = httpClient:new()
-    local req = httpRequest:new():init("GET",url)
+    local cli = client:new()
+    local req = request:new():init("GET",url)
     local ret, err_msg = cli:get2(req)
     return ret,err_msg
 end
@@ -363,7 +344,7 @@ function test_recur_request()
     local path = "/static/index.html"
     url= uri .. path
     local depth = 0
-    local cli = httpClient:new()
+    local cli = client:new()
 
     if recur_request then
         cli:recur_request(uri,url,depth)
@@ -375,8 +356,8 @@ function test_keepalive_conn_by_type()
     local path = "/static/html/index.html"
     url= uri .. path
     local depth = 0
-    local cli = httpClient:new()
-    local req = httpRequest:new():init("GET",url)
+    local cli = client:new()
+    local req = request:new():init("GET",url)
     pprint(req, "req:")
     result = {}
     cli:init(req)

@@ -11,8 +11,8 @@
 
 module(...,package.seeall)
 local pprint = require("pprint").pprint
-local httpClient = require("http_client").httpClient 
-local httpRequest = require("http_client").httpRequest 
+local httpClient = require("http.client").client
+local httpRequest = require("http.client").request
 
 local for_each = require(_PACKAGE .. "parellel").for_each
 local statistics_http_response = require(_PACKAGE .. "statistics").statistics_http_response
