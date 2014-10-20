@@ -53,3 +53,7 @@ function get_options()
 	end
     return arg_tab
 end
+
+function set_option(key,value)
+    get_options()[key]=value
+end
