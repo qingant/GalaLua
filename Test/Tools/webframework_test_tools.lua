@@ -33,6 +33,7 @@ function http_keepalive_conn_by_type(params)
     local req = httpRequest:new():init("GET", url)
     cli:init(req)
 
+    print(string.format("process_begin %d",__id__))
     local timer = {}
     local result = {}
     for cnt = 1,times do
@@ -42,8 +43,10 @@ function http_keepalive_conn_by_type(params)
 
         --print("----------- before http_conn_by_type1 ---- ",cnt)
         local retry_times = 0
+        print(string.format("\nhttp_begin %d\n",__id__))
         ::begin::
         local res, err_msg = cli:keepalive_conn_by_type(req, e_type)
+        print(string.format("\nhttp_end %d %s %d\n",__id__,res,err_msg))
         if not res then
             -- if send or recv error, close and init again,
             -- otherwise, maybe error lasting if errer happen.
@@ -51,6 +54,7 @@ function http_keepalive_conn_by_type(params)
                 goto result
             end
             retry_times = retry_times + 1
+            print(string.format("\nretry_times %d\n",__id__))
             cli:close()
             cli:init(req)
             goto begin
@@ -60,8 +64,11 @@ function http_keepalive_conn_by_type(params)
         timer[cnt]["end"] = os.time()
         result[cnt]["result"] = string.format("ret:%s err:%s",res,err_msg)
         result[cnt]["timer"] = timer[cnt]
+        result[cnt]["pid"] = __id__
     end
     cli:close()
+    --pprint(result,"result")
+    print(string.format("process_end %d",__id__))
     return result
 end
 
@@ -142,38 +149,38 @@ end
 
 function webframewrok_test_by_http_parellel_for_each(params)
     local result = http_parellel_for_each(params)
-    --pprint(result,"result")
+    pprint(#result,"result_length")
 
     local pwd = os.getenv("PWD")
 
-    writer_timer(result, pwd .. "/timer/timer_tmp")
+    --writer_timer(result, pwd .. "/timer/timer_tmp")
 
-    local parellel_total = params["parellel_total"]
-    local req_of_per_parellel = params["req_of_per_parellel"]
-    local only_send_ratio = params["only_send_ratio"]
-    local only_connect_ratio = params["only_connect_ratio"]
-    local err_path = string.format("%s/statistics/error_statistics_%d_%d_%d_%d.csv",pwd,
-                        parellel_total,
-                        req_of_per_parellel,
-                        only_send_ratio * 100,
-                        only_connect_ratio * 100
-                        )
-    local tps_path = string.format("%s/statistics/tps_statistics_%d_%d_%d_%d.csv",pwd,
-                        parellel_total,
-                        req_of_per_parellel,
-                        only_send_ratio * 100,
-                        only_connect_ratio * 100
-                        )
-    local complete_path = string.format("%s/statistics/complete_statistics_%d_%d_%d_%d.csv",pwd,
-                        parellel_total,
-                        req_of_per_parellel,
-                        only_send_ratio * 100,
-                        only_connect_ratio * 100
-                        )
-    print(err_path)
-    print(tps_path)
-    print(complete_path)
-    statistics_http_response(err_path, tps_path, complete_path)
+    --local parellel_total = params["parellel_total"]
+    --local req_of_per_parellel = params["req_of_per_parellel"]
+    --local only_send_ratio = params["only_send_ratio"]
+    --local only_connect_ratio = params["only_connect_ratio"]
+    --local err_path = string.format("%s/statistics/error_statistics_%d_%d_%d_%d.csv",pwd,
+    --                    parellel_total,
+    --                    req_of_per_parellel,
+    --                    only_send_ratio * 100,
+    --                    only_connect_ratio * 100
+    --                    )
+    --local tps_path = string.format("%s/statistics/tps_statistics_%d_%d_%d_%d.csv",pwd,
+    --                    parellel_total,
+    --                    req_of_per_parellel,
+    --                    only_send_ratio * 100,
+    --                    only_connect_ratio * 100
+    --                    )
+    --local complete_path = string.format("%s/statistics/complete_statistics_%d_%d_%d_%d.csv",pwd,
+    --                    parellel_total,
+    --                    req_of_per_parellel,
+    --                    only_send_ratio * 100,
+    --                    only_connect_ratio * 100
+    --                    )
+    --print(err_path)
+    --print(tps_path)
+    --print(complete_path)
+    --statistics_http_response(err_path, tps_path, complete_path)
 end
 
 

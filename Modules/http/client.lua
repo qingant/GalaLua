@@ -116,23 +116,27 @@ function client:keepalive_conn_by_type(req,e_type)
     if e_type == "only_connect" then
         local ok,errmsg=self._socket:connect(req._host, req._port)
         if not ok then
-            return false,errmsg
+            --return false,errmsg
+            return false,"connect error"
         end
         return ok,errmsg
     elseif e_type == "only_send" then
         local ok,errmsg=self._socket:send(req:to_string())
         if not ok then
-            return false,errmsg
+            --return false,errmsg
+            return false,"send error"
         end
         return ok,errmsg
     else
         local ok,errmsg=self._socket:send(req:to_string(), 6000)
         if not ok then
-            return ok,errmsg
+            --return ok,errmsg
+            return ok,"connect error"
         end
         local ok,msg = self:_get_response2(6000)
         if not ok then
-            return ok,errmsg
+            --return ok,errmsg
+            return ok,"get_response2_error"
         end
         return ok,msg
     end

@@ -28,15 +28,18 @@ function for_each(mod_name,entry,params_list)
 
     local result = {}
     for i = 1, cnt do
-        print("cnt", cnt)
-        local timeout = 10000
+        print(string.format("cnt %d", i))
+        local timeout = 60000
         local mtype,desc,rec_msg = glr.recv_by_condition( 
                 function (msg)
                     local desc = msg[2]
                     return ( desc and desc.attr.corrid == 2 )
                 end, timeout)
         --assert(mtype, "Recv Timeout")
-        result[desc.attr.msgid] = cmsgpack.unpack(rec_msg)
+        --result[desc.attr.msgid] = cmsgpack.unpack(rec_msg)
+        local err_msg = {"pid exit but reason is unknow"}
+        rec_msg = rec_msg or cmsgpack.pack(err_msg)
+        result[i] = cmsgpack.unpack(rec_msg)
     end
 
     while true do
@@ -46,15 +49,18 @@ function for_each(mod_name,entry,params_list)
         end
     end
 
-    print("result length",#result)
+    print(string.format("result length %d",#result))
+    --pprint(result,"total_result")
     return result
 end
 
 function caller(idx, control_id, mod_name, entry, ...)
     function _caller(idx, control_id, mod_name, entry, ...)
+        print(string.format("begincallerprocess %d",__id__))
         local func = require(mod_name)[entry]
         assert(func and type(func) == "function", "mod_name doesn't exist OR entry empty")
-        local ret = func(...)
+        local ret = pcall(func,...)
+        print(string.format("endcallerprocess %d",__id__))
         local ret, err_msg = glr.send(control_id, cmsgpack.pack(ret), { corrid = 2, msgid = idx})
         assert(ret, "main loop send error:")
     end
