@@ -537,7 +537,6 @@ function element:get_parent()
         local parent, this = xpath_split(self.real_key)
         if self._db.txn:get(self._db.dbi, parent) then
             -- print(xpath_split(self.key))
-            -- print("eeeeeeeeee")
 
             return element:new{_db = self._db,
                                key = parent,
@@ -846,12 +845,39 @@ function element:add_table(t)
         end
     else
         for k,v in pairs(t) do
-            assert(not self:is_vector(), "Cannot Add K-V to Vector Node")
-            local item = self:add_node(k)
-            if type(v) ~= "table" then
-                item:add_value(tostring(v))
+            --[[增加对child还是attrib的区分]]
+            if (string.match(k,"^@attr$")) then
+                self:add_attrib_table(v)
             else
-                item:add_table(v)
+                assert(not self:is_vector(), "Cannot Add K-V to Vector Node")
+                local item = self:add_node(k)
+                if type(v) ~= "table" then
+                    item:add_value(tostring(v))
+                else
+                    item:add_table(v)
+                end
+            end
+        end
+    end
+    return self
+end
+
+function element:add_attrib_table(t)
+    if table.isArray(t) then
+        for i,v in ipairs(t) do
+            if type(v) ~= "table" then
+                self:add_attrib(tostring(i),v)
+            else
+                self:add_attrib_table(v)
+            end
+        end
+    else
+        for k,v in pairs(t) do
+            --[[增加对child还是attrib的区分]]
+            if type(v) ~= "table" then
+                self:add_attrib(k,tostring(v))
+            else
+                self:add_attrib_table(v)
             end
         end
     end
