@@ -17,7 +17,6 @@ end
 function _parse_uri(uri)
     --print(uri)
     local err, host, port, path
-    err, host, port, path = uri:match("(http://)([^/:]*):?(%d*)(/?.*)")
 
     if uri:match("http://") then
         err, host, port, path = uri:match("(http://)([^/:]*):?(%d*)(/?.*)")
@@ -33,26 +32,33 @@ function _parse_uri(uri)
     end
     return host,port,path
 end
-function request:init(type, uri, params)
+
+function request:init(type, uri)
     assert(type=="GET" or type=="POST", "Invalid HTTP Method")
     self._type = type
     local host, port, path = _parse_uri(uri)
     self._host = host
     self._path = path or "/"
     self._port = port or 80
-    --print(self._port)
-    self._params = params or {} -- {{k,v},{k1,v1}}
+    self._params = {} -- {{k,v},{k1,v1}}
     return self
 end
+
 function request:set_param(k,v)
-    self._params[#self._params + 1] = {k,v}
+    self._params[k] = v
 end
-function request:to_string(...)
+
+function request:to_string()
     local lines = {}
     lines[#lines+1] = string.format("%s %s %s\r\n", self._type, self._path, self.version)
-    lines[#lines+1] = string.format("HOST:%s\r\n", self._host)
-    lines[#lines+1] = "Connection:Closed\r\n"
-    local content = {}
+    self:set_param("Host",self._host)
+    self:set_param("Connection","keepalive")
+    self:set_param("Accept","*/*")
+    for k, v in pairs(self._params) do
+        lines[#lines+1] = string.format("%s:%s\r\n",k,v)
+    end
+    lines[#lines+1] = "\r\n"
+    --local content = {}
     -- table.foreachi(self._params, function (idx)
     --                                    local item = self._params[idx]
     --                                    content[#content + 1] = string.format("%s=%s",item[1], item[2])
@@ -60,21 +66,18 @@ function request:to_string(...)
     -- content = table.concat(content, "&")
     -- print(content)
     -- lines[#lines+1] = string.format("Content-Length:%d", content:len())
-    lines[#lines+1] = "\r\n"
     -- lines[#lines+1] = content
---    pprint.pprint(lines)
+    -- pprint.pprint(lines)
     return table.concat(lines)
 end
 
-
 local get_statusCode =  function(line)
-    local s=assert(string.match(line,"^%s*HTTP/%d%.%d%s+(%d%d%d)%s+.+$"),"not status line")
+    local s = string.match(line,"^%s*HTTP/%d%.%d%s+(%d%d%d)%s+.+$")
+    s = s or "not status line"
     return tonumber(s)
 end
 
-
 client = {}
-
 
 function client:new()
    local o = {}
@@ -83,160 +86,54 @@ function client:new()
    return o
 end
 
-function client:init(req)
+function client:init(host,port)
     self._socket = socket.socket:new()
-    local ok,errmsg=self._socket:connect(req._host, req._port)
+    local ok,errmsg=self._socket:connect(host, port)
     if not ok then
         return false,errmsg
     end
     return ok,errmsg
 end
 
+function client:send_request(req)
+    local ret, err_msg = self._socket:send(req:to_string())
+    if not ret then
+        err_msg = string.format("client send_request error: %s",err_msg)
+        return ret,err_msg
+    end
+    return ret,err_msg
+end
+
+function client:get_response()
+    local ret, err_msg = self:_get_response()
+    if not ret then
+        err_msg = string.format("client get_response recv error: %s",err_msg)
+    end
+    return ret,err_msg
+end
+
 function client:close()
     self._socket:close()
 end
 
-function client:conn_by_type(req,e_type)
-    if e_type == "only_connect" then
-        self._socket = socket.socket:new()
-        assert(self._socket:connect(req._host, req._port))
-        return "only_connect success"
-    elseif e_type == "only_send" then
-        self._socket = socket.socket:new()
-        assert(self._socket:connect(req._host, req._port))
-        self._socket:send(req:to_string())
-        return "only_send success"
-    else
-        local ret, msg = self:get2(req)
-        return ret, msg
-    end
-end
-
-function client:keepalive_conn_by_type(req,e_type)
-    if e_type == "only_connect" then
-        local ok,errmsg=self._socket:connect(req._host, req._port)
-        if not ok then
-            --return false,errmsg
-            return false,"connect error"
-        end
-        return ok,errmsg
-    elseif e_type == "only_send" then
-        local ok,errmsg=self._socket:send(req:to_string())
-        if not ok then
-            --return false,errmsg
-            return false,"send error"
-        end
-        return ok,errmsg
-    else
-        local ok,errmsg=self._socket:send(req:to_string(), 6000)
-        if not ok then
-            --return ok,errmsg
-            return ok,"connect error"
-        end
-        local ok,msg = self:_get_response2(6000)
-        if not ok then
-            --return ok,errmsg
-            return ok,"get_response2_error"
-        end
-        return ok,msg
-    end
-end
-
-function client:get(req)
-    self._socket = socket.socket:new()
-    assert(self._socket:connect(req._host, req._port))
-    --print("Connected!")
-    self._socket:send(req:to_string())
-    local err,msg = pcall(client._get_response, self, 3000)
-    self._socket:close()
-    assert(err, msg)
-    return err
-end
-
 function client:_get_response(timeout)
-    --print("GetResponse")
-    local timeout = timeout or 3000
+    local timeout = timeout or 6000
     local response = {}
-    local initLine = assert(self._socket:recvLine(timeout)):trim()
+    local initLine,err_msg = self._socket:recvLine(timeout)
     if not initLine then
-        return false,errmsg or "timeout"
-    end
-    --print(initLine)
-    -- get header
-    local header = {}
-    while true do
-        local line = assert(self._socket:recvLine(timeout)):trim()
-        if line == "" then
-            break
-        end
-        local key, value = unpack(string.split(line, ":"))
-        response[key] = value:trim()
-    end
-    pprint(response,"response")
-    -- get body
-    if response["Content-Length"] then
-        local content =
-                       assert(self._socket:recv(tonumber(response["Content-Length"]), timeout))
-        response.content = content
-        --print("--- response body ---" , response.content)
-    elseif response["Transfer-Encoding"] == "chunked" then
-        response["content"] = ""
-        local cnt = 0
-        while true do
-            local len,errmsg = assert(self._socket:recvLine(timeout))
-            --print("lines :",len:trim())
-            if len:trim() ~= "0" then
-                len = "0x" .. len
-                len = tonumber(len) + 2
-                local content,errmsg = assert(self._socket:recv(len,timeout))
-                response["content"] = string.format("%s%s",response["content"],content:trim())
-                --print("len:",len)
-                --print(string.format("chunked: %s",content))
-            else
-                len = "0x" .. len
-                len = string.format("%d",len) + 2
-                local content,errmsg = assert(self._socket:recv(len,timeout))
-                break
-            end
-
-        end
-    end
-    --print("response",response.content)
-    return response["content"]
-
-end
-
-function client:get2(req)
-    self._socket = socket.socket:new()
-    local ok,errmsg=self._socket:connect(req._host, req._port)
-    if not ok then
-        return false,errmsg
-    end
-    local ok,errmsg=self._socket:send(req:to_string())
-    if not ok then
-        return false,errmsg
-    end
-    local ok,msg = self:_get_response2(6000)
-    self._socket:close()
-    return ok,msg
-end
-
-
-function client:_get_response2(timeout)
-    local timeout = timeout or 5000
-    local response = {}
-    local initLine,errmsg = self._socket:recvLine(timeout)
-
-    if not initLine then
-        return false,errmsg or "initLine timeout"
+        err_msg= string.format("initLine error: %s",err_msg)
+        return initLine,err_msg
     end
 
     initLine=initLine:trim()
     -- get header
+    response["status_code"] = get_statusCode(initLine)
+
     while true do
-        local line,errmsg = self._socket:recvLine(timeout)
+        local line,err_msg = self._socket:recvLine(timeout)
         if not line then
-            return false,errmsg or "recvLine timeout"
+            err_msg = string.format("recvLine error: %s",err_msg)
+            return line,err_msg
         end
         line=line:trim()
         if line == "" then
@@ -252,26 +149,24 @@ function client:_get_response2(timeout)
 
     -- get body
     if response["Content-Length"] then
-        local content,errmsg =
-        self._socket:recv(tonumber(response["Content-Length"]), timeout)
+        local content,err_msg =
+                self._socket:recv(tonumber(response["Content-Length"]), timeout)
         if not content then
-            return false,errmsg or "recv timeout"
+            local err_msg = string.format("recv error: %s",err_msg)
+            return content, err_msg
         end
         response.content = content
-        --print("--- response body ---" , response.content)
     elseif response["Transfer-Encoding"] == "chunked" then
         response["content"] = ""
         local cnt = 0
         while true do
-            local len,errmsg = assert(self._socket:recvLine(timeout))
-            --print("lines :",len:trim())
+            local len,errmsg = self._socket:recvLine(timeout)
             if len:trim() ~= "0" then
                 len = "0x" .. len
                 len = tonumber(len) + 2
-                local content,errmsg = assert(self._socket:recv(len,timeout))
-                response["content"] = string.format("%s%s",response["content"],content:trim())
-                --print("len:",len)
-                --print(string.format("chunked: %s",content))
+                local content,errmsg = self._socket:recv(len,timeout)
+                response["content"] =
+                string.format("%s%s",response["content"],content:trim() or "")
             else
                 len = "0x" .. len
                 len = string.format("%d",len) + 2
@@ -281,8 +176,15 @@ function client:_get_response2(timeout)
 
         end
     end
-    --print("response",response.content)
-    return pcall(get_statusCode,initLine)
+
+    local header = {}
+    for k,v in pairs(response) do
+        if k ~= "content" then
+            header[k] = v
+        end
+    end
+    response["header"] = header
+    return response
 end
 
 function find_all_urls(uri, response)
@@ -304,76 +206,68 @@ function find_all_urls(uri, response)
     return urls
 end
 
-function client:recur_request(uri,url,depth)
+function client:recur_request(url,depth)
     ---print("--------url-----------",url)
+    local uri = "http://"
+    if string.match(url,"http") then
+       uri = uri .. string.match(url,"//(.-)/")
+    end
+    uri = uri .. string.match(url,"(.-)/")
     depth = depth + 1
     local req = request:new():init("GET", url)
     --local cli = client:new()
-    local response= self:get(req)
+
+    self:send_request(req);
+    local response,err_msg = self:get_response()
+    if not response then
+        err_msg = string.format("get_response error:%s", err_msg)
+        return response, err_msg
+    end
     urls  = find_all_urls(uri,response)
     if urls == "" then
-	return ""
+	    return response
     end
+
     pprint(urls,"-------depth:".. depth .. "-------index:".. 0 .. "---- url:".. url .."--------------")
     for i,_url in pairs(urls) do
         print("-------depth:".. depth .. "-------index:".. i .. "---- url:".. _url .."--------------")
-        self:recur_request(uri,_url,depth)
+        self:recur_request(_url,depth)
     end
 end
 
-function test_get()
-    uri = "127.0.0.1:8080"
-    local path = "/static/index.html"
-    url= uri .. path
-    local depth = 0
-    local cli = client:new()
-    local req = request:new():init("GET",url)
-    local ret, err_msg = cli:get(req)
-    return ret,err_msg
-end
-
-function test_get2()
-    uri = "127.0.0.1:8080"
-    local path = "/static/index.html"
-    url= uri .. path
-    local depth = 0
-    local cli = client:new()
-    local req = request:new():init("GET",url)
-    local ret, err_msg = cli:get2(req)
-    return ret,err_msg
-end
-
 function test_recur_request()
-    uri = "127.0.0.1:8080"
+    local uri = "127.0.0.1:8080"
     local path = "/static/index.html"
     url= uri .. path
     local depth = 0
     local cli = client:new()
 
     if recur_request then
-        cli:recur_request(uri,url,depth)
+        cli:recur_request(url,depth)
     end
 end
 
-function test_keepalive_conn_by_type()
-    uri = "127.0.0.1:8080"
-    local path = "/static/html/index.html"
-    url= uri .. path
-    local depth = 0
-    local cli = client:new()
+function test_http_client()
+    --local url = "www.baidu.com"
+    local url = "127.0.0.1:8080"
+
     local req = request:new():init("GET",url)
-    pprint(req, "req:")
-    result = {}
-    cli:init(req)
-    for i = 1,1000 do
-        result[i] = cli:keepalive_conn_by_type(req,"normal")
+    local cli = client:new()
+    print("req:to_string:")
+    print(req:to_string())
+    print(req._host, req._port)
+    cli:init(req._host,req._port)
+    local res, err_msg = cli:send_request(req)
+    if not res then
+        print(res, err_msg)
+        return res,err_msg
     end
-    pprint(result,"result")
-    return result
+    res,err_msg = cli:get_response()
+    print("status_code: ",res["status_code"])
+    --pprint(res["header"],"header")
+    pprint(res,"header")
 end
-
 
 if ... == "__main__" then
-    print(test_get())
-    print(test_get2())
+    test_http_client()
 end

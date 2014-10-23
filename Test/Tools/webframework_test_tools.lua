@@ -18,7 +18,6 @@ local for_each = require(_PACKAGE .. "parellel").for_each
 local statistics_http_response = require(_PACKAGE .. "statistics").statistics_http_response
 local writer_timer = require(_PACKAGE .. "tps").write_timer
 
-
 --params = {["url"] = "http://url",["times"] = times,["type"] = type}
 -- times : default 1
 -- type :
@@ -31,9 +30,9 @@ function http_keepalive_conn_by_type(params)
     e_type = params[3]
     local cli = httpClient:new()
     local req = httpRequest:new():init("GET", url)
-    cli:init(req)
+    assert(cli:init(req._host,req._port))
 
-    print(string.format("process_begin %d",__id__))
+    print(string.format("%d process_begin",__id__))
     local timer = {}
     local result = {}
     for cnt = 1,times do
@@ -43,22 +42,39 @@ function http_keepalive_conn_by_type(params)
 
         --print("----------- before http_conn_by_type1 ---- ",cnt)
         local retry_times = 0
-        print(string.format("\nhttp_begin %d\n",__id__))
+        print(string.format("\n%d http_begin \n",__id__))
         ::begin::
-        local res, err_msg = cli:keepalive_conn_by_type(req, e_type)
-        print(string.format("\nhttp_end %d %s %d\n",__id__,res,err_msg))
-        if not res then
-            -- if send or recv error, close and init again,
-            -- otherwise, maybe error lasting if errer happen.
-            if retry_times == 1 then
-                goto result
+        if e_type == "only_send" then
+            local res, err_msg = cli:send_request(req)
+        else
+            local res, err_msg = cli:send_request(req)
+            if not res then
+                -- if send or recv error, close and init again,
+                -- otherwise, maybe error lasting if errer happen.
+                if retry_times == 1 then
+                    goto result
+                end
+                retry_times = retry_times + 1
+                print(string.format("\nretry_times %d\n",__id__))
+                cli:close()
+                assert(cli:init(req))
+                goto begin
             end
-            retry_times = retry_times + 1
-            print(string.format("\nretry_times %d\n",__id__))
-            cli:close()
-            cli:init(req)
-            goto begin
+            res, err_msg = cli:get_response(req)
+            if not res then
+                -- if send or recv error, close and init again,
+                -- otherwise, maybe error lasting if errer happen.
+                if retry_times == 1 then
+                    goto result
+                end
+                retry_times = retry_times + 1
+                print(string.format("\nretry_times %d\n",__id__))
+                cli:close()
+                assert(cli:init(req))
+                goto begin
+            end
         end
+        print(string.format("\n%d %s %s http_end\n",__id__,res,err_msg))
         ::result::
         --print("----------- after  http_conn_by_type1 ---- ",cnt)
         timer[cnt]["end"] = os.time()
@@ -68,7 +84,7 @@ function http_keepalive_conn_by_type(params)
     end
     cli:close()
     --pprint(result,"result")
-    print(string.format("process_end %d",__id__))
+    print(string.format("%d process_end",__id__))
     return result
 end
 
