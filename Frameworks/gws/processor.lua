@@ -44,18 +44,24 @@ function processor:on_task_add(params, desc)
 end
 
 function processor:on_message(mtype, desc, msg)
+    local timer = {}
     if mtype == glr.IOCP then
         local r, err
         while true do
             r, err = pcall(function ()
+                    timer["before_request"] = glr.time.now()
                     local request = self._protocol:get_request()
-                    -- for i,k in pairs(request) do
-                    --     self._logger:debug("%s : %s", i, k)
-                    -- end
+                    timer["before_call"] = glr.time.now()
+                    --for i,k in pairs(request) do
+                    --    self._logger:debug("%s : %s", i, k)
+                    --end
                     -- self._logger:debug(pprint.format(request, "request"))
                     local rsp = self:_request_dispatch(request)
+                    timer["after_call"] = glr.time.now()
                     self._protocol:send_response(rsp)
                                  end, debug.traceback)
+                    timer["after_response"] = glr.time.now()
+                    --write_timer(timer)
             if not r then
                 break
             end
@@ -204,3 +210,10 @@ function processor:_static_handle(request)
     return response
 end
 
+function write_timer(timer)
+    local path = os.getenv("PWD") .. "/server_timer" .. #timer
+    local fd = assert(io.open(path, "a"))
+    fd:write(string.format("before_request %d before_call %d after_call %d after_response %d call_gap %d rs_gap %d\n",
+    timer["before_request"],timer["before_call"],timer["after_call"],timer["after_response"],timer["after_call"]-timer["before_call"],timer["after_response"]-timer["before_request"]))
+    fd:close()
+end

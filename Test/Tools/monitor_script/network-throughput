@@ -1,0 +1,103 @@
+#! /usr/bin/env bash
+
+function eth_exist()
+{
+    for i in `ls /sys/class/net`
+    do
+        if [[ $i == $1 ]]
+        then
+            return
+        fi
+    done
+    echo "ethernet doesn't exist"
+    exit 1
+}
+
+function get_eth_by_proc()
+{
+    eths=`cat /proc/net/dev | sed -n "3,$ p" | awk '{print $1}' | sed "s/://"`
+    echo $eths
+}
+
+function calculate_thoughput_by_proc()
+{
+    eth_exist $1
+    if [ $1 ]; then
+        gap_secs=$2
+        gap_secs=${gap_secs:=1}
+        if [ $3 ]; then
+            echo "Recv,Packet,Trans,Packet" >> $4
+        fi
+        while true
+        do
+            recv_begin_bytes=`cat /proc/net/dev | grep $1 | awk -F '[ :]+' '{ print $3}'`
+            recv_begin_pack_index=`cat /proc/net/dev | grep $1 | awk -F '[ :]+' '{ print $4}'`
+            trans_begin_bytes=`cat /proc/net/dev | grep $1 | awk -F '[ :]+' '{ print $11}'`
+            trans_begin_pack_index=`cat /proc/net/dev | grep $1 | awk -F '[ :]+' '{ print $12}'`
+            sleep $gap_secs
+            recv_end_bytes=`cat /proc/net/dev | grep $1 | awk -F '[ :]+' '{ print $3}'`
+            recv_end_pack_index=`cat /proc/net/dev | grep $1 | awk -F '[ :]+' '{ print $4}'`
+            trans_end_bytes=`cat /proc/net/dev | grep $1 | awk -F '[ :]+' '{ print $11}'`
+            trans_end_pack_index=`cat /proc/net/dev | grep $1 | awk -F '[ :]+'  '{ print $12}'`
+
+            recv_thoughput=`expr $recv_end_bytes - $recv_begin_bytes`
+            recv_package_cnt=`expr $recv_end_pack_index - $recv_begin_pack_index`
+            trans_thoughput=`expr $trans_end_bytes - $trans_begin_bytes`
+            trans_package_cnt=`expr $trans_end_pack_index - $trans_begin_pack_index`
+
+            if [ $3 ]; then
+                echo "$recv_thoughput,$recv_package_cnt,$trans_thoughput,$trans_package_cnt" >> $4
+            fi
+            echo "Packets:" $recv_package_cnt "Recv/Bytes " $recv_thoughput "Packets:" $trans_package_cnt "Trans/Bytes" $trans_thoughput
+        done
+    else
+        echo "ethernet-device must be given(eth0,wlan0 etc)"
+    fi
+}
+
+function get_eth_by_sysfs()
+{
+    eth=`ls /sys/class/net/`
+    echo $eth
+}
+
+function calculate_thoughput_by_sysfs()
+{
+    eth_exist $1
+    if [ $1 ]; then
+        gap_secs=$2
+        gap_secs=${gap_secs:=1}
+        if [ $3 ]; then
+            echo "Recv,Packet,Trans,Packet" >> $4
+        fi
+        while true
+        do
+            recv_begin_bytes=`cat /sys/class/net/$1/statistics/rx_bytes`
+            recv_begin_pack_index=`cat /sys/class/net/$1/statistics/rx_packets`
+            trans_begin_bytes=`cat /sys/class/net/$1/statistics/tx_bytes`
+            trans_begin_pack_index=`cat /sys/class/net/$1/statistics/tx_packets`
+            sleep $gap_secs
+            recv_end_bytes=`cat /sys/class/net/$1/statistics/rx_bytes`
+            recv_end_pack_index=`cat /sys/class/net/$1/statistics/rx_packets`
+            trans_end_bytes=`cat /sys/class/net/$1/statistics/tx_bytes`
+            trans_end_pack_index=`cat /sys/class/net/$1/statistics/tx_packets`
+
+            recv_thoughput=`expr $recv_end_bytes - $recv_begin_bytes`
+            recv_package_cnt=`expr $recv_end_pack_index - $recv_begin_pack_index`
+            trans_thoughput=`expr $trans_end_bytes - $trans_begin_bytes`
+            trans_package_cnt=`expr $trans_end_pack_index - $trans_begin_pack_index`
+
+            if [ $3 ]; then
+                echo "$recv_thoughput,$recv_package_cnt,$trans_thoughput,$trans_package_cnt" >> $4
+            fi
+            echo "Recv/Bytes " $recv_thoughput "Packets:" $recv_package_cnt "Trans/Bytes" $trans_thoughput "Packets:" $trans_package_cnt
+        done
+    else
+        echo "ethernet-device must be given(eth0,wlan0 etc)"
+    fi
+}
+
+#get_eth_by_proc
+#get_eth_by_sysfs
+calculate_thoughput_by_proc $1 $2
+#calculate_thoughput_by_sysfs wlan0

@@ -1,0 +1,18 @@
+#! /usr/bin/env bash
+
+#tail -q -f monitor_data/*
+echo please start_monitor before run this.
+echo Ctrl-C to stop realtime monitor
+sleep 2
+while true
+do
+    gap_secs=$1
+    gap_secs=${gap_secs:=1}
+    cpu_line=`tail -n1 monitor_data/cpu_monitor`
+    mem_line=`tail -n1  monitor_data/mem_monitor`
+    io_line=` tail -n1  monitor_data/io_monitor`
+    network_line=`tail -n1 monitor_data/network_monitor`
+    #echo $cpu_line $mem_line $io_line $network_line
+    printf "%-5s %4.2f %5s %4.2f %-10s %8d %-10s %8d %-10s %5d %-10s %8d %-10s %5d %-10s %8d\n" $cpu_line $mem_line $io_line $network_line
+    sleep $gap_secs
+done

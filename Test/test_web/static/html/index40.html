@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Demostdation</title>
+<style type="text/css">
+body{
+    margin: 20px 40px;
+}
+
+.mainView{
+
+}
+
+.configPage {
+    display:none;
+    position:absolute;
+    z-index:999;
+    width:340px;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#444;
+    color:#ccc;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    -moz-box-shadow:0 0 8px #333;
+    -webkit-box-shadow:0 0 8px #333;
+    box-shadow:0 0 8px #333
+}
+.configPage .close{
+    margin-bottom: 26px;
+}
+
+.configPage .close img{
+    width: 16px;
+    height: 16px;
+    margin: 6px;
+}
+
+.configPage .item{
+    margin:8px 20px;
+}
+
+.configPage button{
+    height: 26px;
+    font-size: 11pt;
+}
+
+.configPage input{
+    width: 180px;
+    height: 18px;
+}
+
+.configPage .buttonGroup{
+    width: 50%;
+    margin: 15px auto;
+}
+</style>
+<body>
+<div id="configPage" class="configPage">
+    <div class="close"><img style="float: right;"  onclick="hideConfigPage()" src="/images/close.png"/></div>
+    <div class="item">删除控件:&nbsp;<button onclick='delCtrl()'>执行删除</button></div>
+    <div class="item">控件标题:&nbsp;<input id="configCtrlName" type="text" ></div>
+    <div class="item">控件尺寸:
+        <input id="configCtrlWidth" type="number" style="width:76px;">
+        x
+        <input id="configCtrlHeight" type="number" style="width:76px;">
+    </div>
+    <div class="item">数据URL&nbsp;:&nbsp;<input id="configSrcUrl" type="url" ></div>
+    <div class="item">更新频率:&nbsp;<input id="configUpdateInterval" type="number" value="1">&nbsp;秒</div>
+    <div class="buttonGroup">
+        <button onclick="updateConfig()">确 定</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button onclick="hideConfigPage()">取 消</button>
+    </div>
+</div>
+
+<div id="mainView" class="mainView"
+     ondrop="drop(event)"
+     ondragover="allowDrop(event)">
+</div>
+
+<script src="/3rdparty/jquery.js"></script>
+<script src="/3rdparty/chart.js"></script>
+<script src="/controls/amMeter.js"></script>
+<script src="/controls/amLine.js"></script>
+<script src="/controls/amBar.js"></script>
+<script src="/controls/amIndicator.js"></script>
+<script src="/js/analysts.js"></script>
+</body>
+</html>

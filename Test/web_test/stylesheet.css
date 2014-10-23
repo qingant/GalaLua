@@ -1,0 +1,81 @@
+@charset "UTF-8";
+#header
+{
+    background-color:#000000;
+    color:#ccccae;
+    height:50px; 
+    width: 1310px;
+
+    padding-left: 20px;
+    padding-right: 40px;
+    margin-top: -20px;
+    margin-left: -20px;
+}
+
+#h1size
+{
+    font-size:25px; 
+    float: left;
+}
+
+#menu{
+    width:100px;
+    height:30px;
+    margin-top:15px; 
+    background-color:green;
+    position: absolute;
+    right:100px;
+    outline-style: solid;
+    border-color: red;
+}
+
+#choose{
+    margin-top:20px;
+    position: absolute;
+    right: 20px;
+}
+
+table
+{
+    
+     width: 1000px;
+     height:40px;
+     margin-top:10px;
+}
+
+tr
+{
+    background-color: #d8eaf1;
+
+}
+td
+{
+    border: solid #ffffff 1.5px;
+}
+
+.p1
+{
+    text-align: center;
+    font-family: Times;
+    line-height:0%;
+}
+
+.p2
+{
+    color:#0080a7;
+    font-size: 50px;
+    font-family: Times;
+    text-align: center;
+    line-height:0%;
+}
+
+.backGround
+{
+    height:300px;
+    width: 1200px;
+    border:1px solid #ccc;
+    padding:5px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}

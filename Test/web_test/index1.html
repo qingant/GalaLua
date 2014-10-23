@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>webframework 测试结果</title>
+<meta name="description" content="">
+<meta name="keywords" content="">
+<link href="stylesheet.css" rel="stylesheet"  type="text/css">
+<script src="js/esl.js"></script>
+<script src="js/jquery.js"></script>
+<style>
+    .params{
+        margin:0;
+        margin-right:10px;
+        height:20px;
+        float:left;
+    }
+    .params input {
+        width:50px;
+        height:20px;
+    }
+</style>
+</head>
+
+<body>
+    <div ID="header">
+    <h1 id="h1size">
+    webframework 测试
+    </h1>
+    <div id="menu">
+        <p style="text-align:center;font-size:22px;margin-top:5px;font-family:Times; ">Frequent</p>
+    </div>
+    <select  id="choose">
+        <option value="1000">60f/min</option>
+        <option value="2000">30f/min</option>
+        <option value="5000">12f/min</option>
+    </select>
+    <br/>
+</div>
+
+<div class ="params">
+    文件大小(KB)
+    <input id='params0' type='number' value='0'>
+</div>
+<div>
+    <button onclick="get_url_params()" >确定</button>
+</div>
+
+<div id="NetworkThroughput" class="backGround"></div>
+<div id="NetworkTransThroughput" class="backGround"></div>
+<div id="IOThroughput" class="backGround"></div>
+<script>
+
+var fileSize = 0
+
+function get_url_params(){
+    //alert("aaaaa")
+    fileSize = document.getElementById("params0").value
+    url_params = "?s=" + fileSize
+    alert(url_params)
+}
+
+
+var complete_statistic_data  = []; // 完成情况统计数据
+var complete_process_data = []; //完成度数据
+var tpsx = []
+var tps_average_data = []
+var tpsy = []
+var times0 = 1;
+var times1 = 1;
+var times2 = 1;
+
+var freq = 10000;
+
+require.config({
+        paths:{
+            echarts:'./js/echarts',
+            'echarts/chart/bar' : './js/echarts',
+            'echarts/chart/line': './js/echarts'
+        }
+    });
+
+var NetworkThroughputBar = {
+    title : {
+        text: '网络吞吐量统计之接收'
+    },
+    tooltip : {
+        trigger: 'axis'
+    },
+    tooltip : {
+        trigger: 'ayis'
+    },
+    legend: {
+        data:['']
+    },
+    toolbox: {
+        show : true,
+        feature : {
+            mark : true,
+            dataView : {readOnly: false},
+            magicType:['line', 'bar'],
+            restore : true,
+            saveAsImage : true
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'category',
+            name : 'Seconds',
+            data : []
+        }
+    ],
+    yAxis : [
+        {
+            type : 'value',
+            name : 'KBytes',
+            splitArea : {show : true}
+        }
+    ],
+    series : [{
+        name:'TPS Value',
+        type:'bar',
+        data:[],
+        itemStyle:{
+            normal:{color:'#008ec1'},
+            type:'default'
+        }
+    },
+    {
+        name:'average',
+        type:'line',
+        data:[],
+        itemStyle:{
+            normal:{color:'orange'},
+            type:'default'
+        }
+    },
+    ]
+};
+
+var NetworkTransThroughputBar = {
+    title : {
+        text: '网络吞吐量统计之传输'
+    },
+    tooltip : {
+        trigger: 'axis'
+    },
+    tooltip : {
+        trigger: 'ayis'
+    },
+    legend: {
+        data:['']
+    },
+    toolbox: {
+        show : true,
+        feature : {
+            mark : true,
+            dataView : {readOnly: false},
+            magicType:['line', 'bar'],
+            restore : true,
+            saveAsImage : true
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'category',
+            name : 'Seconds',
+            data : []
+        }
+    ],
+    yAxis : [
+        {
+            type : 'value',
+            name : 'KBytes',
+            splitArea : {show : true}
+        }
+    ],
+    series : [{
+        name:'TPS Value',
+        type:'bar',
+        data:[],
+        itemStyle:{
+            normal:{color:'#008ec1'},
+            type:'default'
+        }
+    },
+    {
+        name:'average',
+        type:'line',
+        data:[],
+        itemStyle:{
+            normal:{color:'orange'},
+            type:'default'
+        }
+    },
+    ]
+};
+
+var IOThroughputBar = {
+    title : {
+        text: 'IO吞吐量统计'
+    },
+    tooltip : {
+        trigger: 'axis'
+    },
+    tooltip : {
+        trigger: 'ayis'
+    },
+    legend: {
+        data:['']
+    },
+    toolbox: {
+        show : true,
+        feature : {
+            mark : true,
+            dataView : {readOnly: false},
+            magicType:['line', 'bar'],
+            restore : true,
+            saveAsImage : true
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'category',
+            name : 'Seconds',
+            data : []
+        }
+    ],
+    yAxis : [
+        {
+            type : 'value',
+            name : 'KBytes',
+            splitArea : {show : true}
+        }
+    ],
+    series : [{
+        name:'TPS Value',
+        type:'bar',
+        data:[],
+        itemStyle:{
+            normal:{color:'#008ec1'},
+            type:'default'
+        }
+    },
+    {
+        name:'average',
+        type:'line',
+        data:[],
+        itemStyle:{
+            normal:{color:'orange'},
+            type:'default'
+        }
+    },
+    ]
+};
+
+
+require(
+    [
+        'echarts',
+        'echarts/chart/bar',
+        'echarts/chart/line'
+    ],
+    function(ec) {
+        NetworkThroughputChart = ec.init(document.getElementById('NetworkThroughput'));
+        NetworkThroughputChart.setOption(NetworkThroughputBar);
+        NetworkTransThroughputChart = ec.init(document.getElementById('NetworkTransThroughput'));
+        NetworkTransThroughputChart.setOption(NetworkTransThroughputBar);
+        IOThroughputChart = ec.init(document.getElementById('IOThroughput'));
+        IOThroughputChart.setOption(IOThroughputBar);
+        //IOReadThroughputChart = ec.init(document.getElementById('IOThroughput'));
+        //IOReadThroughputChart.setOption(IOThroughputBar);
+        var timeTicket;
+        clearInterval(timeTicket);
+        timeTicket = setInterval(GetData, freq);
+    }
+);
+
+
+function GetNetworkThroughput(data) {
+    $.ajax({
+        type: "GET",
+        url: "/throughput/network"+url_params,
+        dataType: "text",
+        success: function(data) {
+            //alert(data)
+            var allCsvLines = data.split(/\r\n|\n/);
+            var headers = allCsvLines[0].split(',');
+            var networkDataRecv = [];
+            var networkDataTrans = [];
+
+            var networkDataRecvSum = 0
+            var networkDataTransSum = 0
+            var len = allCsvLines.length - 2;
+            for (var i=1; i < len; i++) {
+                var line = allCsvLines[i].split(',');
+                networkDataRecv.push(line[0] / 1000);
+                networkDataTrans.push(line[2] / 1000);
+                networkDataRecvSum += line[0] * 1;
+                networkDataTransSum += line[2] * 1;
+            }
+
+            //alert(networkDataRecv)
+            //alert(networkDataTrans)
+            //alert(networkDataRecvSum)
+            //alert(networkDataTransSum)
+            var AverageRecvThroughput = [];
+            var AverageTransThroughput = [];
+            var AverageRecvTmp = 0;
+            var AverageTransTmp = 0;
+            //alert(len)
+            AverageRecvTmp = networkDataRecvSum / (len * 1000) ;
+            AverageTransTmp = networkDataTransSum / (len * 1000);
+            //alert(AverageRecvTmp)
+            //alert(AverageTransTmp)
+
+            for (var k = 0; k < len-1; k++)
+            {
+                AverageRecvThroughput[k] = AverageRecvTmp;
+                AverageTransThroughput[k] = AverageTransTmp;
+            }
+            //alert(networkDataTrans);
+            //alert(networkDataRecv);
+            if (times2 == 1)
+            {
+                for (var j = 0; j < networkDataRecv.length; j++)
+                {
+                    NetworkThroughputChart.addData([
+                        [
+                            0,        // 系列索引
+                            networkDataRecv[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            true,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            j+1
+                        ],
+                        [
+                            1,        // 系列索引
+                            AverageRecvThroughput[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            true,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                        ],
+                    ]);
+                }
+                times2 = times2 + 1;
+                if (times2 == 500)
+                {
+                    times2 = 1;
+                }
+
+            }
+            if (times2 < 50) 
+            {
+                for (var j = 0; j < networkDataRecv.length; j++)
+                {
+                    NetworkThroughputChart.addData([
+                        [
+                            0,        // 系列索引
+                            networkDataRecv[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            false,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            j+1
+                        ],
+                        [
+                            1,        // 系列索引
+                            AverageRecvThroughput[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            false,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                        ],
+                    ]);
+                }
+            }
+        }
+    });
+}
+
+function GetNetworkTransThroughput(data) {
+    $.ajax({
+        type: "GET",
+        url: "/throughput/network"+url_params,
+        dataType: "text",
+        success: function(data) {
+            //alert(data)
+            var allCsvLines = data.split(/\r\n|\n/);
+            alert(allCsvLines.length)
+            var headers = allCsvLines[0].split(',');
+            var networkDataRecv = [];
+            var networkDataTrans = [];
+
+            var networkDataRecvSum = 0
+            var networkDataTransSum = 0
+            var len = allCsvLines.length - 2;
+            for (var i=1; i < len; i++) {
+                var line = allCsvLines[i].split(',');
+                networkDataRecv.push(line[0] / 1000);
+                networkDataTrans.push(line[2] / 1000);
+                networkDataRecvSum += line[0] * 1;
+                networkDataTransSum += line[2] * 1;
+            }
+
+            //alert(networkDataRecv)
+            //alert(networkDataTrans)
+            //alert(networkDataRecvSum)
+            //alert(networkDataTransSum)
+            var AverageRecvThroughput = [];
+            var AverageTransThroughput = [];
+            var AverageRecvTmp = 0;
+            var AverageTransTmp = 0;
+            //alert(len)
+            AverageRecvTmp = networkDataRecvSum / (len * 1000) ;
+            AverageTransTmp = networkDataTransSum / (len * 1000);
+            //alert(AverageRecvTmp)
+            //alert(AverageTransTmp)
+
+            for (var k = 0; k < len-1; k++)
+            {
+                AverageRecvThroughput[k] = AverageRecvTmp;
+                AverageTransThroughput[k] = AverageTransTmp;
+            }
+            //alert(networkDataTrans);
+            //alert(networkDataRecv);
+            if (times0 == 1)
+            {
+                for (var j = 0; j < networkDataRecv.length; j++)
+                {
+                    NetworkTransThroughputChart.addData([
+                        [
+                            0,        // 系列索引
+                            networkDataTrans[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            true,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            j+1
+                        ],
+                        [
+                            1,        // 系列索引
+                            AverageTransThroughput[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            true,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                        ],
+                    ]);
+                }
+                times0 = times0 + 1;
+                if (times0 == 500)
+                {
+                    times0 = 1;
+                }
+
+            }
+            if (times0 < 50) 
+            {
+                for (var j = 0; j < networkDataRecv.length; j++)
+                {
+                    NetworkTransThroughputChart.addData([
+                        [
+                            0,        // 系列索引
+                            networkDataTrans[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            false,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            j+1
+                        ],
+                        [
+                            1,        // 系列索引
+                            AverageTransThroughput[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            false,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                        ],
+                    ]);
+                }
+            }
+        }
+    });
+}
+function GetIOThroughput(data) {
+    $.ajax({
+        type: "GET",
+        url: "/throughput/io"+url_params,
+        dataType: "text",
+        success: function(data) {
+            //alert(data)
+            var allCsvLines = data.split(/\r\n|\n/);
+            var headers = allCsvLines[0].split(',');
+            var IODataRead = [];
+            var IODataWrite = [];
+
+            var IODataReadSum = 0
+            var IODataWriteSum = 0
+            var len = allCsvLines.length - 2;
+            for (var i=1; i < len; i++) {
+                var line = allCsvLines[i].split(',');
+                IODataRead.push(line[0] / 1000);
+                IODataWrite.push(line[1] / 1000);
+                IODataReadSum += line[0] * 1;
+                IODataWriteSum += line[1] * 1;
+            }
+
+            var AverageReadThroughput = [];
+            var AverageWriteThroughput = [];
+            var AverageReadTmp = IODataReadSum / (len * 1000);
+            var AverageWriteTmp = IODataWriteSum / (len * 1000);
+            //alert(IODataReadSum)
+            //alert(IODataWriteSum)
+            for (var k = 0; k < len-1; k++)
+            {
+                AverageReadThroughput[k] = AverageReadTmp;
+                AverageWriteThroughput[k] = AverageWriteTmp;
+            }
+            //alert(IODataWrite.length)
+            //alert(AverageWriteThroughput.length)
+            if (times1 == 1)
+            {
+                for (var j = 0; j < IODataWrite.length; j++)
+                {
+                    IOThroughputChart.addData([
+                        [
+                            0,        // 系列索引
+                            IODataWrite[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            true,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            j+1
+                        ],
+                        [
+                            1,        // 系列索引
+                            AverageWriteThroughput[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            true,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                        ],
+                    ]);
+                }
+                times1 = times1 + 1;
+                if (times1 == 500)
+                {
+                    times1 = 1;
+                }
+
+            }
+            if (times1 < 50)
+            {
+                for (var j = 0; j < IODataWrite.length; j++)
+                {
+                    IOThroughputChart.addData([
+                        [
+                            0,        // 系列索引
+                            IODataWrite[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            false,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                            j+1
+                        ],
+                        [
+                            1,        // 系列索引
+                            AverageWriteThroughput[j],// 新增数据
+                            false,     // 新增数据是否从队列头部插入
+                            false,// 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                        ],
+                    ]);
+                }
+            }
+        }
+    });
+}
+
+function GetData(){
+    GetNetworkThroughput();
+    GetNetworkTransThroughput();
+    GetIOThroughput();
+}
+
+</script>
+</body>
+</html>
