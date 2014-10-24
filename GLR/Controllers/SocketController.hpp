@@ -38,7 +38,7 @@ namespace GLR
         }
         inline void Grow(size_t len){
             _End += len;
-            if (Reserved() == 0){
+            if (Reserved() <= 0){
                 if ((_End - _Begin) > (_Buf.size() - _Step))
                 {
                     _Buf.resize(_Buf.size() * 2);
@@ -68,6 +68,7 @@ namespace GLR
                 return;
             } else
             {
+                //XXX:空间没有清0
                 _Begin = 0;
                 _End = 0;
             }
@@ -77,7 +78,7 @@ namespace GLR
         }
         inline size_t Reserved() const
         {
-            return (_Buf.size() - _End + 1);
+            return (_Buf.size() - _End);
         }
         inline size_t DataSize() const
         {
@@ -88,8 +89,8 @@ namespace GLR
             GALA_DEBUG("Begin:%ld, END:%ld", _Begin, _End);
             for (size_t cursor = _Begin; cursor!=_End; ++cursor)
             {
-                if ((_Buf[cursor] == '\n')||
-                    ((_Buf[cursor] == '\r') && (_Buf[++cursor] == '\n')))
+                //NOTE::只关心\n，不关心\r
+                if ((_Buf[cursor] == '\n') )
                 {
                     return (cursor - _Begin + 1);
                 }
