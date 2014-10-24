@@ -195,7 +195,7 @@ namespace GLR
     private:
         TaskQueue      _SendTasks;
         TaskQueue      _RecvTasks;
-        //Galaxy::GalaxyRT::CPthreadMutex _Lock;
+        Galaxy::GalaxyRT::CPthreadMutex _Lock;   //XXX:用于同步TcpCache
         TcpCache       _Cache;
         bool           _Hanguped;
     };
