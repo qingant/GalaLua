@@ -126,6 +126,11 @@ function request:parse_content_type()
     end
 end
 
+local function decodeURI(s)
+    s = string.gsub(s, '%%(%x%x)', function(h) return string.char(tonumber(h, 16)) end)
+    return s
+end
+
 function request:parse_content()
     if self["body"] then
         local body = self["body"]
@@ -137,7 +142,7 @@ function request:parse_content()
                 local content = split(body,"&")
                 for _,k in pairs(content) do
                     key,value = string.match(k,"(.+)=(.*)")
-                    self["body"][key] = value
+                    self["body"][key] = decodeURI(value)
                 end
             else
                 error("not support Content-Type " .. self["Content-Type"]["Type"] )
