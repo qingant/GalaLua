@@ -182,8 +182,8 @@ bool Bus::ResponseEx(int pid, int tick, int narg, ...)
             return false;
         }
 
-        Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, false); // ???
-        Galaxy::GalaxyRT::CLockGuard _LL(&nd._Lock, false);
+        Galaxy::GalaxyRT::CLockGuard _Gl(&nd._IntLock, true); // ???
+        Galaxy::GalaxyRT::CLockGuard _LL(&nd._Lock, true);
         if (nd._Status._State != Process::ProcessStatus::INT_WAIT &&
             nd._Status._State != Process::ProcessStatus::RECV_WAIT)
         {
@@ -238,6 +238,7 @@ bool Bus::ResponseEx(int pid, int tick, int narg, ...)
     }
     catch (const Galaxy::GalaxyRT::CException &e)
     {
+        GALA_ERROR(e.what());
     }
     return  false; 
 }

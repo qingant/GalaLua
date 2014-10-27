@@ -96,7 +96,7 @@ void GLR::SocketWorker::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev )
     }
     catch (Galaxy::GalaxyRT::CException &e)
     {
-        GALA_DEBUG(e.what());
+        GALA_ERROR(e.what());
         OnErr(ev);
 
     }
@@ -599,7 +599,10 @@ void GLR::StreamLinkStack::Response(POLLERTYPE &_Poller )
 }
 void GLR::StreamLinkStack::OnRecv( Galaxy::GalaxyRT::CSelector::EV_PAIR &ev, POLLERTYPE &_Poller )
 {
-    (void)ev;
+    Galaxy::GalaxyRT::CLockGuard _(&_Lock);
+    
+    (void)ev,(void)_;
+
     //int fd = ev.first;
     if (this->_Hanguped)
     {
@@ -700,6 +703,8 @@ void GLR::StreamLinkStack::PutPollTask(int pid)
 
 bool GLR::StreamLinkStack::FastRecvReturn(int pid, TaskType taskType, size_t len)
 {
+    Galaxy::GalaxyRT::CLockGuard _(&_Lock);
+    (void)_;
     if (!_RecvTasks.Empty())
     {
         return false;
