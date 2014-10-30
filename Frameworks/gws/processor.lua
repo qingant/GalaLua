@@ -140,6 +140,7 @@ function processor:_call_hander(uri_pattern, h, request)
     elseif request.method == "POST" then
         self._logger:info("method: POST")
         response = handle:post(context, unpack(params))
+        context:get_response():set_status_code(202)
     end
 
     if response then

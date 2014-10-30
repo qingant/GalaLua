@@ -27,6 +27,16 @@ function response:set_status_code(code)
     if self.statusCode == "404" then
         self.status = "Not Found"
         self.content = "Not Found"
+    elseif self.statusCode == "401" then
+        self.status = "Unauthorized"
+    elseif self.statusCode == "403" then
+        self.status = "Forbidden"
+    elseif self.statusCode == "422" then
+        self.status = "Unprocessable Entity"
+    elseif self.statusCode == "429" then
+        self.status = "Too Many Requests"
+    elseif self.statusCode == "202" then
+        self.status = "Okay"
     end
     return self
 end
