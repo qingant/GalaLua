@@ -90,11 +90,37 @@ function app_mgr:_start_pool(com)
 
 end
 
+function app_mgr:_start_server(com)
+    self._supervisor:call("start_process", {
+                                  process_type = com.process_type or "gen",
+                                  process_params = {
+                                      mod_name = com.mod_name,
+                                      parameters = {self.app_inst_name, com.params}
+                                  }
+                              })
 
+end
+
+--[[
+@com: 有pool和server两种，当catagory为pool时必须包含以下字段{
+        catagory = "pool",
+        pool_name = "must set pool",
+        dispatcher = "must set dispatcher",
+        services = {"service 1","service 2"},
+        worker = "worker module name",
+        params = {}
+       }，
+     当catagory为server时必须包含以下字段{
+        catagory = "server",
+        process_type="gen"/"raw",
+        mod_name="module name",
+        params={}
+      }
+]]
 function app_mgr:_start_component(com)
     com.params.log_path=self.app.log_path
     if  com.catagory == "server" then
-        local rt  = self._supervisor:call("start_process", com)
+        self:_start_server(com)
         -- TODO: error handling and logging
     elseif com.catagory == "pool" then
         self:_start_pool(com)
