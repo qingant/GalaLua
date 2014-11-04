@@ -20,6 +20,12 @@ Schedule & Schedule::GetInstance( int threads /*= 4*/ )
 Schedule::Schedule( int threads )
     :_isLiving(true)
 {
+    if ((threads < _Min_Threads) || (threads > _Max_Threads))
+    {
+        threads=_Default_Threads;
+    }
+
+    GALA_DEBUG("threads:%d",threads);
     for (int i = 0; i != threads; ++i)
     {
         //std::thread *t = new std::thread([&](){this->CoreThread();});

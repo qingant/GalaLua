@@ -36,10 +36,29 @@ Runtime & GLR::Runtime::GetInstance()
     }
 }
 
+int GLR::Runtime::GetThreads()
+{
+    const char *threads;
+    if (_pCProcess->ExistOption("T"))
+    {
+        threads=_pCProcess->GetOption("T").c_str();
+    }
+    else
+    {
+        threads=getenv("GDK_THREADS");
+    }
+
+    if (threads!=NULL)
+    {
+        return strtol(threads, NULL, 0);
+    }
+    return -1;
+}
 
 void GLR::Runtime::Initialize()
 {
-    _Schedule = &Schedule::GetInstance();
+    _Schedule = &Schedule::GetInstance(GetThreads());
+    
     _Bus = &Bus::GetInstance();
     _Bus->RegisterDevice(new Clock());
     _Bus->RegisterDevice(new SocketController());

@@ -52,6 +52,10 @@ namespace GLR
     class Schedule
     {
     private:
+        static const int _Max_Threads=500;
+        static const int _Min_Threads=4;
+        static const int _Default_Threads=16;
+    private:
         Schedule(int threads);
     public:
         friend class Processor;
@@ -65,6 +69,7 @@ namespace GLR
         std::vector<std::pair<Processor*, Galaxy::GalaxyRT::CThread*> >  _Cores;
         LN_SCHE_QUEUE_TYPE      _ScheQueue;
         bool                    _isLiving;
+
 
     };
 

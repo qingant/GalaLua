@@ -45,6 +45,7 @@ namespace GLR
         void EntryEx(const std::string &path,LoadEntryFrom  from=L_FILE);
     private:
         void Initialize();
+        int GetThreads();
     public:
 
         int NodeId() const { return _NodeId; }
