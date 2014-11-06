@@ -18,7 +18,7 @@ server = pool
 function pool:new(app_name, pool_name, dispatcher, worker, params)
     local full_name = string.format("%s.%s", app_name, pool_name)
     glr.npt.register(full_name)
-    local log_path = string.format("%s/%s.%s.pool.log", params.log_path, app_name, pool_name)
+    local log_path = string.format("%s/%s.%s.log", params.log_path,app_name, pool_name)
     print("Pool Logging:", log_path)
     self._logger = logger:new():init(self, log_path)
     self._logger:info("%s init", full_name)
@@ -78,6 +78,7 @@ function pool:put_dispatcher(params, desc)
         self._dispatch.status = "started"
         self._dispatch.addr = params
     end
+    return self.no_response
 end
 
 
