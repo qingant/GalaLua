@@ -1,129 +1,14 @@
 module(...,package.seeall)
+require "str_utils"
+require "tab_utils"
 
-local split = require(_PACKAGE .. "utils").split
-local strip = require(_PACKAGE .. "utils").strip
-request = {}
-
-function request:new(o)
-    local o = o or {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-function request:init()
-    self.params = {}
-    return self
-end
-
-function request:to_string()
-    self.header[#self.header + 1] = ""
-    return table.concat(self.header, "\r\n")
-end
-function request:parse()
-    self:parse_path()
-    self:parse_query()
-    self:parse_accept_encoding()
-    self:parse_accept_language()
-    self:parse_cookie()
-    self:parse_content_type()
-    self:parse_content()
-    return self
-end
-
-function request:parse_path()
-    if not self.uri then
-        error("request uri is nil")
+--local map=table.map
+local function map(self, func, ... )
+    local result = {}
+    for i,v in ipairs(self) do
+        result[i] = func(v,...)
     end
-    --local query = split(self.uri,"#")[1]
-    --query = split(query,"%?")[1]
-    local path, query = string.match(self.uri, "(/[^?]*)%??(.*)#?")
-    self.path = path
-    self.query = query
-end
-
-
-function request:parse_accept_encoding()
-    local value = {}
-    --print("Accept-Encoding", self["Accept-Encoding"])
-    local encode = self["Accept-Encoding"]
-    if encode then
-       encode = split(encode,",")
-       for k,v in pairs(encode) do
-           value[k] = strip(v)
-       end
-       self["Accept-Encoding"] = value
-    --pprint.pprint(encode,"--encode--")
-    end
-    return nil
-end
-
-function request:parse_accept_language()
-    local value = {}
-    local lang = self["Accept-Language"]
-    if lang then
-        lang = split(lang,";")
-        for i,v  in pairs(lang) do
-            value[i] = v
-        end
-        self["Accept-Language"] = value
-        --pprint.pprint(self.language, "accept-language")
-    end
-    return nil
-end
-
-function request:parse_query()
-    if not self.uri then
-        error("request uri is nil")
-    end
-    local query = self.query
-    --print("Q", query)
-    self.query = self.params
-    if query == nil then
-        return
-    end
-    --print(self.uri,"self.uri")
-    --print(query,"query",path,"path")
-    if query then
-        query = split(query,"&")
-        for i,key in pairs(query) do
-            local k,v
-            local t = split(key,"=")
-            self.params[t[1]] = t[2]
-        end
-    end
-    --pprint.pprint(self.query,"--query--")
-end
-
-function request:parse_cookie()
-    if self["Cookie"] then
-        --print("self.Cookie",self.Cookie)
-        local ses = split(self["Cookie"],"%s*,%s*")
-        local session = {}
-        for _,k in pairs(ses) do
-            local tmp = split(k,"=")
-            session[strip(tmp[1])] = strip(tmp[2])
-        end
-        self["Cookie"] = session
-    end
-    return nil
-end
-
-function request:parse_content_type()
-    --print("---Content-Type----",self["Content-Type"])
-    if self["Content-Type"] then
-        local content_type,content_encode= string.match(self["Content-Type"],"([%w/-]+);?")
-        self["Content-Type"] = {}
-        self["Content-Type"]["Type"] = content_type
-        if content_type == "application/x-www-form-urlencoded" then
-            self["Content-Type"]["encode"] = content_encode
-        elseif content_type == "multipart/form-data" then
-            --TODO
-            error("not support Content-Type " .. self["Content-Type"]["Type"] )
-        else
-            error("not support Content-Type " .. self["Content-Type"]["Type"] )
-        end
-    end
+    return result
 end
 
 local function decodeURI(s)
@@ -131,24 +16,119 @@ local function decodeURI(s)
     return s
 end
 
-function request:parse_content()
-    if self["body"] then
-        local body = self["body"]
-        --print("----body----",body)
-        --print("--- Content-Type ---",self["Content-Type"]["Type"])
-        if self["Content-Type"] then
-            if self["Content-Type"]["Type"] == "application/x-www-form-urlencoded"  then
-                self["body"] = {}
-                local content = split(body,"&")
-                for _,k in pairs(content) do
-                    key,value = string.match(k,"(.+)=(.*)")
-                    self["body"][key] = decodeURI(value)
-                end
-            else
-                error("not support Content-Type " .. self["Content-Type"]["Type"] )
+
+local HTTP = {}
+
+function HTTP:new(o)
+    local o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    self.init(o)
+    return o
+end
+
+function HTTP:init()
+    self.params = {}
+
+    self._body_unpacker={
+        ["application/x-www-form-urlencoded"]=function (content)
+            --TODO: 1.key是允许重复的
+            local body = {}
+            for _,k in pairs(string.split(content,"&")) do
+                local key,value = string.match(k,"^(.+)=(.*)$")
+                body[key] = decodeURI(value)
             end
+            return body
+        end,
+    }
+
+    return self
+end
+
+function HTTP:parse_uri()
+    local uri=self.uri
+    assert(uri,"HTTP uri is nil")
+
+    local path, query = string.match(uri, "^(/[^?]*)%??(.*)#?$")
+    self.path = path
+
+    if query then
+        map(string.split(query,"&"),
+            function (v)
+                local t = string.split(key,"=")
+                self.params[t[1]] = t[2]
+            end)
+    end
+    self.query = self.params
+end
+
+function HTTP:parse_startLine(line)
+    local t = map(string.split(line, " "),string.trim)
+    assert(#t==3,"Invalid start line")
+
+    self.method=t[1]
+    self.uri=t[2]
+    self.version=t[3]
+
+    self:parse_uri()
+end
+
+function HTTP:parse_headers(headers)
+    self.headers=headers
+    self:parse_accept(headers,"Accept-Language")
+    self:parse_accept(headers,"Accept-Encoding")
+
+    self:parse_cookie(headers)
+    self:parse_content_type(headers)
+end
+
+function HTTP:parse_accept(headers,key)
+    local value = {}
+    local s = headers[key]
+    if s then
+        self.headers[key]= map(string.split(s,","), string.trim)
+    end
+end
+
+function HTTP:parse_cookie(headers)
+    local cookie=headers["Cookie"]
+    if cookie then
+        local session = {}
+        map(string.split(cookie,","), function(k)
+            local t = string.split(k,"=")
+            session[string.trim(t[1])] = string.trim(t[2])
+        end)
+        self.headers.Cookie=session
+    end
+end
+
+function HTTP:parse_content_type(headers)
+    local content_type=headers["Content-Type"]
+    local ct={}
+    if content_type then
+        local t = string.split(content_type,";")
+        ct.type=string.trim(assert(t[1],"Invalid Content-Type"))
+        ct.encode=t[2] and string.trim(t[2])
+    end
+
+    self.headers["Content-Type"]=ct
+end
+
+function HTTP:parse_content(content)
+    local content = content
+    if content then
+        local unpacker = self._body_unpacker[self.headers["Content-Type"]["type"]]
+        if unpacker then
+            self.body=unpacker(content)
+            return
         else
-            error("Content-Type empty")
+            self.body=content
+            return
         end
     end
 end
+
+function new()
+    return HTTP:new()
+end
+

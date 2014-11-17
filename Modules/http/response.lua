@@ -1,7 +1,7 @@
 module(...,package.seeall)
 
 response = {}
-response.Fields = {"Set-Cookie","Date","Content-Type" , "Server", "Last-Modified","Content-Length", "Expire","Cache-Control","Transfer-Encoding", "Location"}
+response.Fields = {"Set-Cookie","Date","Content-Type" , "Last-Modified","Content-Length", "Expire","Cache-Control","Transfer-Encoding", "Location"}
 function response:new(o)
     local o = o or {}
     setmetatable(o, self)
@@ -10,64 +10,53 @@ function response:new(o)
 end
 
 function response:init()
-    self.statusCode = "200"
-    self.status = "Okay"
+    self._sep = "\r\n"
+    self.status={
+        [200] = "Okay",
+        [404] = "Not Found",
+        [401] = "Unauthorized",
+        [403] = "Forbidden",
+        [422] = "Unprocessable Entity",
+        [429] = "Too Many Requests",
+        [202] = "Okay",
+    }
+
     self.version = "HTTP/1.1"
-    self.Server = "GLR/GHS 1.0"
-    self["Content-Type"] = "text/html;charset=utf-8"
-    self.chunked = false
-    self.chunk = {}
-    self.header = "" --toString
+
+    self.statusCode = "200"
+    self.reasonPhrase = "Okay"
+
+    self.headers={
+        ["Server"] = "GLR/GHS 1.0",
+        ["Content-Type"] = "text/html;charset=utf-8",
+    }
+
     self.content = ""
-    self["Content-Length"] = "0"
     return self
-end
-function response:set_status_code(code)
-    self.statusCode = tostring(code)
-    if self.statusCode == "404" then
-        self.status = "Not Found"
-        self.content = "Not Found"
-    elseif self.statusCode == "401" then
-        self.status = "Unauthorized"
-    elseif self.statusCode == "403" then
-        self.status = "Forbidden"
-    elseif self.statusCode == "422" then
-        self.status = "Unprocessable Entity"
-    elseif self.statusCode == "429" then
-        self.status = "Too Many Requests"
-    elseif self.statusCode == "202" then
-        self.status = "Okay"
-    end
-    return self
-end
-function response:set_content(content)
-    self.content = content
-    --local len = content ~= nil and #content or 0
-    --print("----Content-Length----", len)
-    --if len > 5000 then
-    --    self.chunked = true
-    --else
-    --    self["Content-Length"] = tostring(len)
-    --end
-end
-function response:set_content_type(content_type)
-    self["Content-Type"] = content_type
-end
-function response:set_cookie(v)
-    self["Set-Cookie"] = v
-    --self["Set-Cookie"] = self["Set-Cookie"] or {}
-    --self["Set-Cookie"][k] = tostring(v)
-end
-function response:redirect(location)
-    self:set_status_code(302)
-    self["Location"] = location
-end
-function response:set_chunk()
-    if self.chunked then
-        self["Transfer-Encoding"] = "chunked"
-    end
 end
 
+function response:set_status_code(code,msg)
+    self.statusCode = tonumber(code)
+    self.reasonPhrase = msg or self.status[self.statusCode]
+    return self
+end
+
+function response:set_content(content)
+    self.content = content
+end
+
+function response:set_content_type(content_type)
+    self.headers["Content-Type"] = content_type
+end
+
+function response:set_cookie(v)
+    self.headers["Set-Cookie"] = v
+end
+
+function response:redirect(location)
+    self:set_status_code(302)
+    self.headers["Location"] = location
+end
 
 --TODO
 --compress
@@ -77,62 +66,71 @@ end
 function response:set_content_encode(request)
     local encode = parse_accept_encoding(request)
     if encode then
-	for _, v in pairs(encode) do
-	    if v == "gzip" then
-		self["Content-Encoding"] = "gzip"
-		local len = gzipEncode(self.content)
-		self["Content-Length"] = len
-	    else
-		local len = #self.content
-		self["Content-Length"] = len
-	    end
-	end
+        for _, v in pairs(encode) do
+            if v == "gzip" then
+                self.headers["Content-Encoding"] = "gzip"
+                local len = gzipEncode(self.content)
+                self.headers["Content-Length"] = len
+            else
+                local len = #self.content
+                self.headers["Content-Length"] = len
+            end
+        end
     end
+end
+
+function response:startline()
+    return string.format("%s %s %s", self.version, self.statusCode, self.reasonPhrase or "")
+end
+
+function response:enable_chunk()
+    self.headers["Transfer-Encoding"]="chunked"
+end
+
+function response:disable_chunk()
+    self.headers["Transfer-Encoding"]="chunked"
+end
+
+function response:is_chunked()
+    return self.headers["Transfer-Encoding"]=="chunked"
 end
 
 function response:to_string()
-    local len = #self.content
-    print("---- Content ----",len)
-    if len > 500000 then
-        self["Transfer-Encoding"] = "chunked"
-    	self["Content-Length"] = nil
-    else
-        print("---- Content-Length ----",len)
-    	self["Content-Length"] = len
+    if not self:is_chunked() then
+        self.headers["Content-Length"] = #self.content
     end
-    local lines = {}
-    lines[#lines+1] = string.format("%s %s %s\r\n", self.version, self.statusCode, self.status)
-    for i,k in ipairs(self.Fields) do
-        local v = self[k]
-        if v then
-            lines[#lines + 1] = string.format("%s:%s\r\n", k, v)
-        end
+
+    local lines = {self:startline()}
+    for k,v in pairs(self.headers) do
+        lines[#lines + 1] = string.format("%s: %s", k, v)
     end
-    lines[#lines + 1] = "\r\n"
-    self.header = table.concat(lines)
-    return self.header
+
+    lines[#lines + 1] = ""
+    lines[#lines + 1] = self.content or ""
+
+    return table.concat(lines,self._sep)
 end
 
---TODO
---A server MUST NOT send transfer-codings to an HTTP/1.0 client.
---A server which receives an entity-body with a transfer-coding it does not understand SHOULD return 501 (Unimplemented)
 function response:encode_chunk(content)
-    local len = 5000
-    local s = 1
-    local chunk = ""
-    repeat
-        local data = string.sub(content,s,s + len)
-        local header = string.format("%x",#data)
-        --print("data", data)
-        --print("header", header)
-        if not data then
-            chunk = "0"
-            self.chunk[#self.chunk + 1] = string.format("%s\r\n",chunk)
-            self.chunk[#self.chunk + 1] = "\r\n"
-        else
-            chunk = string.format("%s\r\n%s\r\n",header,data)
-            self.chunk[#self.chunk + 1] = chunk
-        end
-        s = s + len + 1
-    until header == "0"
+    assert(self.is_chunked(),"not chunked response")
+
+    local data = content or ""
+    if type(data)=="table" then
+        data=table.concat(data)
+    end
+
+    local data_len= #data
+
+    local chunk={}
+    chunk[#chunk + 1] = string.format("%x",data_len)
+    chunk[#chunk + 1] = data
+    if data_len==0 then
+        --TODO：1.增加可选的trailer-part
+
+        --chunked transfer coding要求空行结尾
+        chunk[#chunk + 1] = ""
+    end
+
+    return table.concat(chunk,self._sep)
 end
+
