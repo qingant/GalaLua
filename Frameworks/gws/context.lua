@@ -52,11 +52,11 @@ end
 
 function context:create_session()
     self._session = self._session_mgr:create_session()
-    self._response["Set-Cookie"] = string.format("sessionId=%s, Expires=%s,Path=%s, Domain=%s", 
+    self._response:set_cookie( string.format("sessionId=%s, Expires=%s,Path=%s, Domain=%s", 
             self._session:get_id(),
             self._session:get("Expires"),
             self._session:get("Path"),
-            self._session:get("Domain"))
+            self._session:get("Domain")))
     return self._session
 end
 
@@ -69,15 +69,11 @@ function context:get_response()
 end
 
 function context:redirect(url,content)
-  --self._response:redirect(url)
-  local  response_301=self._response:set_status_code(301)
- -- print(response_301)
-  self._response["Location"]=url
-  self._response.status="Found"
+  self._response:redirect(url)
   if content then
      self._response:set_content(content)
   end
-  return response_301
+  return self._response
 end
 
 

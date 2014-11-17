@@ -9,7 +9,7 @@
 module(..., package.seeall)
 
 local base = require("core.processor").server
-local http = require("http.http").http
+local http = require("http.server").http
 local response = require("http.response").response
 local context = require(_PACKAGE .. "context").context
 local session_manager = require(_PACKAGE .. "session").session_manager
