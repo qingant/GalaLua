@@ -133,20 +133,21 @@ function processor:_call_hander(uri_pattern, h, request)
 
     local params = {string.match(request.path,uri_pattern)}
 
-    local response
-    if request.method == "GET" then
-        self._logger:info("method: GET")
-        response = handle:get(context, unpack(params))
-    elseif request.method == "POST" then
-        self._logger:info("method: POST")
-        response = handle:post(context, unpack(params))
-        context:get_response():set_status_code(202)
+    self._logger:info("method: %s",request.method)
+
+    local response=context:get_response()
+
+    local ok,content=xpcall(handle[string.lower(request.method)],debug.traceback,handle,context,unpack(params))
+    if not ok then
+        self._logger:error("%s",content)
+        response:set_status_code(500)
+    else
+        if content then
+            context:get_response():set_content(content)
+        end
     end
 
-    if response then
-        context:get_response():set_content(response)
-    end
-    return context:get_response()
+    return response
 end
 
 function processor:_read_file_content(path)
