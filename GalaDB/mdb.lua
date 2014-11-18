@@ -567,7 +567,8 @@ function element:_remove_parent_refer()
         local map = {ref="s:", regular="c:"}
         local this_key
         if self.e_type == "ref" then
-            this_key = string.format("s:%s`%s" , this, self.key)
+            _, this = xpath_split(self.real_key)
+            this_key = string.format("s:%s`%s", this, self.key)
         else
             this_key = string.format("c:%s", this)
         end
@@ -813,8 +814,10 @@ function element:_add_ref(k, link)
                        _root = self._root}
 end
 
-function element:add_ref( link )
-    local _, name = xpath_split(link.key)
+function element:add_ref(link,name)
+    if nil == name then
+        local _, name = xpath_split(link.key)
+    end
     return self:_add_ref(name, link)
 end
 
