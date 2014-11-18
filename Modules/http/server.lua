@@ -32,7 +32,6 @@ function http:get_headers(timeout)
         if line == "" then
             break
         end
-        headers[#headers + 1] = line
 
         local key,value = string.match(line,"^([^:]+):(.+)$")
         headers[key:trim()] = value:trim()
