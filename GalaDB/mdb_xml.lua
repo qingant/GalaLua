@@ -51,8 +51,7 @@ function xml_to_mdb(root, path)
             db_element:add_value(xml_element:value())
         end
     end
-    local e = root:add_node(doc:key())
-    _import(e, doc)
+    _import(root, doc)
 end
 
 if ... == "__main__" then
@@ -60,10 +59,16 @@ if ... == "__main__" then
     local path = os.getenv("HOME") .. "/acloud/clusters"
     os.execute(string.format("rm -rf %s && mkdir -p %s", path, path))
     local db = mdb:new():init(mdb.create_env(path))
-    local root = db:get_root("clusters")
+    local root = db:get_root("Clusters")
     db:with(function (db)
             print("import")
-            xml_to_mdb(root, "./cluster.xml")
+
+            local node = root:get_child("clusters")
+            if node==nil then
+                node=root:add_vector_node("clusters","cluster")
+            end
+            pprint.pprint(node)
+            xml_to_mdb(node:add_vector_item(), "./cluster.xml")
             print(root:to_xml())
             db:commit()
     end)
