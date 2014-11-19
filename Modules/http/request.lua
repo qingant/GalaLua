@@ -51,10 +51,10 @@ function HTTP:parse_uri()
 
     local path, query = string.match(uri, "^(/[^?]*)%??(.*)#?$")
     self.path = path
-
+    
     if query then
         map(string.split(query,"&"),
-            function (v)
+            function (key)
                 local t = string.split(key,"=")
                 self.params[t[1]] = t[2]
             end)
@@ -69,7 +69,7 @@ function HTTP:parse_startLine(line)
     self.method=t[1]
     self.uri=t[2]
     self.version=t[3]
-
+    
     self:parse_uri()
 end
 
