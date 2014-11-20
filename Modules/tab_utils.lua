@@ -1,5 +1,17 @@
 module(..., package.seeall)
 
+local function dup(t)
+    local o={}
+    for k,v in pairs(t) do
+        if type(v)=="table" then
+            o[k]=dup(v)
+        else
+            o[k]=v
+        end
+    end
+    return o
+end
+table.dup=dup
 
 local function update(tab1, tab2)
 	for k,v in pairs(tab2) do
@@ -53,9 +65,14 @@ end
 table.isArray = isArray
 table.is_array = isArray
 if ... == "__main__" then
+    local pprint=require "pprint"
+    local t2={"ss",m=11,v={dd=11,"xxx","ddd",xx={}}}
+    pprint.pprint(table.dup(t2))
+    --[[
     local t = {1,2,3}
     local t1 = table.map(t, function (x) return x + 1 end)
     print(table.show(t1))
     print(table.sum(t1))
     print(table.sum(t))
+    ]]
 end
