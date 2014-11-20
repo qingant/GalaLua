@@ -49,8 +49,6 @@ function app_mgr:init(kernel_sup,app_name,inst_name,args,logger)
 
     self.app.log_path=self.app.log_path or self:default_app_log_path()
     
-    print(self.app_inst_name,self.app.log_path)
-
     self:start_app_supervisor()
     return self
 end
@@ -241,21 +239,24 @@ function bootstrap:start_app(params,desc)
     -- start dependent apps first
     if app.deps then
         for i,v in ipairs(app.deps) do
-            --FIXME: what is @v?
             ok,emsg=self:start_app({app_name=v})
             if not ok then
+                self._logger:error("dependence start error:%s",emsg)
                 return nil,emsg
             end
         end
     end
     
-    local app_obj=app_mgr:new():init(self._kernel_sup,app_name, app_inst_name, self.args,self._logger)
-    ok,emsg=pcall(app_obj._start_app,app_obj)
-    if not ok then
-        return nil,emsg
+    if not app.is_dummy_app then
+        local app_obj=app_mgr:new():init(self._kernel_sup,app_name, app_inst_name, self.args,self._logger)
+        ok,emsg=pcall(app_obj._start_app,app_obj)
+        if not ok then
+            return nil,emsg
+        end
+
+        self._apps[app_inst_name]=app_obj
     end
 
-    self._apps[app_inst_name]=app_obj
     return self.ok
 
 end
