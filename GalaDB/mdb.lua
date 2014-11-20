@@ -836,14 +836,18 @@ function element:create_xpath(path)
 end
 
 function element:add_table(t)
-    if table.isArray(t) then
+    if (t[to_table_attrib_key] ~= nil) and (t[to_table_attrib_key][vector_index_key] ~= nil) then
+        self:add_attrib_table(t[to_table_attrib_key])
+        self:set_attrib(vector_index_key, "1")
         assert(self:is_vector(), "Cannot Add List to NON-Vector Node")
         for i,v in ipairs(t) do
-            local item = self:add_vector_item()
-            if type(v) ~= "table" then
-                item:add_value(tostring(v))
-            else
-                item:add_table(v)
+            if i ~= to_table_attrib_key then
+                local item = self:add_vector_item()
+                if type(v) ~= "table" then
+                    item:add_value(tostring(v))
+                else
+                    item:add_table(v)
+                end
             end
         end
     else
@@ -896,7 +900,12 @@ function element:to_table(attr_flag)
     end
 
     if self:is_vector() then
-
+        local attrib = {}
+        for k,v in pairs(self:get_attrib()) do
+            attrib[k] = v
+        end
+        result[to_table_attrib_key] = attrib
+        
         for k,v in pairs(self:get_child()) do
             result[#result + 1] = v:to_table(attr_flag)
         end
