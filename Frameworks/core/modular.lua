@@ -64,3 +64,8 @@ function inherit(app_name)
     end
 end
 
+function dummy_app()
+    local app=inherit()
+    app.is_dummy_app = true
+    return app
+end
