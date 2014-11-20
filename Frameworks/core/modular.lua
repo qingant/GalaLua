@@ -13,6 +13,8 @@
 
 module(..., package.seeall)
 
+require "tab_utils"
+
 
 app_base = {}
 app_base.deps = {}
@@ -22,6 +24,10 @@ function app_base:new()
     local o = {}
     setmetatable(o, self)
     self.__index = self
+
+    o.deps = table.dup(self.deps)
+    o.components = table.dup(self.components)
+
     return o
 end
 
@@ -57,3 +63,4 @@ function inherit(app_name)
         return app_base:new()
     end
 end
+
