@@ -56,9 +56,9 @@ function _logger:init(process,log_path)
     self._buf_len = 0
     self._buf_max_len = 500
     self._log_path = log_path
-    self._file_size = 8*1024
+    self._file_size = 4*1024*1024
     self._max_file_num = 10
-    self._times_to_get_filesize = 1 --每_times_to_get_filesize次flush buf，检查一次文件大小；为了测试方便，这里暂时设为1
+    self._times_to_get_filesize = 64 --每_times_to_get_filesize次flush buf，检查一次文件大小；为了测试方便，这里暂时设为1
     self._times = 0
     self._fd = -1
     self._output = print
