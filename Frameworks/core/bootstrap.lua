@@ -9,6 +9,7 @@
 
 module(..., package.seeall)
 
+require "tab_utils"
 local fmt = string.format
 local pprint = require("pprint")
 local rpc = require(_PACKAGE .. "rpc")
@@ -26,6 +27,25 @@ local function _get_free_bgpid() -- get free binded gpid
     end
 end
 
+local app_sep="-"
+local function get_app_module(app_name)
+    local index=string.find(app_name,app_sep) or (#app_name + 1)
+    return string.sub(app_name,1,index -1)
+end
+
+local function get_app_name(app_mod, inst_name)
+    local app_inst_name=app_mod
+    if inst_name then
+        app_inst_name = fmt("%s%s%s", app_mod,app_sep, inst_name)
+    end
+    return app_inst_name
+end
+
+local function require_app(app_name)
+    local app_mod=get_app_module(app_name)
+    return require(fmt("%s.app", app_mod))
+end
+
 local app_mgr = {}
 function app_mgr:new()
     local o = {}
@@ -33,15 +53,15 @@ function app_mgr:new()
     self.__index = self
     return o
 end
-function app_mgr:init(kernel_sup,app_name,inst_name,args,logger)
+function app_mgr:init(kernel_sup,app_name,args,logger)
     
     self._logger=logger
     self.args = args
     self.app_name = app_name
-    self.app_inst_name = inst_name
+    self.app_inst_name = app_name
     self._kernel_sup=kernel_sup
 
-    self.app_module = require(fmt("%s.app", self.app_name))
+    self.app_module = require_app(app_name)
     self.app = self.app_module.app:new()
     self.app:init(self.args)
 
@@ -49,14 +69,12 @@ function app_mgr:init(kernel_sup,app_name,inst_name,args,logger)
 
     self.app.log_path=self.app.log_path or self:default_app_log_path()
     
-    print(self.app_inst_name,self.app.log_path)
-
     self:start_app_supervisor()
     return self
 end
 
 function app_mgr:default_app_log_path()
-    local log_path=string.format("%s/%s/",self.args.log_path,self.app_inst_name or self.app_name)
+    local log_path=string.format("%s/%s/",self.args.log_path,self.app_inst_name)
     os.execute("mkdir -p "..log_path)
     return log_path
 end
@@ -219,62 +237,75 @@ end
 
 function bootstrap:_start_kernel_app()
     self:_start_kernel_supervisor()
-    self:start_app({app_name="kernel"})
+    self:_start_app("kernel")
 end
 
 function bootstrap:start_app(params,desc)
     local app_name=params.app_name
-    local inst_name=params.inst_name
     local auto=params.auto_dep
 
-    local app_inst_name=self:_get_app_inst_name(app_name,inst_name)
-    self._logger:info("start app:%s", app_inst_name)
-
-    --TODO: app已启动
-    if self._apps[app_inst_name] then
-        return "alreadly started"
+    local ok,emsg=pcall(self._start_app,self,app_name,params.kwargs)
+    if ok then
+        return self.ok
     end
+    self._logger:error("start app error:%s",emsg)
+    return nil,emsg
 
-    local app = require(fmt("%s.app", app_name)).app
+end
 
-    local ok,emsg
-    -- start dependent apps first
-    if app.deps then
-        for i,v in ipairs(app.deps) do
-            --FIXME: what is @v?
-            ok,emsg=self:start_app({app_name=v})
-            if not ok then
-                return nil,emsg
+--[[
+start dependence
+--]]
+function bootstrap:_start_deps(deps)
+    local name,kwargs
+    if deps then
+        for i,dep in ipairs(deps) do
+            if type(dep)=="table" then
+                name = get_app_name(dep.app_name,dep.inst_name)
+                kwargs = dep.kwargs
+            else
+                name = dep
+            end
+            if name~=nil then
+                self:_start_app(name,kwargs)
+                self._logger:info("start dependent app:%s succ",name)
             end
         end
     end
+end
+
+function bootstrap:_start_app(app_name,kwargs)
+    self._logger:info("start app:%s", app_name)
+
+    --TODO: app已启动
+    if self._apps[app_name] then
+        return "alreadly started"
+    end
+
+    local app=require_app(app_name).app
     
-    local app_obj=app_mgr:new():init(self._kernel_sup,app_name, app_inst_name, self.args,self._logger)
-    ok,emsg=pcall(app_obj._start_app,app_obj)
-    if not ok then
-        return nil,emsg
+    self:_start_deps(app.deps)
+
+    local argv=table.dup(self.args)
+    if type(kwargs)=="table" then
+        table.update(argv,kwargs)
     end
 
-    self._apps[app_inst_name]=app_obj
-    return self.ok
-
-end
-
-function bootstrap:_get_app_inst_name(app_name, inst_name)
-    local app_inst_name=app_name
-    if inst_name then
-        app_inst_name = fmt("%s.%s", app_name, inst_name)
+    if not app.is_dummy_app then
+        local app_obj=app_mgr:new():init(self._kernel_sup, app_name, argv,self._logger)
+        app_obj:_start_app(app_obj)
+        self._apps[app_name]=app_obj
+    else
+        --TODO: stop dummy app
     end
-    return app_inst_name
 end
+
 
 --[[
 TODO:检查依赖关系
 ]]
 function bootstrap:stop_app(params,desc)
-    local app_name=params.app_name
-    local inst_name=params.inst_name
-    local app_inst_name=self:_get_app_inst_name(app_name,inst_name)
+    local app_inst_name=params.app_name
 
     self._logger:info("stop app:%s", app_inst_name)
 
@@ -299,11 +330,14 @@ function app_cli:init(cli)
     return self
 end
 
-function app_cli:start_app(app_name,inst_name)
-    return self._bootstrap:call("start_app",{app_name=app_name,inst_name=inst_name})
+--[[
+TODO: 错误处理
+]]
+function app_cli:start_app(app_name,inst_name,kwargs)
+    return self._bootstrap:call("start_app",{app_name=get_app_name(app_name,inst_name),kwargs=kwargs})
 end
 function app_cli:stop_app(app_name,inst_name)
-    return self._bootstrap:call("stop_app",{app_name=app_name,inst_name=inst_name})
+    return self._bootstrap:call("stop_app",{app_name=get_app_name(app_name,inst_name)})
 end
 
 
@@ -312,23 +346,16 @@ _BOOTSTRAP_GPID=1
 function main()
     local workdir=glr.get_option("workdir") or os.getenv("HOME")
     glr.set_option("workdir",workdir)
+    local init_app=string.split(glr.get_option("init-app"),",")
 
-    local process_name=glr.get_option("name") or glr.get_option("init-app")
+    local process_name=glr.get_option("name") or init_app[1]
 
     local boot=rpc.create_server{mod_name = "core.bootstrap", bind_gpid = _BOOTSTRAP_GPID, parameters = {process_name,glr.get_options()}}
    
     local bs=app_cli:new():init(boot)
 
-    local init_app=glr.get_option("init-app")
-    if init_app then
-        local inst_names=glr.get_option("inst-name")
-        if inst_names then
-            for inst_name in string.gmatch(inst_names,"([^,]+)") do
-                bs:start_app(init_app, inst_name)
-            end
-        else
-            bs:start_app(init_app)
-        end
+    for _,app_name in ipairs(init_app) do
+        pprint.pprint(bs:start_app(app_name))
     end
 
     if glr.get_option("interactive") then
