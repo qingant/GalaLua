@@ -21,10 +21,13 @@ function Request:new(...)
     return o
 end
 
+--[[
+TODO:完整的url支持如http://user:pass@host:port/path
+]]
 function Request:_parse_uri(uri)
-    local index=uri:find("^"..self._schema)
+    local index,last=uri:find("^"..self._schema)
     if index then
-        uri=uri:sub(index+1)
+        uri=uri:sub(last+1)
     end
 
     local http_host, path = uri:match("^([^/]+)(.*)$")
