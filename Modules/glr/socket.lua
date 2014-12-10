@@ -38,7 +38,13 @@ end
 socket.recv_line = socket.recvLine
 
 function socket:close()
-    return glr.net.close(self._fd)
+    local ok = nil
+    local emsg = "Invalid fd: " .. self._fd
+    if type(self._fd) == "number" and self._fd > 0 then
+        ok, emsg = glr.net.close(self._fd)
+        self._fd = -1
+    end
+    return ok, emsg
 end
 
 function socket:send(buf, timeout)
