@@ -36,6 +36,7 @@ struct AMQHeader
 #define INVALID_QUEUE  -1
 
 
+
 namespace GLR
 {
 
@@ -54,38 +55,42 @@ namespace GLR
 
     class BlockBuffer
     {
+
+    public:
+        const static int MIN_BUFFER_LEN = 4096;
+
     public:
         BlockBuffer()
-            :m_buf(NULL),m_size(0)
+            :m_buf(MIN_BUFFER_LEN, 0)
         {
+
         }
+
         void resize(UINT len)
         {
-            if (m_buf!=NULL)
-            {
-                delete [] m_buf;
-            }
-            m_buf=new char[len];
-            m_size=len;
+            m_buf.resize(len);
         }
 
-        UINT size() const
+        PSTR get()
         {
-            return m_size;
+            return (PSTR)&m_buf[0];
         }
 
-        PSTR get() const
+        std::string &get_string()
         {
-            return (PSTR)m_buf;
+            return m_buf;
+        }
+
+        size_t size() const
+        {
+            return m_buf.size();
         }
 
         ~BlockBuffer()
         {
-            delete [] m_buf;
         }
     private:
-        char *m_buf;
-        UINT m_size;
+        std::string m_buf;
     };
 
 

@@ -31,14 +31,9 @@ void *AMQWorker::Run(const Galaxy::GalaxyRT::CThread &t)
     {
         m_nq.GetCB((Galaxy::AMQ::RTN_RECVCALLBACK)RecvCallBack,&_Block);
 
-        pData = (char *)_Block.get();
-
         assert(_Block.size()>=sizeof(AMQHeader));
 
-        //TODO: avoid this copy!
-        std::string msg(pData,_Block.size());
-        
-        Runtime::GetInstance().GetBus().Send(((AMQHeader *)pData)->_Route._ToGpid, msg);
+        Runtime::GetInstance().GetBus().Send(((AMQHeader *)_Block.get())->_Route._ToGpid, _Block.get_string());
     }
 }
 
