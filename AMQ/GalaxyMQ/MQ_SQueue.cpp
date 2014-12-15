@@ -526,6 +526,11 @@ void CSQSuite::Init(const CSQAllocator &_TheAllocator,const CSQPooler &_ThePoole
 		
 }
 
+UINT CSQSuite::Count() const
+{
+    return _Queue.Count();
+}
+
 bool CSQSuite::Check() const
 {
 	{

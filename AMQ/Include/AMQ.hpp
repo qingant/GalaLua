@@ -31,6 +31,7 @@ public:
 	
 	UINT GetCB(RTN_RECVCALLBACK _Callback,PVOID _Object) const;
 	UINT TimedGetCB(SHORT _Timeout,RTN_RECVCALLBACK _Callback,PVOID _Object) const;
+    UINT Count() const;
 	
 };
 

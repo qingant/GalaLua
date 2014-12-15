@@ -110,6 +110,7 @@ public:
 	
 	void Put(PCSTR _Buffer,UINT _Length) const;
 	bool TimedPut(PCSTR _Buffer,UINT _Length,SHORT _Timeout) const;
+	UINT Count() const;
 };
 
 
