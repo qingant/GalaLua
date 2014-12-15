@@ -17,3 +17,7 @@ end
 function set_queue(queue)
     return _glr.int(AMQ_INT_NO, 2, queue)
 end
+
+function count(queue)
+    return _glr.int(AMQ_INT_NO, 3, queue)
+end

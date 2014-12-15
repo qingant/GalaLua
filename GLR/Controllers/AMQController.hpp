@@ -101,6 +101,7 @@ namespace GLR
             AMQ_PUT,
             AMQ_GET,
             AMQ_SET_QUEUE,
+            AMQ_COUNT,
         };
 
     public:
@@ -113,6 +114,7 @@ namespace GLR
     private:
         void Put(lua_State *);
         void Get(lua_State *);
+        void Count(lua_State *);
         void InvalidType(lua_State *l);
         void SetQueue(lua_State *l);
     private:

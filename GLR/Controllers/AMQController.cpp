@@ -42,6 +42,17 @@ void AMQWorker::Clean(const Galaxy::GalaxyRT::CThread &)
 
 }
 
+void AMQController::Count(lua_State *l)
+{
+    int port=luaL_checkinteger(l,3);
+    const Galaxy::AMQ::CSQSuite &nq=m_amq[port];
+    UINT count = nq.Count();
+
+    lua_getglobal(l,"__id__");
+    int pid = luaL_checkinteger(l,-1);
+    Runtime::GetInstance().GetBus().Return(pid, 1,LUA_TNUMBER, count);
+}
+
 void AMQController::Get(lua_State *l)
 {
     int port=luaL_checkinteger(l,3);
@@ -180,6 +191,9 @@ void AMQController::Request( lua_State *l)
         break;
     case AMQ_SET_QUEUE:
         SetQueue(l);
+        break;
+    case AMQ_COUNT:
+        Count(l);
         break;
     default:
         InvalidType(l);
