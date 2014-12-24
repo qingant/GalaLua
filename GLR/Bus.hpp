@@ -107,7 +107,7 @@ public:
     //void Response(int pid, int narg){Response(pid,narg,NULL);}
     void Return(int pid, int narg,...);
     void Return( int pid,int narg, GLRPROTOCOL *header);
-    void Return( int pid, int narg,int type,std::map<std::string,int>m);
+    void Return2(int pid, int narg);
     void Send(int pid, const std::string&, GLRPROTOCOL::MSG_TYPE type = GLRPROTOCOL::APP);
     Galaxy::GalaxyRT::CPthreadMutex &Lock(){return _Lock;}
     ~Bus(void);

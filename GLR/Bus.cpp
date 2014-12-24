@@ -39,27 +39,12 @@ void GLR::Bus::Return( int pid,int narg, GLRPROTOCOL *header)
     nd._Status._State = Process::ProcessStatus::INT_RESP;
 }
 
-void GLR::Bus::Return( int pid, int narg,int type,std::map<std::string,int> m)
+void GLR::Bus::Return2(int pid, int narg)
 {
     Process &nd = Runtime::GetInstance().GetProcess(pid);
     if (nd._Status._State != Process::ProcessStatus::GLR_CALL)
     {
         THROW_EXCEPTION_EX("Fatal Error");
-    }
-
-    if (type!=LUA_TTABLE)
-    {
-        nd._Status._NArg = 0;
-        nd._Status._State = Process::ProcessStatus::INT_RESP;
-        return;
-    }
-
-    lua_newtable(nd._Stack);
-    for (std::map<std::string,int>::iterator it=m.begin();it!=m.end();++it)
-    {
-        //printf("%s  %d ((((((%d)))))) \n",__func__,__LINE__,it->second);
-        lua_pushnumber(nd._Stack,it->second);
-        lua_setfield(nd._Stack,-2,it->first.c_str());
     }
 
     nd._Status._NArg = narg;

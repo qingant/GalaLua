@@ -128,11 +128,14 @@ void AMQController::Put(lua_State *l)
         
         nq.Put(buf.c_str(),buf.length());
 
-        std::map<std::string, int> attr;
-        attr["corrid"] = corrid;
-        attr["msgid"] = msgid;
-        Runtime::GetInstance().GetBus().Return(pid, 1, LUA_TTABLE, attr);
+        lua_newtable(l);
+        lua_pushnumber(l,corrid);
+        lua_setfield(l,-2,"corrid");
 
+        lua_pushnumber(l,msgid);
+        lua_setfield(l,-2,"msgid");
+
+        Runtime::GetInstance().GetBus().Return2(pid, 1);
     }
     catch (IGalaxyException &e)
     {
