@@ -105,7 +105,9 @@ IN THE SOFTWARE.
 --
 _profiler = {}
 
-
+if _VERSION== "Lua 5.2" then
+    table.getn=function (t) return #t end
+end
 --
 -- newProfiler() creates a new profiler object for managing 
 -- the profiler and storing state.  Note that only one profiler 
